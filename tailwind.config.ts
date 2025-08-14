@@ -8,18 +8,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary-blue': '#0066cc',
-        'primary-teal': '#00b4d8',
-        'secondary-green': '#00c896',
+        'primary-blue': '#125ff9',
+        'primary-teal': '#008fa3', 
+        'secondary-green': '#00a542',
         'highlight-yellow': '#ffd700',
       },
       backgroundImage: {
-        'gradient-main': 'linear-gradient(135deg, #0066cc 0%, #00b4d8 50%, #00c896 100%)',
-        'gradient-button': 'linear-gradient(90deg, #0066cc 0%, #00c896 100%)',
-        'gradient-blue': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'gradient-green': 'linear-gradient(135deg, #00c896 0%, #00d4aa 100%)',
-        'gradient-purple': 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)',
-        'gradient-orange': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'gradient-main': 'linear-gradient(135deg, #125ff9 0%, #008fa3 50%, #00a542 100%)',
+        'gradient-button': 'linear-gradient(90deg, #125ff9 0%, #00a542 100%)',
+        'gradient-blue': 'linear-gradient(135deg, #125ff9 0%, #008fa3 100%)',
+        'gradient-green': 'linear-gradient(135deg, #00a542 0%, #008fa3 100%)',
+        'gradient-purple': 'linear-gradient(135deg, #008fa3 0%, #125ff9 100%)',
+        'gradient-orange': 'linear-gradient(135deg, #00a542 0%, #125ff9 100%)',
+        'gradient-footer': 'linear-gradient(135deg, #125ff9 0%, #008fa3 50%, #00a542 100%)',
       },
     },
   },

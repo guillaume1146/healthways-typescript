@@ -17,7 +17,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, gra
       <div className={`w-20 h-20 ${gradient} rounded-2xl flex items-center justify-center mb-6 mx-auto`}>
         {Icon && <Icon className="text-white text-3xl" />}
       </div>
-      <h3 className="text-xl font-semibold mb-3">{title}</h3>
+      <h3 className="text-xl font-semibold mb-3 text-gray-900">{title}</h3>
       <p className="text-gray-600">{description}</p>
     </div>
   )

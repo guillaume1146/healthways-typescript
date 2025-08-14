@@ -1,12 +1,12 @@
 import type { StatCardProps } from '@/types'
 
-const StatCard: React.FC<StatCardProps> = ({ number, label }) => {
+const StatCard: React.FC<StatCardProps> = ({ number, label, color }) => {
   return (
     <div className="text-center">
-      <div className="text-4xl font-bold bg-gradient-main bg-clip-text text-transparent">
+      <div className={`text-4xl lg:text-5xl font-bold mb-2 ${color || 'text-primary-blue'}`}>
         {number}
       </div>
-      <div className="text-gray-600 mt-2">{label}</div>
+      <div className="text-gray-700 font-medium">{label}</div>
     </div>
   )
 }

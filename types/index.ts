@@ -3,6 +3,7 @@ import { IconType } from 'react-icons'
 export interface Stat {
   number: string
   label: string
+  color?: string
 }
 
 export interface Service {
