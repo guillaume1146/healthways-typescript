@@ -12,7 +12,7 @@
     background: linear-gradient(90deg, #125ff9 0%, #00a542 100%);
     color: white;
     padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
+    border-radius: 0.75rem;
     font-weight: 600;
     transition: all 0.3s;
     border: none;
@@ -49,12 +49,11 @@
     background: linear-gradient(135deg, #125ff9 0%, #008fa3 50%, #00a542 100%) !important;
   }
   
-  .bg-gradient-footer {
-    background: linear-gradient(135deg, #125ff9 0%, #008fa3 50%, #00a542 100%) !important;
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, #125ff9 0%, #125ff9 30%, #008fa3 70%, #00a542 100%) !important;
   }
   
-  /* Alternative if the above doesn't work */
-  footer.bg-gradient-main {
-    background: linear-gradient(135deg, #125ff9 0%, #008fa3 50%, #00a542 100%) !important;
+  .bg-gradient-footer {
+    background: linear-gradient(135deg, #125ff9 0%, #125ff9 30%, #008fa3 70%, #00a542 100%) !important;
   }
 }

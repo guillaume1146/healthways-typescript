@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
   ]
 
   return (
-    <footer className="bg-gradient-main text-white">
+    <footer className="bg-gradient-footer text-white">
       {/* Call to Action Section */}
       <div className="py-16">
         <div className="container mx-auto px-4 text-center">
@@ -58,10 +58,10 @@ const Footer: React.FC = () => {
             needs. Start your journey to better health today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-primary-blue px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
+            <button className="bg-white text-primary-blue px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition">
               Get Started Free →
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-primary-blue transition">
+            <button className="border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-primary-blue transition">
               Learn More
             </button>
           </div>
@@ -166,9 +166,9 @@ const Footer: React.FC = () => {
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="flex-1 px-4 py-2 rounded-l-full text-gray-700 outline-none"
+                    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none"
                   />
-                  <button className="bg-white text-primary-blue px-6 py-2 rounded-r-full font-semibold hover:bg-gray-100 transition">
+                  <button className="btn-gradient px-6 py-2 rounded-r-xl font-semibold text-white">
                     Subscribe
                   </button>
                 </div>
@@ -197,7 +197,7 @@ const Footer: React.FC = () => {
           {/* Medical Disclaimer */}
           <div className="mt-8 p-4 bg-red-500/20 border border-red-400/30 rounded-lg">
             <p className="text-sm text-white/90">
-              <strong>Medical Disclaimer:</strong> Medicine purchases must be taken on doctor's prescription. 
+              <strong>Medical Disclaimer:</strong> Medicine purchases must be taken on doctor&apos;s prescription. 
               This platform provides general health information for educational purposes only. 
               Always consult qualified healthcare professionals for medical advice.
             </p>

@@ -8,7 +8,7 @@ const MedicalDisclaimer: React.FC = () => {
         <div>
           <h4 className="font-semibold text-red-800 mb-2">Important Medical Disclaimer</h4>
           <p className="text-red-700 text-sm leading-relaxed mb-3">
-            All medicine purchases must be made with a valid doctor's prescription. This platform provides 
+            All medicine purchases must be made with a valid doctor&apos;s prescription. This platform provides 
             general health information for educational purposes only. Always consult qualified healthcare 
             professionals for proper diagnosis, treatment, and medical advice.
           </p>

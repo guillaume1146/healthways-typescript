@@ -4,7 +4,7 @@ import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import EmptyState from '@/components/shared/EmptyState'
 import ProfessionalBanner from '@/components/shared/ProfessionalBanner'
-import { FaUserMd, FaSearch, FaStethoscope } from 'react-icons/fa'
+import { FaSearch, FaStethoscope } from 'react-icons/fa'
 
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState<string>('')
