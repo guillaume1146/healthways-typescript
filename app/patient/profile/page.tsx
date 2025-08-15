@@ -188,7 +188,7 @@ const PatientProfile = () => {
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <FaDroplet className="text-red-500" />
+                    {/* <FaDroplet className="text-red-500" /> */}
                     <span>Blood Type: {formData.medicalInfo.bloodType}</span>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-gray-600">
@@ -428,7 +428,7 @@ const PatientProfile = () => {
                     <div>
                       <label className="block text-gray-700 text-sm font-medium mb-2">Blood Type</label>
                       <div className="flex items-center gap-2">
-                        <FaDroplet className="text-red-500" />
+                        {/* <FaDroplet className="text-red-500" /> */}
                         <span className="text-gray-900 font-semibold">{formData.medicalInfo.bloodType}</span>
                       </div>
                     </div>
