@@ -2,19 +2,28 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { FaHeartbeat, FaHome, FaUserMd, FaPills, FaRobot, FaPhone, FaSearch, FaBars, FaTimes } from 'react-icons/fa'
+import { 
+  FaHeartbeat, 
+  FaHome, 
+  FaUserMd, 
+  FaPills, 
+  FaRobot, 
+  FaPhone, 
+  FaSearch, 
+  FaBars, 
+  FaTimes,
+  FaInfoCircle
+} from 'react-icons/fa'
 import type { NavLink } from '@/types'
-
-import { FaInfoCircle } from 'react-icons/fa'
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 
 const navLinks: NavLink[] = [
   { href: '/', label: 'Home', icon: FaHome },
-  { href: '/doctors', label: 'Doctors', icon: FaUserMd },
+  { href: '/doctors', label: 'Find Doctors', icon: FaUserMd },
   { href: '/medicines', label: 'Medicines', icon: FaPills },
-  { href: '/ai-search', label: 'AI Search', icon: FaRobot },
-  { href: '/contact', label: 'Contact', icon: FaPhone },
+  { href: '/ai-search', label: 'AI Health', icon: FaRobot },
   { href: '/about', label: 'About', icon: FaInfoCircle },
+  { href: '/contact', label: 'Contact', icon: FaPhone },
 ]
 
 const Navbar: React.FC = () => {
@@ -24,6 +33,7 @@ const Navbar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Searching for:', searchQuery)
+    // In real app, this would redirect to search results
   }
 
   return (
@@ -63,8 +73,13 @@ const Navbar: React.FC = () => {
                 <FaSearch className="text-gray-400" />
               </button>
             </form>
-            <Link href="/login" className="px-4 py-2 border border-primary-blue text-primary-blue rounded-full hover:bg-blue-50">
-              Login
+            
+            {/* Unified Login */}
+            <Link 
+              href="/login" 
+              className="px-4 py-2 border border-primary-blue text-primary-blue rounded-full hover:bg-blue-50 transition"
+            >
+              Sign In
             </Link>
             <Link href="/signup" className="btn-gradient">
               Sign Up
@@ -85,22 +100,33 @@ const Navbar: React.FC = () => {
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
+              {/* Navigation Links */}
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center space-x-2 text-gray-700"
+                  className="flex items-center space-x-2 text-gray-700 py-2 hover:bg-gray-50 rounded px-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <link.icon />
                   <span>{link.label}</span>
                 </Link>
               ))}
-              <div className="pt-4 border-t flex space-x-4">
-                <Link href="/login" className="flex-1 text-center py-2 border border-primary-blue text-primary-blue rounded-full">
-                  Login
+              
+              {/* Auth Buttons */}
+              <div className="pt-4 border-t space-y-2">
+                <Link 
+                  href="/login" 
+                  className="block text-center py-2 border border-primary-blue text-primary-blue rounded-full"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
                 </Link>
-                <Link href="/signup" className="flex-1 text-center btn-gradient">
+                <Link 
+                  href="/signup" 
+                  className="block text-center btn-gradient"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Sign Up
                 </Link>
               </div>
