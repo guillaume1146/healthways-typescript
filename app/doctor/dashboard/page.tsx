@@ -1,7 +1,6 @@
 // File: app/doctor/dashboard/page.tsx
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { 
   FaCalendarAlt, 
@@ -13,16 +12,56 @@ import {
   FaChartLine,
   FaClock,
   FaBell,
-  FaUserMd,
   FaClipboardList,
-  FaHeartbeat,
-  FaAward,
   FaEdit,
-  FaEye
 } from 'react-icons/fa'
 
-// Mock data for static prototype
-const mockDoctorData = {
+
+
+import { IconType } from 'react-icons';
+
+interface Stat {
+  todayAppointments: number;
+  totalPatients: number;
+  monthlyEarnings: number;
+  rating: number;
+  consultationsCompleted: number;
+  pendingApprovals: number;
+}
+
+interface RecentPatient {
+  id: number;
+  name: string;
+  time: string;
+  type: string;
+  status: string;
+}
+
+interface Notification {
+  id: number;
+  message: string;
+  time: string;
+  type: string;
+}
+
+interface DoctorData {
+  name: string;
+  specialty: string;
+  avatar: string;
+  stats: Stat;
+  recentPatients: RecentPatient[];
+  notifications: Notification[];
+}
+
+interface StatCardProps {
+  icon: IconType;
+  title: string;
+  value: string | number;
+  change?: number;
+  color: string;
+}
+
+const mockDoctorData: DoctorData = {
   name: "Dr. Sarah Johnson",
   specialty: "Cardiology",
   avatar: "👩‍⚕️",
@@ -32,42 +71,41 @@ const mockDoctorData = {
     monthlyEarnings: 15420,
     rating: 4.8,
     consultationsCompleted: 1250,
-    pendingApprovals: 3
+    pendingApprovals: 3,
   },
   recentPatients: [
     { id: 1, name: "John Smith", time: "09:00 AM", type: "Video Call", status: "completed" },
     { id: 2, name: "Maria Garcia", time: "10:30 AM", type: "In-Person", status: "upcoming" },
     { id: 3, name: "David Chen", time: "02:00 PM", type: "Video Call", status: "upcoming" },
-    { id: 4, name: "Emma Wilson", time: "03:30 PM", type: "Follow-up", status: "upcoming" }
+    { id: 4, name: "Emma Wilson", time: "03:30 PM", type: "Follow-up", status: "upcoming" },
   ],
   notifications: [
     { id: 1, message: "New patient booking for tomorrow", time: "5 min ago", type: "booking" },
     { id: 2, message: "Prescription approved by pharmacy", time: "1 hour ago", type: "prescription" },
-    { id: 3, message: "Weekly earnings report available", time: "2 hours ago", type: "earnings" }
-  ]
-}
+    { id: 3, message: "Weekly earnings report available", time: "2 hours ago", type: "earnings" },
+  ],
+};
 
 const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview')
 
-  const StatCard = ({ icon: Icon, title, value, change, color }: any) => (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {change && (
-            <p className="text-sm text-green-600 mt-1">
-              +{change}% from last month
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="text-white text-xl" />
-        </div>
+  const StatCard = ({ icon: Icon, title, value, change, color }: StatCardProps) => (
+  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-600 text-sm font-medium">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        {change && (
+          <p className="text-sm text-green-600 mt-1">
+            +{change}% from last month
+          </p>
+        )}
+      </div>
+      <div className={`p-3 rounded-full ${color}`}>
+        <Icon className="text-white text-xl" />
       </div>
     </div>
-  )
+  </div>
+);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,7 +174,7 @@ const DoctorDashboard = () => {
             {/* Today's Schedule */}
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Today's Schedule</h2>
+                <h2 className="text-xl font-bold text-gray-900">Today s Schedule</h2>
                 <Link href="/doctor/appointments" className="text-primary-blue hover:underline">
                   View All
                 </Link>

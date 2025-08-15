@@ -8,24 +8,18 @@ import {
   FaDownload,
   FaEye,
   FaShare,
-  FaFilter,
   FaSearch,
-  FaCalendarAlt,
   FaUserMd,
   FaFlask,
   FaPills,
-  FaNotes,
   FaImage,
   FaChartLine,
   FaArrowLeft,
-  FaTrendUp,
-  FaTrendDown,
-  FaExclamationTriangle,
   FaCheckCircle,
   FaStethoscope,
   FaHeartbeat,
-  FaLungs,
   FaThermometerHalf,
+  FaExclamationTriangle,
   FaTint
 } from 'react-icons/fa'
 
@@ -132,11 +126,44 @@ const mockHealthRecords = {
   }
 }
 
+interface Medication {
+  name: string;
+  dosage: string;
+  frequency: string;
+}
+
+interface LabResult {
+  value: string;
+  range: string;
+  status: string;
+}
+
+interface Record {
+  id: number;
+  type: string;
+  title: string;
+  doctor: string;
+  date: string;
+  summary: string;
+  status: string;
+  files?: string[];
+  results?: { [key: string]: LabResult };
+  medications?: Medication[];
+}
+
+interface Vital {
+  value: string;
+  date: string;
+  status: string;
+  trend: string;
+}
+
+
 const PatientHealthRecords = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [filterType, setFilterType] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedRecord, setSelectedRecord] = useState<any>(null)
+  const [selectedRecord, setSelectedRecord] = useState<Record | null>(null);
 
   const getRecordIcon = (type: string) => {
     switch (type) {
@@ -171,7 +198,7 @@ const PatientHealthRecords = () => {
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <FaTrendUp className="text-red-500" />
+    //   case 'up': return <FaTrendUp className="text-red-500" />
       default: return <span className="text-gray-500">—</span>
     }
   }
@@ -433,30 +460,30 @@ const PatientHealthRecords = () => {
                               {/* Additional Details for Lab Results */}
                               {record.type === 'lab' && record.results && (
                                 <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  {Object.entries(record.results).map(([key, result]: [string, any]) => (
+                                    {Object.entries(record.results).map(([key, result]: [string, LabResult]) => (
                                     <div key={key} className="bg-gray-50 p-3 rounded-lg">
-                                      <p className="text-xs text-gray-600 uppercase tracking-wide">{key.replace('_', ' ')}</p>
-                                      <p className="font-semibold text-gray-900">{result.value}</p>
-                                      <p className="text-xs text-gray-500">Range: {result.range}</p>
+                                        <p className="text-xs text-gray-600 uppercase tracking-wide">{key.replace('_', ' ')}</p>
+                                        <p className="font-semibold text-gray-900">{result.value}</p>
+                                        <p className="text-xs text-gray-500">Range: {result.range}</p>
                                     </div>
-                                  ))}
+                                    ))}
                                 </div>
-                              )}
+                                )}
 
                               {/* Medications for Prescriptions */}
                               {record.type === 'prescription' && record.medications && (
-                                <div className="mt-4 space-y-2">
-                                  {record.medications.map((med: any, index: number) => (
-                                    <div key={index} className="flex items-center gap-3 bg-green-50 p-3 rounded-lg">
-                                      <FaPills className="text-green-500" />
-                                      <div>
-                                        <p className="font-medium text-gray-900">{med.name} {med.dosage}</p>
-                                        <p className="text-sm text-gray-600">{med.frequency}</p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+  <div className="mt-4 space-y-2">
+    {record.medications.map((med: Medication, index: number) => (
+      <div key={index} className="flex items-center gap-3 bg-green-50 p-3 rounded-lg">
+        <FaPills className="text-green-500" />
+        <div>
+          <p className="font-medium text-gray-900">{med.name} {med.dosage}</p>
+          <p className="text-sm text-gray-600">{med.frequency}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
                               {/* Files */}
                               {record.files && record.files.length > 0 && (
@@ -498,34 +525,34 @@ const PatientHealthRecords = () => {
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Latest Vital Signs</h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Object.entries(mockHealthRecords.vitals).map(([key, vital]: [string, any]) => (
-                    <div key={key} className="bg-white border border-gray-200 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          {key === 'bloodPressure' && <FaHeartbeat className="text-red-500 text-xl" />}
-                          {key === 'heartRate' && <FaHeart className="text-pink-500 text-xl" />}
-                          {key === 'temperature' && <FaThermometerHalf className="text-orange-500 text-xl" />}
-                          {/* {key === 'weight' && <FaWeight className="text-blue-500 text-xl" />} */}
-                          {key === 'bloodSugar' && <FaTint className="text-purple-500 text-xl" />}
-                          <h4 className="font-semibold text-gray-900 capitalize">
-                            {key.replace(/([A-Z])/g, ' $1').trim()}
-                          </h4>
-                        </div>
-                        {getTrendIcon(vital.trend)}
-                      </div>
-                      <div className="mb-2">
-                        <p className="text-2xl font-bold text-gray-900">{vital.value}</p>
-                        <p className="text-sm text-gray-600">Recorded on {vital.date}</p>
-                      </div>
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                        vital.status === 'normal' ? 'bg-green-100 text-green-800' : 
-                        vital.status === 'elevated' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {vital.status}
-                      </span>
-                    </div>
-                  ))}
+                  {Object.entries(mockHealthRecords.vitals).map(([key, vital]: [string, Vital]) => (
+  <div key={key} className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        {key === 'bloodPressure' && <FaHeartbeat className="text-red-500 text-xl" />}
+        {key === 'heartRate' && <FaHeart className="text-pink-500 text-xl" />}
+        {key === 'temperature' && <FaThermometerHalf className="text-orange-500 text-xl" />}
+        {/* {key === 'weight' && <FaWeight className="text-blue-500 text-xl" />} */}
+        {key === 'bloodSugar' && <FaTint className="text-purple-500 text-xl" />}
+        <h4 className="font-semibold text-gray-900 capitalize">
+          {key.replace(/([A-Z])/g, ' $1').trim()}
+        </h4>
+      </div>
+      {getTrendIcon(vital.trend)}
+    </div>
+    <div className="mb-2">
+      <p className="text-2xl font-bold text-gray-900">{vital.value}</p>
+      <p className="text-sm text-gray-600">Recorded on {vital.date}</p>
+    </div>
+    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+      vital.status === 'normal' ? 'bg-green-100 text-green-800' : 
+      vital.status === 'elevated' ? 'bg-yellow-100 text-yellow-800' :
+      'bg-red-100 text-red-800'
+    }`}>
+      {vital.status}
+    </span>
+  </div>
+))}
                 </div>
               </div>
             )}

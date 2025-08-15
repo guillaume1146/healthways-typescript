@@ -1,7 +1,7 @@
 import { FaVideo, FaCalendarCheck, FaTruck, FaRobot } from 'react-icons/fa'
 import type { ServiceCardProps } from '@/types'
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, gradient }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon}) => {
   // Define icon colors for each service
   const getIconColor = (iconType: string) => {
     switch (iconType) {

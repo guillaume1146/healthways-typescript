@@ -15,11 +15,9 @@ import {
   FaStar,
   FaMapMarkerAlt,
   FaClock,
-  FaGlobe,
   FaPhone,
   FaEnvelope,
   FaLanguage,
-  FaAward,
   FaCheckCircle,
   FaExclamationCircle,
   FaArrowLeft

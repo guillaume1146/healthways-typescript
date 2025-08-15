@@ -14,8 +14,6 @@ import {
   FaHeart,
   FaAllergies,
   FaPills,
-  FaUserMd,
-  FaExclamationTriangle,
   FaCheckCircle,
   FaArrowLeft,
   FaCalendarAlt,
@@ -23,9 +21,6 @@ import {
   FaVenusMars,
   FaRuler,
   FaWeight,
-  FaDroplet,
-  FaEye,
-  FaUpload,
   FaTrash,
   FaPlus
 } from 'react-icons/fa'

@@ -1,4 +1,3 @@
-// File: app/doctor/appointments/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -16,12 +15,10 @@ import {
   FaRedo,
   FaEye,
   FaPrescriptionBottle,
-  FaFilter,
   FaSearch,
   FaPlus,
   FaArrowLeft,
   FaBell,
-  FaExclamationTriangle
 } from 'react-icons/fa'
 
 // Mock data for static prototype
@@ -121,13 +118,35 @@ const mockAppointments = [
   }
 ]
 
+interface Patient {
+  name: string;
+  age: number;
+  avatar: string;
+  phone: string;
+  email: string;
+}
+
+interface Appointment {
+  id: string;
+  patient: Patient;
+  datetime: string;
+  duration: number;
+  type: string;
+  status: string;
+  complaint: string;
+  location: string;
+  isNewPatient: boolean;
+  lastVisit?: string;
+  notes: string;
+}
+
 const DoctorAppointments = () => {
   const [appointments, setAppointments] = useState(mockAppointments)
   const [selectedDate, setSelectedDate] = useState('2024-01-15')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -264,7 +283,7 @@ const DoctorAppointments = () => {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Today's Total</p>
+                <p className="text-gray-600 text-sm">Today s Total</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {filteredAppointments.filter(apt => apt.status === 'upcoming').length}
                 </p>
@@ -462,7 +481,7 @@ const DoctorAppointments = () => {
               <FaCalendarAlt className="text-gray-400 text-4xl mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No appointments found</h3>
               <p className="text-gray-500 mb-6">
-                {searchQuery ? 'Try adjusting your search criteria' : 'No appointments scheduled for the selected date'}
+                {searchQuery ? "Try adjusting your search criteria" : "No appointments scheduled for the selected date"}
               </p>
               <Link href="/doctor/availability" className="btn-gradient px-6 py-3">
                 <FaPlus className="inline mr-2" />

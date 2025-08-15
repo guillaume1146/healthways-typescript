@@ -9,7 +9,6 @@ import {
   FaFileAlt, 
   FaHeart, 
   FaVideo, 
-  FaUserMd,
   FaClipboardList,
   FaBell,
   FaSearch,
@@ -17,18 +16,68 @@ import {
   FaArrowRight,
   FaClock,
   FaMapMarkerAlt,
-  FaStar,
   FaShoppingCart,
   FaRobot,
   FaAmbulance,
   FaFlask,
-  FaEdit,
-  FaEye,
-  FaDownload
+  FaEdit
 } from 'react-icons/fa'
 
-// Mock data for static prototype
-const mockPatientData = {
+import { IconType } from 'react-icons';
+
+interface Stat {
+  upcomingAppointments: number;
+  activePrescriptions: number;
+  healthScore: number;
+  lastCheckup: string;
+}
+
+interface UpcomingAppointment {
+  id: number;
+  doctor: string;
+  specialty: string;
+  date: string;
+  time: string;
+  type: string;
+  location: string;
+}
+
+interface RecentActivity {
+  id: number;
+  activity: string;
+  time: string;
+  type: string;
+}
+
+interface QuickAction {
+  id: number;
+  title: string;
+  icon: IconType;
+  href: string;
+  color: string;
+}
+
+interface PatientData {
+  name: string;
+  age: number;
+  avatar: string;
+  membershipType: string;
+  stats: Stat;
+  upcomingAppointments: UpcomingAppointment[];
+  recentActivity: RecentActivity[];
+  quickActions: QuickAction[];
+}
+
+interface StatCardProps {
+  icon: IconType;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  color: string;
+}
+
+
+const mockPatientData: PatientData = {
   name: "John Smith",
   age: 35,
   avatar: "👨",
@@ -37,7 +86,7 @@ const mockPatientData = {
     upcomingAppointments: 2,
     activePrescriptions: 3,
     healthScore: 85,
-    lastCheckup: "2024-01-10"
+    lastCheckup: "2024-01-10",
   },
   upcomingAppointments: [
     {
@@ -47,7 +96,7 @@ const mockPatientData = {
       date: "2024-01-16",
       time: "10:00 AM",
       type: "Video Call",
-      location: "Virtual Consultation"
+      location: "Virtual Consultation",
     },
     {
       id: 2,
@@ -56,24 +105,24 @@ const mockPatientData = {
       date: "2024-01-18",
       time: "2:30 PM",
       type: "In-Person",
-      location: "Apollo Bramwell Hospital"
-    }
+      location: "Apollo Bramwell Hospital",
+    },
   ],
   recentActivity: [
     { id: 1, activity: "Consultation completed with Dr. Sarah Johnson", time: "2 days ago", type: "consultation" },
     { id: 2, activity: "Prescription refilled - Metformin 500mg", time: "3 days ago", type: "prescription" },
     { id: 3, activity: "Lab test results available", time: "1 week ago", type: "lab" },
-    { id: 4, activity: "Health reminder: Annual checkup due", time: "2 weeks ago", type: "reminder" }
+    { id: 4, activity: "Health reminder: Annual checkup due", time: "2 weeks ago", type: "reminder" },
   ],
   quickActions: [
-    { id: 1, title: "Find Doctors", icon: FaUserMd, href: "/doctors", color: "bg-blue-500" },
+    { id: 1, title: "Find Doctors", icon: FaCalendarAlt, href: "/doctors", color: "bg-blue-500" },
     { id: 2, title: "Book Appointment", icon: FaCalendarAlt, href: "/appointments/book", color: "bg-green-500" },
     { id: 3, title: "Order Medicines", icon: FaPills, href: "/medicines", color: "bg-purple-500" },
     { id: 4, title: "AI Health Check", icon: FaRobot, href: "/ai-search", color: "bg-orange-500" },
     { id: 5, title: "Lab Tests", icon: FaFlask, href: "/lab-tests", color: "bg-cyan-500" },
-    { id: 6, title: "Emergency", icon: FaAmbulance, href: "/emergency", color: "bg-red-500" }
-  ]
-}
+    { id: 6, title: "Emergency", icon: FaAmbulance, href: "/emergency", color: "bg-red-500" },
+  ],
+};
 
 const PatientDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -83,22 +132,22 @@ const PatientDashboard = () => {
     console.log('Searching:', searchQuery)
   }
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color }: any) => (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-          )}
-        </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="text-white text-xl" />
-        </div>
+  const StatCard = ({ icon: Icon, title, value, subtitle, color }: StatCardProps) => (
+  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-600 text-sm font-medium">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        {subtitle && (
+          <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+        )}
+      </div>
+      <div className={`p-3 rounded-full ${color}`}>
+        <Icon className="text-white text-xl" />
       </div>
     </div>
-  )
+  </div>
+);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -311,7 +360,7 @@ const PatientDashboard = () => {
                       activity.type === 'prescription' ? 'bg-green-100' :
                       activity.type === 'lab' ? 'bg-purple-100' : 'bg-orange-100'
                     }`}>
-                      {activity.type === 'consultation' && <FaUserMd className="text-blue-600 text-sm" />}
+                      {activity.type === 'consultation' && <FaPills className="text-blue-600 text-sm" />}
                       {activity.type === 'prescription' && <FaPills className="text-green-600 text-sm" />}
                       {activity.type === 'lab' && <FaFlask className="text-purple-600 text-sm" />}
                       {activity.type === 'reminder' && <FaBell className="text-orange-600 text-sm" />}

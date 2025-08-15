@@ -20,14 +20,18 @@ import {
 } from 'react-icons/fa'
 import type { LoginFormData } from '@/types'
 
+import { IconType } from 'react-icons';
+
 interface UserType {
-  id: string
-  label: string
-  icon: React.ComponentType
-  description: string
-  redirectPath: string
-  demoEmail: string
+  id: string;
+  label: string;
+  icon: IconType; // Use IconType instead of React.ComponentType
+  description: string;
+  redirectPath: string;
+  demoEmail: string;
 }
+
+
 
 const userTypes: UserType[] = [
   {
@@ -96,6 +100,7 @@ const LoginForm: React.FC = () => {
     email: '',
     password: ''
   })
+  const SelectedIcon = selectedUserType.icon;
   
   const router = useRouter()
 
@@ -181,7 +186,7 @@ const LoginForm: React.FC = () => {
         <label className="block text-gray-700 text-sm font-medium mb-3">I am a:</label>
         <div className="grid grid-cols-2 gap-3">
           {userTypes.map((userType) => {
-            const Icon = userType.icon
+            const Icon = userType.icon;
             return (
               <button
                 key={userType.id}
@@ -194,18 +199,22 @@ const LoginForm: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <Icon className={`text-lg ${
-                    selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-600'
-                  }`} />
-                  <span className={`font-medium text-sm ${
-                    selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-900'
-                  }`}>
+                  <Icon
+                    className={`text-lg ${
+                      selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-600'
+                    }`}
+                  />
+                  <span
+                    className={`font-medium text-sm ${
+                      selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-900'
+                    }`}
+                  >
                     {userType.label}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">{userType.description}</p>
               </button>
-            )
+            );
           })}
         </div>
       </div>
@@ -214,7 +223,8 @@ const LoginForm: React.FC = () => {
       <div className="bg-gradient-main text-white rounded-lg p-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <selectedUserType.icon className="text-white text-lg" />
+            
+<SelectedIcon className="text-white text-lg" />
           </div>
           <div>
             <div className="font-semibold">{selectedUserType.label} Portal</div>
