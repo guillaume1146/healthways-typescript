@@ -24,7 +24,21 @@ const HealthwyzLogo: React.FC<HealthwyzLogoProps> = ({
 
       <g transform="translate(20, 10)">
         <path d="M40 0c5.5 0 10 4.5 10 10v20h20c5.5 0 10 4.5 10 10v20c0 5.5-4.5 10-10 10H50v20c0 5.5-4.5 10-10 10H20c-5.5 0-10-4.5-10-10V70H-10c-5.5 0-10-4.5-10-10V40c0-5.5 4.5-10 10-10H10V10c0-5.5 4.5-10 10-10h20z" fill="url(#modernGradient)" />
-        <path d="M10 70 C20 60 28 50 32 40 C36 30 42 25 48 22 C54 19 62 18 68 20 C74 22 78 26 70 30" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.9" />
+        
+        {/* Sigmoid curve as smooth diagonal */}
+        <path d="M5 72 
+                 C10 72, 15 69, 20 62
+                 C25 55, 30 48, 35 44
+                 C40 40, 45 33, 50 26
+                 C55 19, 60 16, 75 16" 
+              stroke="white" 
+              strokeWidth="3.5" 
+              fill="none" 
+              strokeLinecap="round" 
+              opacity="0.95" />
+        
+        {/* Inflection point marker */}
+        <circle cx="35" cy="44" r="1.5" fill="white" opacity="0.8"/>
       </g>
 
       {showText && (
