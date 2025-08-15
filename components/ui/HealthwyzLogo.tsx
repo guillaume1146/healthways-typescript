@@ -14,15 +14,7 @@ const HealthwyzLogo: React.FC<HealthwyzLogoProps> = ({
   showText = true
 }) => {
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 400 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      {/* Gradient Definitions */}
+    <svg width={width} height={height} viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} >
       <defs>
         <linearGradient id="modernGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#00c896" />
@@ -30,26 +22,11 @@ const HealthwyzLogo: React.FC<HealthwyzLogoProps> = ({
         </linearGradient>
       </defs>
 
-      {/* Modern Medical Cross */}
       <g transform="translate(20, 10)">
-        {/* Cross Shape */}
-        <path
-          d="M40 0c5.5 0 10 4.5 10 10v20h20c5.5 0 10 4.5 10 10v20c0 5.5-4.5 10-10 10H50v20c0 5.5-4.5 10-10 10H20c-5.5 0-10-4.5-10-10V70H-10c-5.5 0-10-4.5-10-10V40c0-5.5 4.5-10 10-10H10V10c0-5.5 4.5-10 10-10h20z"
-          fill="url(#modernGradient)"
-        />
-        
-        {/* S-Curve to Precise Top-Right Corner */}
-        <path
-          d="M10 70 C20 60 28 50 32 40 C36 30 42 25 48 22 C54 19 62 18 68 20 C74 22 78 26 70 30"
-          stroke="white"
-          strokeWidth="4"
-          fill="none"
-          strokeLinecap="round"
-          opacity="0.9"
-        />
+        <path d="M40 0c5.5 0 10 4.5 10 10v20h20c5.5 0 10 4.5 10 10v20c0 5.5-4.5 10-10 10H50v20c0 5.5-4.5 10-10 10H20c-5.5 0-10-4.5-10-10V70H-10c-5.5 0-10-4.5-10-10V40c0-5.5 4.5-10 10-10H10V10c0-5.5 4.5-10 10-10h20z" fill="url(#modernGradient)" />
+        <path d="M10 70 C20 60 28 50 32 40 C36 30 42 25 48 22 C54 19 62 18 68 20 C74 22 78 26 70 30" stroke="white" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.9" />
       </g>
 
-      {/* Healthwyz Text */}
       {showText && (
         <text
           x="120"
