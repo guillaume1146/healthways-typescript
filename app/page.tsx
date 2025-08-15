@@ -1,8 +1,12 @@
 import HeroSection from '@/components/home/HeroSection'
 import StatsSection from '@/components/home/StatsSection'
 import ServicesSection from '@/components/home/ServicesSection'
+import AboutSection from '@/components/home/AboutSection'
+import MissionVisionSection from '@/components/home/MissionVisionSection'
+import DetailedServicesSection from '@/components/home/DetailedServicesSection'
 import SpecialtiesSection from '@/components/home/SpecialtiesSection'
 import WhyChooseSection from '@/components/home/WhyChooseSection'
+import WhoWeAreSection from '@/components/home/WhoWeAreSection'
 import ProfessionalBanner from '@/components/shared/ProfessionalBanner'
 
 export default function HomePage() {
@@ -11,8 +15,12 @@ export default function HomePage() {
       <HeroSection />
       <StatsSection />
       <ServicesSection />
+      <AboutSection />
+      <MissionVisionSection />
+      <DetailedServicesSection />
       <SpecialtiesSection />
       <WhyChooseSection />
+      <WhoWeAreSection />
       <div className="container mx-auto px-4">
         <ProfessionalBanner
           title="Ready to Take Control of Your Health?"

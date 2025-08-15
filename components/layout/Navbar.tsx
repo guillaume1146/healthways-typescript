@@ -5,8 +5,11 @@ import { useState } from 'react'
 import { FaHeartbeat, FaHome, FaUserMd, FaPills, FaRobot, FaPhone, FaSearch, FaBars, FaTimes } from 'react-icons/fa'
 import type { NavLink } from '@/types'
 
+import { FaInfoCircle } from 'react-icons/fa'
+
 const navLinks: NavLink[] = [
   { href: '/', label: 'Home', icon: FaHome },
+  { href: '/about', label: 'About', icon: FaInfoCircle },
   { href: '/doctors', label: 'Doctors', icon: FaUserMd },
   { href: '/medicines', label: 'Medicines', icon: FaPills },
   { href: '/ai-search', label: 'AI Search', icon: FaRobot },
