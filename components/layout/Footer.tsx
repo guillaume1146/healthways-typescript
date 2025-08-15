@@ -46,30 +46,9 @@ const Footer: React.FC = () => {
   ]
 
   return (
-    <footer className="bg-gradient-footer text-white">
-      {/* Call to Action Section */}
-      <div className="py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
-            Ready to Take Control of Your Health?
-          </h2>
-          <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-            Join thousands of Mauritians who trust Healthways for their healthcare 
-            needs. Start your journey to better health today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-primary-blue px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition">
-              Get Started Free →
-            </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-primary-blue transition">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Content - with darker overlay for better text readability */}
-      <div className="bg-black/20 py-16">
+    <footer className="bg-gradient-footer-dark text-white">
+      {/* Footer Content - with much darker overlay */}
+      <div className="bg-black/60 py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
@@ -163,32 +142,33 @@ const Footer: React.FC = () => {
               <div className="text-center md:text-right">
                 <p className="text-white/80 mb-2">Stay updated:</p>
                 <div className="flex max-w-md">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none"
-                  />
-                  <button className="btn-gradient px-6 py-2 rounded-r-xl font-semibold text-white">
-                    Subscribe
-                  </button>
-                </div>
+  <input
+    type="email"
+    placeholder="Enter your email"
+    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none border-2 border-green-500 focus:border-green-400"
+  />
+  <button className="btn-gradient px-6 py-2 rounded-r-xl rounded-l-none font-semibold text-white">
+    Subscribe
+  </button>
+</div>
               </div>
             </div>
           </div>
 
-          {/* Copyright */}
+          {/* Copyright - All in one line */}
           <div className="border-t border-white/20 mt-8 pt-8 text-center">
-            <p className="text-white/80">
-              © 2025 Healthways. All rights reserved.
-            </p>
-            <div className="flex flex-wrap justify-center gap-6 mt-4">
-              <Link href="/privacy" className="text-white/80 hover:text-white transition text-sm">
+            <div className="flex flex-wrap justify-center items-center gap-1 text-white/80 text-sm">
+              <span>© 2025 Healthways. All rights reserved.</span>
+              <span className="hidden md:inline mx-2">|</span>
+              <Link href="/privacy" className="hover:text-white transition">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-white/80 hover:text-white transition text-sm">
+              <span className="hidden md:inline mx-2">|</span>
+              <Link href="/terms" className="hover:text-white transition">
                 Terms of Service
               </Link>
-              <Link href="/medical-disclaimer" className="text-white/80 hover:text-white transition text-sm">
+              <span className="hidden md:inline mx-2">|</span>
+              <Link href="/medical-disclaimer" className="hover:text-white transition">
                 Medical Disclaimer
               </Link>
             </div>

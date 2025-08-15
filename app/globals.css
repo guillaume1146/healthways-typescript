@@ -56,4 +56,8 @@
   .bg-gradient-footer {
     background: linear-gradient(135deg, #125ff9 0%, #125ff9 30%, #008fa3 70%, #00a542 100%) !important;
   }
+  
+  .bg-gradient-footer-dark {
+    background: linear-gradient(135deg, #0d1421 0%, #125ff9 20%, #008fa3 60%, #00a542 100%) !important;
+  }
 }
