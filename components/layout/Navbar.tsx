@@ -6,14 +6,15 @@ import { FaHeartbeat, FaHome, FaUserMd, FaPills, FaRobot, FaPhone, FaSearch, FaB
 import type { NavLink } from '@/types'
 
 import { FaInfoCircle } from 'react-icons/fa'
+import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 
 const navLinks: NavLink[] = [
   { href: '/', label: 'Home', icon: FaHome },
-  { href: '/about', label: 'About', icon: FaInfoCircle },
   { href: '/doctors', label: 'Doctors', icon: FaUserMd },
   { href: '/medicines', label: 'Medicines', icon: FaPills },
   { href: '/ai-search', label: 'AI Search', icon: FaRobot },
   { href: '/contact', label: 'Contact', icon: FaPhone },
+  { href: '/about', label: 'About', icon: FaInfoCircle },
 ]
 
 const Navbar: React.FC = () => {
@@ -31,10 +32,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-main p-2 rounded-xl">
-              <FaHeartbeat className="text-white text-2xl" />
-            </div>
-            <span className="text-2xl font-bold text-primary-blue">Healthways</span>
+            <HealthwyzLogo width={160} height={40} />
           </Link>
 
           {/* Desktop Navigation */}
