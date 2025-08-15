@@ -38,9 +38,9 @@ const HealthwyzLogo: React.FC<HealthwyzLogoProps> = ({
           fill="url(#modernGradient)"
         />
         
-        {/* Centered Dramatic Thin S-Curve */}
+        {/* S-Curve to Precise Top-Right Corner */}
         <path
-          d="M8 76 C16 70 24 62 28 52 C32 42 34 38 38 34 C42 30 46 28 52 24 C58 20 66 16 74 12 C82 8 92 4 100 -4"
+          d="M10 70 C20 60 28 50 32 40 C36 30 42 25 48 22 C54 19 62 18 68 20 C74 22 78 26 70 30"
           stroke="white"
           strokeWidth="4"
           fill="none"
