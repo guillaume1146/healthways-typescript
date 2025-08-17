@@ -600,8 +600,6 @@ export default function DoctorConsultationsPage() {
                           {appointment.type === "video" && appointment.meetingLink && (
                             <a
                               href={appointment.meetingLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
                               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm text-center"
                             >
                               <FaVideo className="inline mr-1" />
