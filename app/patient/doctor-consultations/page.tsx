@@ -92,7 +92,7 @@ const mockAppointments: Appointment[] = [
     rating: null,
     canCancel: true,
     canReschedule: true,
-    meetingLink: "https://meet.healthways.mu/dr-johnson-apt001"
+    meetingLink: "doctor-consultations/apt-2024-001"
   },
   {
     id: "APT-2024-002",
