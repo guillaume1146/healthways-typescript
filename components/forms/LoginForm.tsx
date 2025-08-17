@@ -11,7 +11,6 @@ import {
   FaFlask, 
   FaPills, 
   FaAmbulance, 
-  FaBuilding,
   FaEye,
   FaEyeSlash,
   FaGoogle,
@@ -81,14 +80,6 @@ const userTypes: UserType[] = [
     description: 'Emergency services coordination',
     redirectPath: '/ambulance/dashboard',
     demoEmail: 'ambulance@healthways.mu'
-  },
-  {
-    id: 'corporate',
-    label: 'Corporate',
-    icon: FaBuilding,
-    description: 'Employee wellness programs',
-    redirectPath: '/corporate/dashboard',
-    demoEmail: 'corporate@healthways.mu'
   }
 ]
 

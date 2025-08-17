@@ -20,6 +20,7 @@ import {
   FaRobot,
   FaAmbulance,
   FaFlask,
+  FaSignOutAlt,
   FaEdit
 } from 'react-icons/fa'
 
@@ -116,11 +117,23 @@ const mockPatientData: PatientData = {
   ],
   quickActions: [
     { id: 1, title: "Find Doctors", icon: FaCalendarAlt, href: "/doctors", color: "bg-blue-500" },
-    { id: 2, title: "Book Appointment", icon: FaCalendarAlt, href: "/appointments/book", color: "bg-green-500" },
+    { id: 2, title: "Book Appointment", icon: FaCalendarAlt, href: "/patient/doctor-consultations/book", color: "bg-green-500" },
     { id: 3, title: "Order Medicines", icon: FaPills, href: "/medicines", color: "bg-purple-500" },
     { id: 4, title: "AI Health Check", icon: FaRobot, href: "/ai-search", color: "bg-orange-500" },
     { id: 5, title: "Lab Tests", icon: FaFlask, href: "/lab-tests", color: "bg-cyan-500" },
     { id: 6, title: "Emergency", icon: FaAmbulance, href: "/emergency", color: "bg-red-500" },
+    { id: 7, title: "nanny-services", icon: FaAmbulance, href: "/patient/nanny-services/book", color: "bg-red-500" },
+    { id: 8, title: "home-nursing", icon: FaAmbulance, href: "/patient/home-nursing/book", color: "bg-red-500" },
+    { id: 9, title: "Health Records", icon: FaFileAlt, href: "/patient/health-records", color: "bg-gray-500" },
+    { id: 10, title: "Profile Settings", icon: FaEdit, href: "/patient/profile", color: "bg-yellow-500" },
+    { id: 11, title: "Emergency Contacts", icon: FaBell, href: "/patient/emergency-contacts", color: "bg-red-500" },
+    { id: 12, title: "Insurance", icon:  FaBell, href: "/patient/insurance", color: "bg-red-600" },
+    { id: 13, title: "Feedback", icon: FaClipboardList, href: "/patient/feedback", color: "bg-gray-300" },  
+    { id: 14, title: "Health Tips", icon: FaHeart, href: "/patient/health-tips", color: "bg-pink-500" },
+    { id: 15, title: "Notifications", icon: FaBell, href: "/patient/notifications", color: "bg-indigo-500" },
+    { id: 16, title: "Support", icon: FaRobot, href: "/patient/support", color: "bg-teal-500" },
+    { id: 17, title: "Settings", icon: FaEdit, href: "/patient/settings", color: "bg-gray-400" },
+    { id: 18, title: "Logout", icon: FaSignOutAlt, href: "/", color: "bg-red-600" },
   ],
 };
 
@@ -262,7 +275,7 @@ const PatientDashboard = () => {
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Upcoming Appointments</h2>
-                <Link href="/patient/appointments" className="text-primary-blue hover:underline">
+                <Link href="/patient/doctor-consultations" className="text-primary-blue hover:underline">
                   View All
                 </Link>
               </div>
@@ -270,6 +283,7 @@ const PatientDashboard = () => {
                 {mockPatientData.upcomingAppointments.map((appointment) => (
                   <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                     <div className="flex items-center justify-between">
+                      
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-primary-blue rounded-full flex items-center justify-center text-white font-semibold">
                           {appointment.doctor.split(' ').map(n => n[0]).join('')}
@@ -290,6 +304,7 @@ const PatientDashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                       
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                           appointment.type === 'Video Call' 
                             ? 'bg-green-100 text-green-800' 
@@ -298,17 +313,19 @@ const PatientDashboard = () => {
                           {appointment.type}
                         </span>
                         {appointment.type === 'Video Call' && (
-                          <button className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition">
-                            <FaVideo className="inline mr-1" />
-                            Join
-                          </button>
+                          
+	                            <a className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition" href="doctor-consultations/id" >
+                                <FaVideo className="inline mr-1" /> Join
+                              </a>
+                          
                         )}
+                        
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <Link href="/appointments/book" className="block mt-4 text-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-primary-blue hover:text-primary-blue transition">
+              <Link href="doctor-consultations/book" className="block mt-4 text-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-primary-blue hover:text-primary-blue transition">
                 <FaPlus className="inline mr-2" />
                 Book New Appointment
               </Link>
