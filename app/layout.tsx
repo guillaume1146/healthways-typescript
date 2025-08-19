@@ -7,12 +7,12 @@ import Footer from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Healthways - Your Health, Our Priority',
+  title: 'Healthwyz - Your Health, Our Priority',
   description: 'Connect with qualified doctors, get AI-powered health insights, and access medicines across Mauritius.',
   keywords: 'healthcare, doctors, medicines, AI health, Mauritius',
-  authors: [{ name: 'Healthways' }],
+  authors: [{ name: 'Healthwyz' }],
   openGraph: {
-    title: 'Healthways - Your Health, Our Priority',
+    title: 'Healthwyz - Your Health, Our Priority',
     description: 'Connect with qualified doctors and access medicines across Mauritius.',
     type: 'website',
   },

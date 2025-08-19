@@ -1,1 +1,1 @@
-# healthways-typescript
+# Healthwyz-typescript

@@ -27,7 +27,7 @@ const MissionVisionSection: React.FC = () => {
               </p>
               
               <p className="text-gray-600 mb-4">
-                Healthways delivers a diverse range of services within a cohesive ecosystem, designed to meet the needs of modern Mauritians. From virtual consultations and diagnostics to wellness programs and medicine delivery, our platform empowers users to access trusted care from anywhere, anytime.
+                Healthwyz delivers a diverse range of services within a cohesive ecosystem, designed to meet the needs of modern Mauritians. From virtual consultations and diagnostics to wellness programs and medicine delivery, our platform empowers users to access trusted care from anywhere, anytime.
               </p>
               
               <p className="text-gray-700 font-medium">
@@ -49,7 +49,7 @@ const MissionVisionSection: React.FC = () => {
             </div>
             
             <p className="text-lg text-gray-700 leading-relaxed mb-8">
-              Empowering health through a digital, decentralised ecosystem to provide personalised, borderless, and inclusive care in Asia, that people trust with their lives.
+              Empowering health through a digital, decentralised ecosystem to provide personalised, borderless, and inclusive care in Mauritius, that people trust with their lives.
             </p>
 
             {/* What We Do */}

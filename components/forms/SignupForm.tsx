@@ -39,7 +39,7 @@ const SignupForm: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-      <h3 className="text-2xl font-bold text-center mb-2">Join Healthways</h3>
+      <h3 className="text-2xl font-bold text-center mb-2">Join Healthwyz</h3>
       <p className="text-center text-gray-600 mb-6">Create your account to get started</p>
       
       <form onSubmit={handleSubmit}>

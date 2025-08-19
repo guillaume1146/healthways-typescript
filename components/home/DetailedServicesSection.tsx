@@ -4,25 +4,25 @@ const DetailedServicesSection: React.FC = () => {
   const services = [
     {
       emoji: '🩺',
-      title: 'HEALTHWAYS',
+      title: 'Healthwyz',
       subtitle: 'Simple, accessible, and efficient healthcare',
-      description: 'Healthways&apos;s telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists.',
+      description: 'Healthwyz&apos;s telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists.',
       icon: FaMobile,
       gradient: 'bg-gradient-blue'
     },
     {
       emoji: '🏥',
-      title: 'HEALTHWAYS CLINICS',
+      title: 'Healthwyz CLINICS',
       subtitle: 'Comprehensive primary healthcare services',
-      description: 'Healthways is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more. We also provide access to government-supported programs, ensuring quality care for the community.',
+      description: 'Healthwyz is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more. We also provide access to government-supported programs, ensuring quality care for the community.',
       icon: FaHospital,
       gradient: 'bg-gradient-green'
     },
     {
       emoji: '🛒',
-      title: 'Healthways Online Marketplace',
+      title: 'Healthwyz Online Marketplace',
       subtitle: 'Convenient access to health products',
-      description: 'Healthways&apos;s online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius, it provides convenient access to quality healthcare products and services.',
+      description: 'Healthwyz&apos;s online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius, it provides convenient access to quality healthcare products and services.',
       icon: FaShoppingCart,
       gradient: 'bg-gradient-purple'
     },
@@ -30,7 +30,7 @@ const DetailedServicesSection: React.FC = () => {
       emoji: '🏥',
       title: 'MedSuites',
       subtitle: 'Centralised Health Screening and Imaging Services',
-      description: 'A premier medical centre located in Central, Healthways MedSuites centralises health screening and imaging services for comprehensive care and convenience in a single location. The state-of-the-art facility addresses the preventive health needs of Mauritius.',
+      description: 'A premier medical centre located in Central, Healthwyz MedSuites centralises health screening and imaging services for comprehensive care and convenience in a single location. The state-of-the-art facility addresses the preventive health needs of Mauritius.',
       icon: FaImage,
       gradient: 'bg-gradient-orange'
     }
@@ -85,7 +85,7 @@ const DetailedServicesSection: React.FC = () => {
               Experience the Future of Healthcare
             </h3>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Join thousands of Mauritians who trust Healthways for their comprehensive healthcare needs. 
+              Join thousands of Mauritians who trust Healthwyz for their comprehensive healthcare needs. 
               From telehealth to physical clinics, we&apos;ve got you covered.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

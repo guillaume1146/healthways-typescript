@@ -39,7 +39,7 @@ const userTypes: UserType[] = [
     icon: FaUser,
     description: 'Book appointments & manage health',
     redirectPath: '/patient/dashboard',
-    demoEmail: 'patient@healthways.mu'
+    demoEmail: 'patient@Healthwyz.mu'
   },
   {
     id: 'doctor',
@@ -47,7 +47,7 @@ const userTypes: UserType[] = [
     icon: FaUserMd,
     description: 'Manage patients & consultations',
     redirectPath: '/doctor/dashboard',
-    demoEmail: 'dr.sarah@healthways.mu'
+    demoEmail: 'dr.sarah@Healthwyz.mu'
   },
   {
     id: 'nurse',
@@ -55,7 +55,7 @@ const userTypes: UserType[] = [
     icon: FaUserNurse,
     description: 'Provide home care services',
     redirectPath: '/nurse/dashboard',
-    demoEmail: 'nurse@healthways.mu'
+    demoEmail: 'nurse@Healthwyz.mu'
   },
   {
     id: 'pharmacy',
@@ -63,7 +63,7 @@ const userTypes: UserType[] = [
     icon: FaPills,
     description: 'Manage inventory & prescriptions',
     redirectPath: '/pharmacy/dashboard',
-    demoEmail: 'pharmacy@healthways.mu'
+    demoEmail: 'pharmacy@Healthwyz.mu'
   },
   {
     id: 'lab',
@@ -71,7 +71,7 @@ const userTypes: UserType[] = [
     icon: FaFlask,
     description: 'Laboratory services & results',
     redirectPath: '/lab/dashboard',
-    demoEmail: 'lab@healthways.mu'
+    demoEmail: 'lab@Healthwyz.mu'
   },
   {
     id: 'ambulance',
@@ -79,7 +79,7 @@ const userTypes: UserType[] = [
     icon: FaAmbulance,
     description: 'Emergency services coordination',
     redirectPath: '/ambulance/dashboard',
-    demoEmail: 'ambulance@healthways.mu'
+    demoEmail: 'ambulance@Healthwyz.mu'
   }
 ]
 
@@ -149,30 +149,11 @@ const LoginForm: React.FC = () => {
     <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Healthways</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Healthwyz</h3>
         <p className="text-gray-600">Select your account type and sign in</p>
       </div>
 
-      {/* Demo Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h4 className="font-semibold text-blue-800 mb-2">🚀 Demo Mode</h4>
-        <p className="text-sm text-blue-700 mb-3">
-          This is a static prototype. Select any user type and click login to access the demo dashboard.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {userTypes.slice(0, 4).map((userType) => (
-            <button
-              key={userType.id}
-              onClick={() => handleDemoLogin(userType)}
-              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded transition"
-            >
-              Demo {userType.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* User Type Selection */}
       <div className="mb-6">
         <label className="block text-gray-700 text-sm font-medium mb-3">I am a:</label>
         <div className="grid grid-cols-2 gap-3">
@@ -325,7 +306,7 @@ const LoginForm: React.FC = () => {
       {/* Register Links */}
       <div className="mt-6 text-center space-y-2">
         <p className="text-gray-600 text-sm">
-          New to Healthways?{' '}
+          New to Healthwyz?{' '}
           <Link href="/signup" className="text-primary-blue hover:underline font-medium">
             Register as Patient
           </Link>

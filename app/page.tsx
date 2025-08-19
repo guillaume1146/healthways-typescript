@@ -24,7 +24,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4">
         <ProfessionalBanner
           title="Ready to Take Control of Your Health?"
-          description="Join thousands of Mauritians who trust Healthways for their healthcare needs. Start your journey to better health today."
+          description="Join thousands of Mauritians who trust Healthwyz for their healthcare needs. Start your journey to better health today."
           primaryButton="Schedule Consultation"
           secondaryButton="Learn More"
         />

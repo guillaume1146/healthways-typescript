@@ -27,7 +27,7 @@ import {
 const mockDoctorProfile = {
   personalInfo: {
     fullName: "Dr. Sarah Johnson",
-    email: "sarah.johnson@healthways.mu",
+    email: "sarah.johnson@Healthwyz.mu",
     phone: "+230 123 4567",
     avatar: "👩‍⚕️",
     bio: "Experienced cardiologist with over 10 years of practice. Specialized in interventional cardiology and heart disease prevention. Committed to providing compassionate, evidence-based care to all patients.",

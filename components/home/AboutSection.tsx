@@ -8,7 +8,7 @@ const AboutSection: React.FC = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-4xl">🩺</span>
-            <h2 className="text-4xl font-bold text-gray-900">About Us – Healthways</h2>
+            <h2 className="text-4xl font-bold text-gray-900">About Us – Healthwyz</h2>
           </div>
           <h3 className="text-2xl text-primary-blue font-semibold mb-6">
             Delivering healthcare via a &quot;Healthcare, Anywhere&quot; model
@@ -20,11 +20,11 @@ const AboutSection: React.FC = () => {
           {/* Content */}
           <div>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              At Healthways, we believe that quality healthcare should be accessible, trusted, and available wherever you are. Our innovative &quot;Healthcare, Anywhere&quot; model breaks traditional boundaries by offering a digital-first, omni-channel ecosystem that puts patients at the center of care.
+              At Healthwyz, we believe that quality healthcare should be accessible, trusted, and available wherever you are. Our innovative &quot;Healthcare, Anywhere&quot; model breaks traditional boundaries by offering a digital-first, omni-channel ecosystem that puts patients at the center of care.
             </p>
             
             <p className="text-gray-600 mb-8">
-              Whether you&apos;re at home, at work, or on the move, Healthways ensures you can connect with certified professionals and receive the care you need—without the hassle of hospital queues or geographic limitations.
+              Whether you&apos;re at home, at work, or on the move, Healthwyz ensures you can connect with certified professionals and receive the care you need—without the hassle of hospital queues or geographic limitations.
             </p>
 
             {/* Key Features */}

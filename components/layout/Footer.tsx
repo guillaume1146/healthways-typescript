@@ -57,7 +57,7 @@ const Footer: React.FC = () => {
                 <div className="bg-white p-2 rounded-xl">
                   <span className="text-2xl">❤️</span>
                 </div>
-                <span className="text-2xl font-bold text-white">Healthways</span>
+                <span className="text-2xl font-bold text-white">Healthwyz</span>
               </div>
               <p className="text-white/90 mb-6 leading-relaxed">
                 Your trusted healthcare platform connecting patients with qualified doctors and providing 
@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2 text-white/80">
                 <FaEnvelope />
-                <span>info@healthways.mu</span>
+                <span>info@Healthwyz.mu</span>
               </div>
             </div>
 
@@ -158,7 +158,7 @@ const Footer: React.FC = () => {
           {/* Copyright - All in one line */}
           <div className="border-t border-white/20 mt-8 pt-8 text-center">
             <div className="flex flex-wrap justify-center items-center gap-1 text-white/80 text-sm">
-              <span>© 2025 Healthways. All rights reserved.</span>
+              <span>© 2025 Healthwyz. All rights reserved.</span>
               <span className="hidden md:inline mx-2">|</span>
               <Link href="/privacy" className="hover:text-white transition">
                 Privacy Policy

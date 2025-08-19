@@ -51,26 +51,26 @@ const WhoWeAreSection: React.FC = () => {
           <div>
             <div className="space-y-6">
               <p className="text-lg text-gray-700 leading-relaxed">
-                Healthways was born from a desire to support the Mauritian community and provide easy access to healthcare. We believe healthcare is personal and unique to each individual. At the core of our work is the commitment to serve and connect each person with the care they need to stay healthy and well.
+                Healthwyz was born from a desire to support the Mauritian community and provide easy access to healthcare. We believe healthcare is personal and unique to each individual. At the core of our work is the commitment to serve and connect each person with the care they need to stay healthy and well.
               </p>
               
               <p className="text-gray-600 leading-relaxed">
-                Since the launch of Healthways, we&apos;ve been disrupting the healthcare industry by developing innovative solutions to bridge gaps in the healthcare ecosystem.
+                Since the launch of Healthwyz, we&apos;ve been disrupting the healthcare industry by developing innovative solutions to bridge gaps in the healthcare ecosystem.
               </p>
               
               <p className="text-gray-600 leading-relaxed">
-                To bring the best services to our users, we are constantly innovating. There is no typical day at Healthways—and that&apos;s part of the fun! We are looking for driven individuals excited by what the future of healthcare could look like.
+                To bring the best services to our users, we are constantly innovating. There is no typical day at Healthwyz—and that&apos;s part of the fun! We are looking for driven individuals excited by what the future of healthcare could look like.
               </p>
             </div>
 
             {/* Call to Action */}
             <div className="mt-8 p-6 bg-gradient-main rounded-2xl text-white">
-              <h4 className="text-xl font-bold mb-2">Be part of Healthways today.</h4>
+              <h4 className="text-xl font-bold mb-2">Be part of Healthwyz today.</h4>
               <p className="text-white/90 mb-4">
                 Join our mission to transform healthcare in Mauritius and beyond.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="bg-white text-primary-blue px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition">
+                <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition" >
                   Join Our Team
                 </button>
                 <button className="border-2 border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-primary-blue transition">

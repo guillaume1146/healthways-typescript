@@ -120,7 +120,7 @@ const mockPatientData: PatientData = {
     { id: 2, title: "Book Appointment", icon: FaCalendarAlt, href: "/patient/doctor-consultations/book", color: "bg-green-500" },
     { id: 3, title: "Order Medicines", icon: FaPills, href: "/medicines", color: "bg-purple-500" },
     { id: 4, title: "AI Health Check", icon: FaRobot, href: "/ai-search", color: "bg-orange-500" },
-    { id: 5, title: "Lab Tests", icon: FaFlask, href: "/lab-tests", color: "bg-cyan-500" },
+    { id: 5, title: "Lab Tests", icon: FaFlask, href: "patient/lab-tests/book", color: "bg-cyan-500" },
     { id: 6, title: "Emergency", icon: FaAmbulance, href: "/emergency", color: "bg-red-500" },
     { id: 7, title: "nanny-services", icon: FaAmbulance, href: "/patient/nanny-services/book", color: "bg-red-500" },
     { id: 8, title: "home-nursing", icon: FaAmbulance, href: "/patient/home-nursing/book", color: "bg-red-500" },
@@ -206,7 +206,7 @@ const PatientDashboard = () => {
                 placeholder="Search for doctors, symptoms, medicines..."
                 className="flex-1 px-6 py-3 rounded-full text-gray-900 focus:outline-none"
               />
-              <button type="submit" className="bg-white text-primary-blue px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
+              <button type="submit" className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
                 <FaSearch className="inline mr-2" />
                 Search
               </button>
@@ -431,7 +431,7 @@ const PatientDashboard = () => {
               <span className="text-primary-blue font-medium">Order Now <FaArrowRight className="inline ml-1" /></span>
             </Link>
 
-            <Link href="/lab-tests" className="group p-6 border border-gray-200 rounded-lg hover:border-primary-blue hover:bg-blue-50 transition">
+            <Link href="patient/lab-tests/book" className="group p-6 border border-gray-200 rounded-lg hover:border-primary-blue hover:bg-blue-50 transition">
               <FaFlask className="text-3xl text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-semibold text-gray-900 mb-2">Lab Tests</h3>
               <p className="text-gray-600 text-sm mb-3">Book lab tests and get results digitally with home collection</p>
