@@ -15,12 +15,9 @@ export default function HomePage() {
       <HeroSection />
       <StatsSection />
       <ServicesSection />
-      <AboutSection />
-      <MissionVisionSection />
       <DetailedServicesSection />
       <SpecialtiesSection />
       <WhyChooseSection />
-      <WhoWeAreSection />
       <div className="container mx-auto px-4">
         <ProfessionalBanner
           title="Ready to Take Control of Your Health?"

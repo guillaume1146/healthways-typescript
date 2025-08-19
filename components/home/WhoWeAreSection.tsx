@@ -35,7 +35,7 @@ const WhoWeAreSection: React.FC = () => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        {/* Header */}
+
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-4xl">🧬</span>
@@ -47,7 +47,6 @@ const WhoWeAreSection: React.FC = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Story Content */}
           <div>
             <div className="space-y-6">
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -63,7 +62,6 @@ const WhoWeAreSection: React.FC = () => {
               </p>
             </div>
 
-            {/* Call to Action */}
             <div className="mt-8 p-6 bg-gradient-main rounded-2xl text-white">
               <h4 className="text-xl font-bold mb-2">Be part of Healthwyz today.</h4>
               <p className="text-white/90 mb-4">
@@ -80,7 +78,6 @@ const WhoWeAreSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Values Grid */}
           <div>
             <h4 className="text-2xl font-bold text-gray-900 mb-8 text-center">Our Core Values</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -97,7 +94,6 @@ const WhoWeAreSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Innovation Highlight */}
         <div className="mt-16 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-8">
           <div className="text-center">
             <h4 className="text-2xl font-bold text-gray-900 mb-4">
@@ -122,6 +118,8 @@ const WhoWeAreSection: React.FC = () => {
             </div>
           </div>
         </div>
+
+
       </div>
     </section>
   )
