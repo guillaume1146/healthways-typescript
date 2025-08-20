@@ -17,7 +17,8 @@ import {
   FaFlask,
   FaHandshake,
   FaBaby,
-  FaChevronDown
+  FaChevronDown,
+  FaShieldAlt
 } from 'react-icons/fa'
 import type { NavLink } from '@/types'
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
@@ -36,7 +37,6 @@ const navLinks: NavLink[] = [
   { href: '/contact', label: 'Contact', icon: FaPhone },
 ]
 
-// Group services for better mobile navigation
 const serviceCategories = {
   'Healthcare Services': [
     { href: '/doctors', label: 'Find Doctors', icon: FaUserMd },
@@ -47,6 +47,7 @@ const serviceCategories = {
   'Medical Services': [
     { href: '/medicines', label: 'Medicines', icon: FaPills },
     { href: '/lab-testing', label: 'Lab Testing', icon: FaFlask },
+    { href: '/insurance', label: 'Insurance', icon: FaShieldAlt },
   ],
   'Digital Health': [
     { href: '/ai-search', label: 'AI Support', icon: FaRobot },
@@ -79,7 +80,6 @@ const Navbar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Searching for:', searchQuery)
-    // In real app, this would redirect to search results
   }
 
   const toggleDropdown = (category: string) => {
@@ -262,7 +262,6 @@ const Navbar: React.FC = () => {
                   </div>
                 ))}
 
-                {/* Other Links */}
                 <Link
                   href="/about"
                   className="flex items-center space-x-3 text-gray-700 py-3 px-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 rounded-lg transition-colors"
