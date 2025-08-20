@@ -128,7 +128,7 @@ const mockPatientData: PatientData = {
     { id: 10, title: "Profile Settings", icon: FaEdit, href: "/patient/profile", color: "bg-yellow-500" },
     { id: 11, title: "Emergency Contacts", icon: FaBell, href: "/patient/emergency-contacts", color: "bg-red-500" },
     { id: 12, title: "Insurance", icon:  FaBell, href: "/patient/insurance", color: "bg-red-600" },
-    { id: 13, title: "Feedback", icon: FaClipboardList, href: "/patient/feedback", color: "bg-gray-300" },  
+    { id: 13, title: "Prescriptions", icon: FaClipboardList, href: "/patient/doctor-prescriptions", color: "bg-gray-300" },  
     { id: 14, title: "Health Tips", icon: FaHeart, href: "/patient/health-tips", color: "bg-pink-500" },
     { id: 15, title: "Notifications", icon: FaBell, href: "/patient/notifications", color: "bg-indigo-500" },
     { id: 16, title: "Support", icon: FaRobot, href: "/patient/support", color: "bg-teal-500" },
