@@ -4,37 +4,37 @@ import { FaSearch } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
-// Mauritius Flag Component
+// Corrected Mauritius Flag Component - Horizontal orientation
 const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
   return (
     <motion.div 
-      className={`inline-flex rounded-sm overflow-hidden ${className}`}
+      className={`inline-flex flex-col rounded-sm overflow-hidden ${className}`}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.5 }}
     >
       <motion.div 
-        className="w-6 h-4 bg-red-600"
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        className="h-1.5 w-6 bg-red-600"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.3 }}
       />
       <motion.div 
-        className="w-6 h-4 bg-blue-600"
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        className="h-1.5 w-6 bg-blue-600"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.3 }}
       />
       <motion.div 
-        className="w-6 h-4 bg-yellow-400"
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        className="h-1.5 w-6 bg-yellow-400"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.3 }}
       />
       <motion.div 
-        className="w-6 h-4 bg-green-600"
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        className="h-1.5 w-6 bg-green-600"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.0, duration: 0.3 }}
       />
     </motion.div>
@@ -166,7 +166,7 @@ const HeroSection: React.FC = () => {
   }
 
   return (
-    <section className="bg-gradient-hero text-white py-20 relative overflow-hidden">
+    <section className="bg-gradient-hero text-white py-12 sm:py-16 lg:py-20 relative overflow-hidden">
       {/* Animated Background Elements */}
       <motion.div
         className="absolute inset-0 opacity-10"
@@ -185,20 +185,24 @@ const HeroSection: React.FC = () => {
         }}
       />
 
-      <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Mobile-First Layout: Text at top, Image below */}
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          
+          {/* Text Content - Always first on mobile */}
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
+            className="w-full order-1 lg:order-1 text-center lg:text-left"
           >
             <motion.div 
               variants={itemVariants}
-              className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 mb-6 border border-white/20"
+              className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-white/20"
             >
-              <MauritiusFlag className="mr-3" />
+              <MauritiusFlag className="mr-2 sm:mr-3" />
               <motion.span 
-                className="text-sm font-medium text-white"
+                className="text-xs sm:text-sm font-medium text-white"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.5 }}
@@ -209,7 +213,7 @@ const HeroSection: React.FC = () => {
 
             <motion.h1 
               variants={itemVariants}
-              className="text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight text-white"
             >
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -247,28 +251,29 @@ const HeroSection: React.FC = () => {
             
             <motion.p 
               variants={itemVariants}
-              className="text-xl mb-8 text-white/90 leading-relaxed"
+              className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 leading-relaxed px-2 lg:px-0"
             >
               Connect with qualified doctors, get AI-powered health insights, 
               and access medicines across Mauritius. Your trusted healthcare 
               companion.
             </motion.p>
             
+            {/* Search Form - Responsive */}
             <motion.form 
               variants={itemVariants}
               onSubmit={handleSearch} 
-              className="bg-white rounded-xl p-2 flex items-center max-w-lg mb-8 shadow-2xl border border-white/20"
+              className="bg-white rounded-xl p-1.5 sm:p-2 flex items-center w-full max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 shadow-2xl border border-white/20"
             >
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for doctors, diseases, symptoms, treatments..."
-                className="flex-1 px-4 py-3 text-gray-700 outline-none rounded-l-xl"
+                placeholder="Search doctors, diseases..."
+                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 outline-none rounded-l-xl text-sm sm:text-base"
               />
               <motion.button 
                 type="submit" 
-                className="btn-gradient px-6 py-3 flex items-center gap-2 rounded-r-xl relative overflow-hidden"
+                className="btn-gradient px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2 rounded-r-xl relative overflow-hidden text-sm sm:text-base"
                 whileHover={{ 
                   scale: 1.05,
                   boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
@@ -284,8 +289,8 @@ const HeroSection: React.FC = () => {
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                <FaSearch />
-                Search
+                <FaSearch className="text-xs sm:text-sm" />
+                <span className="hidden sm:inline">Search</span>
                 <motion.div
                   className="absolute inset-0 bg-white/20"
                   initial={{ x: "-100%" }}
@@ -295,19 +300,20 @@ const HeroSection: React.FC = () => {
               </motion.button>
             </motion.form>
 
+            {/* Action Buttons - Responsive Grid */}
             <motion.div 
               variants={containerVariants}
-              className="flex flex-col sm:flex-row gap-4"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-lg mx-auto lg:mx-0"
             >
               {[
-                { icon: "👨‍⚕️", text: "Find Doctors" },
-                { icon: "💊", text: "Buy Medicines" },
-                { icon: "🤖", text: "AI Health Assistant" }
+                { icon: "👨‍⚕️", text: "Find Doctors", shortText: "Doctors" },
+                { icon: "💊", text: "Buy Medicines", shortText: "Medicines" },
+                { icon: "🤖", text: "AI Health Assistant", shortText: "AI Health" }
               ].map((button, index) => (
                 <motion.button 
                   key={button.text}
                   variants={itemVariants}
-                  className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center gap-2 relative overflow-hidden group"
+                  className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center justify-center gap-2 relative overflow-hidden group text-sm sm:text-base"
                   whileHover={{ 
                     scale: 1.05, 
                     y: -2,
@@ -321,10 +327,12 @@ const HeroSection: React.FC = () => {
                   <motion.span
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
+                    className="text-base sm:text-lg"
                   >
                     {button.icon}
                   </motion.span>
-                  {button.text}
+                  <span className="block sm:hidden">{button.shortText}</span>
+                  <span className="hidden sm:block">{button.text}</span>
                   <motion.div
                     className="absolute bottom-0 left-0 h-0.5 bg-yellow-400"
                     initial={{ width: "0%" }}
@@ -336,8 +344,9 @@ const HeroSection: React.FC = () => {
             </motion.div>
           </motion.div>
 
+          {/* Image Carousel - Second on mobile, responsive sizing */}
           <motion.div
-            className="hidden lg:block"
+            className="w-full order-2 lg:order-2"
             initial={{ opacity: 0, x: 100, rotateY: 30 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ 
@@ -348,7 +357,7 @@ const HeroSection: React.FC = () => {
               damping: 15
             }}
           >
-            <div className="relative h-[500px] w-full mx-auto perspective-1000">
+            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[500px] w-full mx-auto perspective-1000 max-w-md lg:max-w-none">
               {/* Dark Background Overlay */}
               <motion.div
                 className="absolute inset-0 rounded-2xl"
@@ -378,9 +387,9 @@ const HeroSection: React.FC = () => {
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               />
 
-              {/* Animated Border Ring */}
+              {/* Animated Border Ring - Responsive */}
               <motion.div
-                className="absolute -inset-4 rounded-3xl"
+                className="absolute -inset-2 sm:-inset-4 rounded-3xl"
                 animate={{
                   background: [
                     "conic-gradient(from 0deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
@@ -404,12 +413,12 @@ const HeroSection: React.FC = () => {
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
                 <motion.div
-                  className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 via-blue-400 to-transparent shadow-lg"
+                  className="absolute w-full h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-emerald-400 via-blue-400 to-transparent shadow-lg"
                   style={{
                     filter: "drop-shadow(0 0 8px rgba(16, 185, 129, 0.8))"
                   }}
                   animate={{ 
-                    y: [0, 500, 0],
+                    y: [0, "100vh", 0],
                     background: [
                       "linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 50%, transparent 100%)",
                       "linear-gradient(90deg, transparent 0%, rgba(29, 78, 216, 0.9) 50%, transparent 100%)",
@@ -459,14 +468,14 @@ const HeroSection: React.FC = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                   />
 
-                  <div className="relative w-full h-full m-0 p-0">
+                  <div className="relative w-full h-full">
                     <Image
                       src={heroImages[currentImageIndex].src}
                       alt={heroImages[currentImageIndex].alt}
                       fill
-                      className="object-cover object-center w-full h-full m-0 p-0"
+                      className="object-cover object-center"
                       priority
-                      sizes="(max-width: 768px) 100vw, 400px"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 60vw, 50vw"
                     />
                     
                     {/* Gradient Overlay with Animation */}
@@ -484,21 +493,22 @@ const HeroSection: React.FC = () => {
                       transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     />
                     
+                    {/* Image Title - Responsive */}
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 p-6 text-white"
+                      className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 text-white"
                       initial={{ y: 50, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
                     >
                       <motion.div
-                        className="bg-black/40 backdrop-blur-md rounded-lg p-4 border border-white/20"
+                        className="bg-black/40 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/20"
                         whileHover={{ 
                           scale: 1.02,
                           boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
                         }}
                       >
                         <motion.h3 
-                          className="text-xl font-bold mb-1"
+                          className="text-base sm:text-xl font-bold mb-1"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 1.0, duration: 0.4 }}
@@ -506,7 +516,7 @@ const HeroSection: React.FC = () => {
                           {heroImages[currentImageIndex].title}
                         </motion.h3>
                         <motion.p 
-                          className="text-sm text-white/80"
+                          className="text-xs sm:text-sm text-white/80 line-clamp-2"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 1.2, duration: 0.4 }}
@@ -519,16 +529,16 @@ const HeroSection: React.FC = () => {
                 </motion.div>
               </AnimatePresence>
               
-              {/* Enhanced Indicators */}
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {/* Enhanced Indicators - Responsive positioning */}
+              <div className="absolute -bottom-6 sm:-bottom-8 left-1/2 transform -translate-x-1/2 flex gap-1.5 sm:gap-2">
                 {heroImages.map((_, index) => (
                   <motion.button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`h-3 rounded-full transition-all duration-500 relative overflow-hidden ${
+                    className={`h-2 sm:h-3 rounded-full transition-all duration-500 relative overflow-hidden ${
                       index === currentImageIndex 
-                        ? 'bg-yellow-400 w-8 shadow-lg' 
-                        : 'bg-white/50 hover:bg-white/70 w-3'
+                        ? 'bg-yellow-400 w-6 sm:w-8 shadow-lg' 
+                        : 'bg-white/50 hover:bg-white/70 w-2 sm:w-3'
                     }`}
                     whileHover={{ scale: 1.3, y: -2 }}
                     whileTap={{ scale: 0.9 }}
@@ -553,36 +563,36 @@ const HeroSection: React.FC = () => {
                 ))}
               </div>
 
-              {/* Enhanced Navigation Arrows */}
+              {/* Enhanced Navigation Arrows - Responsive */}
               <motion.button
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-3 rounded-full hover:bg-black/60 transition border border-white/20"
+                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-2 sm:p-3 rounded-full hover:bg-black/60 transition border border-white/20"
                 onClick={() => setCurrentImageIndex(prev => prev === 0 ? heroImages.length - 1 : prev - 1)}
                 whileHover={{ scale: 1.15, x: -2 }}
                 whileTap={{ scale: 0.9 }}
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </motion.button>
 
               <motion.button
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-3 rounded-full hover:bg-black/60 transition border border-white/20"
+                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-2 sm:p-3 rounded-full hover:bg-black/60 transition border border-white/20"
                 onClick={() => setCurrentImageIndex(prev => (prev + 1) % heroImages.length)}
                 whileHover={{ scale: 1.15, x: 2 }}
                 whileTap={{ scale: 0.9 }}
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.button>
 
-              {/* Enhanced Nature-themed Decorative Elements */}
+              {/* Enhanced Nature-themed Decorative Elements - Responsive */}
               <motion.div
-                className="absolute -top-8 -right-8 w-16 h-16 rounded-full"
+                className="absolute -top-4 sm:-top-8 -right-4 sm:-right-8 w-8 h-8 sm:w-16 sm:h-16 rounded-full"
                 animate={{
                   scale: [1, 1.5, 1],
                   rotate: [0, 180, 360],
@@ -601,7 +611,7 @@ const HeroSection: React.FC = () => {
               />
               
               <motion.div
-                className="absolute -bottom-8 -left-8 w-12 h-12 rounded-full"
+                className="absolute -bottom-4 sm:-bottom-8 -left-4 sm:-left-8 w-6 h-6 sm:w-12 sm:h-12 rounded-full"
                 animate={{
                   scale: [1.5, 1, 1.5],
                   rotate: [360, 180, 0],
@@ -619,11 +629,11 @@ const HeroSection: React.FC = () => {
                 }}
               />
 
-              {/* Nature-themed Floating Particles */}
+              {/* Nature-themed Floating Particles - Responsive */}
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-2 h-2 rounded-full"
+                  className="absolute w-1 h-1 sm:w-2 sm:h-2 rounded-full"
                   style={{
                     left: `${20 + i * 15}%`,
                     top: `${10 + i * 20}%`,
