@@ -4,6 +4,43 @@ import { FaSearch } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 
+// Mauritius Flag Component
+const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
+  return (
+    <motion.div 
+      className={`inline-flex rounded-sm overflow-hidden ${className}`}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.5 }}
+    >
+      <motion.div 
+        className="w-6 h-4 bg-red-600"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.3 }}
+      />
+      <motion.div 
+        className="w-6 h-4 bg-blue-600"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.3 }}
+      />
+      <motion.div 
+        className="w-6 h-4 bg-yellow-400"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.9, duration: 0.3 }}
+      />
+      <motion.div 
+        className="w-6 h-4 bg-green-600"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 1.0, duration: 0.3 }}
+      />
+    </motion.div>
+  )
+}
+
 const HeroSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -59,36 +96,169 @@ const HeroSection: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length)
-    }, 4000)
+    }, 5000)
     return () => clearInterval(interval)
   }, [heroImages.length])
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  }
+
+  const imageVariants = {
+    enter: {
+      opacity: 0,
+      scale: 1.2,
+      rotateY: 45,
+      clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
+      filter: "blur(10px) brightness(0.5)"
+    },
+    center: {
+      opacity: 1,
+      scale: 1,
+      rotateY: 0,
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+      filter: "blur(0px) brightness(1)",
+      transition: {
+        duration: 1.2,
+        ease: [0.25, 0.46, 0.45, 0.94] as const,
+        clipPath: {
+          duration: 1.5,
+          ease: "easeInOut" as const
+        },
+        filter: {
+          duration: 0.8
+        }
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      rotateY: -45,
+      clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)",
+      filter: "blur(5px) brightness(0.3)",
+      transition: {
+        duration: 0.8,
+        ease: [0.55, 0.085, 0.68, 0.53] as const
+      }
+    }
+  }
+
   return (
     <section className="bg-gradient-hero text-white py-20 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <motion.div
+        className="absolute inset-0 opacity-10"
+        animate={{
+          background: [
+            "radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)",
+            "radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)",
+            "radial-gradient(circle at 40% 60%, rgba(245, 158, 11, 0.3) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)"
+          ]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 mb-6">
-              <span className="text-sm font-medium text-white">🇲🇺 Mauritius&apos;s Leading Healthcare Platform</span>
-            </div>
+            <motion.div 
+              variants={itemVariants}
+              className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 mb-6 border border-white/20"
+            >
+              <MauritiusFlag className="mr-3" />
+              <motion.span 
+                className="text-sm font-medium text-white"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+              >
+                Mauritius&apos;s Leading Healthcare Platform
+              </motion.span>
+            </motion.div>
+
+            <motion.h1 
+              variants={itemVariants}
+              className="text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white"
+            >
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
+              >
+                Your Health,
+              </motion.span>
+              <br />
+              <motion.span 
+                className="text-yellow-400"
+                initial={{ opacity: 0, y: 20, textShadow: "0 0 0px rgba(245, 158, 11, 0)" }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  textShadow: [
+                    "0 0 0px rgba(245, 158, 11, 0)",
+                    "0 0 20px rgba(245, 158, 11, 0.5)",
+                    "0 0 0px rgba(245, 158, 11, 0)"
+                  ]
+                }}
+                transition={{ 
+                  delay: 1.0, 
+                  duration: 0.6,
+                  textShadow: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+              >
+                Our Priority
+              </motion.span>
+            </motion.h1>
             
-            <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white">
-              Your Health,<br />
-              <span className="text-yellow-400">Our Priority</span>
-            </h1>
-            
-            <p className="text-xl mb-8 text-white/90 leading-relaxed">
+            <motion.p 
+              variants={itemVariants}
+              className="text-xl mb-8 text-white/90 leading-relaxed"
+            >
               Connect with qualified doctors, get AI-powered health insights, 
               and access medicines across Mauritius. Your trusted healthcare 
               companion.
-            </p>
+            </motion.p>
             
-            <form onSubmit={handleSearch} className="bg-white rounded-xl p-2 flex items-center max-w-lg mb-8">
+            <motion.form 
+              variants={itemVariants}
+              onSubmit={handleSearch} 
+              className="bg-white rounded-xl p-2 flex items-center max-w-lg mb-8 shadow-2xl border border-white/20"
+            >
               <input
                 type="text"
                 value={searchQuery}
@@ -98,59 +268,197 @@ const HeroSection: React.FC = () => {
               />
               <motion.button 
                 type="submit" 
-                className="btn-gradient px-6 py-3 flex items-center gap-2 rounded-r-xl"
-                whileHover={{ scale: 1.05 }}
+                className="btn-gradient px-6 py-3 flex items-center gap-2 rounded-r-xl relative overflow-hidden"
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+                }}
                 whileTap={{ scale: 0.95 }}
+                initial={{ background: "linear-gradient(45deg, #3B82F6, #1D4ED8)" }}
+                animate={{
+                  background: [
+                    "linear-gradient(45deg, #3B82F6, #1D4ED8)",
+                    "linear-gradient(45deg, #1D4ED8, #3B82F6)",
+                    "linear-gradient(45deg, #3B82F6, #1D4ED8)"
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
               >
                 <FaSearch />
                 Search
+                <motion.div
+                  className="absolute inset-0 bg-white/20"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "100%" }}
+                  transition={{ duration: 0.6 }}
+                />
               </motion.button>
-            </form>
+            </motion.form>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <motion.button 
-                className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center gap-2"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span>👨‍⚕️</span> Find Doctors
-              </motion.button>
-              <motion.button 
-                className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center gap-2"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span>💊</span> Buy Medicines
-              </motion.button>
-              <motion.button 
-                className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center gap-2"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span>🤖</span> AI Health Assistant
-              </motion.button>
-            </div>
+            <motion.div 
+              variants={containerVariants}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              {[
+                { icon: "👨‍⚕️", text: "Find Doctors" },
+                { icon: "💊", text: "Buy Medicines" },
+                { icon: "🤖", text: "AI Health Assistant" }
+              ].map((button, index) => (
+                <motion.button 
+                  key={button.text}
+                  variants={itemVariants}
+                  className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center gap-2 relative overflow-hidden group"
+                  whileHover={{ 
+                    scale: 1.05, 
+                    y: -2,
+                    boxShadow: "0 10px 25px rgba(255,255,255,0.1)"
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.5 + index * 0.1 }}
+                >
+                  <motion.span
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
+                  >
+                    {button.icon}
+                  </motion.span>
+                  {button.text}
+                  <motion.div
+                    className="absolute bottom-0 left-0 h-0.5 bg-yellow-400"
+                    initial={{ width: "0%" }}
+                    whileHover={{ width: "100%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.button>
+              ))}
+            </motion.div>
           </motion.div>
 
-          {/* Right - Enhanced Image Carousel */}
           <motion.div
             className="hidden lg:block"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0, x: 100, rotateY: 30 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ 
+              duration: 1.2, 
+              delay: 0.3,
+              type: "spring",
+              stiffness: 60,
+              damping: 15
+            }}
           >
-            {/* Increased width and height with no gaps */}
-            <div className="relative h-[500px] w-full  mx-auto">
+            <div className="relative h-[500px] w-full mx-auto perspective-1000">
+              {/* Dark Background Overlay */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
+                animate={{
+                  backgroundColor: [
+                    "rgba(0,0,0,0.2)",
+                    "rgba(0,0,0,0.3)",
+                    "rgba(0,0,0,0.2)"
+                  ]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+
+              {/* Nature-themed Background Gradient */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                animate={{
+                  background: [
+                    "linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(16,78,139,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)",
+                    "linear-gradient(225deg, rgba(0,0,0,0.7) 0%, rgba(16,185,129,0.6) 30%, rgba(29,78,216,0.5) 60%, rgba(0,0,0,0.8) 100%)",
+                    "linear-gradient(315deg, rgba(16,78,139,0.8) 0%, rgba(0,0,0,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)",
+                    "linear-gradient(45deg, rgba(16,185,129,0.7) 0%, rgba(0,0,0,0.6) 30%, rgba(16,78,139,0.5) 60%, rgba(0,0,0,0.8) 100%)",
+                    "linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(16,78,139,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)"
+                  ]
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              />
+
+              {/* Animated Border Ring */}
+              <motion.div
+                className="absolute -inset-4 rounded-3xl"
+                animate={{
+                  background: [
+                    "conic-gradient(from 0deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
+                    "conic-gradient(from 90deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
+                    "conic-gradient(from 180deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
+                    "conic-gradient(from 270deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
+                    "conic-gradient(from 360deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)"
+                  ]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                style={{ padding: "2px" }}
+              >
+                <div className="w-full h-full bg-gray-900 rounded-3xl" />
+              </motion.div>
+
+              {/* Enhanced Scanline Effect */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <motion.div
+                  className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 via-blue-400 to-transparent shadow-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 8px rgba(16, 185, 129, 0.8))"
+                  }}
+                  animate={{ 
+                    y: [0, 500, 0],
+                    background: [
+                      "linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 50%, transparent 100%)",
+                      "linear-gradient(90deg, transparent 0%, rgba(29, 78, 216, 0.9) 50%, transparent 100%)",
+                      "linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 50%, transparent 100%)"
+                    ]
+                  }}
+                  transition={{ 
+                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                    background: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                  }}
+                />
+              </motion.div>
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImageIndex}
-                  initial={{ opacity: 0, scale: 0.9, rotateY: 15 }}
-                  animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                  exit={{ opacity: 0, scale: 1.1, rotateY: -15 }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl border-0 carousel-no-gaps"
+                  variants={imageVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl"
+                  style={{
+                    transformStyle: "preserve-3d"
+                  }}
                 >
-                  {/* Image container with no gaps */}
+                  {/* Nature-themed Highlight Border */}
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl border-2 border-transparent"
+                    animate={{
+                      borderColor: [
+                        "rgba(0, 0, 0, 0)",
+                        "rgba(16, 185, 129, 0.8)",
+                        "rgba(29, 78, 216, 0.8)",
+                        "rgba(0, 0, 0, 0.6)",
+                        "rgba(16, 185, 129, 0.8)",
+                        "rgba(0, 0, 0, 0)"
+                      ],
+                      boxShadow: [
+                        "0 0 0px rgba(0, 0, 0, 0)",
+                        "0 0 30px rgba(16, 185, 129, 0.5)",
+                        "0 0 30px rgba(29, 78, 216, 0.5)",
+                        "0 0 20px rgba(0, 0, 0, 0.7)",
+                        "0 0 30px rgba(16, 185, 129, 0.5)",
+                        "0 0 0px rgba(0, 0, 0, 0)"
+                      ]
+                    }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  />
+
                   <div className="relative w-full h-full m-0 p-0">
                     <Image
                       src={heroImages[currentImageIndex].src}
@@ -161,52 +469,98 @@ const HeroSection: React.FC = () => {
                       sizes="(max-width: 768px) 100vw, 400px"
                     />
                     
-                    {/* Gradient overlay - softer for better image visibility */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    {/* Gradient Overlay with Animation */}
+                    <motion.div 
+                      className="absolute inset-0"
+                      animate={{
+                        background: [
+                          "linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
+                          "linear-gradient(225deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
+                          "linear-gradient(315deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
+                          "linear-gradient(45deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
+                          "linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 50%)"
+                        ]
+                      }}
+                      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    />
                     
-                    {/* Image info overlay */}
                     <motion.div
                       className="absolute bottom-0 left-0 right-0 p-6 text-white"
-                      initial={{ y: 30, opacity: 0 }}
+                      initial={{ y: 50, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.4, duration: 0.5 }}
+                      transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
                     >
-                      <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4">
-                        <h3 className="text-xl font-bold mb-1">
+                      <motion.div
+                        className="bg-black/40 backdrop-blur-md rounded-lg p-4 border border-white/20"
+                        whileHover={{ 
+                          scale: 1.02,
+                          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                        }}
+                      >
+                        <motion.h3 
+                          className="text-xl font-bold mb-1"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.0, duration: 0.4 }}
+                        >
                           {heroImages[currentImageIndex].title}
-                        </h3>
-                        <p className="text-sm text-white/80">
+                        </motion.h3>
+                        <motion.p 
+                          className="text-sm text-white/80"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.2, duration: 0.4 }}
+                        >
                           {heroImages[currentImageIndex].alt}
-                        </p>
-                      </div>
+                        </motion.p>
+                      </motion.div>
                     </motion.div>
                   </div>
                 </motion.div>
               </AnimatePresence>
               
-              {/* Enhanced Navigation Indicators */}
+              {/* Enhanced Indicators */}
               <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
                 {heroImages.map((_, index) => (
                   <motion.button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    className={`h-3 rounded-full transition-all duration-500 relative overflow-hidden ${
                       index === currentImageIndex 
-                        ? 'bg-yellow-400 w-8' 
-                        : 'bg-white/50 hover:bg-white/70'
+                        ? 'bg-yellow-400 w-8 shadow-lg' 
+                        : 'bg-white/50 hover:bg-white/70 w-3'
                     }`}
-                    whileHover={{ scale: 1.2 }}
+                    whileHover={{ scale: 1.3, y: -2 }}
                     whileTap={{ scale: 0.9 }}
-                  />
+                    animate={index === currentImageIndex ? {
+                      boxShadow: [
+                        "0 0 0px rgba(245, 158, 11, 0)",
+                        "0 0 15px rgba(245, 158, 11, 0.8)",
+                        "0 0 0px rgba(245, 158, 11, 0)"
+                      ]
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    {index === currentImageIndex && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      />
+                    )}
+                  </motion.button>
                 ))}
               </div>
 
-              {/* Navigation Arrows */}
+              {/* Enhanced Navigation Arrows */}
               <motion.button
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/50 transition"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-3 rounded-full hover:bg-black/60 transition border border-white/20"
                 onClick={() => setCurrentImageIndex(prev => prev === 0 ? heroImages.length - 1 : prev - 1)}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15, x: -2 }}
                 whileTap={{ scale: 0.9 }}
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -214,42 +568,93 @@ const HeroSection: React.FC = () => {
               </motion.button>
 
               <motion.button
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/50 transition"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-3 rounded-full hover:bg-black/60 transition border border-white/20"
                 onClick={() => setCurrentImageIndex(prev => (prev + 1) % heroImages.length)}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15, x: 2 }}
                 whileTap={{ scale: 0.9 }}
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.button>
 
-              {/* Decorative Elements */}
+              {/* Enhanced Nature-themed Decorative Elements */}
               <motion.div
-                className="absolute -top-4 -right-4 w-8 h-8 bg-yellow-400/30 rounded-full"
+                className="absolute -top-8 -right-8 w-16 h-16 rounded-full"
                 animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.6, 0.3]
+                  scale: [1, 1.5, 1],
+                  rotate: [0, 180, 360],
+                  background: [
+                    "radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)",
+                    "radial-gradient(circle, rgba(29, 78, 216, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)",
+                    "radial-gradient(circle, rgba(0, 0, 0, 0.5) 0%, rgba(16, 185, 129, 0.2) 70%)",
+                    "radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)"
+                  ]
                 }}
                 transition={{
-                  duration: 3,
+                  duration: 6,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
               
               <motion.div
-                className="absolute -bottom-4 -left-4 w-6 h-6 bg-blue-400/30 rounded-full"
+                className="absolute -bottom-8 -left-8 w-12 h-12 rounded-full"
                 animate={{
-                  scale: [1.2, 1, 1.2],
-                  opacity: [0.4, 0.7, 0.4]
+                  scale: [1.5, 1, 1.5],
+                  rotate: [360, 180, 0],
+                  background: [
+                    "radial-gradient(circle, rgba(29, 78, 216, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)",
+                    "radial-gradient(circle, rgba(0, 0, 0, 0.6) 0%, rgba(16, 185, 129, 0.3) 70%)",
+                    "radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)",
+                    "radial-gradient(circle, rgba(29, 78, 216, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)"
+                  ]
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 8,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
+
+              {/* Nature-themed Floating Particles */}
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{
+                    left: `${20 + i * 15}%`,
+                    top: `${10 + i * 20}%`,
+                    background: i % 2 === 0 
+                      ? "rgba(16, 185, 129, 0.6)" 
+                      : "rgba(29, 78, 216, 0.6)"
+                  }}
+                  animate={{
+                    y: [-10, 10, -10],
+                    opacity: [0.4, 0.9, 0.4],
+                    scale: [0.8, 1.2, 0.8],
+                    background: i % 2 === 0 
+                      ? [
+                          "rgba(16, 185, 129, 0.6)",
+                          "rgba(0, 0, 0, 0.7)",
+                          "rgba(16, 185, 129, 0.6)"
+                        ]
+                      : [
+                          "rgba(29, 78, 216, 0.6)",
+                          "rgba(0, 0, 0, 0.7)",
+                          "rgba(29, 78, 216, 0.6)"
+                        ]
+                  }}
+                  transition={{
+                    duration: 3 + i,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.5
+                  }}
+                />
+              ))}
             </div>
           </motion.div>
         </div>

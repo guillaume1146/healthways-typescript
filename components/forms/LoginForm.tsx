@@ -131,13 +131,6 @@ const LoginForm: React.FC = () => {
     }, 1000)
   }
 
-  const handleDemoLogin = (userType: UserType) => {
-    setSelectedUserType(userType)
-    setFormData({
-      email: userType.demoEmail,
-      password: 'demo123'
-    })
-  }
 
   const handleUserTypeSelect = (userType: UserType) => {
     setSelectedUserType(userType)
