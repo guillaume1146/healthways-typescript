@@ -13,8 +13,12 @@ const HeroSection: React.FC = () => {
     console.log('Searching for:', searchQuery)
   }
 
-  // Updated with proper titles and alt text based on your file names
   const heroImages = [
+    {
+      src: "/images/hero/medicine-1.jpg",
+      alt: "Browse and purchase medicines with doctor's prescription. Fast delivery across Mauritius.",
+      title: "Medicine Store"
+    },
     {
       src: "/images/hero/doctor-1.jpg",
       alt: "Professional Doctor Consultation",
