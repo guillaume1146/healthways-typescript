@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,  FaBaby, FaStarHalfAlt,  FaHome, FaLanguage, FaCheckCircle, FaInfoCircle, FaHandHoldingHeart, FaMedkit, FaWheelchair, FaUserMd, FaPills, FaHeartbeat, FaShieldAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
 
-// Mock nursing care data with comprehensive information
 const mockNurses = [
   {
     id: 1,

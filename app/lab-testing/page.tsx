@@ -649,7 +649,6 @@ export default function LabTestingPage() {
           </div>
         </div>
         
-        {/* Medical Advisory */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
           <div className="flex items-start gap-3">
             <FaUserMd className="text-blue-600 text-xl mt-1 flex-shrink-0" />

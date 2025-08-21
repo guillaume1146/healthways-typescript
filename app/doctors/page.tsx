@@ -178,7 +178,6 @@ const aiSearchDoctors = (query: string, specialization: string) => {
   })
 }
 
-// Doctor Card Component
 interface DoctorProps {
   doctor: typeof mockDoctors[0]
 }
@@ -345,7 +344,6 @@ const EmptyState = ({ onClear }: EmptyStateProps) => {
   )
 }
 
-// Main Component
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [specialization, setSpecialization] = useState('all')
@@ -457,7 +455,6 @@ export default function DoctorsPage() {
           </div>
         </div>
         
-        {/* Results Section */}
         <div className="mt-12">
           {isSearching ? (
             <LoadingAnimation />
