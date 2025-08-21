@@ -7,6 +7,7 @@ import WhyChooseSection from '@/components/home/WhyChooseSection'
 import ProfessionalBanner from '@/components/shared/ProfessionalBanner'
 
 export default function HomePage() {
+
   return (
     <>
       <HeroSection />

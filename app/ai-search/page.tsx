@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { FaSearch, FaPaperPlane, FaRobot, FaUser, FaCopy, FaThumbsUp, FaThumbsDown, FaUserMd, FaAmbulance, FaShieldAlt, FaBaby, FaUserNurse, FaPills, FaFlask, FaMapMarkerAlt, FaPhoneAlt, FaQuestionCircle, FaLightbulb, FaExclamationTriangle, FaHeart, FaClipboardList } from 'react-icons/fa'
+import {  FaPaperPlane, FaRobot, FaUser, FaCopy, FaThumbsUp, FaThumbsDown, FaUserMd, FaAmbulance, FaShieldAlt, FaBaby, FaUserNurse, FaPills, FaFlask, FaLightbulb, FaExclamationTriangle, FaHeart, FaClipboardList } from 'react-icons/fa'
 
 interface Message {
   id: string
@@ -428,7 +428,6 @@ export default function AIMedicalChatbot() {
     setInputMessage('')
     setIsTyping(true)
 
-    // Simulate AI processing time
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -457,7 +456,6 @@ export default function AIMedicalChatbot() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-green-800 to-black">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -472,7 +470,6 @@ export default function AIMedicalChatbot() {
           </div>
         </div>
 
-        {/* Quick Action Prompts */}
         <div className="mb-6">
           <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
             <FaLightbulb className="text-yellow-400" />
@@ -518,8 +515,6 @@ export default function AIMedicalChatbot() {
                     <div className="prose prose-invert max-w-none">
                       {message.content.split('\n').map((line, i) => {
                         if (line.trim() === '') return <br key={i} />
-                        
-                        // Handle bold text
                         if (line.includes('**')) {
                           const parts = line.split('**')
                           return (
@@ -531,7 +526,6 @@ export default function AIMedicalChatbot() {
                           )
                         }
                         
-                        // Handle bullet points
                         if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
                           return (
                             <div key={i} className="flex items-start gap-2 mb-1">
@@ -591,7 +585,6 @@ export default function AIMedicalChatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="border-t border-white/20 p-4">
             <div className="flex gap-3">
               <input
@@ -621,7 +614,6 @@ export default function AIMedicalChatbot() {
           </div>
         </div>
 
-        {/* Disclaimer */}
         <div className="mt-6 bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <FaExclamationTriangle className="text-yellow-400 text-lg mt-1" />
