@@ -669,7 +669,6 @@ export default function InsurancePage() {
           </div>
         </div>
         
-        {/* Results Section */}
         <div className="mt-12">
           {isSearching ? (
             <LoadingAnimation />
