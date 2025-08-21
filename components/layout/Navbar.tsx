@@ -20,29 +20,16 @@ import {
   FaChevronDown,
   FaShieldAlt
 } from 'react-icons/fa'
-import type { NavLink } from '@/types'
+
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 
-const navLinks: NavLink[] = [
-  { href: '/', label: 'Home', icon: FaHome },
-  { href: '/doctors', label: 'Find Doctors', icon: FaUserMd },
-  { href: '/medicines', label: 'Medicines', icon: FaPills },
-  { href: '/nursing-care', label: 'Nursing Care', icon: FaUserNurse },
-  { href: '/childcare', label: 'Childcare Services', icon: FaBaby },
-  { href: '/emergency-ambulance', label: 'Emergency Services', icon: FaAmbulance },
-  { href: '/lab-testing', label: 'Lab Testing', icon: FaFlask },
-  { href: '/corporate-partners', label: 'Corporate Health', icon: FaHandshake },
-  { href: '/ai-search', label: 'AI Support', icon: FaRobot },
-  { href: '/about', label: 'About', icon: FaInfoCircle },
-  { href: '/contact', label: 'Contact', icon: FaPhone },
-]
 
 const serviceCategories = {
   'Healthcare Services': [
     { href: '/doctors', label: 'Find Doctors', icon: FaUserMd },
     { href: '/nursing-care', label: 'Nursing Care', icon: FaUserNurse },
     { href: '/childcare', label: 'Childcare Services', icon: FaBaby },
-    { href: '/emergency-ambulance', label: 'Emergency Services', icon: FaAmbulance },
+    { href: '/emergency', label: 'Emergency Services', icon: FaAmbulance },
   ],
   'Medical Services': [
     { href: '/medicines', label: 'Medicines', icon: FaPills },
@@ -61,19 +48,14 @@ const Navbar: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
-  // Handle responsive logo sizing
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640)
     }
     
-    // Set initial value
     handleResize()
-    
-    // Add event listener
     window.addEventListener('resize', handleResize)
-    
-    // Cleanup
+
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 

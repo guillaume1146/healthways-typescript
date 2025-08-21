@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, FaHeart, FaBaby, FaStarHalfAlt, FaVideo, FaHome, FaLanguage, FaCheckCircle, FaInfoCircle, FaHandHoldingHeart, FaMedkit, FaWheelchair, FaUserMd, FaPills, FaHeartbeat, FaShieldAlt, FaCertificate, FaAward, FaPhone, FaEnvelope } from 'react-icons/fa'
+import { FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,  FaBaby, FaStarHalfAlt,  FaHome, FaLanguage, FaCheckCircle, FaInfoCircle, FaHandHoldingHeart, FaMedkit, FaWheelchair, FaUserMd, FaPills, FaHeartbeat, FaShieldAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
 
 // Mock nursing care data with comprehensive information
 const mockNurses = [
