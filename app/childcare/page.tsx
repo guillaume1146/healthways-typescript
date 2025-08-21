@@ -609,7 +609,6 @@ export default function ChildcarePage() {
                   <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-purple-400" />
                 </div>
                 
-                {/* Example Searches */}
                 {!hasSearched && (
                   <div className="flex flex-wrap gap-2">
                     <span className="text-sm text-gray-500">Popular searches:</span>
@@ -656,7 +655,6 @@ export default function ChildcarePage() {
           </div>
         </div>
         
-        {/* Trust Badges */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
             <FaUsers className="text-3xl text-purple-600 mx-auto mb-2" />
@@ -680,7 +678,6 @@ export default function ChildcarePage() {
           </div>
         </div>
         
-        {/* Results Section */}
         <div className="mt-12">
           {isSearching ? (
             <LoadingAnimation />
@@ -758,7 +755,6 @@ export default function ChildcarePage() {
           </div>
         </div>
         
-        {/* How It Works */}
         <div className="mt-16 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -830,7 +826,6 @@ export default function ChildcarePage() {
           </div>
         </div>
         
-        {/* CTA Banner */}
         <div className="mt-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Are you a childcare professional?</h2>
           <p className="text-purple-100 mb-6">
