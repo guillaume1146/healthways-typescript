@@ -269,7 +269,6 @@ const PatientDashboard = () => {
               </div>
             </div>
 
-            {/* Upcoming Appointments */}
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
               <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900">Upcoming Appointments</h2>
@@ -309,7 +308,7 @@ const PatientDashboard = () => {
                           {appointment.type}
                         </span>
                         {appointment.type === 'Video Call' && (
-                          <a className="bg-green-500 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm hover:bg-green-600 transition" href="/doctor-consultations/id">
+                          <a className="bg-green-500 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm hover:bg-green-600 transition" href="patient/doctor-consultations/id">
                             <FaVideo className="inline mr-1" /> Join
                           </a>
                         )}
