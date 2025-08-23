@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { FaSearch, FaBaby, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, FaHeart, FaChild, FaStarHalfAlt, FaHome, FaLanguage, FaCheckCircle, FaInfoCircle, FaHandHoldingHeart, FaCar, FaGraduationCap, FaShieldAlt, FaCertificate, FaPhone, FaEnvelope,  FaRunning, FaBed, FaFirstAid, FaUsers, FaUserCheck, FaIdCard, FaBus, FaGamepad, FaPuzzlePiece } from 'react-icons/fa'
 
@@ -468,10 +469,10 @@ const NannyCard = ({ nanny }: NannyProps) => {
               <FaInfoCircle />
               Details
             </button>
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium flex items-center gap-2">
+            <Link href = "patient/childcare/book/id" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium flex items-center gap-2">
               <FaCalendarAlt />
               Book
-            </button>
+            </Link>
           </div>
         </div>
       </div>

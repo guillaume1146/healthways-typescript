@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaLeaf, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaGift, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt } from 'react-icons/fa'
 
@@ -385,10 +386,10 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
             <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
               Details
             </button>
-            <button className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
+            <Link href="patient/childcare/book/id" className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
               <FaShoppingCart />
               Add to Cart
-            </button>
+            </Link>
           </div>
         </div>
       </div>

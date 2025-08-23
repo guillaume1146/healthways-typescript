@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { FaSearch, FaStethoscope, FaStar, FaMapMarkerAlt, FaClock, FaUserMd, FaCalendarAlt, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaStarHalfAlt, FaVideo, FaClinicMedical, FaLanguage, FaCheckCircle, FaInfoCircle } from 'react-icons/fa'
 
@@ -293,10 +294,10 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
               <FaInfoCircle />
               Details
             </button>
-            <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center gap-2">
+            <Link href = "/patient/doctor-consultations/id/book" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center gap-2">
               <FaCalendarAlt />
               Book
-            </button>
+            </Link>
           </div>
         </div>
       </div>
