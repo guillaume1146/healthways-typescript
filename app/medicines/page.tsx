@@ -386,7 +386,7 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
             <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
               Details
             </button>
-            <Link href="patient/childcare/book/id" className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
+            <Link href="patient/pharmacy/order/id/" className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
               <FaShoppingCart />
               Add to Cart
             </Link>
