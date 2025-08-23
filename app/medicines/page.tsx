@@ -20,14 +20,12 @@ const categoryIcons = {
   "Bone Health": FaBone
 }
 
-// Floating Cart Component
 const FloatingCart = () => {
   const { cartItems, removeFromCart, updateQuantity, getTotalItems, getTotalPrice } = useCart()
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
     <>
-      {/* Floating Cart Button */}
       <div className="fixed bottom-6 right-6 z-50">
         {isExpanded ? (
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-96 max-h-[600px] overflow-hidden flex flex-col">
@@ -118,7 +116,6 @@ const FloatingCart = () => {
   )
 }
 
-// Medicine Card Component
 interface MedicineProps {
   medicine: typeof mockMedicines[0]
 }
@@ -133,7 +130,6 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100">
       <div className="p-6">
-        {/* Header with Image and Basic Info */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
             <div 
@@ -162,7 +158,6 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
             </p>
             <p className="text-gray-600 text-sm">{medicine.genericName}</p>
             
-            {/* Rating */}
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center text-yellow-500">
                 {[...Array(Math.floor(medicine.rating))].map((_, i) => (
@@ -176,7 +171,6 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
           </div>
         </div>
         
-        {/* Category and Type Badges */}
         <div className="flex flex-wrap gap-2 mb-3">
           <span className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
             {medicine.category}
@@ -190,10 +184,8 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
           </span>
         </div>
         
-        {/* Description */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{medicine.description}</p>
         
-        {/* Features */}
         <div className="flex flex-wrap gap-2 mb-4">
           {medicine.features.slice(0, 3).map((feature, index) => (
             <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
