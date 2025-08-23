@@ -308,7 +308,7 @@ const PatientDashboard = () => {
                           {appointment.type}
                         </span>
                         {appointment.type === 'Video Call' && (
-                          <a className="bg-green-500 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm hover:bg-green-600 transition" href="patient/doctor-consultations/id">
+                          <a className="bg-green-500 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm hover:bg-green-600 transition" href="doctor-consultations/id">
                             <FaVideo className="inline mr-1" /> Join
                           </a>
                         )}
