@@ -1,197 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaLeaf, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaGift, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt } from 'react-icons/fa'
-
-const mockMedicines = [
-  {
-    id: 1,
-    name: "Paracetamol 500mg",
-    brand: "Tylenol",
-    genericName: "Acetaminophen",
-    category: "Pain Relief",
-    type: "Over-the-counter",
-    price: "Rs 45",
-    originalPrice: "Rs 60",
-    discount: "25% OFF",
-    rating: 4.8,
-    reviews: 1234,
-    inStock: true,
-    quantity: "Strip of 10 tablets",
-    description: "Effective pain relief and fever reducer for headaches, muscle aches, and minor pain",
-    image: "https://via.placeholder.com/150x150/4F46E5/ffffff?text=Pills",
-    manufacturer: "GSK",
-    expiryDate: "12/2025",
-    prescriptionRequired: false,
-    activeIngredient: "Paracetamol 500mg",
-    sideEffects: ["Mild stomach upset", "Rare allergic reactions"],
-    dosage: "1-2 tablets every 4-6 hours",
-    maxDailyDose: "8 tablets per day",
-    contraindications: ["Liver disease", "Alcohol dependence"],
-    storage: "Store in cool, dry place",
-    deliveryTime: "2-4 hours",
-    fastDelivery: true,
-    verified: true,
-    pharmacyLocation: "Port Louis",
-    features: ["Fast Acting", "Fever Reducer", "Safe for Adults"]
-  },
-  {
-    id: 2,
-    name: "Metformin 500mg",
-    brand: "Glucophage",
-    genericName: "Metformin HCl",
-    category: "Diabetes",
-    type: "Prescription",
-    price: "Rs 180",
-    originalPrice: "Rs 220",
-    discount: "18% OFF",
-    rating: 4.7,
-    reviews: 892,
-    inStock: true,
-    quantity: "Strip of 15 tablets",
-    description: "First-line treatment for type 2 diabetes, helps control blood sugar levels",
-    image: "https://via.placeholder.com/150x150/059669/ffffff?text=MET",
-    manufacturer: "Merck",
-    expiryDate: "08/2025",
-    prescriptionRequired: true,
-    activeIngredient: "Metformin HCl 500mg",
-    sideEffects: ["Nausea", "Diarrhea", "Metallic taste"],
-    dosage: "500mg twice daily with meals",
-    maxDailyDose: "2000mg per day",
-    contraindications: ["Kidney disease", "Heart failure"],
-    storage: "Store at room temperature",
-    deliveryTime: "Same day",
-    fastDelivery: true,
-    verified: true,
-    pharmacyLocation: "Curepipe",
-    features: ["Extended Release", "Doctor Approved", "Blood Sugar Control"]
-  },
-  {
-    id: 3,
-    name: "Amoxicillin 250mg",
-    brand: "Amoxil",
-    genericName: "Amoxicillin",
-    category: "Antibiotics",
-    type: "Prescription",
-    price: "Rs 120",
-    originalPrice: "Rs 150",
-    discount: "20% OFF",
-    rating: 4.6,
-    reviews: 567,
-    inStock: true,
-    quantity: "Bottle of 21 capsules",
-    description: "Broad-spectrum antibiotic for bacterial infections",
-    image: "https://via.placeholder.com/150x150/DC2626/ffffff?text=AMOX",
-    manufacturer: "Pfizer",
-    expiryDate: "03/2025",
-    prescriptionRequired: true,
-    activeIngredient: "Amoxicillin 250mg",
-    sideEffects: ["Stomach upset", "Diarrhea", "Allergic reactions"],
-    dosage: "250mg three times daily",
-    maxDailyDose: "3000mg per day",
-    contraindications: ["Penicillin allergy", "Kidney disease"],
-    storage: "Store in refrigerator",
-    deliveryTime: "1-2 hours",
-    fastDelivery: true,
-    verified: true,
-    pharmacyLocation: "Rose Hill",
-    features: ["Broad Spectrum", "Fast Acting", "Doctor Prescribed"]
-  },
-  {
-    id: 4,
-    name: "Vitamin D3 1000 IU",
-    brand: "Nature Made",
-    genericName: "Cholecalciferol",
-    category: "Vitamins",
-    type: "Supplement",
-    price: "Rs 280",
-    originalPrice: "Rs 350",
-    discount: "20% OFF",
-    rating: 4.9,
-    reviews: 745,
-    inStock: true,
-    quantity: "Bottle of 90 softgels",
-    description: "Essential vitamin for bone health and immune system support",
-    image: "https://via.placeholder.com/150x150/F59E0B/ffffff?text=VIT",
-    manufacturer: "Nature Made",
-    expiryDate: "06/2026",
-    prescriptionRequired: false,
-    activeIngredient: "Vitamin D3 1000 IU",
-    sideEffects: ["Rare: nausea if overdosed"],
-    dosage: "1 softgel daily with food",
-    maxDailyDose: "1 softgel per day",
-    contraindications: ["Hypercalcemia", "Kidney stones"],
-    storage: "Store in cool, dry place",
-    deliveryTime: "4-6 hours",
-    fastDelivery: false,
-    verified: true,
-    pharmacyLocation: "Quatre Bornes",
-    features: ["High Potency", "Bone Health", "Immune Support"]
-  },
-  {
-    id: 5,
-    name: "Omeprazole 20mg",
-    brand: "Prilosec",
-    genericName: "Omeprazole",
-    category: "Digestive Health",
-    type: "Over-the-counter",
-    price: "Rs 95",
-    originalPrice: "Rs 120",
-    discount: "21% OFF",
-    rating: 4.7,
-    reviews: 423,
-    inStock: true,
-    quantity: "Strip of 14 capsules",
-    description: "Proton pump inhibitor for acid reflux and heartburn relief",
-    image: "https://via.placeholder.com/150x150/8B5CF6/ffffff?text=OMEP",
-    manufacturer: "AstraZeneca",
-    expiryDate: "09/2025",
-    prescriptionRequired: false,
-    activeIngredient: "Omeprazole 20mg",
-    sideEffects: ["Headache", "Nausea", "Diarrhea"],
-    dosage: "1 capsule daily before breakfast",
-    maxDailyDose: "1 capsule per day",
-    contraindications: ["Liver disease", "Osteoporosis"],
-    storage: "Store at room temperature",
-    deliveryTime: "3-5 hours",
-    fastDelivery: false,
-    verified: true,
-    pharmacyLocation: "Grand Baie",
-    features: ["24-Hour Relief", "Acid Control", "Heartburn Treatment"]
-  },
-  {
-    id: 6,
-    name: "Ibuprofen 400mg",
-    brand: "Advil",
-    genericName: "Ibuprofen",
-    category: "Pain Relief",
-    type: "Over-the-counter",
-    price: "Rs 65",
-    originalPrice: "Rs 80",
-    discount: "19% OFF",
-    rating: 4.5,
-    reviews: 891,
-    inStock: true,
-    quantity: "Strip of 20 tablets",
-    description: "Non-steroidal anti-inflammatory drug for pain and inflammation",
-    image: "https://via.placeholder.com/150x150/EF4444/ffffff?text=IBU",
-    manufacturer: "Pfizer",
-    expiryDate: "11/2025",
-    prescriptionRequired: false,
-    activeIngredient: "Ibuprofen 400mg",
-    sideEffects: ["Stomach irritation", "Dizziness", "Headache"],
-    dosage: "1 tablet every 6-8 hours",
-    maxDailyDose: "3 tablets per day",
-    contraindications: ["Stomach ulcers", "Heart disease"],
-    storage: "Store below 25°C",
-    deliveryTime: "2-4 hours",
-    fastDelivery: true,
-    verified: true,
-    pharmacyLocation: "Vacoas",
-    features: ["Anti-inflammatory", "Pain Relief", "Fever Reducer"]
-  }
-]
+import { useState, useEffect } from 'react'
+import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaLeaf, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaGift, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaPlus, FaMinus, FaTrash } from 'react-icons/fa'
+import { useCart } from '@/app/contexts/CartContext'
+import { mockMedicines } from '@/app/data/medicines'
 
 // Category icons mapping
 const categoryIcons = {
@@ -208,34 +21,102 @@ const categoryIcons = {
   "Bone Health": FaBone
 }
 
-// AI search simulation function
-const aiSearchMedicines = (query: string, category: string) => {
-  return new Promise<typeof mockMedicines>((resolve) => {
-    setTimeout(() => {
-      let results = [...mockMedicines]
-      
-      if (category !== 'all') {
-        results = results.filter(medicine => 
-          medicine.category.toLowerCase().includes(category.toLowerCase())
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(medicine => 
-          medicine.name.toLowerCase().includes(lowerQuery) ||
-          medicine.brand.toLowerCase().includes(lowerQuery) ||
-          medicine.genericName.toLowerCase().includes(lowerQuery) ||
-          medicine.category.toLowerCase().includes(lowerQuery) ||
-          medicine.description.toLowerCase().includes(lowerQuery) ||
-          medicine.activeIngredient.toLowerCase().includes(lowerQuery) ||
-          medicine.features.some(f => f.toLowerCase().includes(lowerQuery))
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
+// Floating Cart Component
+const FloatingCart = () => {
+  const { cartItems, removeFromCart, updateQuantity, getTotalItems, getTotalPrice } = useCart()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  return (
+    <>
+      {/* Floating Cart Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {isExpanded ? (
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-96 max-h-[600px] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Shopping Cart</h3>
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {cartItems.length === 0 ? (
+              <div className="text-center py-8">
+                <FaShoppingCart className="text-4xl text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">Your cart is empty</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto mb-4 space-y-3">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="border rounded-lg p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-gray-900">{item.name}</h4>
+                          <p className="text-xs text-gray-600">{item.brand}</p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <FaTrash className="text-sm" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50"
+                          >
+                            <FaMinus className="text-xs" />
+                          </button>
+                          <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50"
+                          >
+                            <FaPlus className="text-xs" />
+                          </button>
+                        </div>
+                        <span className="text-sm font-bold text-green-600">Rs {item.price * item.quantity}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="border-t pt-4">
+                  <div className="flex justify-between mb-3">
+                    <span className="font-semibold">Total:</span>
+                    <span className="text-xl font-bold text-green-600">Rs {getTotalPrice()}</span>
+                  </div>
+                  <Link
+                    href="/patient/pharmacy/order/cart"
+                    className="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white text-center py-3 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all"
+                  >
+                    Proceed to Checkout
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-full shadow-lg hover:from-green-700 hover:to-green-800 transition-all relative"
+          >
+            <FaShoppingCart className="text-2xl" />
+            {getTotalItems() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">
+                {getTotalItems()}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
+    </>
+  )
 }
 
 // Medicine Card Component
@@ -244,8 +125,12 @@ interface MedicineProps {
 }
 
 const MedicineCard = ({ medicine }: MedicineProps) => {
+  const { addToCart, cartItems } = useCart()
   const CategoryIcon = categoryIcons[medicine.category as keyof typeof categoryIcons] || FaPills
   
+  const itemInCart = cartItems.find(item => item.id === medicine.id)
+  const quantityInCart = itemInCart?.quantity || 0
+
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100">
       <div className="p-6">
@@ -377,8 +262,8 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-gray-900">{medicine.price}</p>
-              <span className="text-sm text-gray-500 line-through">{medicine.originalPrice}</span>
+              <p className="text-2xl font-bold text-gray-900">Rs {medicine.price}</p>
+              <span className="text-sm text-gray-500 line-through">Rs {medicine.originalPrice}</span>
             </div>
             <p className="text-xs text-green-600 font-medium">{medicine.discount}</p>
           </div>
@@ -386,15 +271,53 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
             <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
               Details
             </button>
-            <Link href="patient/pharmacy/order/id/" className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
+            <button 
+              onClick={() => addToCart(medicine)}
+              className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm relative"
+            >
               <FaShoppingCart />
               Add to Cart
-            </Link>
+              {quantityInCart > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {quantityInCart}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
     </div>
   )
+}
+
+// AI search simulation function
+const aiSearchMedicines = (query: string, category: string) => {
+  return new Promise<typeof mockMedicines>((resolve) => {
+    setTimeout(() => {
+      let results = [...mockMedicines]
+      
+      if (category !== 'all') {
+        results = results.filter(medicine => 
+          medicine.category.toLowerCase().includes(category.toLowerCase())
+        )
+      }
+      
+      if (query) {
+        const lowerQuery = query.toLowerCase()
+        results = results.filter(medicine => 
+          medicine.name.toLowerCase().includes(lowerQuery) ||
+          medicine.brand.toLowerCase().includes(lowerQuery) ||
+          medicine.genericName.toLowerCase().includes(lowerQuery) ||
+          medicine.category.toLowerCase().includes(lowerQuery) ||
+          medicine.description.toLowerCase().includes(lowerQuery) ||
+          medicine.activeIngredient.toLowerCase().includes(lowerQuery) ||
+          medicine.features.some(f => f.toLowerCase().includes(lowerQuery))
+        )
+      }
+      
+      resolve(results)
+    }, 1500)
+  })
 }
 
 // Loading Animation Component
@@ -444,7 +367,6 @@ export default function MedicinesPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState(mockMedicines)
   const [hasSearched, setHasSearched] = useState(false)
-  const [cartCount] = useState(3)
   const [searchExamples] = useState([
     "Paracetamol for fever",
     "Diabetes medication",
@@ -477,7 +399,9 @@ export default function MedicinesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      {/* Header */}
+      {/* Floating Cart */}
+      <FloatingCart />
+      
       <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">Medicine Store & Pharmacy</h1>
@@ -506,7 +430,6 @@ export default function MedicinesPage() {
       </div>
       
       <div className="container mx-auto px-4 py-8">
-        {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <div>
@@ -563,18 +486,12 @@ export default function MedicinesPage() {
                     <FaSearch />
                     Find Medicine
                   </button>
-                  
-                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium flex items-center gap-2">
-                    <FaShoppingCart />
-                    Cart ({cartCount})
-                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Trust Features */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <FaTruck className="text-3xl text-green-600 mx-auto mb-2" />
@@ -671,138 +588,6 @@ export default function MedicinesPage() {
               <FaMedkit className="text-3xl text-orange-500 mx-auto mb-2" />
               <h3 className="font-semibold text-sm">Digestive</h3>
             </div>
-          </div>
-        </div>
-        
-        {/* How Medicine Delivery Works */}
-        <div className="mt-16 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-green-600">1</span>
-              </div>
-              <h3 className="font-semibold mb-2">Search Medicine</h3>
-              <p className="text-sm text-gray-600">Find the medicine you need using our AI-powered search</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-green-600">2</span>
-              </div>
-              <h3 className="font-semibold mb-2">Upload Prescription</h3>
-              <p className="text-sm text-gray-600">Upload prescription for prescription medicines</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-green-600">3</span>
-              </div>
-              <h3 className="font-semibold mb-2">Secure Payment</h3>
-              <p className="text-sm text-gray-600">Pay securely with multiple payment options</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-green-600">4</span>
-              </div>
-              <h3 className="font-semibold mb-2">Fast Delivery</h3>
-              <p className="text-sm text-gray-600">Get medicines delivered to your doorstep quickly</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Pharmacy Services */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Additional Pharmacy Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <FaUserMd className="text-4xl text-blue-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Pharmacist Consultation</h3>
-              <p className="text-gray-600 text-sm mb-4">Get expert advice from licensed pharmacists about your medications</p>
-              <button className="text-blue-600 font-medium text-sm">Consult Now →</button>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <FaVial className="text-4xl text-green-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Medicine Reminders</h3>
-              <p className="text-gray-600 text-sm mb-4">Set up automated reminders for your medication schedule</p>
-              <button className="text-green-600 font-medium text-sm">Set Reminders →</button>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <FaFileAlt className="text-4xl text-purple-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Digital Prescriptions</h3>
-              <p className="text-gray-600 text-sm mb-4">Store and manage all your prescriptions digitally</p>
-              <button className="text-purple-600 font-medium text-sm">View Records →</button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Customer Reviews */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">What Our Customers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <div className="flex items-center gap-1 text-yellow-500 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-              </div>
-              <p className="text-gray-600 text-sm mb-4">Fast delivery and authentic medicines. The AI search helped me find exactly what I needed!</p>
-              <p className="font-semibold text-gray-900">- Priya M.</p>
-              <p className="text-xs text-gray-500">Port Louis</p>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <div className="flex items-center gap-1 text-yellow-500 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-              </div>
-              <p className="text-gray-600 text-sm mb-4">Great prices and excellent customer service. Medicines arrived within 2 hours!</p>
-              <p className="font-semibold text-gray-900">- David L.</p>
-              <p className="text-xs text-gray-500">Curepipe</p>
-            </div>
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <div className="flex items-center gap-1 text-yellow-500 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-              </div>
-              <p className="text-gray-600 text-sm mb-4">Very convenient for elderly patients. Easy ordering and reliable delivery service.</p>
-              <p className="font-semibold text-gray-900">- Marie C.</p>
-              <p className="text-xs text-gray-500">Grand Baie</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Emergency Medicine Banner */}
-        <div className="mt-16 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Need Emergency Medicine?</h2>
-          <p className="text-red-100 mb-6">
-            Our 24/7 emergency medicine service ensures you get critical medications when you need them most. 
-            Priority delivery within 1 hour for emergency prescriptions.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-white text-red-700 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center gap-2">
-              <FaPhoneAlt />
-              Emergency Hotline
-            </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-red-700 transition-colors">
-              Learn More
-            </button>
-          </div>
-        </div>
-        
-        {/* Pharmacy Partner Banner */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Are you a licensed pharmacy?</h2>
-          <p className="text-blue-100 mb-6">
-            Join our network of verified pharmacies and reach thousands of customers across Mauritius. 
-            Grow your business with our AI-powered platform and delivery network.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-white text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-              Partner With Us →
-            </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-700 transition-colors">
-              Learn More
-            </button>
           </div>
         </div>
       </div>

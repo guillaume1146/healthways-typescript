@@ -24,8 +24,13 @@ import {
   FaCertificate,
   FaEdit,
   FaTimes,
-  FaCheckCircle
+  FaCheckCircle,
+  FaShoppingCart,
+  FaPlus,
+  FaMinus,
+  FaTrash
 } from "react-icons/fa"
+import { useCart } from '@/app/contexts/CartContext'
 
 interface Pharmacy {
   id: string;
@@ -40,26 +45,8 @@ interface Pharmacy {
   avatar: string;
 }
 
-interface Medicine {
-  id: string;
-  name: string;
-  genericName: string;
-  manufacturer: string;
-  strength: string;
-  form: string;
-  category: string;
-  price: number;
-  stockStatus: "in-stock" | "low-stock" | "out-of-stock";
-  prescriptionRequired: boolean;
-  controlledSubstance: boolean;
-  expiryDate: string;
-  description: string;
-  sideEffects: string[];
-  interactions: string[];
-  contraindications: string[];
-}
-
 interface PrescriptionUpload {
+  medicineId: number;
   file?: File;
   doctorName: string;
   doctorLicense: string;
@@ -83,14 +70,10 @@ interface DeliverySlot {
 
 interface OrderDetails {
   pharmacy: Pharmacy;
-  medicine: Medicine;
-  quantity: number;
-  prescriptionMethod: "upload" | "digital";
-  prescription: PrescriptionUpload;
+  prescriptions: Map<number, PrescriptionUpload>;
   deliveryAddress: string;
   deliverySlot: DeliverySlot | null;
   specialInstructions: string;
-  totalCost: number;
   emergencyContact: string;
   communicationPreference: "phone" | "sms" | "email" | "app";
 }
@@ -117,25 +100,6 @@ const mockPharmacy: Pharmacy = {
   deliveryRadius: "Port Louis, Moka, Curepipe areas",
   certifications: ["Licensed Pharmacy", "Quality Assured", "Temperature Controlled"],
   avatar: "💊"
-}
-
-const mockMedicine: Medicine = {
-  id: "1",
-  name: "Panadol Extra",
-  genericName: "Paracetamol + Caffeine",
-  manufacturer: "GSK",
-  strength: "500mg + 65mg",
-  form: "Tablets",
-  category: "Pain Relief",
-  price: 125,
-  stockStatus: "in-stock",
-  prescriptionRequired: false,
-  controlledSubstance: false,
-  expiryDate: "2025-12-31",
-  description: "Fast-acting pain relief with added caffeine for enhanced effectiveness",
-  sideEffects: ["Nausea", "Allergic reactions (rare)", "Liver toxicity (with overdose)"],
-  interactions: ["Warfarin", "Alcohol", "Other paracetamol-containing medicines"],
-  contraindications: ["Severe liver disease", "Known hypersensitivity to paracetamol"]
 }
 
 const deliverySlots: DeliverySlot[] = [
@@ -188,13 +152,44 @@ const paymentMethods: PaymentMethod[] = [
 ]
 
 export default function CompletePharmacyOrderBooking() {
+  const { cartItems, updateQuantity, removeFromCart, clearCart, getTotalPrice } = useCart()
   const [currentStep, setCurrentStep] = useState(1)
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     pharmacy: mockPharmacy,
-    medicine: mockMedicine,
-    quantity: 1,
-    prescriptionMethod: mockMedicine.prescriptionRequired ? "upload" : "digital",
-    prescription: {
+    prescriptions: new Map(),
+    deliveryAddress: "",
+    deliverySlot: null,
+    specialInstructions: "",
+    emergencyContact: "",
+    communicationPreference: "app"
+  })
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [orderConfirmed, setOrderConfirmed] = useState(false)
+  const [ticketId, setTicketId] = useState("")
+
+  const steps = [
+    { number: 1, title: "Cart Review", icon: FaShoppingCart },
+    { number: 2, title: "Prescriptions", icon: FaFileAlt },
+    { number: 3, title: "Delivery", icon: FaTruck },
+    { number: 4, title: "Payment", icon: FaWallet },
+    { number: 5, title: "Confirmation", icon: FaTicketAlt }
+  ]
+
+  // Check if any items require prescription
+  const prescriptionRequired = cartItems.some(item => item.prescriptionRequired)
+
+  const handleDeliverySlotSelect = (slot: DeliverySlot) => {
+    setOrderDetails({
+      ...orderDetails,
+      deliverySlot: slot
+    })
+  }
+
+  const handlePrescriptionUpload = (medicineId: number, prescription: Partial<PrescriptionUpload>) => {
+    const updatedPrescriptions = new Map(orderDetails.prescriptions)
+    const existing = updatedPrescriptions.get(medicineId) || {
+      medicineId,
       doctorName: "",
       doctorLicense: "",
       prescriptionDate: "",
@@ -205,74 +200,22 @@ export default function CompletePharmacyOrderBooking() {
       instructions: "",
       validated: false,
       verificationNotes: ""
-    },
-    deliveryAddress: "",
-    deliverySlot: null,
-    specialInstructions: "",
-    totalCost: mockMedicine.price,
-    emergencyContact: "",
-    communicationPreference: "app"
-  })
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [orderConfirmed, setOrderConfirmed] = useState(false)
-  const [ticketId, setTicketId] = useState("")
-  const [drugInteractions, setDrugInteractions] = useState<string[]>([])
-
-  const steps = [
-    { number: 1, title: "Medicine & Pharmacy", icon: FaPills },
-    { number: 2, title: "Prescription", icon: FaFileAlt },
-    { number: 3, title: "Delivery Details", icon: FaTruck },
-    { number: 4, title: "Payment", icon: FaWallet },
-    { number: 5, title: "Confirmation", icon: FaTicketAlt }
-  ]
-
-  const handleQuantityChange = (quantity: number) => {
-    const newTotal = orderDetails.medicine.price * quantity
-    const deliveryFee = orderDetails.deliverySlot?.fee || 0
-    setOrderDetails({
-      ...orderDetails,
-      quantity,
-      totalCost: newTotal + deliveryFee
-    })
-  }
-
-  const handlePrescriptionFileUpload = (file: File) => {
-    setOrderDetails({
-      ...orderDetails,
-      prescription: {
-        ...orderDetails.prescription,
-        file
-      }
-    })
-  }
-
-  const handleDeliverySlotSelect = (slot: DeliverySlot) => {
-    const medicineTotal = orderDetails.medicine.price * orderDetails.quantity
-    setOrderDetails({
-      ...orderDetails,
-      deliverySlot: slot,
-      totalCost: medicineTotal + slot.fee
-    })
-  }
-
-  const validatePrescription = () => {
-    setTimeout(() => {
-      setOrderDetails(prev => ({
-        ...prev,
-        prescription: {
-          ...prev.prescription,
-          validated: true,
-          verificationNotes: "Prescription verified by licensed pharmacist. Dosage and instructions confirmed."
-        }
-      }))
-    }, 2000)
-  }
-
-  const checkDrugInteractions = () => {
-    if (orderDetails.medicine.interactions.length > 0) {
-      setDrugInteractions(["No significant interactions found with commonly used medications"])
     }
+    
+    updatedPrescriptions.set(medicineId, { ...existing, ...prescription })
+    setOrderDetails({
+      ...orderDetails,
+      prescriptions: updatedPrescriptions
+    })
+  }
+
+  const validatePrescription = (medicineId: number) => {
+    setTimeout(() => {
+      handlePrescriptionUpload(medicineId, {
+        validated: true,
+        verificationNotes: "Prescription verified by licensed pharmacist. Dosage and instructions confirmed."
+      })
+    }, 2000)
   }
 
   const handlePayment = () => {
@@ -282,49 +225,52 @@ export default function CompletePharmacyOrderBooking() {
       setOrderConfirmed(true)
       setTicketId(`PHM-${Date.now()}`)
       setCurrentStep(5)
+      clearCart() // Clear cart after successful order
     }, 3000)
   }
 
+  const calculateSubtotal = () => {
+    return getTotalPrice()
+  }
+
   const calculateFinalAmount = () => {
-    if (!selectedPaymentMethod) return orderDetails.totalCost
+    const subtotal = calculateSubtotal()
+    const deliveryFee = orderDetails.deliverySlot?.fee || 0
+    const total = subtotal + deliveryFee
     
-    const baseAmount = orderDetails.totalCost
+    if (!selectedPaymentMethod) return total
+    
+    // Apply discount only to prescription medicines
     if (selectedPaymentMethod.discount) {
-      return baseAmount * (1 - selectedPaymentMethod.discount / 100)
+      const prescriptionTotal = cartItems
+        .filter(item => item.prescriptionRequired)
+        .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      
+      const nonPrescriptionTotal = cartItems
+        .filter(item => !item.prescriptionRequired)
+        .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      
+      const discountAmount = prescriptionTotal * (selectedPaymentMethod.discount / 100)
+      return nonPrescriptionTotal + (prescriptionTotal - discountAmount) + deliveryFee
     }
-    return baseAmount
-  }
-
-  const getStockStatusStyle = (status: string) => {
-    switch (status) {
-      case "in-stock":
-        return "text-green-600 bg-green-50 border-green-200"
-      case "low-stock":
-        return "text-orange-600 bg-orange-50 border-orange-200"
-      case "out-of-stock":
-        return "text-red-600 bg-red-50 border-red-200"
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
-    }
-  }
-
-  const getDeliverySlotStyle = (slot: DeliverySlot, isSelected: boolean) => {
-    if (!slot.available) return "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-    if (isSelected) return "bg-green-600 text-white border-green-600"
     
-    switch (slot.type) {
-      case "express":
-        return "border-red-300 text-red-600 hover:bg-red-50 hover:border-red-500"
-      case "priority":
-        return "border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-500"
-      default:
-        return "border-gray-300 hover:border-green-400 hover:bg-green-50"
-    }
+    return total
   }
 
+  const allPrescriptionsValidated = () => {
+    const prescriptionItems = cartItems.filter(item => item.prescriptionRequired)
+    return prescriptionItems.every(item => {
+      const prescription = orderDetails.prescriptions.get(item.id)
+      return prescription?.validated === true
+    })
+  }
+
+  // Redirect to medicines page if cart is empty
   useEffect(() => {
-    checkDrugInteractions()
-  }, [])
+    if (cartItems.length === 0 && !orderConfirmed) {
+      window.location.href = '/patient/pharmacy/medicines'
+    }
+  }, [cartItems, orderConfirmed])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
@@ -332,12 +278,12 @@ export default function CompletePharmacyOrderBooking() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/patient/dashboard" className="text-gray-600 hover:text-green-600">
+            <Link href="/patient/pharmacy/medicines" className="text-gray-600 hover:text-green-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Order Medicine</h1>
-              <p className="text-gray-600">Purchase {orderDetails.medicine.name} from {orderDetails.pharmacy.name}</p>
+              <h1 className="text-2xl font-bold text-gray-900">Complete Your Order</h1>
+              <p className="text-gray-600">{cartItems.length} items from {orderDetails.pharmacy.name}</p>
             </div>
           </div>
         </div>
@@ -375,277 +321,158 @@ export default function CompletePharmacyOrderBooking() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Step 1: Medicine & Pharmacy Details */}
+        {/* Step 1: Cart Review */}
         {currentStep === 1 && (
           <div className="max-w-4xl mx-auto">
-            <div className="space-y-6">
-              {/* Pharmacy Information */}
-              <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Pharmacy Details</h2>
-                
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="lg:w-1/4 text-center">
-                    <div className="text-6xl mb-4">{orderDetails.pharmacy.avatar}</div>
-                    <div className="flex items-center justify-center gap-1 text-yellow-500 mb-2">
-                      <FaStar />
-                      <span className="font-bold text-lg">{orderDetails.pharmacy.rating}</span>
-                      <span className="text-gray-600 text-sm">({orderDetails.pharmacy.reviews} reviews)</span>
-                    </div>
-                  </div>
-                  
-                  <div className="lg:w-3/4">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{orderDetails.pharmacy.name}</h3>
-                    <div className="flex items-center gap-2 text-gray-600 mb-4">
-                      <FaMapMarkerAlt />
-                      <span>{orderDetails.pharmacy.location}</span>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">License</h4>
-                        <p className="text-gray-600">{orderDetails.pharmacy.license}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Delivery Area</h4>
-                        <p className="text-gray-600">{orderDetails.pharmacy.deliveryRadius}</p>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-2">Certifications</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {orderDetails.pharmacy.certifications.map((cert, index) => (
-                          <span key={index} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            {cert}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                      <div className="flex items-start gap-3">
-                        <FaClock className="text-green-600 mt-1" />
-                        <div>
-                          <h4 className="font-semibold text-green-800 mb-1">Operating Hours</h4>
-                          <p className="text-green-700 text-sm">{orderDetails.pharmacy.operatingHours}</p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Cart</h2>
+              
+              {/* Pharmacy Info */}
+              <div className="bg-green-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{orderDetails.pharmacy.avatar}</span>
+                  <div>
+                    <h3 className="font-semibold text-green-800">{orderDetails.pharmacy.name}</h3>
+                    <p className="text-green-600 text-sm">{orderDetails.pharmacy.location}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Medicine Information */}
-              <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Medicine Details</h2>
-                
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="lg:w-1/4">
-                    <div className="text-center">
-                      <div className="w-24 h-24 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <FaPills className="text-4xl text-green-600" />
+              {/* Cart Items */}
+              <div className="space-y-4 mb-6">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                        <p className="text-sm text-gray-600">{item.brand} - {item.genericName}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          {item.prescriptionRequired && (
+                            <span className="text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full">
+                              Prescription Required
+                            </span>
+                          )}
+                          <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">
+                            {item.stockStatus === 'in-stock' ? 'In Stock' : 'Limited Stock'}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStockStatusStyle(orderDetails.medicine.stockStatus)}`}>
-                        {orderDetails.medicine.stockStatus === "in-stock" && <FaCheckCircle className="mr-1" />}
-                        {orderDetails.medicine.stockStatus.replace("-", " ").toUpperCase()}
-                      </div>
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
-                  </div>
-                  
-                  <div className="lg:w-3/4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{orderDetails.medicine.name}</h3>
-                        <p className="text-lg text-gray-600">{orderDetails.medicine.genericName}</p>
-                        <p className="text-green-600 font-semibold">{orderDetails.medicine.strength} - {orderDetails.medicine.form}</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-8 h-8 border rounded flex items-center justify-center hover:bg-gray-50"
+                        >
+                          <FaMinus className="text-xs" />
+                        </button>
+                        <span className="font-medium w-12 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-8 h-8 border rounded flex items-center justify-center hover:bg-gray-50"
+                        >
+                          <FaPlus className="text-xs" />
+                        </button>
                       </div>
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-green-600">Rs {orderDetails.medicine.price}</p>
-                        <p className="text-sm text-gray-600">per pack</p>
+                        <p className="text-sm text-gray-500">Rs {item.price} × {item.quantity}</p>
+                        <p className="font-bold text-green-600">Rs {item.price * item.quantity}</p>
                       </div>
                     </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Manufacturer</h4>
-                        <p className="text-gray-600">{orderDetails.medicine.manufacturer}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Category</h4>
-                        <p className="text-gray-600">{orderDetails.medicine.category}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Expiry Date</h4>
-                        <p className="text-gray-600">{orderDetails.medicine.expiryDate}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Prescription Required</h4>
-                        <p className="text-gray-600">{orderDetails.medicine.prescriptionRequired ? "Yes" : "No"}</p>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
-                      <p className="text-gray-600">{orderDetails.medicine.description}</p>
-                    </div>
-
-                    {/* Quantity Selection */}
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-2">Quantity</h4>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => handleQuantityChange(Math.max(1, orderDetails.quantity - 1))}
-                          className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                        >
-                          -
-                        </button>
-                        <span className="text-xl font-semibold w-12 text-center">{orderDetails.quantity}</span>
-                        <button
-                          onClick={() => handleQuantityChange(orderDetails.quantity + 1)}
-                          className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                        >
-                          +
-                        </button>
-                        <span className="text-gray-600 ml-4">Total: Rs {orderDetails.medicine.price * orderDetails.quantity}</span>
-                      </div>
-                    </div>
-
-                    {/* Drug Safety Information */}
-                    {orderDetails.medicine.prescriptionRequired && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                          <FaExclamationTriangle className="text-orange-600 mt-1" />
-                          <div>
-                            <h4 className="font-semibold text-orange-800 mb-1">Prescription Required</h4>
-                            <p className="text-orange-700 text-sm">This medicine requires a valid prescription from a licensed doctor.</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
+                ))}
+              </div>
+
+              {/* Subtotal */}
+              <div className="border-t pt-4">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Subtotal ({cartItems.length} items)</span>
+                  <span className="text-green-600">Rs {calculateSubtotal()}</span>
                 </div>
               </div>
 
-              {/* Drug Interactions Check */}
-              {drugInteractions.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 shadow-lg">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Drug Interaction Check</h3>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <FaCheckCircle className="text-green-600 mt-1" />
-                      <div>
-                        {drugInteractions.map((interaction, index) => (
-                          <p key={index} className="text-green-700 text-sm">{interaction}</p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end mt-8">
-              <button
-                onClick={() => setCurrentStep(2)}
-                disabled={orderDetails.medicine.stockStatus === "out-of-stock"}
-                className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Continue to Prescription
-              </button>
+              <div className="flex justify-between mt-8">
+                <Link
+                  href="/patient/pharmacy/medicines"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Continue Shopping
+                </Link>
+                <button
+                  onClick={() => setCurrentStep(prescriptionRequired ? 2 : 3)}
+                  className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg font-semibold"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 2: Prescription Handling */}
-        {currentStep === 2 && (
-          <div className="max-w-2xl mx-auto">
+        {/* Step 2: Prescriptions (if required) */}
+        {currentStep === 2 && prescriptionRequired && (
+          <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Prescription Information</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Prescriptions</h2>
               
-              {orderDetails.medicine.prescriptionRequired ? (
-                <div className="space-y-6">
-                  {/* Prescription Method Selection */}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-4">How would you like to provide your prescription?</h3>
-                    <div className="space-y-4">
-                      <label className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        orderDetails.prescriptionMethod === "upload" ? "border-green-600 bg-green-50" : "border-gray-200 hover:border-gray-300"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="prescription-method"
-                          value="upload"
-                          checked={orderDetails.prescriptionMethod === "upload"}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, prescriptionMethod: e.target.value as "upload" | "digital" })}
-                          className="mr-4 mt-1"
-                        />
-                        <FaUpload className={`text-2xl mr-4 mt-1 ${orderDetails.prescriptionMethod === "upload" ? "text-green-600" : "text-gray-400"}`} />
-                        <div>
-                          <h4 className="font-bold text-lg mb-2">Upload Prescription Document</h4>
-                          <p className="text-gray-600 text-sm">Upload a photo or scan of your existing prescription</p>
-                        </div>
-                      </label>
-
-                      <label className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        orderDetails.prescriptionMethod === "digital" ? "border-green-600 bg-green-50" : "border-gray-200 hover:border-gray-300"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="prescription-method"
-                          value="digital"
-                          checked={orderDetails.prescriptionMethod === "digital"}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, prescriptionMethod: e.target.value as "upload" | "digital" })}
-                          className="mr-4 mt-1"
-                        />
-                        <FaEdit className={`text-2xl mr-4 mt-1 ${orderDetails.prescriptionMethod === "digital" ? "text-green-600" : "text-gray-400"}`} />
-                        <div>
-                          <h4 className="font-bold text-lg mb-2">Digital Prescription Form</h4>
-                          <p className="text-gray-600 text-sm">Fill out prescription details manually</p>
-                        </div>
-                      </label>
+              <div className="space-y-6">
+                {cartItems.filter(item => item.prescriptionRequired).map((item) => (
+                  <div key={item.id} className="border rounded-lg p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                        <p className="text-sm text-gray-600">{item.brand} - Qty: {item.quantity}</p>
+                      </div>
+                      <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+                        Prescription Required
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Upload Method */}
-                  {orderDetails.prescriptionMethod === "upload" && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-4">Upload Prescription Document</h4>
-                      {!orderDetails.prescription.file ? (
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
-                          <FaUpload className="text-4xl text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-600 mb-4">Upload your prescription document</p>
+                    <div className="space-y-4">
+                      {!orderDetails.prescriptions.get(item.id)?.file ? (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <FaUpload className="text-3xl text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-600 mb-3">Upload prescription for {item.name}</p>
                           <input
                             type="file"
                             accept="image/*,.pdf"
                             onChange={(e) => {
                               const file = e.target.files?.[0]
-                              if (file) handlePrescriptionFileUpload(file)
+                              if (file) handlePrescriptionUpload(item.id, { file })
                             }}
                             className="hidden"
-                            id="prescription-upload"
+                            id={`prescription-${item.id}`}
                           />
                           <label
-                            htmlFor="prescription-upload"
-                            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 cursor-pointer inline-block"
+                            htmlFor={`prescription-${item.id}`}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 cursor-pointer inline-block"
                           >
                             Choose File
                           </label>
                         </div>
                       ) : (
-                        <div className="border border-green-200 rounded-xl p-4 bg-green-50">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <FaFileAlt className="text-green-600" />
                               <div>
-                                <p className="font-medium text-green-800">{orderDetails.prescription.file.name}</p>
-                                <p className="text-green-600 text-sm">{(orderDetails.prescription.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <p className="font-medium text-green-800">
+                                  {orderDetails.prescriptions.get(item.id)?.file?.name}
+                                </p>
+                                <p className="text-green-600 text-sm">
+                                  Prescription uploaded
+                                </p>
                               </div>
                             </div>
                             <button
-                              onClick={() => setOrderDetails(prev => ({
-                                ...prev,
-                                prescription: { ...prev.prescription, file: undefined }
-                              }))}
+                              onClick={() => handlePrescriptionUpload(item.id, { file: undefined, validated: false })}
                               className="text-red-600 hover:text-red-800"
                             >
                               <FaTimes />
@@ -653,145 +480,47 @@ export default function CompletePharmacyOrderBooking() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Digital Form Method */}
-                  {orderDetails.prescriptionMethod === "digital" && (
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-gray-900 mb-4">Prescription Details</h4>
-                      
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-gray-700 font-medium mb-2">Doctor License Number *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="MD-2024-001"
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.doctorLicense}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, doctorLicense: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-gray-700 font-medium mb-2">Prescription Date *</label>
-                          <input
-                            type="date"
-                            required
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.prescriptionDate}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, prescriptionDate: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-gray-700 font-medium mb-2">Patient Name *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Patient full name"
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.patientName}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, patientName: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-gray-700 font-medium mb-2">Dosage *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g., 1 tablet"
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.dosage}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, dosage: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-gray-700 font-medium mb-2">Frequency *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g., 3 times daily"
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.frequency}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, frequency: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-gray-700 font-medium mb-2">Duration *</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g., 7 days"
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.duration}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, duration: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-gray-700 font-medium mb-2">Special Instructions</label>
-                          <textarea
-                            rows={3}
-                            placeholder="Take with food, avoid alcohol, etc."
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-green-600"
-                            value={orderDetails.prescription.instructions}
-                            onChange={(e) => setOrderDetails(prev => ({
-                              ...prev,
-                              prescription: { ...prev.prescription, instructions: e.target.value }
-                            }))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                      {orderDetails.prescriptions.get(item.id)?.file && (
+                        <button
+                          onClick={() => validatePrescription(item.id)}
+                          disabled={orderDetails.prescriptions.get(item.id)?.validated}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {orderDetails.prescriptions.get(item.id)?.validated ? "Validated ✓" : "Validate Prescription"}
+                        </button>
+                      )}
 
-                  {/* Validation Status */}
-                  {(orderDetails.prescription.file || orderDetails.prescription.doctorName) && (
-                    <div>
-                      <button
-                        onClick={validatePrescription}
-                        disabled={orderDetails.prescription.validated}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
-                      >
-                        {orderDetails.prescription.validated ? "Prescription Validated" : "Validate Prescription"}
-                      </button>
-                      
-                      {orderDetails.prescription.validated && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <div className="flex items-start gap-3">
-                            <FaCheckCircle className="text-green-600 mt-1" />
+                      {orderDetails.prescriptions.get(item.id)?.validated && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <FaCheckCircle className="text-green-600 mt-0.5" />
                             <div>
-                              <h4 className="font-semibold text-green-800 mb-1">Prescription Verified</h4>
-                              <p className="text-green-700 text-sm">{orderDetails.prescription.verificationNotes}</p>
+                              <p className="font-semibold text-green-800 text-sm">Verified</p>
+                              <p className="text-green-700 text-xs">
+                                {orderDetails.prescriptions.get(item.id)?.verificationNotes}
+                              </p>
                             </div>
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                  <FaCheckCircle className="text-4xl text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-green-800 mb-2">No Prescription Required</h3>
-                  <p className="text-green-700">This medicine can be purchased without a prescription.</p>
+                  </div>
+                ))}
+              </div>
+
+              {cartItems.some(item => !item.prescriptionRequired) && (
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <FaInfoCircle className="text-blue-600 mt-1" />
+                    <div>
+                      <p className="text-blue-800 font-semibold text-sm">Note</p>
+                      <p className="text-blue-700 text-sm">
+                        Your cart also contains {cartItems.filter(item => !item.prescriptionRequired).length} over-the-counter 
+                        medicine(s) that do not require prescription.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -804,7 +533,7 @@ export default function CompletePharmacyOrderBooking() {
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
-                  disabled={orderDetails.medicine.prescriptionRequired && !orderDetails.prescription.validated}
+                  disabled={!allPrescriptionsValidated()}
                   className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Delivery
@@ -814,11 +543,9 @@ export default function CompletePharmacyOrderBooking() {
           </div>
         )}
 
-        {/* Step 3: Delivery Details */}
         {currentStep === 3 && (
           <div className="max-w-4xl mx-auto">
             <div className="space-y-6">
-              {/* Delivery Address */}
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Delivery Address</h3>
                 <div className="space-y-4">
@@ -858,10 +585,8 @@ export default function CompletePharmacyOrderBooking() {
                 </div>
               </div>
 
-              {/* Delivery Slots */}
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Select Delivery Slot</h3>
-                
                 <div className="mb-4">
                   <div className="flex items-center gap-4 text-xs flex-wrap">
                     <div className="flex items-center gap-2">
@@ -902,7 +627,15 @@ export default function CompletePharmacyOrderBooking() {
                             onClick={() => handleDeliverySlotSelect(slot)}
                             disabled={!slot.available}
                             className={`p-4 border-2 rounded-lg text-left transition-all ${
-                              getDeliverySlotStyle(slot, orderDetails.deliverySlot === slot)
+                              !slot.available 
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                                : orderDetails.deliverySlot === slot
+                                ? "bg-green-600 text-white border-green-600"
+                                : slot.type === "express"
+                                ? "border-red-300 text-red-600 hover:bg-red-50"
+                                : slot.type === "priority"
+                                ? "border-orange-300 text-orange-600 hover:bg-orange-50"
+                                : "border-gray-300 hover:border-green-400 hover:bg-green-50"
                             }`}
                           >
                             <div className="flex justify-between items-start mb-2">
@@ -935,7 +668,7 @@ export default function CompletePharmacyOrderBooking() {
 
             <div className="flex justify-between mt-6">
               <button
-                onClick={() => setCurrentStep(2)}
+                onClick={() => setCurrentStep(prescriptionRequired ? 2 : 1)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
                 Back
@@ -982,7 +715,7 @@ export default function CompletePharmacyOrderBooking() {
                         <span className="font-semibold">{method.name}</span>
                         {method.discount && (
                           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                            {method.discount}% OFF
+                            {method.discount}% OFF on Rx
                           </span>
                         )}
                       </div>
@@ -994,42 +727,49 @@ export default function CompletePharmacyOrderBooking() {
 
               {/* Payment Summary */}
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 mb-6 border">
-                <h3 className="font-bold text-gray-900 mb-4">Payment Summary</h3>
+                <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{orderDetails.medicine.name} × {orderDetails.quantity}</span>
-                    <span className="font-medium">Rs {orderDetails.medicine.price * orderDetails.quantity}</span>
+                  {/* Items breakdown */}
+                  {cartItems.map(item => (
+                    <div key={item.id} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{item.name} × {item.quantity}</span>
+                      <span className="font-medium">Rs {item.price * item.quantity}</span>
+                    </div>
+                  ))}
+                  
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">Rs {calculateSubtotal()}</span>
+                    </div>
                   </div>
+                  
                   {orderDetails.deliverySlot && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Delivery Fee</span>
                       <span className="font-medium">Rs {orderDetails.deliverySlot.fee}</span>
                     </div>
                   )}
-                  {selectedPaymentMethod?.discount && orderDetails.medicine.prescriptionRequired && (
+                  
+                  {selectedPaymentMethod?.discount && cartItems.some(item => item.prescriptionRequired) && (
                     <div className="flex justify-between text-green-600">
-                      <span>Insurance Discount ({selectedPaymentMethod.discount}%)</span>
+                      <span>Insurance Discount ({selectedPaymentMethod.discount}% on Rx items)</span>
                       <span className="font-medium">
-                        - Rs {Math.round(orderDetails.totalCost * selectedPaymentMethod.discount / 100)}
+                        - Rs {Math.round(
+                          cartItems
+                            .filter(item => item.prescriptionRequired)
+                            .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                          * selectedPaymentMethod.discount / 100
+                        )}
                       </span>
                     </div>
                   )}
+                  
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold text-lg">Total Amount</span>
                     <span className="font-bold text-xl text-green-600">
                       Rs {Math.round(calculateFinalAmount())}
                     </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pharmacy Quality Assurance */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <FaShieldAlt className="text-green-600 mt-1" />
-                  <div>
-                    <h4 className="font-semibold text-green-800 mb-1">Quality Assurance</h4>
-                    <p className="text-green-700 text-sm">All medicines are sourced from licensed manufacturers and stored under proper conditions. Expiry dates verified before dispatch.</p>
                   </div>
                 </div>
               </div>
@@ -1054,7 +794,7 @@ export default function CompletePharmacyOrderBooking() {
                   ) : (
                     <>
                       <FaWallet />
-                      Confirm Order - Rs {Math.round(calculateFinalAmount())}
+                      Pay Rs {Math.round(calculateFinalAmount())}
                     </>
                   )}
                 </button>
@@ -1087,35 +827,17 @@ export default function CompletePharmacyOrderBooking() {
                   </div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4 text-sm">
                   <div>
-                    <h4 className="font-semibold mb-3 text-green-100">Medicine Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="text-green-200">Medicine:</span> {orderDetails.medicine.name}</p>
-                      <p><span className="text-green-200">Quantity:</span> {orderDetails.quantity} pack(s)</p>
-                      <p><span className="text-green-200">Manufacturer:</span> {orderDetails.medicine.manufacturer}</p>
-                    </div>
+                    <p className="text-green-200">Delivery Date & Time</p>
+                    <p className="font-semibold">
+                      {orderDetails.deliverySlot?.date} at {orderDetails.deliverySlot?.time}
+                    </p>
                   </div>
-                  
                   <div>
-                    <h4 className="font-semibold mb-3 text-green-100">Delivery Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="text-green-200">Date:</span> {orderDetails.deliverySlot?.date}</p>
-                      <p><span className="text-green-200">Time:</span> {orderDetails.deliverySlot?.time}</p>
-                      <p><span className="text-green-200">Type:</span> {orderDetails.deliverySlot?.type} delivery</p>
-                      <p><span className="text-green-200">Total Paid:</span> Rs {Math.round(calculateFinalAmount())}</p>
-                    </div>
+                    <p className="text-green-200">Total Amount Paid</p>
+                    <p className="font-semibold text-lg">Rs {Math.round(calculateFinalAmount())}</p>
                   </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-white/10 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaTruck className="text-green-200" />
-                    <span className="font-semibold text-green-100">Order Status</span>
-                  </div>
-                  <p className="text-green-100 text-sm">
-                    Your order is being prepared for delivery. Tracking details will be sent via SMS and email.
-                  </p>
                 </div>
               </div>
 
@@ -1128,35 +850,6 @@ export default function CompletePharmacyOrderBooking() {
                   Go to Dashboard
                 </Link>
               </div>
-              
-              {/* Important Medicine Information */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaExclamationTriangle className="text-yellow-600" />
-                    <span className="font-semibold text-yellow-800">Important Medicine Information</span>
-                  </div>
-                  <div className="text-sm text-yellow-700 space-y-1">
-                    <p>Follow dosage instructions exactly as prescribed</p>
-                    <p>Check expiry date before use: {orderDetails.medicine.expiryDate}</p>
-                    <p>Store in a cool, dry place away from direct sunlight</p>
-                    <p>Keep medicines away from children</p>
-                  </div>
-                </div>
-
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaPhone className="text-red-600" />
-                    <span className="font-semibold text-red-800">24/7 Pharmacy Support</span>
-                  </div>
-                  <p className="text-sm text-red-700">
-                    For urgent medicine queries or delivery issues: 
-                    <a href="tel:+2304004000" className="font-semibold hover:underline ml-1">
-                      +230 400 4000
-                    </a>
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -1164,4 +857,3 @@ export default function CompletePharmacyOrderBooking() {
     </div>
   )
 }
-
