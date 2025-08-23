@@ -6,7 +6,6 @@ import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCir
 import { useCart } from '@/app/contexts/CartContext'
 import { mockMedicines } from '@/app/data/medicines'
 
-// Category icons mapping
 const categoryIcons = {
   "Pain Relief": FaHandHoldingMedical,
   "Diabetes": FaHeart,

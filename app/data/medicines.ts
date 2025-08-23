@@ -1,6 +1,3 @@
-// app/data/medicines.ts
-// Separate data file for medicines mock data
-
 export const mockMedicines = [
   {
     id: 1,
