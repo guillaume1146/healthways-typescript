@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-// Import the next/image component
 import Image from 'next/image'
 import { 
     FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
@@ -185,13 +184,10 @@ const TagInput = ({ label, tags, onChange }: { label: string, tags: string[], on
     );
 };
 
-// --- MAIN COMPONENT ---
 export default function SettingsClient() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
-
-  // State for all settings forms
   const [profile, setProfile] = useState<NurseProfileSettings>(mockProfileData)
   const [availability, setAvailability] = useState<Availability[]>(mockAvailabilityData)
   const [documents, setDocuments] = useState<Document[]>(mockDocumentData)
