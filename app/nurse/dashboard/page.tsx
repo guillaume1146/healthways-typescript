@@ -3,513 +3,274 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { 
-  FaDollarSign, FaCalendarAlt, FaClock, FaChartLine,
-  FaCheckCircle, FaBell, FaCamera, FaFileUpload, FaCreditCard,
-  FaUniversity, FaDownload, FaFilter, FaSearch, FaUser,
-  FaMapMarkerAlt, FaPhone, FaStar, FaPlus, FaTrash, 
-  FaPowerOff, FaToggleOn, FaToggleOff, FaArrowUp, FaWallet
+  FaUserNurse, FaCalendarCheck, FaDollarSign, FaStar, FaChartLine, 
+  FaBell, FaClipboardList, FaEdit, FaClock, FaUniversity, FaBan,
+  FaFileInvoiceDollar, FaCheckCircle, FaSpinner, FaTimesCircle
 } from 'react-icons/fa'
+import { IconType } from 'react-icons'
 
-// Types
+// Type Definitions
+interface StatCardProps {
+  icon: IconType
+  title: string
+  value: string | number
+  change?: string
+  color: string
+}
+
+interface EarningSummary {
+  totalRevenue: number
+  commission: number
+  netPayout: number
+  period: 'monthly' | 'weekly'
+}
+
 interface Appointment {
   id: string
   patientName: string
-  serviceType: string
-  date: string
+  patientAvatar: string
   time: string
-  duration: string
-  location: string
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled'
-  amount: number
+  serviceType: string
+  status: 'upcoming' | 'completed' | 'cancelled'
 }
 
-interface Transaction {
-  id: string
-  date: string
-  description: string
-  amount: number
-  type: 'earning' | 'commission' | 'payout'
-  status: 'completed' | 'pending'
-}
-
-interface BankAccount {
-  id: string
-  bankName: string
-  accountNumber: string
-  type: 'savings' | 'current'
-  isDefault: boolean
-  verified: boolean
-}
-
-interface TimeSlot {
-  start: string
-  end: string
-  enabled: boolean
-}
-
-interface WorkingHours {
-  day: string
-  enabled: boolean
-  slots: {
-    morning: TimeSlot
-    afternoon: TimeSlot
-    evening: TimeSlot
-    night: TimeSlot
+interface NurseDashboardData {
+  name: string
+  specialization: string
+  avatar: string
+  stats: {
+    todayAppointments: number
+    completedServices: number
+    monthlyEarnings: number
+    rating: number
   }
+  upcomingAppointments: Appointment[]
+  earnings: EarningSummary
+  profileCompletion: number
 }
 
 // Mock Data
-const mockEarnings = {
-  monthly: 5400,
-  weekly: 1260,
-  daily: 180,
-  pending: 450,
-  commission: 810,
-  net: 4590
+const mockNurseDashboardData: NurseDashboardData = {
+  name: 'Maria Thompson',
+  specialization: 'Elderly Care Specialist',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&backgroundColor=e0f2fe',
+  stats: {
+    todayAppointments: 4,
+    completedServices: 1250,
+    monthlyEarnings: 5500,
+    rating: 4.9,
+  },
+  upcomingAppointments: [
+    { id: 'apt1', patientName: 'George Miller', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George', time: '10:00 AM', serviceType: 'Wound Care', status: 'upcoming' },
+    { id: 'apt2', patientName: 'Susan Webb', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Susan', time: '02:30 PM', serviceType: 'Medication Management', status: 'upcoming' },
+    { id: 'apt3', patientName: 'Robert Chen', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert', time: '09:00 AM (Yesterday)', serviceType: 'Diabetes Management', status: 'completed' },
+  ],
+  earnings: {
+    totalRevenue: 5500,
+    commission: 550, // Assuming 10%
+    netPayout: 4950,
+    period: 'monthly',
+  },
+  profileCompletion: 90,
 }
 
-const mockAppointments: Appointment[] = [
-  {
-    id: '1',
-    patientName: 'John Smith',
-    serviceType: 'Elderly Care',
-    date: '2024-02-01',
-    time: '09:00 AM',
-    duration: '4 hours',
-    location: 'Rose Hill',
-    status: 'confirmed',
-    amount: 180
-  },
-  {
-    id: '2',
-    patientName: 'Sarah Johnson',
-    serviceType: 'Post-Surgery Care',
-    date: '2024-02-01',
-    time: '02:00 PM',
-    duration: '3 hours',
-    location: 'Curepipe',
-    status: 'pending',
-    amount: 135
-  }
-]
+const StatCard = ({ icon: Icon, title, value, change, color }: StatCardProps) => (
+  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 transform hover:-translate-y-1 transition-transform duration-300">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-600 text-sm font-medium">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        {change && (
+          <p className={`text-sm mt-1 ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+            {change} from last month
+          </p>
+        )}
+      </div>
+      <div className={`p-3 rounded-full ${color}`}>
+        <Icon className="text-white text-xl" />
+      </div>
+    </div>
+  </div>
+)
 
-const mockTransactions: Transaction[] = [
-  {
-    id: '1',
-    date: '2024-01-30',
-    description: 'Service: Elderly Care',
-    amount: 180,
-    type: 'earning',
-    status: 'completed'
-  },
-  {
-    id: '2',
-    date: '2024-01-30',
-    description: 'Platform Fee (15%)',
-    amount: -27,
-    type: 'commission',
-    status: 'completed'
-  }
-]
-
-const mockBankAccounts: BankAccount[] = [
-  {
-    id: '1',
-    bankName: 'MCB',
-    accountNumber: '****4567',
-    type: 'savings',
-    isDefault: true,
-    verified: true
-  }
-]
-
-const initialWorkingHours: WorkingHours[] = [
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-].map(day => ({
-  day,
-  enabled: day !== 'Sunday',
-  slots: {
-    morning: { start: '06:00', end: '12:00', enabled: true },
-    afternoon: { start: '12:00', end: '18:00', enabled: true },
-    evening: { start: '18:00', end: '22:00', enabled: true },
-    night: { start: '22:00', end: '06:00', enabled: false }
-  }
-}))
+const AppointmentStatusIcon = ({ status }: { status: 'upcoming' | 'completed' | 'cancelled' }) => {
+  if (status === 'completed') return <FaCheckCircle className="text-green-500" />
+  if (status === 'upcoming') return <FaSpinner className="text-blue-500 animate-spin" />
+  if (status === 'cancelled') return <FaTimesCircle className="text-red-500" />
+  return null
+}
 
 export default function NurseDashboardPage() {
-  const [activeTab, setActiveTab] = useState<string>('overview')
-  const [appointments] = useState<Appointment[]>(mockAppointments)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [workingHours, setWorkingHours] = useState<WorkingHours[]>(initialWorkingHours)
-  const [profileData, setProfileData] = useState({
-    name: 'Maria Thompson',
-    email: 'maria.t@healthcare.mu',
-    phone: '+230 5789 0123',
-    registration: 'RN-MU-2012-4567',
-    hourlyRate: 45,
-    weeklyRate: 1500,
-    monthlyRate: 5500
-  })
-
-  const toggleDayAvailability = (index: number) => {
-    const updated = [...workingHours]
-    updated[index].enabled = !updated[index].enabled
-    setWorkingHours(updated)
-  }
-
-  const toggleSlot = (dayIndex: number, slot: keyof WorkingHours['slots']) => {
-    const updated = [...workingHours]
-    updated[dayIndex].slots[slot].enabled = !updated[dayIndex].slots[slot].enabled
-    setWorkingHours(updated)
-  }
-
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: FaChartLine },
-    { id: 'appointments', label: 'Appointments', icon: FaCalendarAlt },
-    { id: 'earnings', label: 'Earnings', icon: FaDollarSign },
-    { id: 'availability', label: 'Availability', icon: FaClock },
-    { id: 'profile', label: 'Profile', icon: FaUser },
-    { id: 'payments', label: 'Payments', icon: FaCreditCard }
-  ]
+  const [nurseData] = useState<NurseDashboardData>(mockNurseDashboardData)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">Nurse Dashboard</h1>
-              <p className="text-sm text-gray-600">Welcome back, {profileData.name}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={nurseData.avatar} alt={nurseData.name} className="w-14 h-14 rounded-full border-2 border-teal-500" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Welcome back, {nurseData.name.split(' ')[0]}!</h1>
+                <p className="text-gray-600">{nurseData.specialization}</p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2">
+              <button className="relative p-2 text-gray-600 hover:text-teal-600">
                 <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4">2</span>
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  2
+                </span>
               </button>
-              <FaPowerOff className="text-gray-600 cursor-pointer" />
+              <Link href="/nurse/settings" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transition-all duration-200 flex items-center gap-2">
+                <FaEdit />
+                Manage Profile
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 flex gap-6 overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 ${
-                activeTab === tab.id ? 'border-teal-600 text-teal-600' : 'border-transparent'
-              }`}
-            >
-              <tab.icon />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+      <div className="container mx-auto px-4 py-8">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            icon={FaCalendarCheck}
+            title="Today's Appointments"
+            value={nurseData.stats.todayAppointments}
+            color="bg-blue-500"
+          />
+          <StatCard
+            icon={FaClipboardList}
+            title="Total Services Completed"
+            value={nurseData.stats.completedServices}
+            color="bg-green-500"
+          />
+          <StatCard
+            icon={FaDollarSign}
+            title="This Month's Earnings"
+            value={`$${nurseData.stats.monthlyEarnings.toLocaleString()}`}
+            change="+15%"
+            color="bg-purple-500"
+          />
+          <StatCard
+            icon={FaStar}
+            title="Patient Rating"
+            value={nurseData.stats.rating}
+            color="bg-yellow-500"
+          />
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-6">
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-6 rounded-xl shadow">
-                <div className="flex justify-between mb-4">
-                  <FaDollarSign className="text-2xl text-green-600" />
-                  <span className="text-xs text-green-600"><FaArrowUp /> 12%</span>
-                </div>
-                <p className="text-2xl font-bold">${mockEarnings.monthly}</p>
-                <p className="text-sm text-gray-600">Monthly Earnings</p>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Appointments Management */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Upcoming Appointments</h2>
+                <Link href="/nurse/appointments" className="text-teal-600 hover:underline font-medium">
+                  View All
+                </Link>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow">
-                <FaCalendarAlt className="text-2xl text-blue-600 mb-4" />
-                <p className="text-2xl font-bold">42</p>
-                <p className="text-sm text-gray-600">Completed</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow">
-                <FaStar className="text-2xl text-yellow-500 mb-4" />
-                <p className="text-2xl font-bold">4.9</p>
-                <p className="text-sm text-gray-600">Rating</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow">
-                <FaWallet className="text-2xl text-purple-600 mb-4" />
-                <p className="text-2xl font-bold">${mockEarnings.pending}</p>
-                <p className="text-sm text-gray-600">Pending</p>
-              </div>
-            </div>
-
-            {/* Recent Appointments */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Upcoming Appointments</h3>
-              {appointments.map(apt => (
-                <div key={apt.id} className="flex justify-between items-center p-3 bg-gray-50 rounded mb-2">
-                  <div>
-                    <p className="font-medium">{apt.patientName}</p>
-                    <p className="text-sm text-gray-600">{apt.serviceType} • {apt.date} at {apt.time}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      apt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {apt.status}
-                    </span>
-                    <p className="font-semibold mt-1">${apt.amount}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'appointments' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex gap-4 mb-6">
-                <div className="flex-1 relative">
-                  <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search appointments..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                  />
-                </div>
-                <button className="px-4 py-2 bg-teal-600 text-white rounded-lg">
-                  <FaFilter className="inline mr-2" />Filter
-                </button>
-              </div>
-
-              {appointments.map(apt => (
-                <div key={apt.id} className="border-b pb-4 mb-4">
-                  <div className="flex justify-between">
-                    <div>
-                      <h4 className="font-semibold text-lg">{apt.patientName}</h4>
-                      <p className="text-teal-600">{apt.serviceType}</p>
-                      <div className="flex gap-4 text-sm text-gray-600 mt-2">
-                        <span><FaCalendarAlt className="inline mr-1" />{apt.date}</span>
-                        <span><FaClock className="inline mr-1" />{apt.time}</span>
-                        <span><FaMapMarkerAlt className="inline mr-1" />{apt.location}</span>
+              <div className="space-y-4">
+                {nurseData.upcomingAppointments.map((apt) => (
+                  <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <img src={apt.patientAvatar} alt={apt.patientName} className="w-12 h-12 rounded-full" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{apt.patientName}</h3>
+                        <p className="text-gray-600 text-sm">{apt.time} • {apt.serviceType}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">${apt.amount}</p>
-                      <div className="mt-2 space-x-2">
-                        {apt.status === 'pending' && (
-                          <>
-                            <button className="px-3 py-1 bg-green-600 text-white rounded text-sm">Confirm</button>
-                            <button className="px-3 py-1 bg-red-600 text-white rounded text-sm">Cancel</button>
-                          </>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-3">
+                       <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                         apt.status === 'completed' ? 'bg-green-100 text-green-800' :
+                         apt.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
+                         'bg-red-100 text-red-800'
+                       }`}>
+                         {apt.status}
+                       </span>
+                      <button className="text-gray-400 hover:text-gray-600">...</button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'earnings' && (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl p-6 text-white">
-              <h3 className="text-xl font-semibold mb-4">Earnings Summary</h3>
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <p className="text-teal-100">Monthly</p>
-                  <p className="text-3xl font-bold">${mockEarnings.monthly}</p>
-                </div>
-                <div>
-                  <p className="text-teal-100">After Commission</p>
-                  <p className="text-3xl font-bold">${mockEarnings.net}</p>
-                </div>
-                <div>
-                  <p className="text-teal-100">Pending</p>
-                  <p className="text-3xl font-bold">${mockEarnings.pending}</p>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Transaction History</h3>
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Date</th>
-                    <th className="text-left py-2">Description</th>
-                    <th className="text-right py-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockTransactions.map(tx => (
-                    <tr key={tx.id} className="border-b">
-                      <td className="py-2">{tx.date}</td>
-                      <td className="py-2">{tx.description}</td>
-                      <td className={`py-2 text-right font-medium ${
-                        tx.amount < 0 ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        ${Math.abs(tx.amount)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'availability' && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Working Hours</h3>
-            {workingHours.map((day, dayIndex) => (
-              <div key={day.day} className="border rounded-lg p-4 mb-3">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => toggleDayAvailability(dayIndex)}>
-                      {day.enabled ? <FaToggleOn className="text-2xl text-teal-600" /> : <FaToggleOff className="text-2xl text-gray-400" />}
-                    </button>
-                    <span className={day.enabled ? 'font-medium' : 'text-gray-400'}>{day.day}</span>
-                  </div>
-                </div>
-                {day.enabled && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {(['morning', 'afternoon', 'evening', 'night'] as const).map(slot => (
-                      <button
-                        key={slot}
-                        onClick={() => toggleSlot(dayIndex, slot)}
-                        className={`p-2 rounded border text-sm ${
-                          day.slots[slot].enabled ? 'bg-teal-50 border-teal-300' : 'bg-gray-50'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'profile' && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Profile Information</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  value={profileData.name}
-                  onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Registration</label>
-                <input
-                  type="text"
-                  value={profileData.registration}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  readOnly
-                />
-              </div>
-            </div>
-            <div className="mt-6">
-              <h4 className="font-medium mb-3">Rates</h4>
-              <div className="grid grid-cols-3 gap-4">
+            {/* Earnings Dashboard */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Earnings Summary (Monthly)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                 <div>
-                  <label className="block text-sm mb-1">Hourly ($)</label>
-                  <input
-                    type="number"
-                    value={profileData.hourlyRate}
-                    onChange={(e) => setProfileData({...profileData, hourlyRate: +e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
+                  <p className="text-gray-500 text-sm">Total Revenue</p>
+                  <p className="text-3xl font-bold text-gray-800 mt-1">${nurseData.earnings.totalRevenue.toLocaleString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Weekly ($)</label>
-                  <input
-                    type="number"
-                    value={profileData.weeklyRate}
-                    onChange={(e) => setProfileData({...profileData, weeklyRate: +e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
+                  <p className="text-gray-500 text-sm">Platform Commission (10%)</p>
+                  <p className="text-3xl font-bold text-red-500 mt-1">-${nurseData.earnings.commission.toLocaleString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Monthly ($)</label>
-                  <input
-                    type="number"
-                    value={profileData.monthlyRate}
-                    onChange={(e) => setProfileData({...profileData, monthlyRate: +e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
+                  <p className="text-gray-500 text-sm">Your Net Payout</p>
+                  <p className="text-3xl font-bold text-green-600 mt-1">${nurseData.earnings.netPayout.toLocaleString()}</p>
                 </div>
               </div>
-            </div>
-            <button className="mt-6 px-6 py-2 bg-teal-600 text-white rounded-lg">Save Changes</button>
-          </div>
-        )}
-
-        {activeTab === 'payments' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Bank Accounts</h3>
-              {mockBankAccounts.map(account => (
-                <div key={account.id} className="border rounded-lg p-4 mb-3">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="font-medium">{account.bankName}</p>
-                      <p className="text-sm text-gray-600">Account ending {account.accountNumber}</p>
-                      <div className="flex gap-2 mt-2">
-                        {account.isDefault && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded">Default</span>}
-                        {account.verified && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Verified</span>}
-                      </div>
-                    </div>
-                    <button className="text-red-600"><FaTrash /></button>
-                  </div>
-                </div>
-              ))}
-              <button className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg">
-                <FaPlus className="inline mr-2" />Add Account
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl p-6 text-white">
-              <h3 className="text-xl font-semibold mb-4">Request Payout</h3>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-teal-100">Available Balance</p>
-                  <p className="text-3xl font-bold">${mockEarnings.net}</p>
-                </div>
-                <button className="bg-white text-teal-700 px-6 py-3 rounded-lg font-medium">
-                  Request Payout
-                </button>
+              <div className="mt-6 pt-6 border-t">
+                <p className="text-sm text-center text-gray-600">Next payout is scheduled for the 1st of next month.</p>
               </div>
             </div>
           </div>
-        )}
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Availability Management */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Your Availability</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Your schedule is set for this week. Update your availability to get more bookings.
+              </p>
+              <div className="flex items-center gap-2 text-green-600 mb-4">
+                <FaCheckCircle />
+                <span className="text-sm font-medium">Available for emergency bookings</span>
+              </div>
+              <Link href="/nurse/settings?tab=availability" className="w-full bg-teal-100 text-teal-800 text-center py-2.5 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center justify-center gap-2">
+                <FaClock />
+                Manage Schedule
+              </Link>
+            </div>
+            
+            {/* Payment Configuration */}
+             <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
+               <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <FaUniversity className="text-green-600 text-xl" />
+                <div>
+                  <p className="text-sm font-semibold text-green-800">Bank Account Verified</p>
+                  <p className="text-xs text-gray-600">Payouts are sent to **** **** 1234</p>
+                </div>
+              </div>
+              <Link href="/nurse/settings?tab=payments" className="w-full bg-gray-100 text-gray-800 text-center mt-4 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                <FaFileInvoiceDollar />
+                View Transactions
+              </Link>
+            </div>
+
+            {/* Profile Completion */}
+            <div className="bg-gradient-to-br from-teal-600 to-blue-600 text-white rounded-2xl p-6">
+              <h3 className="text-lg font-bold mb-2">Complete Your Profile</h3>
+              <p className="text-white/90 text-sm mb-4">
+                A complete profile helps you get chosen by more patients.
+              </p>
+              <div className="bg-white/20 rounded-full h-2.5 mb-2">
+                <div className="bg-white rounded-full h-2.5" style={{ width: `${nurseData.profileCompletion}%` }}></div>
+              </div>
+              <p className="text-sm mb-4 font-medium">{nurseData.profileCompletion}% Complete</p>
+              <Link href="/nurse/settings?tab=documents" className="bg-white text-teal-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+                Upload Documents
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
