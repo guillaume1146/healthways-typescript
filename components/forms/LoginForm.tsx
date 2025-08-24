@@ -15,7 +15,9 @@ import {
   FaEyeSlash,
   FaGoogle,
   FaLock,
-  FaEnvelope
+  FaEnvelope,
+  FaChild, 
+  FaUserCog
 } from 'react-icons/fa'
 import type { LoginFormData } from '@/types'
 
@@ -29,7 +31,6 @@ interface UserType {
   redirectPath: string;
   demoEmail: string;
 }
-
 
 
 const userTypes: UserType[] = [
@@ -58,11 +59,19 @@ const userTypes: UserType[] = [
     demoEmail: 'nurse@Healthwyz.mu'
   },
   {
+    id: 'child-care-nurse',
+    label: 'Nanny',
+    icon: FaChild,
+    description: 'Provide Child care services',
+    redirectPath: '/nanny/dashboard',
+    demoEmail: 'nurse@Healthwyz.mu'
+  },
+  {
     id: 'pharmacy',
     label: 'Pharmacy',
     icon: FaPills,
     description: 'Manage inventory & prescriptions',
-    redirectPath: '/pharmacy/dashboard',
+    redirectPath: '/pharmacist/dashboard',
     demoEmail: 'pharmacy@Healthwyz.mu'
   },
   {
@@ -70,15 +79,23 @@ const userTypes: UserType[] = [
     label: 'Lab Partner',
     icon: FaFlask,
     description: 'Laboratory services & results',
-    redirectPath: '/lab/dashboard',
+    redirectPath: '/lab-technician/dashboard',
     demoEmail: 'lab@Healthwyz.mu'
   },
   {
     id: 'ambulance',
-    label: 'Ambulance',
+    label: 'Emergency Responder',
     icon: FaAmbulance,
     description: 'Emergency services coordination',
-    redirectPath: '/ambulance/dashboard',
+    redirectPath: '/emt/dashboard',
+    demoEmail: 'ambulance@Healthwyz.mu'
+  },
+  {
+    id: 'admin',
+    label: 'Administrator',
+    icon: FaUserCog ,
+    description: 'Platform management & oversight',
+    redirectPath: '/admin/dashboard',
     demoEmail: 'ambulance@Healthwyz.mu'
   }
 ]
