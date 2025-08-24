@@ -590,46 +590,6 @@ const HeroSection: React.FC = () => {
                 </svg>
               </motion.button>
 
-              {/* Enhanced Nature-themed Decorative Elements - Responsive */}
-              <motion.div
-                className="absolute -top-4 sm:-top-8 -right-4 sm:-right-8 w-8 h-8 sm:w-16 sm:h-16 rounded-full"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  rotate: [0, 180, 360],
-                  background: [
-                    "radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)",
-                    "radial-gradient(circle, rgba(29, 78, 216, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)",
-                    "radial-gradient(circle, rgba(0, 0, 0, 0.5) 0%, rgba(16, 185, 129, 0.2) 70%)",
-                    "radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(0, 0, 0, 0.2) 70%)"
-                  ]
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-              
-              <motion.div
-                className="absolute -bottom-4 sm:-bottom-8 -left-4 sm:-left-8 w-6 h-6 sm:w-12 sm:h-12 rounded-full"
-                animate={{
-                  scale: [1.5, 1, 1.5],
-                  rotate: [360, 180, 0],
-                  background: [
-                    "radial-gradient(circle, rgba(29, 78, 216, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)",
-                    "radial-gradient(circle, rgba(0, 0, 0, 0.6) 0%, rgba(16, 185, 129, 0.3) 70%)",
-                    "radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)",
-                    "radial-gradient(circle, rgba(29, 78, 216, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%)"
-                  ]
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-
-              {/* Nature-themed Floating Particles - Responsive */}
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i}
