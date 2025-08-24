@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
 import { 
     FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
     FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, 
@@ -28,6 +27,9 @@ interface ResponderProfileSettings {
     vehicleTypes: string[]
     responseTime: string
     onCallStatus: boolean
+    languages: string[]
+    gpsTracking: boolean
+    governmentApproved: boolean
 }
 
 interface ShiftData {
@@ -56,20 +58,23 @@ interface Document {
 
 // --- MOCK DATA ---
 const mockProfileData: ResponderProfileSettings = {
-    name: "Rapid Response Ambulance",
-    type: "Advanced Life Support",
-    category: "Emergency Medical",
-    phone: "114",
-    alternatePhone: "+230 5789 0114",
-    email: "dispatch@rapidresponse.mu",
-    location: "Port Louis Central",
-    coverage: "Island-wide",
-    bio: "Premier emergency medical service with advanced life support capabilities and fastest response times in Mauritius.",
-    services: ["Emergency Transport", "Advanced Life Support", "Cardiac Care", "Trauma Response"],
-    equipment: ["Defibrillator", "Oxygen", "IV Equipment", "Spinal Board"],
-    vehicleTypes: ["Type B Ambulance", "Critical Care Transport"],
-    responseTime: "8-12 minutes",
+    name: "MediRescue Ambulance Service",
+    type: "Emergency Ambulance",
+    category: "Medical Emergency",
+    phone: "911",
+    alternatePhone: "+230 5789 9911",
+    email: "dispatch@medirescue.mu",
+    location: "Port Louis",
+    coverage: "Port Louis & Surrounding Areas",
+    bio: "Leading emergency medical service with state-of-the-art ambulances and highly trained paramedics.",
+    services: ["Advanced Life Support", "Cardiac Emergency", "Trauma Care", "Patient Transport"],
+    equipment: ["Ventilator", "Defibrillator", "Emergency Medications", "Trauma Kit"],
+    vehicleTypes: ["ALS Ambulance", "BLS Ambulance", "Critical Care Unit"],
+    responseTime: "5-8 minutes",
     onCallStatus: true,
+    languages: ["English", "French", "Creole", "Hindi"],
+    gpsTracking: true,
+    governmentApproved: true,
 }
 
 const initialShifts: ShiftData = {
@@ -78,8 +83,8 @@ const initialShifts: ShiftData = {
     Wednesday: Array(24).fill(true),
     Thursday: Array(24).fill(true),
     Friday: Array(24).fill(true),
-    Saturday: Array(24).fill(false).map((_, i) => i >= 18 || i < 6), // Sat evening/night
-    Sunday: Array(24).fill(false).map((_, i) => i >= 18 || i < 6), // Sun evening/night
+    Saturday: Array(24).fill(true),
+    Sunday: Array(24).fill(true),
 };
 
 const mockTransactionData: Transaction[] = [
