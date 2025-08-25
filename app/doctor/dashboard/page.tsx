@@ -127,9 +127,9 @@ const DoctorDashboard = () => {
                   3
                 </span>
               </button>
-              <Link href="/doctor/profile" className="btn-gradient px-6 py-2">
+              <Link href="/doctor/settings" className="btn-gradient px-6 py-2">
                 <FaEdit className="inline mr-2" />
-                Edit Profile
+                Settings
               </Link>
             </div>
           </div>
@@ -291,7 +291,7 @@ const DoctorDashboard = () => {
                 <div className="bg-white rounded-full h-2 w-3/4"></div>
               </div>
               <p className="text-sm mb-4">75% Complete</p>
-              <Link href="/doctor/profile" className="bg-white text-primary-blue px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+              <Link href="/doctor/settings" className="bg-white text-primary-blue px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
                 Complete Profile
               </Link>
             </div>
