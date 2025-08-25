@@ -1,14 +1,6 @@
-// File: app/patient/settings/page.tsx
 'use client'
 
 import React, { Suspense, useState, useCallback } from 'react'
-
-// --- IMPORTANT ---
-// This component uses Font Awesome for icons. Please make sure to include the
-// Font Awesome CDN link in the <head> of your main HTML file:
-// <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
-// --- TYPE DEFINITIONS ---
 
 type ActiveTab = 'profile' | 'security' | 'notifications' | 'payment' | 'subscription' | 'documents'
 
