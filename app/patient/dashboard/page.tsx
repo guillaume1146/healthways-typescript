@@ -182,9 +182,9 @@ const PatientDashboard = () => {
                   3
                 </span>
               </button>
-              <Link href="/patient/profile" className="btn-gradient px-4 sm:px-6 py-2 text-sm sm:text-base">
+              <Link href="/patient/settings" className="btn-gradient px-4 sm:px-6 py-2 text-sm sm:text-base">
                 <FaEdit className="inline mr-1 sm:mr-2" />
-                Edit Profile
+                Settings
               </Link>
             </div>
           </div>
