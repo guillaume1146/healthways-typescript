@@ -103,13 +103,5 @@ export const userTypes: UserType[] = [
     description: 'Earn by bringing new users to platform',
     redirectPath: '/referral-partner/dashboard',
     demoEmail: 'partner@Healthwyz.mu'
-  },
-  {
-    id: 'regional-admin',
-    label: 'Regional Administrator',
-    icon: FaGlobe,
-    description: 'Country/region-level platform management',
-    redirectPath: '/regional-admin/dashboard',
-    demoEmail: 'regional@Healthwyz.mu'
   }
 ]
