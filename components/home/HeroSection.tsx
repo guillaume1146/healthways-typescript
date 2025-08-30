@@ -566,8 +566,6 @@ const HeroSection: React.FC = () => {
                 ))}
               </div>
 
-
-              {/* Enhanced floating particles around carousel */}
               {[...Array(10)].map((_, i) => (
                 <motion.div
                   key={i}

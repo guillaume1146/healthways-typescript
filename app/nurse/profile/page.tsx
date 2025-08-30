@@ -123,7 +123,7 @@ const mockNurseProfile: NurseProfile = {
   monthlyRate: '$5,500',
   bio: 'I am a dedicated registered nurse with over 12 years of experience specializing in elderly care. My passion lies in providing compassionate, high-quality care to seniors, helping them maintain their dignity and quality of life. I have extensive experience in managing chronic conditions, dementia care, and providing emotional support to both patients and their families. My approach combines professional medical expertise with genuine empathy and respect for each individual\'s unique needs.',
   avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&backgroundColor=e0f2fe',
-  coverImage: '/images/nurse-cover.jpg',
+  coverImage: '/images/nurse-cover.png',
   specialties: [
     'Elderly Care',
     'Dementia Care',
@@ -270,10 +270,10 @@ const mockNurseProfile: NurseProfile = {
     }
   ],
   photos: [
-    '/images/nurse-work-1.jpg',
-    '/images/nurse-work-2.jpg',
-    '/images/nurse-work-3.jpg',
-    '/images/nurse-work-4.jpg'
+    '/images/nurse-work-1.png',
+    '/images/nurse-work-2.png',
+    '/images/nurse-work-3.png',
+    '/images/nurse-work-4.png'
   ],
   insuranceAccepted: [
     'Swan Insurance',
