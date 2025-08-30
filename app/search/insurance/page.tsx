@@ -558,7 +558,6 @@ export default function InsurancePage() {
       </div>
       
       <div className="container mx-auto px-4 py-8">
-        {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <div>
@@ -631,7 +630,6 @@ export default function InsurancePage() {
           </div>
         </div>
         
-        {/* Trust Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <FaShieldAlt className="text-3xl text-blue-600 mx-auto mb-2" />
@@ -655,7 +653,6 @@ export default function InsurancePage() {
           </div>
         </div>
         
-        {/* Insurance Advisory */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
           <div className="flex items-start gap-3">
             <FaExclamationTriangle className="text-yellow-600 text-xl mt-1 flex-shrink-0" />
@@ -699,7 +696,6 @@ export default function InsurancePage() {
           ) : null}
         </div>
         
-        {/* Insurance Types */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Types of Health Insurance</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -900,7 +896,6 @@ export default function InsurancePage() {
           </div>
         </div>
         
-        {/* Insurance Partner Banner */}
         <div className="mt-16 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Are you an insurance provider?</h2>
           <p className="text-green-100 mb-6">
