@@ -226,15 +226,12 @@ const HeroSection: React.FC = () => {
       ))}
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Modified Layout: Adjusted grid layout and spacing */}
-        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-6 lg:gap-8 items-center">
-          
-          {/* Text Content - Takes 2 columns on large screens */}
+        <div className="flex flex-col lg:grid lg:grid-cols-7 gap-6 lg:gap-8 items-center">
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full order-1 lg:order-1 lg:col-span-2 text-center lg:text-left"
+            className="w-full order-1 lg:order-1 lg:col-span-4 text-center lg:text-left"
           >
             <motion.div 
               variants={itemVariants}
@@ -291,7 +288,7 @@ const HeroSection: React.FC = () => {
             
             <motion.p 
               variants={itemVariants}
-              className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 leading-relaxed px-2 lg:px-0"
+              className="text-base  text-left sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/150 leading-relaxed px-2 lg:px-0 max-w-xl sm:mx-auto lg:mx-0"
             >
               Connect with qualified doctors, get AI-powered health insights, 
               and access medicines across Mauritius. Your trusted healthcare 
@@ -398,7 +395,7 @@ const HeroSection: React.FC = () => {
             }}
           >
             {/* BIGGER & MORE RECTANGULAR CAROUSEL - Increased height by reducing margins */}
-            <div className="relative h-72 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] w-full perspective-1000">
+            <div className="relative h-72 sm:h-80 md:h-96 lg:h-[22rem] xl:h-[28rem] w-full perspective-1000">
               
               {/* Subtle Transparent Border Ring - Matches hero background */}
               <motion.div
