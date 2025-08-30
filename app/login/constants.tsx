@@ -68,7 +68,7 @@ export const userTypes: UserType[] = [
     label: 'Emergency Responder',
     icon: FaAmbulance,
     description: 'Emergency services coordination',
-    redirectPath: '/emt/dashboard',
+    redirectPath: '/responder/dashboard',
     demoEmail: 'ambulance@Healthwyz.mu'
   },
   {

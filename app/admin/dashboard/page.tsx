@@ -221,7 +221,6 @@ const AdminDashboard = () => {
               </button>
             </div>
 
-            {/* System Health */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-bold text-gray-900 mb-4">System Health</h3>
               <div className="space-y-4">
@@ -252,7 +251,6 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Quick Links */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6">
               <h3 className="text-lg font-bold mb-4">Admin Tools</h3>
               <div className="space-y-2">

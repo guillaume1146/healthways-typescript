@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaLeaf, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaGift, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaPlus, FaMinus, FaTrash } from 'react-icons/fa'
-import { useCart } from '@/app/contexts/CartContext'
-import { mockMedicines } from '@/app/data/medicines'
+import { useCart } from '@/app/search/medicines/contexts/CartContext'
+import { mockMedicines } from '@/app/search/medicines/data/medicines'
 
 const categoryIcons = {
   "Pain Relief": FaHandHoldingMedical,

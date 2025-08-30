@@ -15,7 +15,6 @@ import {
   FaUserNurse,
   FaAmbulance,
   FaFlask,
-  FaHandshake,
   FaBaby,
   FaChevronDown,
   FaShieldAlt
@@ -23,22 +22,20 @@ import {
 
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 
-
 const serviceCategories = {
   'Healthcare Services': [
-    { href: '/doctors', label: 'Find Doctors', icon: FaUserMd },
-    { href: '/nursing-care', label: 'Nursing Care', icon: FaUserNurse },
-    { href: '/childcare', label: 'Childcare Services', icon: FaBaby },
-    { href: '/emergency', label: 'Emergency Services', icon: FaAmbulance },
+    { href: '/search/doctors', label: 'Find Doctors', icon: FaUserMd },
+    { href: '/search/nurse', label: 'Nursing Care', icon: FaUserNurse },
+    { href: '/search/childcare', label: 'Childcare Services', icon: FaBaby },
+    { href: '/search/emergency', label: 'Emergency Services', icon: FaAmbulance },
   ],
   'Medical Services': [
-    { href: '/medicines', label: 'Medicines', icon: FaPills },
-    { href: '/lab-testing', label: 'Lab Testing', icon: FaFlask },
-    { href: '/insurance', label: 'Insurance', icon: FaShieldAlt },
+    { href: '/search/medicines', label: 'Medicines', icon: FaPills },
+    { href: '/search/lab', label: 'Lab Testing', icon: FaFlask },
+    { href: '/search/insurance', label: 'Insurance', icon: FaShieldAlt },
   ],
   'Digital Health': [
-    { href: '/ai-search', label: 'AI Support', icon: FaRobot },
-    { href: '/corporate-partners', label: 'Corporate Health', icon: FaHandshake },
+    { href: '/search/ai', label: 'AI Support', icon: FaRobot }
   ]
 }
 

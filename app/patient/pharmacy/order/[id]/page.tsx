@@ -30,7 +30,7 @@ import {
   FaMinus,
   FaTrash
 } from "react-icons/fa"
-import { useCart } from '@/app/contexts/CartContext'
+import { useCart } from '@/app/search/medicines/contexts/CartContext'
 
 interface Pharmacy {
   id: string;
