@@ -129,10 +129,10 @@ const HeroSection: React.FC = () => {
   const imageVariants = {
     enter: {
       opacity: 0,
-      scale: 1.2,
-      rotateY: 45,
+      scale: 1.1,
+      rotateY: 25,
       clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
-      filter: "blur(10px) brightness(0.5)"
+      filter: "blur(8px) brightness(0.7)"
     },
     center: {
       opacity: 1,
@@ -141,64 +141,104 @@ const HeroSection: React.FC = () => {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       filter: "blur(0px) brightness(1)",
       transition: {
-        duration: 1.2,
+        duration: 1.0,
         ease: [0.25, 0.46, 0.45, 0.94] as const,
         clipPath: {
-          duration: 1.5,
+          duration: 1.2,
           ease: "easeInOut" as const
         },
         filter: {
-          duration: 0.8
+          duration: 0.6
         }
       }
     },
     exit: {
       opacity: 0,
-      scale: 0.8,
-      rotateY: -45,
+      scale: 0.9,
+      rotateY: -25,
       clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)",
-      filter: "blur(5px) brightness(0.3)",
+      filter: "blur(5px) brightness(0.5)",
       transition: {
-        duration: 0.8,
+        duration: 0.6,
         ease: [0.55, 0.085, 0.68, 0.53] as const
       }
     }
   }
 
   return (
-    <section className="bg-gradient-hero text-white py-12 sm:py-16 lg:py-20 relative overflow-hidden">
-      {/* Animated Background Elements */}
+    <section className="relative overflow-hidden text-white py-8 sm:py-10 lg:py-12" 
+      style={{ 
+        background: `
+          radial-gradient(ellipse at 0% 50%, rgba(0, 0, 180, 0.9) 0%, transparent 50%),
+          radial-gradient(circle at 40% 30%, rgba(0, 80, 200, 0.9) 0%, transparent 60%),
+          radial-gradient(circle at 95% 50%, rgba(21, 128, 61, 0.7) 0%, transparent 25%),
+          linear-gradient(90deg, 
+            rgba(0, 0, 180, 0.95) 0%, 
+            rgba(0, 80, 200, 0.9) 25%, 
+            rgba(0, 100, 220, 0.8) 50%, 
+            rgba(0, 120, 160, 0.7) 75%,
+            rgba(22, 101, 52, 0.7) 90%, 
+            rgba(21, 128, 61, 0.8) 97%, 
+            rgba(20, 83, 45, 0.7) 100%
+          )
+        `
+      }}
+    >
+      {/* Enhanced Animated Background Elements - Space-like */}
       <motion.div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-40"
         animate={{
           background: [
-            "radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)",
-            "radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)",
-            "radial-gradient(circle at 40% 60%, rgba(245, 158, 11, 0.3) 0%, transparent 50%)",
-            "radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)"
+            "radial-gradient(circle at 15% 15%, rgba(0, 80, 200, 0.8) 0%, transparent 40%)",
+            "radial-gradient(circle at 85% 85%, rgba(21, 128, 61, 0.6) 0%, transparent 45%)",
+            "radial-gradient(circle at 50% 50%, rgba(0, 100, 220, 0.7) 0%, transparent 50%)",
+            "radial-gradient(circle at 25% 75%, rgba(16, 100, 120, 0.6) 0%, transparent 40%)",
+            "radial-gradient(circle at 15% 15%, rgba(0, 80, 200, 0.8) 0%, transparent 40%)"
           ]
         }}
         transition={{
-          duration: 8,
+          duration: 12,
           repeat: Infinity,
           ease: "easeInOut"
         }}
       />
 
+      {/* Floating Stars/Particles */}
+      {[...Array(15)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-white/60 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            opacity: [0.3, 1, 0.3],
+            scale: [0.5, 1.5, 0.5],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: Math.random() * 5
+          }}
+        />
+      ))}
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Mobile-First Layout: Text at top, Image below */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        {/* Modified Layout: Adjusted grid layout and spacing */}
+        <div className="flex flex-col lg:grid lg:grid-cols-5 gap-6 lg:gap-8 items-center">
           
-          {/* Text Content - Always first on mobile */}
+          {/* Text Content - Takes 2 columns on large screens */}
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full order-1 lg:order-1 text-center lg:text-left"
+            className="w-full order-1 lg:order-1 lg:col-span-2 text-center lg:text-left"
           >
             <motion.div 
               variants={itemVariants}
-              className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-white/20"
+              className="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-white/10"
             >
               <MauritiusFlag className="mr-2 sm:mr-3" />
               <motion.span 
@@ -262,21 +302,21 @@ const HeroSection: React.FC = () => {
             <motion.form 
               variants={itemVariants}
               onSubmit={handleSearch} 
-              className="bg-white rounded-xl p-1.5 sm:p-2 flex items-center w-full max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 shadow-2xl border border-white/20"
+              className="bg-white/10 backdrop-blur-md rounded-xl p-1.5 sm:p-2 flex items-center w-full max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 shadow-2xl border border-white/20"
             >
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search doctors, diseases..."
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 outline-none rounded-l-xl text-sm sm:text-base"
+                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 outline-none rounded-l-xl text-sm sm:text-base bg-white/90"
               />
               <motion.button 
                 type="submit" 
                 className="btn-gradient px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2 rounded-r-xl relative overflow-hidden text-sm sm:text-base"
                 whileHover={{ 
                   scale: 1.05,
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)"
                 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ background: "linear-gradient(45deg, #3B82F6, #1D4ED8)" }}
@@ -313,7 +353,7 @@ const HeroSection: React.FC = () => {
                 <motion.button 
                   key={button.text}
                   variants={itemVariants}
-                  className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/30 transition flex items-center justify-center gap-2 relative overflow-hidden group text-sm sm:text-base"
+                  className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/20 transition flex items-center justify-center gap-2 relative overflow-hidden group text-sm sm:text-base"
                   whileHover={{ 
                     scale: 1.05, 
                     y: -2,
@@ -344,90 +384,62 @@ const HeroSection: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* Image Carousel - Second on mobile, responsive sizing */}
+          {/* WIDER CAROUSEL - Takes 3 columns on large screens, shorter height, more rectangular */}
           <motion.div
-            className="w-full order-2 lg:order-2"
-            initial={{ opacity: 0, x: 100, rotateY: 30 }}
+            className="w-full order-2 lg:order-2 lg:col-span-3"
+            initial={{ opacity: 0, x: 100, rotateY: 20 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ 
               duration: 1.2, 
               delay: 0.3,
               type: "spring",
-              stiffness: 60,
+              stiffness: 50,
               damping: 15
             }}
           >
-            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[500px] w-full mx-auto perspective-1000 max-w-md lg:max-w-none">
-              {/* Dark Background Overlay */}
+            {/* BIGGER & MORE RECTANGULAR CAROUSEL - Increased height by reducing margins */}
+            <div className="relative h-72 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] w-full perspective-1000">
+              
+              {/* Subtle Transparent Border Ring - Matches hero background */}
               <motion.div
-                className="absolute inset-0 rounded-2xl"
-                style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
-                animate={{
-                  backgroundColor: [
-                    "rgba(0,0,0,0.2)",
-                    "rgba(0,0,0,0.3)",
-                    "rgba(0,0,0,0.2)"
-                  ]
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              />
-
-              {/* Nature-themed Background Gradient */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
+                className="absolute -inset-1 sm:-inset-2 rounded-3xl opacity-30"
                 animate={{
                   background: [
-                    "linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(16,78,139,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)",
-                    "linear-gradient(225deg, rgba(0,0,0,0.7) 0%, rgba(16,185,129,0.6) 30%, rgba(29,78,216,0.5) 60%, rgba(0,0,0,0.8) 100%)",
-                    "linear-gradient(315deg, rgba(16,78,139,0.8) 0%, rgba(0,0,0,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)",
-                    "linear-gradient(45deg, rgba(16,185,129,0.7) 0%, rgba(0,0,0,0.6) 30%, rgba(16,78,139,0.5) 60%, rgba(0,0,0,0.8) 100%)",
-                    "linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(16,78,139,0.6) 30%, rgba(16,185,129,0.5) 60%, rgba(0,0,0,0.7) 100%)"
+                    "conic-gradient(from 0deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
+                    "conic-gradient(from 90deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
+                    "conic-gradient(from 180deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
+                    "conic-gradient(from 270deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))"
                   ]
                 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              />
-
-              {/* Animated Border Ring - Responsive */}
-              <motion.div
-                className="absolute -inset-2 sm:-inset-4 rounded-3xl"
-                animate={{
-                  background: [
-                    "conic-gradient(from 0deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
-                    "conic-gradient(from 90deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
-                    "conic-gradient(from 180deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
-                    "conic-gradient(from 270deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)",
-                    "conic-gradient(from 360deg, #000000, #104E8B, #10B981, #000000, #1D4ED8, #10B981, #000000)"
-                  ]
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                style={{ padding: "2px" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                style={{ padding: "1px" }}
               >
-                <div className="w-full h-full bg-gray-900 rounded-3xl" />
+                <div className="w-full h-full bg-transparent rounded-3xl" />
               </motion.div>
 
-              {/* Enhanced Scanline Effect */}
+              {/* Subtle Scanline Effect */}
               <motion.div
-                className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10"
+                className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10 opacity-50"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ opacity: [0, 0.5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
                 <motion.div
-                  className="absolute w-full h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-emerald-400 via-blue-400 to-transparent shadow-lg"
+                  className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-blue-800/40 to-transparent"
                   style={{
-                    filter: "drop-shadow(0 0 8px rgba(16, 185, 129, 0.8))"
+                    filter: "drop-shadow(0 0 4px rgba(30, 64, 175, 0.3))"
                   }}
                   animate={{ 
-                    y: [0, "100vh", 0],
+                    y: ["-10%", "110%"],
                     background: [
-                      "linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 50%, transparent 100%)",
-                      "linear-gradient(90deg, transparent 0%, rgba(29, 78, 216, 0.9) 50%, transparent 100%)",
-                      "linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 50%, transparent 100%)"
+                      "linear-gradient(90deg, transparent 0%, rgba(30, 64, 175, 0.4) 50%, transparent 100%)",
+                      "linear-gradient(90deg, transparent 0%, rgba(34, 197, 94, 0.3) 50%, transparent 100%)",
+                      "linear-gradient(90deg, transparent 0%, rgba(30, 64, 175, 0.4) 50%, transparent 100%)"
                     ]
                   }}
                   transition={{ 
-                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                    background: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                    y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                    background: { duration: 8, repeat: Infinity, ease: "easeInOut" }
                   }}
                 />
               </motion.div>
@@ -444,28 +456,28 @@ const HeroSection: React.FC = () => {
                     transformStyle: "preserve-3d"
                   }}
                 >
-                  {/* Nature-themed Highlight Border */}
+                  {/* Enhanced Transparent Highlight Border - Matches background theme */}
                   <motion.div
-                    className="absolute inset-0 rounded-2xl border-2 border-transparent"
+                    className="absolute inset-0 rounded-2xl border border-transparent opacity-30"
                     animate={{
                       borderColor: [
-                        "rgba(0, 0, 0, 0)",
-                        "rgba(16, 185, 129, 0.8)",
-                        "rgba(29, 78, 216, 0.8)",
-                        "rgba(0, 0, 0, 0.6)",
-                        "rgba(16, 185, 129, 0.8)",
-                        "rgba(0, 0, 0, 0)"
+                        "rgba(0, 0, 0, 0.2)",
+                        "rgba(25, 57, 138, 0.7)",
+                        "rgba(34, 197, 94, 0.5)",
+                        "rgba(30, 64, 175, 0.6)",
+                        "rgba(16, 185, 129, 0.5)",
+                        "rgba(0, 0, 0, 0.2)"
                       ],
                       boxShadow: [
                         "0 0 0px rgba(0, 0, 0, 0)",
-                        "0 0 30px rgba(16, 185, 129, 0.5)",
-                        "0 0 30px rgba(29, 78, 216, 0.5)",
-                        "0 0 20px rgba(0, 0, 0, 0.7)",
-                        "0 0 30px rgba(16, 185, 129, 0.5)",
+                        "0 0 25px rgba(25, 57, 138, 0.5)",
+                        "0 0 25px rgba(34, 197, 94, 0.3)",
+                        "0 0 20px rgba(30, 64, 175, 0.4)",
+                        "0 0 25px rgba(16, 185, 129, 0.3)",
                         "0 0 0px rgba(0, 0, 0, 0)"
                       ]
                     }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                   />
 
                   <div className="relative w-full h-full">
@@ -475,36 +487,36 @@ const HeroSection: React.FC = () => {
                       fill
                       className="object-cover object-center"
                       priority
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 60vw, 50vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
                     />
                     
-                    {/* Gradient Overlay with Animation */}
+                    {/* Very Subtle Gradient Overlay */}
                     <motion.div 
-                      className="absolute inset-0"
+                      className="absolute inset-0 opacity-15"
                       animate={{
                         background: [
-                          "linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
-                          "linear-gradient(225deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
-                          "linear-gradient(315deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
-                          "linear-gradient(45deg, rgba(0,0,0,0.3) 0%, transparent 50%)",
-                          "linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 50%)"
+                          "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 60%)",
+                          "linear-gradient(225deg, rgba(59, 130, 246, 0.1) 0%, transparent 60%)",
+                          "linear-gradient(315deg, rgba(34, 197, 94, 0.1) 0%, transparent 60%)",
+                          "linear-gradient(45deg, rgba(0, 0, 0, 0.2) 0%, transparent 60%)",
+                          "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 60%)"
                         ]
                       }}
-                      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                     />
                     
-                    {/* Image Title - Responsive */}
+                    {/* Image Title - Enhanced transparency */}
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 text-white"
+                      className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white"
                       initial={{ y: 50, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
                     >
                       <motion.div
-                        className="bg-black/40 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/20"
+                        className="bg-slate-900/15 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/10"
                         whileHover={{ 
                           scale: 1.02,
-                          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                          boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
                         }}
                       >
                         <motion.h3 
@@ -529,99 +541,73 @@ const HeroSection: React.FC = () => {
                 </motion.div>
               </AnimatePresence>
               
-              {/* Enhanced Indicators - Responsive positioning */}
-              <div className="absolute -bottom-6 sm:-bottom-8 left-1/2 transform -translate-x-1/2 flex gap-1.5 sm:gap-2">
+              {/* Enhanced Indicators */}
+              <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 transform -translate-x-1/2 flex gap-2 sm:gap-3">
                 {heroImages.map((_, index) => (
                   <motion.button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`h-2 sm:h-3 rounded-full transition-all duration-500 relative overflow-hidden ${
                       index === currentImageIndex 
-                        ? 'bg-yellow-400 w-6 sm:w-8 shadow-lg' 
-                        : 'bg-white/50 hover:bg-white/70 w-2 sm:w-3'
+                        ? 'bg-yellow-400 w-8 sm:w-10 shadow-lg' 
+                        : 'bg-white/30 hover:bg-white/50 w-2 sm:w-3'
                     }`}
                     whileHover={{ scale: 1.3, y: -2 }}
                     whileTap={{ scale: 0.9 }}
                     animate={index === currentImageIndex ? {
                       boxShadow: [
                         "0 0 0px rgba(245, 158, 11, 0)",
-                        "0 0 15px rgba(245, 158, 11, 0.8)",
+                        "0 0 15px rgba(245, 158, 11, 0.6)",
                         "0 0 0px rgba(245, 158, 11, 0)"
                       ]
                     } : {}}
                     transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {index === currentImageIndex && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      />
-                    )}
-                  </motion.button>
+                  />
                 ))}
               </div>
 
-              {/* Enhanced Navigation Arrows - Responsive */}
-              <motion.button
-                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-2 sm:p-3 rounded-full hover:bg-black/60 transition border border-white/20"
-                onClick={() => setCurrentImageIndex(prev => prev === 0 ? heroImages.length - 1 : prev - 1)}
-                whileHover={{ scale: 1.15, x: -2 }}
-                whileTap={{ scale: 0.9 }}
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </motion.button>
 
-              <motion.button
-                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/40 backdrop-blur-md text-white p-2 sm:p-3 rounded-full hover:bg-black/60 transition border border-white/20"
-                onClick={() => setCurrentImageIndex(prev => (prev + 1) % heroImages.length)}
-                whileHover={{ scale: 1.15, x: 2 }}
-                whileTap={{ scale: 0.9 }}
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              >
-                <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </motion.button>
-
-              {[...Array(5)].map((_, i) => (
+              {/* Enhanced floating particles around carousel */}
+              {[...Array(10)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1 h-1 sm:w-2 sm:h-2 rounded-full"
+                  className="absolute w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full opacity-40"
                   style={{
-                    left: `${20 + i * 15}%`,
-                    top: `${10 + i * 20}%`,
-                    background: i % 2 === 0 
-                      ? "rgba(16, 185, 129, 0.6)" 
-                      : "rgba(29, 78, 216, 0.6)"
+                    left: `${10 + i * 8}%`,
+                    top: `${5 + i * 12}%`,
+                    background: i % 3 === 0 
+                      ? "rgba(25, 57, 138, 0.7)" 
+                      : i % 3 === 1
+                      ? "rgba(34, 197, 94, 0.6)"
+                      : "rgba(255, 255, 255, 0.4)"
                   }}
                   animate={{
-                    y: [-10, 10, -10],
-                    opacity: [0.4, 0.9, 0.4],
-                    scale: [0.8, 1.2, 0.8],
-                    background: i % 2 === 0 
+                    y: [-15, 15, -15],
+                    opacity: [0.2, 0.8, 0.2],
+                    scale: [0.6, 1.4, 0.6],
+                    background: i % 3 === 0 
                       ? [
-                          "rgba(16, 185, 129, 0.6)",
-                          "rgba(0, 0, 0, 0.7)",
-                          "rgba(16, 185, 129, 0.6)"
+                          "rgba(25, 57, 138, 0.7)",
+                          "rgba(30, 64, 175, 0.9)",
+                          "rgba(25, 57, 138, 0.7)"
+                        ]
+                      : i % 3 === 1
+                      ? [
+                          "rgba(34, 197, 94, 0.6)",
+                          "rgba(16, 185, 129, 0.8)",
+                          "rgba(34, 197, 94, 0.6)"
                         ]
                       : [
-                          "rgba(29, 78, 216, 0.6)",
-                          "rgba(0, 0, 0, 0.7)",
-                          "rgba(29, 78, 216, 0.6)"
+                          "rgba(255, 255, 255, 0.4)",
+                          "rgba(255, 255, 255, 0.7)",
+                          "rgba(255, 255, 255, 0.4)"
                         ]
                   }}
                   transition={{
-                    duration: 3 + i,
+                    duration: 4 + i * 0.5,
                     repeat: Infinity,
                     ease: "easeInOut",
-                    delay: i * 0.5
+                    delay: i * 0.3
                   }}
                 />
               ))}
