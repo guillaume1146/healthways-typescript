@@ -373,7 +373,7 @@ const EmergencyCard = ({ service }: ServiceProps) => {
               <p className="text-2xl font-bold">{service.phone}</p>
             </div>
             <a 
-              href="patient/emergency/book/id"
+              href="/patient/emergency/book/id"
               className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center gap-2"
             >
               <FaPhone className="animate-pulse" />

@@ -343,7 +343,7 @@ const NurseCard = ({ nurse }: NurseProps) => {
               <FaInfoCircle />
               Details
             </button>
-            <Link href="patient/home-nursing/book/id" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-2 rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-200 font-medium flex items-center gap-2">
+            <Link href="/patient/home-nursing/book/id" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-2 rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-200 font-medium flex items-center gap-2">
               <FaCalendarAlt />
               Book
             </Link>
@@ -414,9 +414,7 @@ export default function NursingCarePage() {
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
     const results = await aiSearchNurses(searchQuery, serviceType)
-    
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -458,7 +456,6 @@ export default function NursingCarePage() {
       </div>
       
       <div className="container mx-auto px-4 py-8">
-        {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <div>
@@ -542,7 +539,6 @@ export default function NursingCarePage() {
           </div>
         </div>
         
-        {/* Results Section */}
         <div className="mt-12">
           {isSearching ? (
             <LoadingAnimation />

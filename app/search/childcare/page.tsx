@@ -469,7 +469,7 @@ const NannyCard = ({ nanny }: NannyProps) => {
               <FaInfoCircle />
               Details
             </button>
-            <Link href = "patient/childcare/book/id" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium flex items-center gap-2">
+            <Link href = "/patient/childcare/book/id" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium flex items-center gap-2">
               <FaCalendarAlt />
               Book
             </Link>
