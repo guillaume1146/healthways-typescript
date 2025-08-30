@@ -14,7 +14,7 @@ import {
 
 const QuickActions = () => {
   const actions = [
-    { name: 'Manage Admins', href: '/super-admin/admins', icon: FaUsersCog, color: 'text-blue-500' },
+    { name: 'Manage Admins', href: '/super-admin/regional-admins', icon: FaUsersCog, color: 'text-blue-500' },
     { name: 'Full Analytics', href: '/super-admin/analytics', icon: FaChartPie, color: 'text-purple-500' },
     { name: 'System Settings', href: '/super-admin/settings', icon: FaCog, color: 'text-slate-500' },
   ];
