@@ -166,7 +166,7 @@ const HeroSection: React.FC = () => {
   }
 
   return (
-    <section className="relative overflow-hidden text-white py-8 sm:py-10 lg:py-12" 
+    <section className="relative overflow-hidden text-white py-14 sm:py-14 lg:py-14" 
       style={{ 
         background: `
           radial-gradient(ellipse at 0% 50%, rgba(0, 0, 180, 0.9) 0%, transparent 50%),
