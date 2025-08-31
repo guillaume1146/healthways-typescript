@@ -393,7 +393,7 @@ const HeroSection: React.FC = () => {
               damping: 15
             }}
           >
-            <div className="relative w-full aspect-square perspective-1000">
+            <div className="relative w-full aspect-[5/4] perspective-1000">
               
               {/* Subtle Transparent Border Ring - Matches hero background */}
               {/* <motion.div
