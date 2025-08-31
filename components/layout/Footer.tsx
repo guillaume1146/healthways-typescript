@@ -1,3 +1,8 @@
+// components/layout/Footer.tsx
+// Updated: 
+// - Updated the short disclaimer section at the bottom to use the provided short version text.
+// - Kept the existing links to /privacy, /terms, /medical-disclaimer (full disclaimer will be on /medical-disclaimer page).
+// - Made the short disclaimer more prominent and linked to full pages.
 import Link from 'next/link'
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa'
 
@@ -142,15 +147,15 @@ const Footer: React.FC = () => {
               <div className="text-center md:text-right">
                 <p className="text-white/80 mb-2">Stay updated:</p>
                 <div className="flex max-w-md">
-  <input
-    type="email"
-    placeholder="Enter your email"
-    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none border-2 border-green-500 focus:border-green-400"
-  />
-  <button className="btn-gradient px-6 py-2 rounded-r-xl rounded-l-none font-semibold text-white">
-    Subscribe
-  </button>
-</div>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none border-2 border-green-500 focus:border-green-400"
+                  />
+                  <button className="btn-gradient px-6 py-2 rounded-r-xl rounded-l-none font-semibold text-white">
+                    Subscribe
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -174,12 +179,10 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Medical Disclaimer */}
+          {/* Updated Medical Disclaimer (Short Version) */}
           <div className="mt-8 p-4 bg-red-500/20 border border-red-400/30 rounded-lg">
             <p className="text-sm text-white/90">
-              <strong>Medical Disclaimer:</strong> Medicine purchases must be taken on doctor&apos;s prescription. 
-              This platform provides general health information for educational purposes only. 
-              Always consult qualified healthcare professionals for medical advice.
+              <strong>Disclaimer:</strong> HealthWyz is a platform that connects users with licensed healthcare providers. HealthWyz does not provide medical care. Consultations, prescriptions, and tests are the sole responsibility of your chosen provider. By using this platform, you acknowledge and agree to our <Link href="/terms" className="underline hover:text-white">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>. For full details, see our <Link href="/medical-disclaimer" className="underline hover:text-white">Medical Disclaimer</Link>.
             </p>
           </div>
         </div>
