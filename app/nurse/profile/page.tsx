@@ -331,7 +331,6 @@ export default function NurseProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Cover Image */}
       <div className="relative h-64 bg-gradient-to-r from-teal-600 to-teal-700">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="container mx-auto px-4 h-full flex items-center">
@@ -358,11 +357,9 @@ export default function NurseProfilePage() {
         </div>
       </div>
 
-      {/* Profile Header */}
       <div className="container mx-auto px-4 -mt-20 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Avatar and Basic Info */}
             <div className="flex flex-col items-center md:items-start">
               <div className="relative">
                 <div 
@@ -381,7 +378,6 @@ export default function NurseProfilePage() {
                 )}
               </div>
               
-              {/* Quick Stats */}
               <div className="mt-4 flex gap-4 text-center">
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{nurse.rating}</p>
@@ -398,7 +394,6 @@ export default function NurseProfilePage() {
               </div>
             </div>
 
-            {/* Main Info */}
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
