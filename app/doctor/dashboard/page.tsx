@@ -19,7 +19,8 @@ import {
   FaNotesMedical,
   FaPhoneAlt,
   FaEnvelope,
-  FaEllipsisV
+  FaEllipsisV,
+  FaCog
 } from 'react-icons/fa'
 import { useDoctorStore } from '../lib/data-store'
 
@@ -174,15 +175,11 @@ export default function EnhancedDoctorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Mobile Responsive */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="lg:hidden text-gray-600"
-              >
+              <button  onClick={() => setShowMobileMenu(!showMobileMenu)} className="lg:hidden text-gray-600" >
                 <FaEllipsisV />
               </button>
               <div className="text-3xl md:text-4xl">{profile.avatar}</div>
@@ -199,11 +196,11 @@ export default function EnhancedDoctorDashboard() {
                 </span>
               </button>
               <Link 
-                href="/doctor/patients/new" 
-                className="hidden md:flex btn-gradient px-4 md:px-6 py-2 items-center gap-2"
+                href="/doctor/settings" 
+                className="btn-gradient px-4 md:px-6 py-2 flex items-center gap-2"
               >
-                <FaUserPlus />
-                <span className="hidden md:inline">Add Patient</span>
+                <FaCog /> 
+                <span className="hidden md:inline">Settings</span>
               </Link>
             </div>
           </div>
