@@ -446,21 +446,16 @@ export default function EnhancedDoctorDashboard() {
               <p className="text-sm md:text-base font-medium text-gray-900">Prescriptions</p>
             </Link>
             
-            <Link 
-              href="/doctor/availability" 
-              className="bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition text-center group"
-            >
+            <Link href="/doctor/availability"  className="bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition text-center group" >
               <FaClock className="text-3xl md:text-4xl text-purple-500 mx-auto mb-2 group-hover:scale-110 transition" />
               <p className="text-sm md:text-base font-medium text-gray-900">Availability</p>
             </Link>
             
-            <Link 
-              href="/doctor/settings" 
-              className="bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition text-center group"
-            >
-              <FaChartLine className="text-3xl md:text-4xl text-orange-500 mx-auto mb-2 group-hover:scale-110 transition" />
-              <p className="text-sm md:text-base font-medium text-gray-900">Analytics</p>
+            <Link  href="/doctor/settings"  className="bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition text-center group" >
+              <FaCog className="text-3xl md:text-4xl text-gray-500 mx-auto mb-2 group-hover:scale-110 transition" />
+              <p className="text-sm md:text-base font-medium text-gray-900">Settings</p>
             </Link>
+
           </div>
         </div>
       </div>
