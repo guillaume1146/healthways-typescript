@@ -360,7 +360,7 @@ export default function NurseProfilePage() {
 
       {/* Profile Header */}
       <div className="container mx-auto px-4 -mt-20 relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Avatar and Basic Info */}
             <div className="flex flex-col items-center md:items-start">

@@ -559,7 +559,7 @@ export default function InsurancePage() {
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
             <div>
               <div className="flex flex-col gap-4">
                 <div className="relative">

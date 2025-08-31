@@ -596,7 +596,7 @@ export default function ChildcarePage() {
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-purple-100">
+          <div className="bg-white rounded-2xl shadow-xl p-6 mt-10 border-2 border-purple-100">
             <div>
               <div className="flex flex-col gap-4">
                 <div className="relative">
