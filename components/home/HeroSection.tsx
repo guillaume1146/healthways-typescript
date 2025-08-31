@@ -1,4 +1,5 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import { FaSearch } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -41,9 +42,33 @@ const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => 
   )
 }
 
+// Type definition for a star's properties
+interface Star {
+  id: number;
+  left: string;
+  top: string;
+  duration: number;
+  delay: number;
+}
+
 const HeroSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+  // State for the floating stars
+  const [stars, setStars] = useState<Star[]>([]);
+
+  // useEffect to generate random star properties only on the client-side
+  useEffect(() => {
+    const generatedStars = [...Array(15)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: 3 + Math.random() * 4,
+      delay: Math.random() * 5,
+    }));
+    setStars(generatedStars);
+  }, []); // Empty dependency array ensures this runs only once after mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,37 +82,37 @@ const HeroSection: React.FC = () => {
       title: "Medical Specialists"
     },
     {
-      src: "/images/hero/medicine-1.jpg",
+      src: "/images/hero/medicine-1.png",
       alt: "Browse and purchase medicines with doctor's prescription. Fast delivery across Mauritius.",
       title: "Medicine Store"
     },
     {
-      src: "/images/hero/doctor-1.jpg",
+      src: "/images/hero/doctor-1.png",
       alt: "Professional Doctor Consultation",
       title: "Expert Medical Care"
     },
     {
-      src: "/images/hero/ambulance-1.jpg",
+      src: "/images/hero/ambulance-1.png",
       alt: "Emergency Ambulance Service",
       title: "Emergency Services"
     },
     {
-      src: "/images/hero/insurance-1.jpg",
+      src: "/images/hero/insurance-1.png",
       alt: "Health Insurance Coverage",
       title: "Insurance Protection"
     },
     {
-      src: "/images/hero/nurse-1.jpg",
+      src: "/images/hero/nurse-1.png",
       alt: "Professional Nurse Care",
       title: "Nursing Excellence"
     },
     {
-      src: "/images/hero/doctor-2.jpg",
+      src: "/images/hero/doctor-2.png",
       alt: "Experienced Medical Doctor",
       title: "Healthcare Professionals"
     },
     {
-      src: "/images/hero/patient-1.jpg",
+      src: "/images/hero/patient-1.png",
       alt: "Patient Care Services",
       title: "Patient-Centered Care"
     }
@@ -203,24 +228,24 @@ const HeroSection: React.FC = () => {
         }}
       />
 
-      {/* Floating Stars/Particles */}
-      {[...Array(15)].map((_, i) => (
+      {/* Floating Stars/Particles - Rendered from state */}
+      {stars.map((star) => (
         <motion.div
-          key={i}
+          key={star.id}
           className="absolute w-1 h-1 bg-white/60 rounded-full"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            left: star.left,
+            top: star.top,
           }}
           animate={{
             opacity: [0.3, 1, 0.3],
             scale: [0.5, 1.5, 0.5],
           }}
           transition={{
-            duration: 3 + Math.random() * 4,
+            duration: star.duration,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: Math.random() * 5
+            delay: star.delay,
           }}
         />
       ))}
@@ -395,23 +420,6 @@ const HeroSection: React.FC = () => {
           >
             <div className="relative w-full aspect-[5/4] perspective-1000">
               
-              {/* Subtle Transparent Border Ring - Matches hero background */}
-              {/* <motion.div
-                className="absolute -inset-1 sm:-inset-2 rounded-3xl opacity-30"
-                animate={{
-                  background: [
-                    "conic-gradient(from 0deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
-                    "conic-gradient(from 90deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
-                    "conic-gradient(from 180deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))",
-                    "conic-gradient(from 270deg, rgba(0, 0, 0, 0.4), rgba(25, 57, 138, 0.6), rgba(34, 197, 94, 0.4), rgba(0, 0, 0, 0.4))"
-                  ]
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                style={{ padding: "1px" }}
-              >
-                 <div className="w-full h-full bg-transparent rounded-3xl" /> 
-              </motion.div> */}
-
               {/* Subtle Scanline Effect */}
               <motion.div
                 className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10 opacity-50"
@@ -451,40 +459,17 @@ const HeroSection: React.FC = () => {
                     transformStyle: "preserve-3d"
                   }}
                 >
-                  {/* Enhanced Transparent Highlight Border - Matches background theme */}
-                  {/* <motion.div
-                    className="absolute inset-0 rounded-2xl border border-transparent opacity-30"
-                    animate={{
-                      borderColor: [
-                        "rgba(0, 0, 0, 0.2)",
-                        "rgba(25, 57, 138, 0.7)",
-                        "rgba(34, 197, 94, 0.5)",
-                        "rgba(30, 64, 175, 0.6)",
-                        "rgba(16, 185, 129, 0.5)",
-                        "rgba(0, 0, 0, 0.2)"
-                      ],
-                      boxShadow: [
-                        "0 0 0px rgba(0, 0, 0, 0)",
-                        "0 0 25px rgba(25, 57, 138, 0.5)",
-                        "0 0 25px rgba(34, 197, 94, 0.3)",
-                        "0 0 20px rgba(30, 64, 175, 0.4)",
-                        "0 0 25px rgba(16, 185, 129, 0.3)",
-                        "0 0 0px rgba(0, 0, 0, 0)"
-                      ]
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                  /> */}
 
                   <div className="relative w-full h-full">
-                   
-  <Image
-    src={heroImages[currentImageIndex].src}
-    alt={heroImages[currentImageIndex].alt}
-    fill
-    className="object-center" 
-    priority
-    sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
-  />
+                    
+                    <Image
+                      src={heroImages[currentImageIndex].src}
+                      alt={heroImages[currentImageIndex].alt}
+                      fill
+                      className="object-center" 
+                      priority
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
+                    />
                     
                     <motion.div 
                       className="absolute inset-0 opacity-15"
