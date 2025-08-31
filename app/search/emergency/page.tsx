@@ -207,6 +207,7 @@ const mockEmergencyServices = [
 ]
 
 import { IconType } from 'react-icons';
+import Link from 'next/link';
 
 // Category icons mapping
 const categoryIcons: { [key: string]: IconType } = {
@@ -372,13 +373,13 @@ const EmergencyCard = ({ service }: ServiceProps) => {
               <p className="text-xs opacity-90">Emergency Hotline</p>
               <p className="text-2xl font-bold">{service.phone}</p>
             </div>
-            <a 
+            <Link 
               href="/patient/emergency/book/id"
               className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center gap-2"
             >
               <FaPhone className="animate-pulse" />
               CALL NOW
-            </a>
+            </Link>
           </div>
         </div>
         

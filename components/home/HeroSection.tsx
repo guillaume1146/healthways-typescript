@@ -52,6 +52,11 @@ const HeroSection: React.FC = () => {
 
   const heroImages = [
     {
+      src: "/images/hero/gemini-doctor-3-removebg-1.png",
+      alt: "Specialist Medical Doctor",
+      title: "Medical Specialists"
+    },
+    {
       src: "/images/hero/medicine-1.jpg",
       alt: "Browse and purchase medicines with doctor's prescription. Fast delivery across Mauritius.",
       title: "Medicine Store"
@@ -80,11 +85,6 @@ const HeroSection: React.FC = () => {
       src: "/images/hero/doctor-2.jpg",
       alt: "Experienced Medical Doctor",
       title: "Healthcare Professionals"
-    },
-    {
-      src: "/images/hero/doctor-3.jpg",
-      alt: "Specialist Medical Doctor",
-      title: "Medical Specialists"
     },
     {
       src: "/images/hero/patient-1.jpg",
@@ -226,12 +226,12 @@ const HeroSection: React.FC = () => {
       ))}
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:grid lg:grid-cols-7 gap-6 lg:gap-8 items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8 items-center">
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full order-1 lg:order-1 lg:col-span-4 text-center lg:text-left"
+            className="w-full order-1 lg:order-1 lg:col-span-6 text-center lg:text-left"
           >
             <motion.div 
               variants={itemVariants}
@@ -381,9 +381,8 @@ const HeroSection: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* WIDER CAROUSEL - Takes 3 columns on large screens, shorter height, more rectangular */}
           <motion.div
-            className="w-full order-2 lg:order-2 lg:col-span-3"
+            className="w-full order-2 lg:order-2 lg:col-span-6"
             initial={{ opacity: 0, x: 100, rotateY: 20 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
             transition={{ 
@@ -394,11 +393,10 @@ const HeroSection: React.FC = () => {
               damping: 15
             }}
           >
-            {/* BIGGER & MORE RECTANGULAR CAROUSEL - Increased height by reducing margins */}
-            <div className="relative h-72 sm:h-80 md:h-96 lg:h-[22rem] xl:h-[28rem] w-full perspective-1000">
+            <div className="relative w-full aspect-square perspective-1000">
               
               {/* Subtle Transparent Border Ring - Matches hero background */}
-              <motion.div
+              {/* <motion.div
                 className="absolute -inset-1 sm:-inset-2 rounded-3xl opacity-30"
                 animate={{
                   background: [
@@ -411,8 +409,8 @@ const HeroSection: React.FC = () => {
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                 style={{ padding: "1px" }}
               >
-                <div className="w-full h-full bg-transparent rounded-3xl" />
-              </motion.div>
+                 <div className="w-full h-full bg-transparent rounded-3xl" /> 
+              </motion.div> */}
 
               {/* Subtle Scanline Effect */}
               <motion.div
@@ -448,13 +446,13 @@ const HeroSection: React.FC = () => {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl"
+                  className="absolute inset-0 rounded-2xl overflow-hidden "
                   style={{
                     transformStyle: "preserve-3d"
                   }}
                 >
                   {/* Enhanced Transparent Highlight Border - Matches background theme */}
-                  <motion.div
+                  {/* <motion.div
                     className="absolute inset-0 rounded-2xl border border-transparent opacity-30"
                     animate={{
                       borderColor: [
@@ -475,19 +473,19 @@ const HeroSection: React.FC = () => {
                       ]
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                  />
+                  /> */}
 
                   <div className="relative w-full h-full">
-                    <Image
-                      src={heroImages[currentImageIndex].src}
-                      alt={heroImages[currentImageIndex].alt}
-                      fill
-                      className="object-cover object-center"
-                      priority
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
-                    />
+                   
+  <Image
+    src={heroImages[currentImageIndex].src}
+    alt={heroImages[currentImageIndex].alt}
+    fill
+    className="object-center" 
+    priority
+    sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
+  />
                     
-                    {/* Very Subtle Gradient Overlay */}
                     <motion.div 
                       className="absolute inset-0 opacity-15"
                       animate={{
