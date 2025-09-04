@@ -368,7 +368,7 @@ Which specific feature or service would you like help navigating?`
   }
   
   // Default response for general queries
-  return `I understand you're looking for medical support guidance. I can help you with:
+  return `I understand you are looking for medical support guidance. I can help you with:
 
 🏥 **Emergency & Urgent Care**
 - Emergency procedure steps
