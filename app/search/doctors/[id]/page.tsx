@@ -386,7 +386,7 @@ export default function DoctorDetailsPage() {
 
               {/* Book Button */}
               <Link 
-                href={`/patient/doctor-consultations/${doctor.id}/book`}
+                href={`/booking/doctors/${doctor.id}`}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <FaCalendarAlt />

@@ -205,7 +205,7 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
                 Details
               </button>
             </Link>
-            <Link href={`/patient/doctor-consultations/${doctor.id}/book`} className="flex-1">
+            <Link href={`/booking/doctors/${doctor.id}`} className="flex-1">
               <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
                 Book
               </button>
