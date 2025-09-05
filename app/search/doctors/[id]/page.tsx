@@ -10,7 +10,7 @@ import {
   FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
   FaCertificate, FaGraduationCap, FaBriefcase, FaAward, FaHeart,
   FaUserMd, FaDollarSign, FaExclamationCircle, FaComments,
-  FaStethoscope, FaHospital, FaShieldAlt
+  FaStethoscope, FaHospital, FaShieldAlt, FaUser, FaCalendar
 } from 'react-icons/fa'
 
 export default function DoctorDetailsPage() {
@@ -27,7 +27,7 @@ export default function DoctorDetailsPage() {
         <div className="text-center">
           <FaUserMd className="text-6xl text-gray-300 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Doctor Not Found</h1>
-          <p className="text-gray-600 mb-6">The doctor you&apos;re looking for doesn&apos;t exist..</p>
+          <p className="text-gray-600 mb-6">The doctor you are looking for does not exist.</p>
           <Link href="/search/doctors" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
             Back to Search
           </Link>
@@ -35,8 +35,6 @@ export default function DoctorDetailsPage() {
       </div>
     )
   }
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -81,6 +79,19 @@ export default function DoctorDetailsPage() {
                         {doctor.specialty.join(', ')}
                       </p>
                       <p className="text-gray-600">{doctor.experience} experience</p>
+                      
+                      {/* Category Badge */}
+                      <div className="mt-2">
+                        <span className={`text-sm px-3 py-1 rounded-full font-medium ${
+                          doctor.category === 'Specialist' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : doctor.category === 'General Practice'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {doctor.category}
+                        </span>
+                      </div>
                     </div>
                     {doctor.emergencyAvailable && (
                       <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
@@ -106,6 +117,13 @@ export default function DoctorDetailsPage() {
                     <FaLanguage className="text-blue-500" />
                     <span className="text-gray-600">Languages:</span>
                     <span className="font-medium">{doctor.languages.join(', ')}</span>
+                  </div>
+
+                  {/* Clinic Affiliation */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <FaHospital className="text-blue-500" />
+                    <span className="text-gray-600">Clinic:</span>
+                    <span className="font-medium">{doctor.clinicAffiliation}</span>
                   </div>
 
                   {/* Location */}
@@ -152,15 +170,30 @@ export default function DoctorDetailsPage() {
                       <p className="text-gray-700 leading-relaxed">{doctor.bio}</p>
                     </div>
 
-                    {/* Specialties */}
+                    {/* Specialties & Sub-specialties */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Specializations</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {doctor.specialty.map((specialty, index) => (
-                          <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                            {specialty}
-                          </span>
-                        ))}
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-md font-medium text-gray-800 mb-2">Primary Specialties</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {doctor.specialty.map((specialty, index) => (
+                              <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {specialty}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-medium text-gray-800 mb-2">Sub-specialties</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {doctor.subSpecialties.map((subSpecialty, index) => (
+                              <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {subSpecialty}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -245,15 +278,37 @@ export default function DoctorDetailsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Feedback</h3>
                       <div className="space-y-4">
-                        {doctor.patientComments.map((comment, index) => (
-                          <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-1 text-yellow-500 mb-2">
-                              {[...Array(5)].map((_, i) => (
-                                <FaStar key={i} className="text-sm" />
-                              ))}
+                        {doctor.patientComments.map((comment) => (
+                          <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-start gap-4">
+                              <Image 
+                                src={comment.patientProfileImage} 
+                                alt={`${comment.patientFirstName} ${comment.patientLastName}`}
+                                width={40} 
+                                height={40}
+                                className="rounded-full object-cover"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-medium text-gray-900">
+                                    {comment.patientFirstName} {comment.patientLastName}
+                                  </h4>
+                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <span>{comment.date}</span>
+                                    <span>{comment.time}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 text-yellow-500 mb-2">
+                                  {[...Array(comment.starRating)].map((_, i) => (
+                                    <FaStar key={i} className="text-sm" />
+                                  ))}
+                                  {[...Array(5 - comment.starRating)].map((_, i) => (
+                                    <FaStar key={i} className="text-sm text-gray-300" />
+                                  ))}
+                                </div>
+                                <p className="text-gray-700 italic">&quot;{comment.comment}&quot;</p>
+                              </div>
                             </div>
-                            <p className="text-gray-700 italic">&ldquo;{comment}&ldquo;</p>
-                            <p className="text-gray-500 text-sm mt-2">- Verified Patient</p>
                           </div>
                         ))}
                       </div>
@@ -323,7 +378,7 @@ export default function DoctorDetailsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FaEnvelope className="text-blue-500" />
-                  <a href={`mailto:${doctor.email}`} className="text-blue-600 hover:text-blue-700">
+                  <a href={`mailto:${doctor.email}`} className="text-blue-600 hover:text-blue-700 text-sm">
                     {doctor.email}
                   </a>
                 </div>
@@ -366,6 +421,10 @@ export default function DoctorDetailsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Specializations</span>
                   <span className="font-medium">{doctor.specialty.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Sub-specialties</span>
+                  <span className="font-medium">{doctor.subSpecialties.length}</span>
                 </div>
               </div>
             </div>

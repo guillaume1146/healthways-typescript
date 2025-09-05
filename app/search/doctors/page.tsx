@@ -74,8 +74,9 @@ interface DoctorProps {
 
 const DoctorCard = ({ doctor }: DoctorProps) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
-      <div className="p-6">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
+      <div className="p-6 flex-1 flex flex-col">
+        {/* Doctor Header */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
             <Image 
@@ -99,6 +100,20 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
               {doctor.specialty.join(', ')}
             </p>
             
+            {/* Category Badge */}
+            <div className="mb-2">
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                doctor.category === 'Specialist' 
+                  ? 'bg-purple-100 text-purple-700' 
+                  : doctor.category === 'General Practice'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              }`}>
+                {doctor.category}
+              </span>
+            </div>
+            
+            {/* Rating */}
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center text-yellow-500">
                 {[...Array(Math.floor(doctor.rating))].map((_, i) => (
@@ -110,11 +125,14 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
               <span className="text-sm text-gray-500">({doctor.reviews} reviews)</span>
             </div>
 
+            {/* Languages */}
             <div className="flex items-center gap-2 mb-2">
               <FaLanguage className="text-blue-500 text-sm" />
-              <span className="text-sm text-gray-600">{doctor.languages.join(', ')}</span>
+              <span className="text-sm text-gray-600">{doctor.languages.slice(0, 2).join(', ')}</span>
+              {doctor.languages.length > 2 && <span className="text-sm text-gray-400">+{doctor.languages.length - 2}</span>}
             </div>
 
+            {/* Location */}
             <div className="flex items-center gap-2">
               <FaMapMarkerAlt className="text-blue-500 text-sm" />
               <span className="text-sm text-gray-700">{doctor.location}</span>
@@ -122,40 +140,73 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          {doctor.consultationTypes.includes("In-Person") && (
-            <div className="flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
-              <FaHome />
-              <span>In-Person</span>
-            </div>
-          )}
-          {doctor.consultationTypes.includes("Video Consultation") && (
-            <div className="flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-              <FaVideo />
-              <span>Video</span>
-            </div>
-          )}
-          {doctor.emergencyAvailable && (
-            <div className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1 rounded">
-              <FaExclamationCircle />
-              <span>Emergency</span>
-            </div>
-          )}
+        {/* Consultation Types - Bigger Display */}
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-2">
+            {doctor.consultationTypes.includes("In-Person") && (
+              <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <FaHome className="text-green-600" />
+                <span className="text-green-700 font-medium text-sm">In-Person</span>
+              </div>
+            )}
+            {doctor.consultationTypes.includes("Video Consultation") && (
+              <div className="flex items-center justify-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <FaVideo className="text-purple-600" />
+                <span className="text-purple-700 font-medium text-sm">Video Call</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Emergency Available - Fixed height container */}
+          <div className="mt-2 h-10 flex items-center">
+            {doctor.emergencyAvailable && (
+              <div className="w-full flex items-center justify-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                <FaExclamationCircle className="text-red-600" />
+                <span className="text-red-700 font-medium text-sm">Emergency Available</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div>
-            <span className="text-lg font-bold text-green-600">Rs {doctor.consultationFee.toLocaleString()}</span>
-            <span className="text-sm text-gray-500 block">consultation</span>
+        {/* Next Availability */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <FaClock className="text-blue-600" />
+            <div>
+              <p className="text-xs text-blue-600 font-medium">Next Available</p>
+              <p className="text-sm font-semibold text-blue-800">{doctor.nextAvailable}</p>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Link href={`/search/doctors/${doctor.id}`}>
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+        </div>
+
+        {/* Spacer to push pricing/actions to bottom */}
+        <div className="flex-1"></div>
+
+        {/* Pricing & Actions - Fixed at bottom */}
+        <div className="mt-auto">
+          {/* Pricing */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">In-Person:</span>
+              <span className="text-lg font-bold text-green-600">Rs {doctor.consultationFee.toLocaleString()}</span>
+            </div>
+            {doctor.videoConsultationFee > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Video Call:</span>
+                <span className="text-lg font-bold text-green-600">Rs {doctor.videoConsultationFee.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4 border-t border-gray-100">
+            <Link href={`/search/doctors/${doctor.id}`} className="flex-1">
+              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
                 Details
               </button>
             </Link>
-            <Link href={`/patient/doctor-consultations/${doctor.id}/book`}>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            <Link href={`/patient/doctor-consultations/${doctor.id}/book`} className="flex-1">
+              <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
                 Book
               </button>
             </Link>
@@ -191,7 +242,7 @@ export default function DoctorsSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [specialization, setSpecialization] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(doctorsData) // FIXED: Use doctorsData instead of mockDoctors
+  const [searchResults, setSearchResults] = useState(doctorsData)
   const [hasSearched, setHasSearched] = useState(false)
   const [searchExamples] = useState([
     "Find a heart specialist near me",
@@ -215,7 +266,7 @@ export default function DoctorsSearchPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setSpecialization('all')
-    setSearchResults(doctorsData) // FIXED: Use doctorsData instead of mockDoctors
+    setSearchResults(doctorsData)
     setHasSearched(false)
   }
 
