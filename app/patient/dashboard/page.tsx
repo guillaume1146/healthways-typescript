@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fa'
 
 import { IconType } from 'react-icons';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface Stat {
   upcomingAppointments: number;
@@ -161,6 +162,7 @@ const PatientDashboard = () => {
   );
 
   return (
+    <ProtectedRoute allowedUserTypes={['patient']}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -433,6 +435,7 @@ const PatientDashboard = () => {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }
 
