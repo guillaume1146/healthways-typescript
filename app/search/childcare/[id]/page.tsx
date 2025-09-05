@@ -7,11 +7,10 @@ import { useParams } from 'next/navigation'
 import { nanniesData, type Nanny } from '@/lib/data'
 import { 
   FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
-  FaPhone, FaEnvelope, FaHome, FaLanguage, FaCheckCircle, 
-  FaCertificate, FaGraduationCap, FaBriefcase, FaBaby,
-  FaDollarSign, FaComments, FaShieldAlt, FaUserCheck,
-  FaChild, FaHeart, FaCar, FaGamepad, FaRunning,
-  FaHandHoldingHeart, FaIdCard, FaUsers
+  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
+  FaCertificate, FaGraduationCap, FaBriefcase, FaAward, FaHeart,
+  FaBaby, FaDollarSign, FaExclamationCircle, FaComments,
+  FaUsers, FaShieldAlt, FaUser, FaCalendar, FaChild
 } from 'react-icons/fa'
 
 export default function NannyDetailsPage() {
@@ -27,9 +26,9 @@ export default function NannyDetailsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <FaBaby className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Caregiver Not Found</h1>
-          <p className="text-gray-600 mb-6">The caregiver you are looking for does not exist.</p>
-          <Link href="/search/childcare" className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Nanny Not Found</h1>
+          <p className="text-gray-600 mb-6">The nanny you are looking for does not exist.</p>
+          <Link href="/search/nannies" className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
             Back to Search
           </Link>
         </div>
@@ -37,14 +36,12 @@ export default function NannyDetailsPage() {
     )
   }
 
-  
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <Link href="/search/childcare" className="flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-4">
+          <Link href="/search/nannies" className="flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-4">
             <FaArrowLeft />
             Back to Search
           </Link>
@@ -65,15 +62,14 @@ export default function NannyDetailsPage() {
                     width={120} 
                     height={120}
                     className="rounded-full object-cover border-4 border-purple-100"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://ui-avatars.com/api/?name=${nanny.firstName}+${nanny.lastName}&background=random&color=fff&size=120`;
+                    }}
                   />
                   {nanny.verified && (
                     <div className="absolute -bottom-2 -right-2 bg-green-500 text-white rounded-full p-2">
                       <FaCheckCircle className="text-sm" />
-                    </div>
-                  )}
-                  {nanny.backgroundCheck && (
-                    <div className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-2">
-                      <FaShieldAlt className="text-sm" />
                     </div>
                   )}
                 </div>
@@ -83,26 +79,24 @@ export default function NannyDetailsPage() {
                       <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         {nanny.firstName} {nanny.lastName}
                       </h1>
-                      <p className="text-xl text-purple-600 font-medium mb-1">
-                        {nanny.type}
-                      </p>
-                      <p className="text-lg text-gray-600 mb-2">
+                      <p className="text-xl text-purple-600 font-medium mb-2">
                         {nanny.specialization.join(', ')}
                       </p>
                       <p className="text-gray-600">{nanny.experience} experience</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {nanny.verified && (
-                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                          Verified
+                      
+                      {/* Age Groups Badge */}
+                      <div className="mt-2">
+                        <span className="text-sm px-3 py-1 rounded-full font-medium bg-pink-100 text-pink-700">
+                          Ages: {nanny.ageGroups.slice(0, 2).join(', ')}
+                          {nanny.ageGroups.length > 2 && ` +${nanny.ageGroups.length - 2} more`}
                         </span>
-                      )}
-                      {nanny.backgroundCheck && (
-                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                          Background Check
-                        </span>
-                      )}
+                      </div>
                     </div>
+                    {nanny.emergencyAvailable && (
+                      <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                        Emergency Available
+                      </span>
+                    )}
                   </div>
                   
                   {/* Rating */}
@@ -124,11 +118,11 @@ export default function NannyDetailsPage() {
                     <span className="font-medium">{nanny.languages.join(', ')}</span>
                   </div>
 
-                  {/* Age Groups */}
+                  {/* Max Children */}
                   <div className="flex items-center gap-2 mb-4">
-                    <FaChild className="text-purple-500" />
-                    <span className="text-gray-600">Age Groups:</span>
-                    <span className="font-medium">{nanny.ageGroups.join(', ')}</span>
+                    <FaUsers className="text-purple-500" />
+                    <span className="text-gray-600">Capacity:</span>
+                    <span className="font-medium">Maximum {nanny.maxChildren} children</span>
                   </div>
 
                   {/* Location */}
@@ -175,11 +169,60 @@ export default function NannyDetailsPage() {
                       <p className="text-gray-700 leading-relaxed">{nanny.bio}</p>
                     </div>
 
+                    {/* Specializations & Age Groups */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Specializations</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-md font-medium text-gray-800 mb-2">Primary Specializations</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {nanny.specialization.map((specialization, index) => (
+                              <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {specialization}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-medium text-gray-800 mb-2">Sub-specialties</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {nanny.subSpecialties.map((subSpecialty, index) => (
+                              <span key={index} className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {subSpecialty}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-medium text-gray-800 mb-2">Age Groups Served</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {nanny.ageGroups.map((ageGroup, index) => (
+                              <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {ageGroup}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Services */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Services Offered</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {nanny.services.map((service, index) => (
+                          <span key={index} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Education */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <FaGraduationCap className="text-purple-500" />
-                        Education & Training
+                        Education
                       </h3>
                       <ul className="space-y-2">
                         {nanny.education.map((edu, index) => (
@@ -211,7 +254,7 @@ export default function NannyDetailsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <FaCertificate className="text-purple-500" />
-                        Certifications
+                        Certifications & Awards
                       </h3>
                       <ul className="space-y-2">
                         {nanny.certifications.map((cert, index) => (
@@ -223,35 +266,19 @@ export default function NannyDetailsPage() {
                       </ul>
                     </div>
 
-                    {/* Services */}
+                    {/* Care Types */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Services Offered</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {nanny.services.map((service, index) => (
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Care Options</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {nanny.careTypes.map((type, index) => (
                           <div key={index} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                            {service.includes('Full-time') && <FaClock className="text-purple-500" />}
-                            {service.includes('Live-in') && <FaHome className="text-blue-500" />}
-                            {service.includes('24/7') && <FaShieldAlt className="text-red-500" />}
-                            {service.includes('Weekend') && <FaCalendarAlt className="text-green-500" />}
-                            {service.includes('Travel') && <FaCar className="text-orange-500" />}
-                            {service.includes('Special') && <FaHeart className="text-pink-500" />}
-                            <span className="font-medium">{service}</span>
+                            {type.includes('Full-time') && <FaHome className="text-green-500" />}
+                            {type.includes('Part-time') && <FaClock className="text-blue-500" />}
+                            {type.includes('Night') && <FaClock className="text-purple-500" />}
+                            {type.includes('Emergency') && <FaExclamationCircle className="text-red-500" />}
+                            {!type.includes('Full-time') && !type.includes('Part-time') && !type.includes('Night') && !type.includes('Emergency') && <FaHeart className="text-pink-500" />}
+                            <span className="font-medium">{type}</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Activities */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <FaGamepad className="text-purple-500" />
-                        Activities & Skills
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {nanny.activities.map((activity, index) => (
-                          <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
-                            {activity}
-                          </span>
                         ))}
                       </div>
                     </div>
@@ -272,17 +299,43 @@ export default function NannyDetailsPage() {
                     </div>
                     
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Parent Feedback</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Family Feedback</h3>
                       <div className="space-y-4">
-                        {nanny.patientComments.map((comment, index) => (
-                          <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-1 text-yellow-500 mb-2">
-                              {[...Array(5)].map((_, i) => (
-                                <FaStar key={i} className="text-sm" />
-                              ))}
+                        {nanny.patientComments.map((comment) => (
+                          <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-start gap-4">
+                              <Image 
+                                src={comment.patientProfileImage} 
+                                alt={`${comment.patientFirstName} ${comment.patientLastName}`}
+                                width={40} 
+                                height={40}
+                                className="rounded-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = `https://ui-avatars.com/api/?name=${comment.patientFirstName}+${comment.patientLastName}&background=random&color=fff&size=40`;
+                                }}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-medium text-gray-900">
+                                    {comment.patientFirstName} {comment.patientLastName}
+                                  </h4>
+                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <span>{comment.date}</span>
+                                    <span>{comment.time}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 text-yellow-500 mb-2">
+                                  {[...Array(comment.starRating)].map((_, i) => (
+                                    <FaStar key={i} className="text-sm" />
+                                  ))}
+                                  {[...Array(5 - comment.starRating)].map((_, i) => (
+                                    <FaStar key={i} className="text-sm text-gray-300" />
+                                  ))}
+                                </div>
+                                <p className="text-gray-700 italic">&quot;{comment.comment}&quot;</p>
+                              </div>
                             </div>
-                            <p className="text-gray-700 italic">&ldquo;{comment}&ldquo;</p>
-                            <p className="text-gray-500 text-sm mt-2">- Verified Parent</p>
                           </div>
                         ))}
                       </div>
@@ -309,12 +362,12 @@ export default function NannyDetailsPage() {
                     </div>
 
                     <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                      <h4 className="font-medium text-purple-900 mb-2">Service Information</h4>
+                      <h4 className="font-medium text-purple-900 mb-2">Quick Booking Tips</h4>
                       <ul className="text-sm text-purple-800 space-y-1">
-                        <li>• Flexible scheduling available</li>
-                        <li>• Emergency care can be arranged</li>
-                        <li>• Travel care for family vacations</li>
-                        <li>• References available upon request</li>
+                        <li>• Book in advance for regular childcare</li>
+                        <li>• Emergency services available for urgent needs</li>
+                        <li>• Discuss specific requirements during booking</li>
+                        <li>• Background-checked nannies for peace of mind</li>
                       </ul>
                     </div>
                   </div>
@@ -327,21 +380,20 @@ export default function NannyDetailsPage() {
           <div className="space-y-6">
             {/* Booking Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Book Childcare</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Book Childcare Service</h3>
               
               {/* Pricing */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Hourly Rate</span>
-                  <span className="text-lg font-bold text-green-600">${nanny.hourlyRate}</span>
+                  <span className="text-lg font-bold text-green-600">Rs {nanny.hourlyRate.toLocaleString()}/hr</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Monthly Rate</span>
-                  <span className="text-lg font-bold text-green-600">${nanny.monthlyRate}</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  *Rates may vary based on specific requirements
-                </div>
+                {nanny.overnightRate > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Overnight Rate</span>
+                    <span className="text-lg font-bold text-green-600">Rs {nanny.overnightRate.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
 
               {/* Contact Info */}
@@ -354,7 +406,7 @@ export default function NannyDetailsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FaEnvelope className="text-purple-500" />
-                  <a href={`mailto:${nanny.email}`} className="text-purple-600 hover:text-purple-700">
+                  <a href={`mailto:${nanny.email}`} className="text-purple-600 hover:text-purple-700 text-sm">
                     {nanny.email}
                   </a>
                 </div>
@@ -362,34 +414,20 @@ export default function NannyDetailsPage() {
 
               {/* Book Button */}
               <Link 
-                href={`/patient/nanny-booking/${nanny.id}`}
+                href={`/booking/nannies/${nanny.id}`}
                 className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
               >
                 <FaCalendarAlt />
-                Book Childcare
+                Book Childcare Service
               </Link>
 
-              {/* Verification Badges */}
-              <div className="mt-4 space-y-2">
-                {nanny.verified && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <FaCheckCircle />
-                    <span className="text-sm font-medium">Verified Caregiver</span>
-                  </div>
-                )}
-                {nanny.backgroundCheck && (
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <FaShieldAlt />
-                    <span className="text-sm font-medium">Background Checked</span>
-                  </div>
-                )}
-                {nanny.transportAvailable && (
-                  <div className="flex items-center gap-2 text-orange-600">
-                    <FaCar />
-                    <span className="text-sm font-medium">Own Transportation</span>
-                  </div>
-                )}
-              </div>
+              {/* Verification Badge */}
+              {nanny.verified && (
+                <div className="mt-4 flex items-center gap-2 text-green-600">
+                  <FaShieldAlt />
+                  <span className="text-sm font-medium">Verified Nanny</span>
+                </div>
+              )}
             </div>
 
             {/* Quick Stats */}
@@ -409,16 +447,18 @@ export default function NannyDetailsPage() {
                   <span className="font-medium">{nanny.reviews}+</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">References</span>
-                  <span className="font-medium">{nanny.references}</span>
+                  <span className="text-gray-600">Max Children</span>
+                  <span className="font-medium">{nanny.maxChildren}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Age Groups</span>
-                  <span className="font-medium">{nanny.ageGroups.length}</span>
+                  <span className="text-gray-600">Languages</span>
+                  <span className="font-medium">{nanny.languages.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Activities</span>
-                  <span className="font-medium">{nanny.activities.length}</span>
+                  <span className="text-gray-600">Background Check</span>
+                  <span className={`font-medium ${nanny.backgroundCheck ? 'text-green-600' : 'text-orange-600'}`}>
+                    {nanny.backgroundCheck ? 'Verified' : 'Pending'}
+                  </span>
                 </div>
               </div>
             </div>
