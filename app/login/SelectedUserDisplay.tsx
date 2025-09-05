@@ -6,16 +6,40 @@ interface SelectedUserDisplayProps {
 
 export default function SelectedUserDisplay({ selectedUserType }: SelectedUserDisplayProps) {
   const SelectedIcon = selectedUserType.icon;
-
+  
   return (
-    <div className="bg-gradient-main text-white rounded-lg p-4 mb-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-          <SelectedIcon className="text-white text-lg" />
-        </div>
-        <div>
-          <div className="font-semibold">{selectedUserType.label} Portal</div>
-          <div className="text-sm text-white/90">{selectedUserType.description}</div>
+    <div className="w-full bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 rounded-xl p-[2px] mb-6">
+      <div className="bg-white rounded-xl p-4 sm:p-5">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+              <SelectedIcon className="text-white text-2xl sm:text-3xl" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold text-lg sm:text-xl text-gray-800">
+                {selectedUserType.label} Portal
+              </h3>
+              <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-green-500 text-white text-xs rounded-full font-medium">
+                Selected
+              </span>
+            </div>
+            <p className="text-sm sm:text-base text-gray-600">
+              {selectedUserType.description}
+            </p>
+            {selectedUserType.demoEmail && (
+              <p className="text-xs sm:text-sm text-blue-600 mt-2 font-medium">
+                Demo: {selectedUserType.demoEmail}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

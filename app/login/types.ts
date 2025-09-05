@@ -6,7 +6,7 @@ export interface UserType {
   icon: IconType;
   description: string;
   redirectPath: string;
-  demoEmail: string;
+  demoEmail?: string;
 }
 
 export interface LoginFormData {

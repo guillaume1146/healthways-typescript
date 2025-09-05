@@ -24,6 +24,25 @@ module.exports = {
         'gradient-footer': 'linear-gradient(135deg, #125ff9 0%, #125ff9 30%, #008fa3 70%, #00a542 100%)',
         'gradient-footer-dark': 'linear-gradient(135deg, #0d1421 0%, #125ff9 20%, #008fa3 60%, #00a542 100%)',
       },
+      animation: {
+        'blob': 'blob 7s infinite',
+      },
+      keyframes: {
+        blob: {
+          '0%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+          '33%': {
+            transform: 'translate(30px, -50px) scale(1.1)',
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)',
+          },
+          '100%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+        },
+      },
     },
   },
   plugins: [],

@@ -43,9 +43,9 @@ export const userTypes: UserType[] = [
     id: 'child-care-nurse',
     label: 'Nanny',
     icon: FaChild,
-    description: 'Provide Child care services',
+    description: 'Provide child care services',
     redirectPath: '/nanny/dashboard',
-    demoEmail: 'nurse@Healthwyz.mu'
+    demoEmail: 'nanny@Healthwyz.mu'
   },
   {
     id: 'pharmacy',
@@ -65,7 +65,7 @@ export const userTypes: UserType[] = [
   },
   {
     id: 'ambulance',
-    label: 'Emergency Responder',
+    label: 'Emergency',
     icon: FaAmbulance,
     description: 'Emergency services coordination',
     redirectPath: '/responder/dashboard',
@@ -73,34 +73,33 @@ export const userTypes: UserType[] = [
   },
   {
     id: 'admin',
-    label: 'Administrator',
+    label: 'Admin',
     icon: FaUserCog,
     description: 'Platform management & oversight',
     redirectPath: '/admin/dashboard',
-    demoEmail: 'ambulance@Healthwyz.mu'
+    demoEmail: 'admin@Healthwyz.mu'
   },
-  // NEW USER TYPES
   {
     id: 'corporate',
-    label: 'Corporate Administrator',
+    label: 'Corporate',
     icon: FaBuilding,
-    description: 'Corporate wellness program management',
+    description: 'Corporate wellness programs',
     redirectPath: '/corporate/dashboard',
     demoEmail: 'corporate@Healthwyz.mu'
   },
   {
     id: 'insurance',
-    label: 'Insurance Representative',
+    label: 'Insurance',
     icon: FaShieldAlt,
-    description: 'Insurance claims & policy management',
+    description: 'Claims & policy management',
     redirectPath: '/insurance/dashboard',
     demoEmail: 'insurance@Healthwyz.mu'
   },
   {
     id: 'referral-partner',
-    label: 'Referral Partner',
+    label: 'Partner',
     icon: FaHandshake,
-    description: 'Earn by bringing new users to platform',
+    description: 'Earn by referring new users',
     redirectPath: '/referral-partner/dashboard',
     demoEmail: 'partner@Healthwyz.mu'
   }
