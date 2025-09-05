@@ -25,7 +25,7 @@ import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 const serviceCategories = {
   'Healthcare Services': [
     { href: '/search/doctors', label: 'Find Doctors', icon: FaUserMd },
-    { href: '/search/nurse', label: 'Nursing Care', icon: FaUserNurse },
+    { href: '/search/nurses', label: 'Nursing Care', icon: FaUserNurse },
     { href: '/search/childcare', label: 'Childcare Services', icon: FaBaby },
     { href: '/search/emergency', label: 'Emergency Services', icon: FaAmbulance },
   ],
