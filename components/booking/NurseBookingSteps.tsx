@@ -1,13 +1,13 @@
-import { FaUser, FaCalendarAlt, FaInfoCircle, FaWallet, FaTicketAlt, FaCheck } from 'react-icons/fa'
+import { FaUserNurse, FaCalendarAlt, FaInfoCircle, FaWallet, FaTicketAlt, FaCheck } from 'react-icons/fa'
 
 interface BookingStepsProps {
   currentStep: number
 }
 
 const steps = [
-  { number: 1, title: "Doctor Details", icon: FaUser },
+  { number: 1, title: "Nurse Details", icon: FaUserNurse },
   { number: 2, title: "Schedule", icon: FaCalendarAlt },
-  { number: 3, title: "Consultation Info", icon: FaInfoCircle },
+  { number: 3, title: "Service Info", icon: FaInfoCircle },
   { number: 4, title: "Payment", icon: FaWallet },
   { number: 5, title: "Confirmation", icon: FaTicketAlt }
 ]
@@ -30,7 +30,6 @@ export default function BookingSteps({ currentStep }: BookingStepsProps) {
                 <span className={`text-xs mt-2 text-center ${
                   currentStep >= step.number ? "text-blue-600 font-medium" : "text-gray-500"
                 }`}>
-                  
                   {step.title}
                 </span>
               </div>
