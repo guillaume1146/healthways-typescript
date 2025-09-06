@@ -94,7 +94,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-50 to-green-50 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-6xl">
+      <div className="relative w-full max-w-7xl">
 
         <div className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">
@@ -107,35 +107,70 @@ const LoginForm: React.FC = () => {
 
         <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 h-2"></div>
+          
           <div className="p-6 sm:p-8 lg:p-10">
-            <div className="mb-8">
-              <UserTypeSelector 
-                selectedUserType={selectedUserType}
-                onUserTypeSelect={handleUserTypeSelect}
-              />
-            </div>
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 lg:min-h-[400px] w-full">
+              
+              {/* Left Side - User Type Selection Only */}
+              <div className="flex flex-col h-full w-full">
+                <div className="mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+                    Select Your Role
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    Choose your account type to continue
+                  </p>
+                </div>
 
-            <div className="relative mb-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t-2 border-gray-100"></div>
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-sm text-gray-500 font-medium">Login Details</span>
-              </div>
-            </div>
+                <div className="flex-grow w-full">
+                  <UserTypeSelector 
+                    selectedUserType={selectedUserType}
+                    onUserTypeSelect={handleUserTypeSelect}
+                    className="w-full h-full flex flex-col"
+                  />
+                </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="order-2 lg:order-1">
-                <SelectedUserDisplay selectedUserType={selectedUserType} />
-                
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                <div className="lg:hidden mb-6 mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t-2 border-gray-100"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-4 text-sm text-gray-500 font-medium">Login Details</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vertical Divider for Desktop */}
+              <div className="hidden lg:block absolute left-1/2 top-16 bottom-10 w-px bg-gray-200 -translate-x-1/2"></div>
+
+              {/* Right Side - Login Form with Selected User Display */}
+              <div className="flex flex-col h-full">
+                <div className="mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+                    Sign In
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    Enter your credentials to access your account
+                  </p>
+                </div>
+
+                {/* Selected User Display */}
+                <div className="mb-4">
+                  <SelectedUserDisplay selectedUserType={selectedUserType} />
+                </div>
+
+                {/* Quick Access Info */}
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
                   <h4 className="font-semibold text-blue-900 mb-2">Quick Access</h4>
                   <p className="text-sm text-blue-700">
                     Demo credentials are pre-filled for testing. Use password: <span className="font-mono font-bold">demo123</span>
                   </p>
                 </div>
 
-                <div className="mt-6 flex items-center justify-center gap-4 text-gray-500">
+                {/* Security Badges */}
+                <div className="mb-6 flex items-center justify-center gap-4 text-gray-500">
                   <div className="flex items-center gap-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -155,10 +190,9 @@ const LoginForm: React.FC = () => {
                     <span className="text-xs">HIPAA Compliant</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="order-1 lg:order-2">
-                <div className="bg-gray-50 rounded-xl p-6 sm:p-8">
+                {/* Login Form */}
+                <div className="bg-gray-50 rounded-xl p-6 sm:p-8 flex-grow">
                   <LoginFormComponent
                     formData={formData}
                     onChange={handleChange}
