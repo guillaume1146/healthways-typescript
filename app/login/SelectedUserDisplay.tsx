@@ -11,6 +11,7 @@ export default function SelectedUserDisplay({ selectedUserType }: SelectedUserDi
     <div className="w-full bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 rounded-xl p-[2px] mb-6">
       <div className="bg-white rounded-xl p-4 sm:p-5">
         <div className="flex items-center gap-4">
+
           <div className="relative">
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
               <SelectedIcon className="text-white text-2xl sm:text-3xl" />
@@ -23,6 +24,7 @@ export default function SelectedUserDisplay({ selectedUserType }: SelectedUserDi
           </div>
           
           <div className="flex-1">
+            
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-bold text-lg sm:text-xl text-gray-800">
                 {selectedUserType.label} Portal
@@ -31,14 +33,22 @@ export default function SelectedUserDisplay({ selectedUserType }: SelectedUserDi
                 Selected
               </span>
             </div>
+
             <p className="text-sm sm:text-base text-gray-600">
               {selectedUserType.description}
             </p>
-            {selectedUserType.demoEmail && (
-              <p className="text-xs sm:text-sm text-blue-600 mt-2 font-medium">
-                Demo: {selectedUserType.demoEmail}
-              </p>
+
+            {selectedUserType.demoEmail && selectedUserType.demoPassword && (
+              <div className="mt-2 text-xs sm:text-sm space-y-1">
+                <div className="text-blue-600 font-medium">
+                  📧 Demo Email: <span className="font-mono">{selectedUserType.demoEmail}</span>
+                </div>
+                <div className="text-blue-600 font-medium">
+                  🔑 Demo Password: <span className="font-mono">{selectedUserType.demoPassword}</span>
+                </div>
+              </div>
             )}
+
           </div>
         </div>
       </div>

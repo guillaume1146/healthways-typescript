@@ -13,9 +13,10 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  // Initialize with first user type's demo credentials for testing
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: userTypes[0].demoEmail || '',
+    password: userTypes[0].demoPassword || ''
   })
   
   const router = useRouter()
@@ -36,6 +37,8 @@ const LoginForm: React.FC = () => {
     
     try {
       console.log('Attempting login:', { email: formData.email, userType: selectedUserType.id })
+      
+      // Make API call to backend for authentication
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -57,12 +60,19 @@ const LoginForm: React.FC = () => {
       }
 
       console.log('Authentication successful:', data.user)
+
+      // Save authenticated user data to localStorage and cookies
       AuthService.saveToLocalStorage(data.user)
+      
       console.log('Data saved to storage, redirecting...')
+
+      // Small delay to ensure cookies are set
       setTimeout(() => {
         setIsSubmitting(false)
         const redirectPath = AuthService.getUserTypeRedirectPath(selectedUserType.id)
         console.log('Redirecting to:', redirectPath)
+        
+        // Force page reload to ensure middleware picks up new cookies
         window.location.href = redirectPath
       }, 500)
 
@@ -75,6 +85,7 @@ const LoginForm: React.FC = () => {
 
   const handleGoogleLogin = () => {
     setIsSubmitting(true)
+    // For demo purposes - in production, implement proper OAuth flow
     setTimeout(() => {
       setIsSubmitting(false)
       const redirectPath = AuthService.getUserTypeRedirectPath(selectedUserType.id)
@@ -86,6 +97,7 @@ const LoginForm: React.FC = () => {
     setSelectedUserType(userType)
     setFormData({ email: '', password: '' })
     setError('')
+    
     if (userType.demoEmail) {
       setFormData({ email: userType.demoEmail, password: '' })
     }

@@ -21,7 +21,8 @@ export const userTypes: UserType[] = [
     icon: FaUser,
     description: 'Book appointments & manage health',
     redirectPath: '/patient/dashboard',
-    demoEmail: 'patient@Healthwyz.mu'
+    demoEmail: 'emma.johnson@healthwyz.mu',
+    demoPassword: 'Patient123!'  
   },
   {
     id: 'doctor',
@@ -29,7 +30,8 @@ export const userTypes: UserType[] = [
     icon: FaUserMd,
     description: 'Manage patients & consultations',
     redirectPath: '/doctor/dashboard',
-    demoEmail: 'dr.sarah@Healthwyz.mu'
+    demoEmail: 'sarah.johnson@healthwyz.mu',
+    demoPassword: 'SecurePass123!'  // Demo password for testing
   },
   {
     id: 'nurse',
@@ -37,7 +39,8 @@ export const userTypes: UserType[] = [
     icon: FaUserNurse,
     description: 'Provide home care services',
     redirectPath: '/nurse/dashboard',
-    demoEmail: 'nurse@Healthwyz.mu'
+    demoEmail: 'maria.thompson@homecare.mu',
+    demoPassword: 'CareGiver123!'  // Demo password for testing
   },
   {
     id: 'child-care-nurse',
@@ -45,7 +48,8 @@ export const userTypes: UserType[] = [
     icon: FaChild,
     description: 'Provide child care services',
     redirectPath: '/nanny/dashboard',
-    demoEmail: 'nanny@Healthwyz.mu'
+    demoEmail: 'sophie.chen@nannycare.mu',
+    demoPassword: 'ChildCare123!'  // Demo password for testing
   },
   {
     id: 'pharmacy',
@@ -53,7 +57,8 @@ export const userTypes: UserType[] = [
     icon: FaPills,
     description: 'Manage inventory & prescriptions',
     redirectPath: '/pharmacist/dashboard',
-    demoEmail: 'pharmacy@Healthwyz.mu'
+    demoEmail: 'pharmacy@healthwyz.mu',
+    demoPassword: 'PharmacyPass123!'  // Demo password for testing
   },
   {
     id: 'lab',
@@ -61,7 +66,8 @@ export const userTypes: UserType[] = [
     icon: FaFlask,
     description: 'Laboratory services & results',
     redirectPath: '/lab-technician/dashboard',
-    demoEmail: 'lab@Healthwyz.mu'
+    demoEmail: 'lab@healthwyz.mu',
+    demoPassword: 'LabPass123!'  // Demo password for testing
   },
   {
     id: 'ambulance',
@@ -69,7 +75,8 @@ export const userTypes: UserType[] = [
     icon: FaAmbulance,
     description: 'Emergency services coordination',
     redirectPath: '/responder/dashboard',
-    demoEmail: 'ambulance@Healthwyz.mu'
+    demoEmail: 'ambulance@healthwyz.mu',
+    demoPassword: 'AmbulancePass123!'  // Demo password for testing
   },
   {
     id: 'admin',
@@ -77,7 +84,8 @@ export const userTypes: UserType[] = [
     icon: FaUserCog,
     description: 'Platform management & oversight',
     redirectPath: '/admin/dashboard',
-    demoEmail: 'admin@Healthwyz.mu'
+    demoEmail: 'admin@healthwyz.mu',
+    demoPassword: 'AdminPass123!'  // Demo password for testing
   },
   {
     id: 'corporate',
@@ -85,7 +93,8 @@ export const userTypes: UserType[] = [
     icon: FaBuilding,
     description: 'Corporate wellness programs',
     redirectPath: '/corporate/dashboard',
-    demoEmail: 'corporate@Healthwyz.mu'
+    demoEmail: 'corporate@healthwyz.mu',
+    demoPassword: 'CorporatePass123!'  // Demo password for testing
   },
   {
     id: 'insurance',
@@ -93,7 +102,8 @@ export const userTypes: UserType[] = [
     icon: FaShieldAlt,
     description: 'Claims & policy management',
     redirectPath: '/insurance/dashboard',
-    demoEmail: 'insurance@Healthwyz.mu'
+    demoEmail: 'insurance@healthwyz.mu',
+    demoPassword: 'InsurancePass123!'  // Demo password for testing
   },
   {
     id: 'referral-partner',
@@ -101,6 +111,7 @@ export const userTypes: UserType[] = [
     icon: FaHandshake,
     description: 'Earn by referring new users',
     redirectPath: '/referral-partner/dashboard',
-    demoEmail: 'partner@Healthwyz.mu'
+    demoEmail: 'partner@healthwyz.mu',
+    demoPassword: 'PartnerPass123!'  // Demo password for testing
   }
 ]
