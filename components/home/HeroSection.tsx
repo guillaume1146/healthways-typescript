@@ -471,7 +471,6 @@ const HeroSection: React.FC = () => {
                       alt={heroImages[currentImageIndex].alt}
                       fill
                       className="object-center" 
-                      priority
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
                     />
                     
