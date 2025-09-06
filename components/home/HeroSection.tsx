@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { FaSearch } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { useAppConfig } from '@/hooks/useAppConfig'
 
 // Corrected Mauritius Flag Component - Horizontal orientation
 const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
@@ -54,7 +55,7 @@ interface Star {
 const HeroSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  
+  const { config, loading } = useAppConfig()
   // State for the floating stars
   const [stars, setStars] = useState<Star[]>([]);
 
@@ -269,7 +270,7 @@ const HeroSection: React.FC = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.5 }}
               >
-                Mauritius&apos;s Leading Healthcare Platform
+                {config.platformDescription}
               </motion.span>
             </motion.div>
 
@@ -277,39 +278,42 @@ const HeroSection: React.FC = () => {
               variants={itemVariants}
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight text-white"
             >
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.6 }}
-              >
-                Your Health,
-              </motion.span>
-              <br />
-              <motion.span 
-                className="text-yellow-400"
-                initial={{ opacity: 0, y: 20, textShadow: "0 0 0px rgba(245, 158, 11, 0)" }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  textShadow: [
-                    "0 0 0px rgba(245, 158, 11, 0)",
-                    "0 0 20px rgba(245, 158, 11, 0.5)",
-                    "0 0 0px rgba(245, 158, 11, 0)"
-                  ]
-                }}
-                transition={{ 
-                  delay: 1.0, 
-                  duration: 0.6,
-                  textShadow: {
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }
-                }}
-              >
-                Our Priority
-              </motion.span>
+             
+                  {config.heroTitle.split(',').map((part, index) => (
+                      <motion.span
+                        key={index}
+                        className={index === 1 ? "text-yellow-400" : ""}
+                        initial={{ opacity: 0, y: 20, textShadow: "0 0 0px rgba(245, 158, 11, 0)" }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0,
+                          textShadow: [
+                            "0 0 0px rgba(245, 158, 11, 0)",
+                            "0 0 20px rgba(245, 158, 11, 0.5)",
+                            "0 0 0px rgba(245, 158, 11, 0)"
+                          ]
+                        }}
+                        transition={{ 
+                          delay: 1.0, 
+                          duration: 0.6,
+                          textShadow: {
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }
+                        }}
+                      >
+                        {part.trim()}
+                        {index === 0 && ','}
+                        {index === 0 && <br />}
+                      </motion.span>
+                    ))}
+
+
+
             </motion.h1>
+
+            
             
             <motion.p 
               variants={itemVariants}
