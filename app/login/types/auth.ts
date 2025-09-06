@@ -1,4 +1,3 @@
-// types/auth.ts - Add to your existing auth types
 import { IconType } from 'react-icons'
 
 export interface UserType {
@@ -25,7 +24,6 @@ export interface AuthUser {
   profileImage?: string;
 }
 
-// Base interface for all authenticated users
 export interface BaseAuthenticatedUser {
   id: string;
   firstName: string;
@@ -35,11 +33,9 @@ export interface BaseAuthenticatedUser {
   token: string;
   userType: string;
   profileImage?: string;
-  // Allow additional properties from specific user types
   [key: string]: unknown;
 }
 
-// Demo user type for additional user roles
 export interface DemoUser {
   id: string;
   firstName: string;

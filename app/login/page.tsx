@@ -36,33 +36,33 @@ const LoginForm: React.FC = () => {
     
     try {
       console.log('Attempting login:', { email: formData.email, userType: selectedUserType.id })
-      
-      const authenticatedUser = AuthService.authenticate(
-        formData.email,
-        formData.password, 
-        selectedUserType.id
-      )
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          userType: selectedUserType.id
+        })
+      })
 
-      if (!authenticatedUser) {
-        setError('Invalid credentials. Please check your email, password, and selected user type.')
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        setError(data.message || 'Invalid credentials. Please check your email, password, and selected user type.')
         setIsSubmitting(false)
         return
       }
 
-      console.log('Authentication successful:', authenticatedUser)
-
-      // Save to both localStorage and cookies
-      AuthService.saveToLocalStorage(authenticatedUser)
-      
+      console.log('Authentication successful:', data.user)
+      AuthService.saveToLocalStorage(data.user)
       console.log('Data saved to storage, redirecting...')
-
-      // Small delay to ensure cookies are set
       setTimeout(() => {
         setIsSubmitting(false)
         const redirectPath = AuthService.getUserTypeRedirectPath(selectedUserType.id)
         console.log('Redirecting to:', redirectPath)
-        
-        // Force page reload to ensure middleware picks up new cookies
         window.location.href = redirectPath
       }, 500)
 
@@ -86,7 +86,6 @@ const LoginForm: React.FC = () => {
     setSelectedUserType(userType)
     setFormData({ email: '', password: '' })
     setError('')
-    
     if (userType.demoEmail) {
       setFormData({ email: userType.demoEmail, password: '' })
     }
