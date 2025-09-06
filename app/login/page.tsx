@@ -172,14 +172,6 @@ const LoginForm: React.FC = () => {
                   <SelectedUserDisplay selectedUserType={selectedUserType} />
                 </div>
 
-                {/* Quick Access Info */}
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">Quick Access</h4>
-                  <p className="text-sm text-blue-700">
-                    Demo credentials are pre-filled for testing. Use password: <span className="font-mono font-bold">demo123</span>
-                  </p>
-                </div>
-
                 {/* Security Badges */}
                 <div className="mb-6 flex items-center justify-center gap-4 text-gray-500">
                   <div className="flex items-center gap-1">
