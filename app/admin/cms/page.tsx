@@ -4,9 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
-  FaNewspaper, FaImage, FaStar, FaChartBar, FaEdit, FaTrash, FaPlus,
-  FaSave, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown,
-  FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask
+  FaNewspaper, FaImage, FaStar,  FaEdit, FaTrash, FaPlus, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown
 } from 'react-icons/fa'
 
 interface Slider {
