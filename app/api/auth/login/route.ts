@@ -1,69 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthData } from '@/app/login/data/userData';
-import { BaseAuthenticatedUser } from '@/app/login/types/auth';
-
-const authData: Record<string, BaseAuthenticatedUser> = createAuthData();
+import { patientsData } from '@/lib/data/patients';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, userType } = body;
-    if (!email || !password || !userType) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Email, password, and user type are required' 
-        },
-        { status: 400 }
-      );
-    }
-
+    
+    const authData = createAuthData();
     const user = authData[email.toLowerCase()];
     
-    if (!user) {
+    if (!user || user.password !== password || user.userType !== userType) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Invalid credentials' 
-        },
+        { success: false, message: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
-    if (user.password !== password) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Invalid credentials' 
-        },
-        { status: 401 }
-      );
-    }
+    let fullUserData;
 
-    if (user.userType !== userType) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Invalid user type for this account' 
-        },
-        { status: 401 }
+    if (userType === 'patient') {
+      // Find the complete patient data
+      const completePatientData = patientsData.find(
+        patient => patient.id === user.id
       );
+      
+      if (completePatientData) {
+        // Merge patient data with auth properties
+        fullUserData = {
+          ...completePatientData,
+          userType: user.userType,  // Add userType from auth data
+          token: user.token,         // Ensure token is included
+          password: undefined        // Remove password from response
+        };
+      } else {
+        // Fallback to basic user data if patient not found
+        fullUserData = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          token: user.token,
+          userType: user.userType,
+          profileImage: user.profileImage
+        };
+      }
+    } else {
+      // For non-patient users, return basic data
+      fullUserData = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        token: user.token,
+        userType: user.userType,
+        profileImage: user.profileImage
+      };
     }
-
-    const authenticatedUser = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      token: user.token,
-      userType: user.userType,
-      profileImage: user.profileImage
-    };
 
     return NextResponse.json(
       { 
         success: true,
-        user: authenticatedUser,
+        user: fullUserData,
         message: 'Login successful'
       },
       { status: 200 }
@@ -72,10 +70,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'An error occurred during login' 
-      },
+      { success: false, message: 'An error occurred during login' },
       { status: 500 }
     );
   }

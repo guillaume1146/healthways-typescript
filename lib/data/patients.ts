@@ -267,6 +267,7 @@ export interface Patient {
   token: string;
   dateOfBirth: string;
   age: number;
+  userType: 'patient';
   gender: 'Male' | 'Female';
   phone: string;
   address: string;
@@ -981,7 +982,8 @@ export const patientsData: Patient[] = [
     registrationDate: "2023-08-15",
     lastLogin: "2024-12-15",
     verified: true,
-    profileCompleteness: 95
+    profileCompleteness: 95,
+    userType: "patient"
   },
   {
     id: "PAT002",
@@ -1431,7 +1433,8 @@ export const patientsData: Patient[] = [
     registrationDate: "2023-11-10",
     lastLogin: "2024-12-14",
     verified: true,
-    profileCompleteness: 88
+    profileCompleteness: 88,
+    userType: "patient"
   },
   {
     id: "PAT003",
@@ -1926,7 +1929,8 @@ export const patientsData: Patient[] = [
     registrationDate: "2024-01-05",
     lastLogin: "2024-12-14",
     verified: true,
-    profileCompleteness: 92
+    profileCompleteness: 92,
+    userType: "patient"
   },
   {
     id: "PAT004",
@@ -2451,7 +2455,8 @@ export const patientsData: Patient[] = [
     registrationDate: "2023-12-20",
     lastLogin: "2024-12-14",
     verified: true,
-    profileCompleteness: 90
+    profileCompleteness: 90,
+    userType: "patient"
   },
   {
     id: "PAT005",
@@ -2939,6 +2944,7 @@ export const patientsData: Patient[] = [
     registrationDate: "2024-02-10",
     lastLogin: "2024-12-14",
     verified: true,
-    profileCompleteness: 85
+    profileCompleteness: 85,
+    userType: "patient"
   }
 ];

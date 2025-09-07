@@ -1,13 +1,16 @@
 import { AuthUser } from '../types/auth';
 
 export class AuthService {
-  static saveToLocalStorage(user: AuthUser): void {
+   static saveToLocalStorage(user: AuthUser): void {
+    // Store the complete user object
     localStorage.setItem('healthwyz_user', JSON.stringify(user));
     localStorage.setItem('healthwyz_token', user.token);
     localStorage.setItem('healthwyz_userType', user.userType);
+    
+    // For cookies, only store essential info
     this.setCookie('healthwyz_token', user.token, 7);
     this.setCookie('healthwyz_userType', user.userType, 7);
-    this.setCookie('healthwyz_user_id', user.id, 7);
+    this.setCookie('healthwyz_user_id', String(user.id), 7);
   }
   
   static setCookie(name: string, value: string, days: number): void {
@@ -31,8 +34,9 @@ export class AuthService {
   static getFromLocalStorage(): AuthUser | null {
     try {
       const userData = localStorage.getItem('healthwyz_user');
-      return userData ? JSON.parse(userData) : null;
-    } catch {
+      return userData ? (JSON.parse(userData) as AuthUser) : null;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
       return null;
     }
   }
