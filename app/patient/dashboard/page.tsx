@@ -225,27 +225,27 @@ const PatientDashboard: React.FC = () => {
   const renderOverview = () => (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-4 md:p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome back, {patientData.firstName}!</h2>
-            <p className="opacity-90">Take charge of your health journey today</p>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Welcome back, {patientData.firstName}!</h2>
+            <p className="opacity-90 text-sm md:text-base">Take charge of your health journey today</p>
           </div>
-          <div className="hidden md:block">
-            <FaHeart className="text-4xl opacity-20" />
+          <div className="hidden sm:block">
+            <FaHeart className="text-3xl md:text-4xl opacity-20" />
           </div>
         </div>
       </div>
 
       {/* Health Score Card */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Your Health Score</h3>
-          <FaChartLine className="text-green-500 text-xl" />
+          <h3 className="text-base md:text-lg font-semibold text-gray-800">Your Health Score</h3>
+          <FaChartLine className="text-green-500 text-lg md:text-xl" />
         </div>
         <div className="flex items-end space-x-4">
-          <div className="text-4xl font-bold text-green-500">{patientData.healthScore}%</div>
-          <div className="text-sm text-gray-600 mb-2">
+          <div className="text-3xl md:text-4xl font-bold text-green-500">{patientData.healthScore}%</div>
+          <div className="text-xs md:text-sm text-gray-600 mb-2">
             Body Age: {patientData.bodyAge} years
           </div>
         </div>
@@ -258,78 +258,78 @@ const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-blue-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Upcoming Appointments</p>
-              <p className="text-2xl font-bold text-blue-600">{getUpcomingAppointmentCount()}</p>
+              <p className="text-gray-600 text-xs md:text-sm">Upcoming Appointments</p>
+              <p className="text-xl md:text-2xl font-bold text-blue-600">{getUpcomingAppointmentCount()}</p>
               {getNextAppointment() && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs md:text-sm text-gray-500 mt-1">
                   Next: {new Date(getNextAppointment()!.date).toLocaleDateString()}
                 </p>
               )}
             </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <FaCalendarAlt className="text-blue-600 text-xl" />
+            <div className="p-2 md:p-3 bg-blue-100 rounded-lg">
+              <FaCalendarAlt className="text-blue-600 text-lg md:text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-green-100">
+        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-green-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Active Prescriptions</p>
-              <p className="text-2xl font-bold text-green-600">{getActivePrescriptionCount()}</p>
-              <p className="text-sm text-green-600 mt-1">All active</p>
+              <p className="text-gray-600 text-xs md:text-sm">Active Prescriptions</p>
+              <p className="text-xl md:text-2xl font-bold text-green-600">{getActivePrescriptionCount()}</p>
+              <p className="text-xs md:text-sm text-green-600 mt-1">All active</p>
             </div>
-            <div className="p-3 bg-green-100 rounded-lg">
-              <FaPills className="text-green-600 text-xl" />
+            <div className="p-2 md:p-3 bg-green-100 rounded-lg">
+              <FaPills className="text-green-600 text-lg md:text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-purple-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Health Records</p>
-              <p className="text-2xl font-bold text-purple-600">{patientData.medicalRecords?.length || 0}</p>
-              <p className="text-sm text-purple-600 mt-1">Documents</p>
+              <p className="text-gray-600 text-xs md:text-sm">Health Records</p>
+              <p className="text-xl md:text-2xl font-bold text-purple-600">{patientData.medicalRecords?.length || 0}</p>
+              <p className="text-xs md:text-sm text-purple-600 mt-1">Documents</p>
             </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <FaFileAlt className="text-purple-600 text-xl" />
+            <div className="p-2 md:p-3 bg-purple-100 rounded-lg">
+              <FaFileAlt className="text-purple-600 text-lg md:text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-red-100">
+        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-red-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Last Checkup</p>
-              <p className="text-lg font-bold text-red-600">
+              <p className="text-gray-600 text-xs md:text-sm">Last Checkup</p>
+              <p className="text-sm md:text-lg font-bold text-red-600">
                 {new Date(patientData.lastCheckupDate).toLocaleDateString()}
               </p>
-              <p className="text-sm text-red-600 mt-1">Regular checkup</p>
+              <p className="text-xs md:text-sm text-red-600 mt-1">Regular checkup</p>
             </div>
-            <div className="p-3 bg-red-100 rounded-lg">
-              <FaClock className="text-red-600 text-xl" />
+            <div className="p-2 md:p-3 bg-red-100 rounded-lg">
+              <FaClock className="text-red-600 text-lg md:text-xl" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4 md:mb-6">Quick Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
           {sidebarItems.slice(1, 9).map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
-              className={`p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 ${item.bgColor}`}
+              className={`p-3 md:p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 ${item.bgColor}`}
             >
-              <item.icon className={`${item.color} text-2xl mx-auto mb-2`} />
-              <p className="text-sm font-medium text-gray-700">{item.label}</p>
+              <item.icon className={`${item.color} text-xl md:text-2xl mx-auto mb-2`} />
+              <p className="text-xs md:text-sm font-medium text-gray-700">{item.label}</p>
               {item.count && item.count > 0 && (
                 <span className="inline-block mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
                   {item.count}
@@ -341,21 +341,21 @@ const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Recent Activities */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activities</h3>
+      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">Recent Activities</h3>
         <div className="space-y-3">
           {patientData.medicalRecords && patientData.medicalRecords.slice(0, 3).map((record) => (
-            <div key={record.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+            <div key={record.id} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <FaFileAlt className="text-blue-600" />
+                <FaFileAlt className="text-blue-600 text-sm md:text-base" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-900">{record.title}</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-medium text-gray-900 text-sm md:text-base">{record.title}</p>
+                <p className="text-xs md:text-sm text-gray-600">
                   {record.doctorResponsible} • {new Date(record.date).toLocaleDateString()}
                 </p>
               </div>
-              <FaEdit className="text-gray-400 hover:text-blue-500 cursor-pointer" />
+              <FaEdit className="text-gray-400 hover:text-blue-500 cursor-pointer text-sm md:text-base" />
             </div>
           ))}
         </div>
@@ -365,61 +365,61 @@ const PatientDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header */}
-      <div className="bg-white shadow-lg border-b sticky top-0 z-40">
-        <div className="px-4 py-4">
+      {/* Fixed Header */}
+      <div className="bg-white shadow-lg border-b fixed top-0 left-0 right-0 z-50">
+        <div className="px-3 md:px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="md:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
               >
-                {sidebarOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+                {sidebarOpen ? <FaTimes className="text-lg md:text-xl" /> : <FaBars className="text-lg md:text-xl" />}
               </button>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
                   {patientData.firstName} {patientData.lastName}
                 </h1>
-                <p className="text-sm text-gray-600">Patient Dashboard</p>
+                <p className="text-xs md:text-sm text-gray-600">Patient Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition">
-                <FaBell className="text-xl" />
+            <div className="flex items-center gap-2 md:gap-4">
+              <button className="relative p-2 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition">
+                <FaBell className="text-lg md:text-xl" />
                 {getTotalUnreadMessages() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center font-bold">
                     {getTotalUnreadMessages()}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveSection('settings')}
-                className="p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
+                className="p-2 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
               >
-                <FaCog className="text-xl" />
+                <FaCog className="text-lg md:text-xl" />
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:from-red-600 hover:to-red-700 transition"
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:from-red-600 hover:to-red-700 transition"
               >
-                <FaSignOutAlt />
-                <span className="hidden sm:inline">Logout</span>
+                <FaSignOutAlt className="text-sm md:text-base" />
+                <span className="hidden sm:inline text-sm md:text-base">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex">
+      {/* Main Container with top padding for fixed header */}
+      <div className="pt-16 md:pt-20 lg:pt-24 flex">
+        
         {/* Sidebar */}
         <div className={`
-          fixed md:static inset-y-0 left-0 z-30 
-          ${isMobile ? 'w-full' : 'w-80'} 
-          bg-white shadow-2xl transform transition-transform duration-300 ease-in-out
+          fixed md:static left-0 top-16 md:top-0 h-[calc(100vh-4rem)] md:h-auto w-72 md:w-80 lg:w-80
+          bg-white shadow-2xl md:shadow-lg transform transition-transform duration-300 ease-in-out z-40
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          ${isMobile ? 'top-16' : 'top-0'}
         `}>
-          <div className="h-full overflow-y-auto p-4 pt-6">
+          <div className="h-full overflow-y-auto p-3 md:p-4 pt-4 md:pt-6">
             <div className="space-y-2">
               {sidebarItems.map((item) => (
                 <button
@@ -428,15 +428,15 @@ const PatientDashboard: React.FC = () => {
                     setActiveSection(item.id)
                     if (isMobile) setSidebarOpen(false)
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-all transform hover:scale-105 ${
+                  className={`w-full text-left px-3 md:px-4 py-2.5 md:py-3 rounded-xl transition-all transform hover:scale-105 ${
                     activeSection === item.id 
                       ? `${item.bgColor} ${item.color} shadow-md` 
                       : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="text-xl" />
-                    <span className="font-medium">{item.label}</span>
+                  <div className="flex items-center gap-2.5 md:gap-3">
+                    <item.icon className="text-lg md:text-xl" />
+                    <span className="font-medium text-sm md:text-base">{item.label}</span>
                     {item.count && item.count > 0 && (
                       <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                         {item.count}
@@ -448,8 +448,8 @@ const PatientDashboard: React.FC = () => {
             </div>
 
             {/* Communication Links */}
-            <div className="mt-8 pt-6 border-t">
-              <p className="text-sm font-semibold text-gray-600 mb-3">Communications</p>
+            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t">
+              <p className="text-xs md:text-sm font-semibold text-gray-600 mb-3">Communications</p>
               <div className="space-y-2">
                 {patientData.chatHistory?.doctors && patientData.chatHistory.doctors.length > 0 && (
                   <button
@@ -457,7 +457,7 @@ const PatientDashboard: React.FC = () => {
                       setActiveSection('chat-doctor')
                       if (isMobile) setSidebarOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 rounded-lg transition flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 text-xs md:text-sm hover:bg-blue-50 rounded-lg transition flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
                       <FaComments className="text-blue-500" />
@@ -477,7 +477,7 @@ const PatientDashboard: React.FC = () => {
                       setActiveSection('video-consultation')
                       if (isMobile) setSidebarOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-green-50 rounded-lg transition flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-xs md:text-sm hover:bg-green-50 rounded-lg transition flex items-center gap-2"
                   >
                     <FaVideo className="text-green-500" />
                     <span>Video Call</span>
@@ -488,32 +488,32 @@ const PatientDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Overlay for mobile */}
+        {/* Overlay for mobile - positioned to account for fixed header */}
         {isMobile && sidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-20"
+            className="fixed inset-0 top-16 bg-black bg-opacity-50 z-30"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Main Content */}
-        <div className="flex-1 p-4 md:p-6">
+        <div className="flex-1 p-3 md:p-4 lg:p-6">
           {/* Search Bar */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg mb-6 border border-gray-100">
-            <form onSubmit={handleSearch} className="flex gap-4">
+          <div className="bg-white rounded-2xl p-3 md:p-4 shadow-lg mb-4 md:mb-6 border border-gray-100">
+            <form onSubmit={handleSearch} className="flex gap-3 md:gap-4">
               <div className="flex-1 relative">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for doctors, symptoms, medicines..."
-                  className="w-full pl-12 pr-4 py-3 border rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 border rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition text-sm md:text-base"
                 />
               </div>
-              <button type="submit" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105">
-                <FaSearch className="inline mr-2" />
-                <span className="hidden sm:inline">Search</span>
+              <button type="submit" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105">
+                <FaSearch className="inline mr-1 md:mr-2 text-sm md:text-base" />
+                <span className="hidden sm:inline text-sm md:text-base">Search</span>
               </button>
             </form>
           </div>
