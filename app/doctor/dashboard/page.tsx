@@ -161,7 +161,7 @@ export default function EnhancedDoctorDashboard() {
         totalVisits: patient.totalVisits,
         prescriptions: patient.prescriptions
       })
-      window.location.href = `/doctor/consultations/video/${patientId}`
+      window.location.href = `/doctor/video-call/emma_sarah_20250115`
     }
   }
 

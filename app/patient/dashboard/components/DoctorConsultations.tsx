@@ -25,6 +25,7 @@ import {
   FaPrescriptionBottle,
   FaDownload
 } from 'react-icons/fa'
+import Link from 'next/link'
 
 interface Props {
   patientData: Patient
@@ -255,13 +256,12 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-2">
                   {appointment.status === 'upcoming' && appointment.type === 'video' && appointment.meetingLink && (
-                    <button
-                      onClick={onVideoCall}
-                      className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center gap-2"
-                    >
-                      <FaVideo />
-                      Join Call
-                    </button>
+                    <Link href="/patient/video-call/emma_sarah_20250115">
+                      <button onClick={onVideoCall} className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center gap-2" >
+                          <FaVideo className="cursor-pointer hover:text-blue-500" />
+                        Join Call
+                      </button>
+                    </Link>
                   )}
                   
                   <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center gap-2">
