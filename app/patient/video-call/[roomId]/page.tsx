@@ -6,7 +6,7 @@ import { useSocket } from '@/hooks/useSocket'
 import { useWebRTC } from '@/hooks/useWebRTC'
 import {
   FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhone, FaDesktop, FaComments,
-  FaUserMd, FaUser, FaWifi, FaClock, FaPaperPlane, FaExpand, FaCompress, FaVolumeUp, // may be unused
+  FaUserMd, FaUser, FaWifi, FaClock, FaPaperPlane, FaExpand, FaCompress, FaVolumeUp, 
   FaArrowLeft, FaSync
 } from 'react-icons/fa'
 
