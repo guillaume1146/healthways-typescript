@@ -1,4 +1,4 @@
-// server.js - Enhanced WebRTC Signaling Server
+// server.js - Production-ready WebRTC Signaling Server
 const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
@@ -21,9 +21,39 @@ app.prepare().then(() => {
 
   const io = new Server(server, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-      methods: ["GET", "POST"]
-    }
+      origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true)
+        
+        // Allow all origins in development
+        if (dev) return callback(null, true)
+        
+        // In production, allow:
+        // 1. The Render domain
+        // 2. Any HTTPS origin (for flexibility)
+        // 3. Localhost for testing
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'https://healthways-typescript.onrender.com',
+          // Add any other domains you might use
+        ]
+        
+        // Check if origin is allowed
+        if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+          callback(null, true)
+        } else if (origin.startsWith('https://')) {
+          // Allow any HTTPS origin in production (adjust if needed for security)
+          callback(null, true)
+        } else {
+          console.log('CORS blocked origin:', origin)
+          callback(new Error('CORS policy violation'))
+        }
+      },
+      methods: ["GET", "POST"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"]
+    },
+    transports: ['polling', 'websocket']
   })
 
   io.on('connection', (socket) => {
@@ -198,8 +228,14 @@ app.prepare().then(() => {
     })
   })
 
-  server.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`)
+  const actualPort = process.env.PORT || port
+  server.listen(actualPort, () => {
+    console.log(`> Ready on port ${actualPort}`)
+    console.log(`> Environment: ${dev ? 'development' : 'production'}`)
     console.log('> WebRTC signaling server active')
+    if (!dev) {
+      console.log('> Running in production mode')
+      console.log('> CORS configured for production domains')
+    }
   })
 })
