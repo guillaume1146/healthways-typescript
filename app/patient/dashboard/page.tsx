@@ -223,115 +223,115 @@ const PatientDashboard: React.FC = () => {
   }
 
   const renderOverview = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-4 md:p-6 text-white">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">Welcome back, {patientData.firstName}!</h2>
-            <p className="opacity-90 text-sm md:text-base">Take charge of your health journey today</p>
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Welcome back, {patientData.firstName}!</h2>
+            <p className="opacity-90 text-xs sm:text-sm md:text-base lg:text-lg">Take charge of your health journey today</p>
           </div>
-          <div className="hidden sm:block">
-            <FaHeart className="text-3xl md:text-4xl opacity-20" />
+          <div className="hidden lg:block">
+            <FaHeart className="text-4xl xl:text-5xl opacity-20" />
           </div>
         </div>
       </div>
 
       {/* Health Score Card */}
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base md:text-lg font-semibold text-gray-800">Your Health Score</h3>
-          <FaChartLine className="text-green-500 text-lg md:text-xl" />
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-green-100">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-gray-800">Your Health Score</h3>
+          <FaChartLine className="text-green-500 text-base sm:text-lg md:text-xl lg:text-2xl" />
         </div>
-        <div className="flex items-end space-x-4">
-          <div className="text-3xl md:text-4xl font-bold text-green-500">{patientData.healthScore}%</div>
-          <div className="text-xs md:text-sm text-gray-600 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:space-x-4">
+          <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-green-600">{patientData.healthScore}%</div>
+          <div className="text-xs sm:text-sm md:text-base text-gray-700 mt-1 sm:mb-2">
             Body Age: {patientData.bodyAge} years
           </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5 mt-3 sm:mt-4">
           <div 
-            className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" 
+            className="bg-gradient-to-r from-green-400 to-green-600 h-2 sm:h-2.5 rounded-full transition-all duration-500" 
             style={{ width: `${patientData.healthScore}%` }}
           ></div>
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-blue-100">
+      {/* Quick Stats - Vertical on Mobile, Grid on Larger Screens */}
+      <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 md:gap-4 lg:gap-5">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-4 md:p-5 lg:p-6 shadow-lg border border-blue-100">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-xs md:text-sm">Upcoming Appointments</p>
-              <p className="text-xl md:text-2xl font-bold text-blue-600">{getUpcomingAppointmentCount()}</p>
+            <div className="flex-1">
+              <p className="text-gray-700 text-xs sm:text-xs md:text-sm lg:text-base font-medium">Upcoming Appointments</p>
+              <p className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 mt-1">{getUpcomingAppointmentCount()}</p>
               {getNextAppointment() && (
-                <p className="text-xs md:text-sm text-gray-500 mt-1">
+                <p className="text-xs sm:text-xs md:text-sm text-gray-600 mt-1">
                   Next: {new Date(getNextAppointment()!.date).toLocaleDateString()}
                 </p>
               )}
             </div>
-            <div className="p-2 md:p-3 bg-blue-100 rounded-lg">
-              <FaCalendarAlt className="text-blue-600 text-lg md:text-xl" />
+            <div className="p-2 sm:p-2.5 md:p-3 lg:p-3.5 bg-blue-100 rounded-lg">
+              <FaCalendarAlt className="text-blue-600 text-base sm:text-lg md:text-xl lg:text-2xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-green-100">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-4 md:p-5 lg:p-6 shadow-lg border border-green-100">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-xs md:text-sm">Active Prescriptions</p>
-              <p className="text-xl md:text-2xl font-bold text-green-600">{getActivePrescriptionCount()}</p>
-              <p className="text-xs md:text-sm text-green-600 mt-1">All active</p>
+            <div className="flex-1">
+              <p className="text-gray-700 text-xs sm:text-xs md:text-sm lg:text-base font-medium">Active Prescriptions</p>
+              <p className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-green-600 mt-1">{getActivePrescriptionCount()}</p>
+              <p className="text-xs sm:text-xs md:text-sm text-green-600 mt-1">All active</p>
             </div>
-            <div className="p-2 md:p-3 bg-green-100 rounded-lg">
-              <FaPills className="text-green-600 text-lg md:text-xl" />
+            <div className="p-2 sm:p-2.5 md:p-3 lg:p-3.5 bg-green-100 rounded-lg">
+              <FaPills className="text-green-600 text-base sm:text-lg md:text-xl lg:text-2xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-purple-100">
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4 sm:p-4 md:p-5 lg:p-6 shadow-lg border border-purple-100">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-xs md:text-sm">Health Records</p>
-              <p className="text-xl md:text-2xl font-bold text-purple-600">{patientData.medicalRecords?.length || 0}</p>
-              <p className="text-xs md:text-sm text-purple-600 mt-1">Documents</p>
+            <div className="flex-1">
+              <p className="text-gray-700 text-xs sm:text-xs md:text-sm lg:text-base font-medium">Health Records</p>
+              <p className="text-xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-purple-600 mt-1">{patientData.medicalRecords?.length || 0}</p>
+              <p className="text-xs sm:text-xs md:text-sm text-purple-600 mt-1">Documents</p>
             </div>
-            <div className="p-2 md:p-3 bg-purple-100 rounded-lg">
-              <FaFileAlt className="text-purple-600 text-lg md:text-xl" />
+            <div className="p-2 sm:p-2.5 md:p-3 lg:p-3.5 bg-purple-100 rounded-lg">
+              <FaFileAlt className="text-purple-600 text-base sm:text-lg md:text-xl lg:text-2xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-red-100">
+        <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-4 sm:p-4 md:p-5 lg:p-6 shadow-lg border border-red-100">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-xs md:text-sm">Last Checkup</p>
-              <p className="text-sm md:text-lg font-bold text-red-600">
+            <div className="flex-1">
+              <p className="text-gray-700 text-xs sm:text-xs md:text-sm lg:text-base font-medium">Last Checkup</p>
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-red-600 mt-1">
                 {new Date(patientData.lastCheckupDate).toLocaleDateString()}
               </p>
-              <p className="text-xs md:text-sm text-red-600 mt-1">Regular checkup</p>
+              <p className="text-xs sm:text-xs md:text-sm text-red-600 mt-1">Regular checkup</p>
             </div>
-            <div className="p-2 md:p-3 bg-red-100 rounded-lg">
-              <FaClock className="text-red-600 text-lg md:text-xl" />
+            <div className="p-2 sm:p-2.5 md:p-3 lg:p-3.5 bg-red-100 rounded-lg">
+              <FaClock className="text-red-600 text-base sm:text-lg md:text-xl lg:text-2xl" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4 md:mb-6">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+      {/* Quick Actions - Vertical Stack on Mobile, Grid on Larger Screens */}
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-gray-200">
+        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-5 lg:mb-6">Quick Actions</h3>
+        <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 sm:gap-3 md:gap-4 lg:gap-5">
           {sidebarItems.slice(1, 9).map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
-              className={`p-3 md:p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 ${item.bgColor}`}
+              className={`w-full p-3 sm:p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 ${item.bgColor} flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2`}
             >
-              <item.icon className={`${item.color} text-xl md:text-2xl mx-auto mb-2`} />
-              <p className="text-xs md:text-sm font-medium text-gray-700">{item.label}</p>
+              <item.icon className={`${item.color} text-xl sm:text-xl md:text-2xl lg:text-3xl`} />
+              <p className="text-xs sm:text-xs md:text-sm lg:text-base font-medium text-gray-700">{item.label}</p>
               {item.count && item.count > 0 && (
-                <span className="inline-block mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+                <span className="ml-auto sm:ml-0 sm:mt-1 px-2 py-0.5 sm:py-1 bg-red-500 text-white text-xs rounded-full">
                   {item.count}
                 </span>
               )}
@@ -341,21 +341,21 @@ const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Recent Activities */}
-      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">Recent Activities</h3>
-        <div className="space-y-3">
+      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-indigo-100">
+        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Recent Activities</h3>
+        <div className="space-y-2 sm:space-y-3">
           {patientData.medicalRecords && patientData.medicalRecords.slice(0, 3).map((record) => (
-            <div key={record.id} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FaFileAlt className="text-blue-600 text-sm md:text-base" />
+            <div key={record.id} className="flex items-center gap-3 sm:gap-3 md:gap-4 p-3 sm:p-3 md:p-4 lg:p-5 bg-white bg-opacity-70 rounded-lg sm:rounded-xl hover:bg-opacity-90 transition">
+              <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                <FaFileAlt className="text-blue-600 text-sm sm:text-base md:text-lg" />
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 text-sm md:text-base">{record.title}</p>
-                <p className="text-xs md:text-sm text-gray-600">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg truncate">{record.title}</p>
+                <p className="text-xs sm:text-xs md:text-sm lg:text-base text-gray-600 truncate">
                   {record.doctorResponsible} • {new Date(record.date).toLocaleDateString()}
                 </p>
               </div>
-              <FaEdit className="text-gray-400 hover:text-blue-500 cursor-pointer text-sm md:text-base" />
+              <FaEdit className="text-gray-400 hover:text-blue-500 cursor-pointer text-sm sm:text-base md:text-lg flex-shrink-0" />
             </div>
           ))}
         </div>
@@ -367,43 +367,43 @@ const PatientDashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Fixed Header */}
       <div className="bg-white shadow-lg border-b fixed top-0 left-0 right-0 z-50">
-        <div className="px-3 md:px-4 py-3 md:py-4">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3.5 md:py-4 lg:py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="md:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
               >
-                {sidebarOpen ? <FaTimes className="text-lg md:text-xl" /> : <FaBars className="text-lg md:text-xl" />}
+                {sidebarOpen ? <FaTimes className="text-base sm:text-lg" /> : <FaBars className="text-base sm:text-lg" />}
               </button>
               <div>
-                <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
+                <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
                   {patientData.firstName} {patientData.lastName}
                 </h1>
-                <p className="text-xs md:text-sm text-gray-600">Patient Dashboard</p>
+                <p className="text-xs sm:text-xs md:text-sm lg:text-base text-gray-600">Patient Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
-              <button className="relative p-2 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition">
-                <FaBell className="text-lg md:text-xl" />
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
+              <button className="relative p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition">
+                <FaBell className="text-base sm:text-lg md:text-xl lg:text-2xl" />
                 {getTotalUnreadMessages() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center font-bold">
                     {getTotalUnreadMessages()}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveSection('settings')}
-                className="p-2 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
+                className="p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
               >
-                <FaCog className="text-lg md:text-xl" />
+                <FaCog className="text-base sm:text-lg md:text-xl lg:text-2xl" />
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:from-red-600 hover:to-red-700 transition"
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg flex items-center gap-1 sm:gap-2 hover:from-red-600 hover:to-red-700 transition"
               >
-                <FaSignOutAlt className="text-sm md:text-base" />
-                <span className="hidden sm:inline text-sm md:text-base">Logout</span>
+                <FaSignOutAlt className="text-xs sm:text-sm md:text-base lg:text-lg" />
+                <span className="hidden sm:inline text-xs sm:text-sm md:text-base lg:text-lg">Logout</span>
               </button>
             </div>
           </div>
@@ -411,16 +411,27 @@ const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Main Container with top padding for fixed header */}
-      <div className="pt-16 md:pt-20 lg:pt-24 flex">
+      <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 flex">
         
-        {/* Sidebar */}
+        {/* Sidebar - Full Height and Full Width on Mobile */}
         <div className={`
-          fixed md:static left-0 top-16 md:top-0 h-[calc(100vh-4rem)] md:h-auto w-72 md:w-80 lg:w-80
-          bg-white shadow-2xl md:shadow-lg transform transition-transform duration-300 ease-in-out z-40
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          fixed inset-y-0 left-0 z-40
+          ${sidebarOpen ? 'w-full sm:w-72 md:w-80 lg:w-80 xl:w-96' : 'w-0 md:w-64 lg:w-72 xl:w-80'}
+          md:static md:h-screen
+          bg-white shadow-2xl md:shadow-lg 
+          transform transition-all duration-300 ease-in-out
+          overflow-hidden
         `}>
-          <div className="h-full overflow-y-auto p-3 md:p-4 pt-4 md:pt-6">
-            <div className="space-y-2">
+          <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-5 lg:p-6 pt-16 md:pt-4">
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+            >
+              <FaTimes className="text-lg" />
+            </button>
+            
+            <div className="space-y-1.5 sm:space-y-2 mt-8 md:mt-0">
               {sidebarItems.map((item) => (
                 <button
                   key={item.id}
@@ -428,17 +439,17 @@ const PatientDashboard: React.FC = () => {
                     setActiveSection(item.id)
                     if (isMobile) setSidebarOpen(false)
                   }}
-                  className={`w-full text-left px-3 md:px-4 py-2.5 md:py-3 rounded-xl transition-all transform hover:scale-105 ${
+                  className={`w-full text-left px-3 sm:px-3.5 md:px-4 lg:px-5 py-2.5 sm:py-3 md:py-3.5 rounded-lg sm:rounded-xl transition-all transform hover:scale-105 ${
                     activeSection === item.id 
                       ? `${item.bgColor} ${item.color} shadow-md` 
                       : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 md:gap-3">
-                    <item.icon className="text-lg md:text-xl" />
-                    <span className="font-medium text-sm md:text-base">{item.label}</span>
+                  <div className="flex items-center gap-2.5 sm:gap-3 md:gap-3.5">
+                    <item.icon className="text-base sm:text-lg md:text-xl lg:text-2xl" />
+                    <span className="font-medium text-sm sm:text-sm md:text-base lg:text-lg">{item.label}</span>
                     {item.count && item.count > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 sm:py-1 rounded-full">
                         {item.count}
                       </span>
                     )}
@@ -448,23 +459,23 @@ const PatientDashboard: React.FC = () => {
             </div>
 
             {/* Communication Links */}
-            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t">
-              <p className="text-xs md:text-sm font-semibold text-gray-600 mb-3">Communications</p>
-              <div className="space-y-2">
+            <div className="mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-5 md:pt-6 border-t">
+              <p className="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-600 mb-2 sm:mb-3">Communications</p>
+              <div className="space-y-1.5 sm:space-y-2">
                 {patientData.chatHistory?.doctors && patientData.chatHistory.doctors.length > 0 && (
                   <button
                     onClick={() => {
                       setActiveSection('chat-doctor')
                       if (isMobile) setSidebarOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 text-xs md:text-sm hover:bg-blue-50 rounded-lg transition flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base hover:bg-blue-50 rounded-lg transition flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
                       <FaComments className="text-blue-500" />
                       <span>Doctor Messages</span>
                     </div>
                     {patientData.chatHistory.doctors.reduce((sum, doc) => sum + doc.unreadCount, 0) > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 sm:py-1 rounded-full">
                         {patientData.chatHistory.doctors.reduce((sum, doc) => sum + doc.unreadCount, 0)}
                       </span>
                     )}
@@ -477,7 +488,7 @@ const PatientDashboard: React.FC = () => {
                       setActiveSection('video-consultation')
                       if (isMobile) setSidebarOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 text-xs md:text-sm hover:bg-green-50 rounded-lg transition flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base hover:bg-green-50 rounded-lg transition flex items-center gap-2"
                   >
                     <FaVideo className="text-green-500" />
                     <span>Video Call</span>
@@ -488,32 +499,32 @@ const PatientDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Overlay for mobile - positioned to account for fixed header */}
+        {/* Overlay for mobile */}
         {isMobile && sidebarOpen && (
           <div 
-            className="fixed inset-0 top-16 bg-black bg-opacity-50 z-30"
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Main Content */}
-        <div className="flex-1 p-3 md:p-4 lg:p-6">
+        <div className="flex-1 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
           {/* Search Bar */}
-          <div className="bg-white rounded-2xl p-3 md:p-4 shadow-lg mb-4 md:mb-6 border border-gray-100">
-            <form onSubmit={handleSearch} className="flex gap-3 md:gap-4">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 shadow-lg mb-3 sm:mb-4 md:mb-5 lg:mb-6 border border-blue-100">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4">
               <div className="flex-1 relative">
-                <FaSearch className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base" />
+                <FaSearch className="absolute left-3 sm:left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-base" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for doctors, symptoms, medicines..."
-                  className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 border rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition text-sm md:text-base"
+                  className="w-full pl-9 sm:pl-10 md:pl-12 pr-3 sm:pr-4 py-2 sm:py-2.5 md:py-3 border rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition text-xs sm:text-sm md:text-base lg:text-lg"
                 />
               </div>
-              <button type="submit" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105">
-                <FaSearch className="inline mr-1 md:mr-2 text-sm md:text-base" />
-                <span className="hidden sm:inline text-sm md:text-base">Search</span>
+              <button type="submit" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105">
+                <FaSearch className="inline mr-1 sm:mr-2 text-xs sm:text-sm md:text-base" />
+                <span className="text-xs sm:text-sm md:text-base lg:text-lg">Search</span>
               </button>
             </form>
           </div>
