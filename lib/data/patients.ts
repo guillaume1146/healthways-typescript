@@ -552,7 +552,7 @@ export const patientsData: Patient[] = [
         specialty: "Cardiology",
         reason: "Follow-up diabetes management",
         duration: 30,
-        meetingLink: "/doctor/video-call/emma_sarah_20250115",
+        meetingLink: "/patient/video-call/emma_sarah_20250115",
         notes: "Review blood sugar logs"
       }
     ],
@@ -2061,7 +2061,7 @@ export const patientsData: Patient[] = [
         specialty: "Rheumatology",
         reason: "Medication follow-up",
         duration: 30,
-        meetingLink: "/doctor/video-call/emma_robert_20250"
+        meetingLink: "/patient/video-call/emma_robert_20250"
       }
     ],
     pastAppointments: [

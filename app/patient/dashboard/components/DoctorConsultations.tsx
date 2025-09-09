@@ -53,6 +53,8 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     ...(patientData.pastAppointments || [])
   ]
 
+  console.log('All Appointments:', allAppointments)
+
   // Get unique specialties
   const specialties = Array.from(new Set(allAppointments.map(apt => apt.specialty)))
 
@@ -206,7 +208,6 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
           >
             <div className="p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                {/* Doctor Info */}
                 <div className="flex items-start gap-4 mb-4 lg:mb-0">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
                     {appointment.doctorName.split(' ').map(n => n[0]).join('')}
@@ -256,7 +257,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-2">
                   {appointment.status === 'upcoming' && appointment.type === 'video' && appointment.meetingLink && (
-                    <Link href="/patient/video-call/emma_sarah_20250115">
+                    <Link href={appointment.meetingLink} target="_blank" rel="noopener noreferrer">
                       <button onClick={onVideoCall} className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center gap-2" >
                           <FaVideo className="cursor-pointer hover:text-blue-500" />
                         Join Call
