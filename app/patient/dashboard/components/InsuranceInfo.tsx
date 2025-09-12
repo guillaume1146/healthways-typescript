@@ -1,1027 +1,841 @@
-import React, { useState } from 'react'
-import { Patient, Prescription } from '@/lib/data/patients'
+import React, { useState, useEffect } from 'react'
+import { Patient } from '@/lib/data/patients'
 import { 
-  FaPills, 
-  FaCalendarAlt, 
-  FaClock, 
-  FaCheckCircle, 
-  FaExclamationTriangle,
-  FaUser,
-  FaUserMd,
-  FaDownload,
-  FaPrint,
-  FaSyncAlt,
-  FaPlus,
-  FaBell,
-  FaEdit,
-  FaTrash,
+  FaShieldAlt,
+  FaCreditCard,
+  FaFileInvoice,
+  FaCheck,
+  FaTimes,
+  FaHospital,
+  FaPills,
+  FaTooth,
   FaEye,
-  FaEyeSlash,
-  FaSearch,
-  FaFilter,
-  FaSort,
-  FaShoppingCart,
-  FaTruck,
-  FaMapMarkerAlt,
+  FaAmbulance,
+  FaCalendarAlt,
+  FaDownload,
   FaPhone,
   FaEnvelope,
-  FaStar,
-  FaHeart,
-  FaExclamationCircle,
+  FaMoneyBillWave,
+  FaClock,
+  FaExclamationTriangle,
   FaInfoCircle,
   FaChevronDown,
   FaChevronUp,
-  FaHistory,
-  FaClipboardCheck,
-  FaCapsules,
-  FaNutritionix,
-  FaAllergies,
-  FaWeight,
-  FaTimesCircle,
-  FaMinus,
-  FaHandHoldingMedical,
+  FaUserMd,
   FaStethoscope,
-  FaMobileAlt
+  FaBaby,
+  FaHeartbeat,
+  FaChartLine,
+  FaClipboardList,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaPrint,
+  FaShare,
+  FaWallet,
+  FaStar,
+  FaGift,
+  FaPercentage,
+  FaReceipt,
+  FaFlask,
+  FaUserNurse
 } from 'react-icons/fa'
 
 interface Props {
   patientData: Patient
 }
 
-interface MedicineOrder {
-  id: string
-  medicines: Array<{
-    id: string
-    name: string
-    dosage: string
-    quantity: number
-    price: number
-    inStock: boolean
-  }>
-  pharmacy: {
-    name: string
-    address: string
-    phone: string
-    rating: number
-    deliveryTime: string
-  }
-  totalAmount: number
-  deliveryFee: number
-  estimatedDelivery: string
-  paymentMethod: 'cash' | 'card' | 'insurance'
-}
-
-interface PillReminder {
-  id: string
-  medicineId: string
-  medicineName: string
-  dosage: string
-  times: string[]
-  taken: boolean[]
-  nextDose: string
-  frequency: string
-}
-
-const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
-  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'reminders' | 'order'>('active')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'date' | 'doctor' | 'medicine'>('date')
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'expired'>('all')
-  const [expandedPrescription, setExpandedPrescription] = useState<string | null>(null)
-  const [selectedForOrder, setSelectedForOrder] = useState<string[]>([])
-  const [showReminders, setShowReminders] = useState(true)
-
-  // Mock pill reminders data
-  const mockReminders: PillReminder[] = [
-    {
-      id: 'REM001',
-      medicineId: 'MED001',
-      medicineName: 'Metformin 500mg',
-      dosage: '1 tablet',
-      times: ['08:00', '20:00'],
-      taken: [true, false],
-      nextDose: '20:00',
-      frequency: 'Twice daily'
-    },
-    {
-      id: 'REM002', 
-      medicineId: 'MED002',
-      medicineName: 'Lisinopril 10mg',
-      dosage: '1 tablet',
-      times: ['08:00'],
-      taken: [true],
-      nextDose: 'Tomorrow 08:00',
-      frequency: 'Once daily'
+const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
+  const [expandedSection, setExpandedSection] = useState<string>('coverage')
+  const [showClaimForm, setShowClaimForm] = useState(false)
+  const [selectedBillingMethod, setSelectedBillingMethod] = useState<string>('')
+  
+  // Load patient data from localStorage if not passed as prop
+  const [localPatientData, setLocalPatientData] = useState<Patient | null>(patientData)
+  
+  useEffect(() => {
+    if (!patientData) {
+      const userData = localStorage.getItem('healthwyz_user')
+      if (userData) {
+        setLocalPatientData(JSON.parse(userData))
+      }
     }
-  ]
+  }, [patientData])
 
-  // Mock order data
-  const mockOrder: MedicineOrder = {
-    id: 'ORD001',
-    medicines: [
-      { id: 'MED001', name: 'Metformin 500mg', dosage: '60 tablets', quantity: 1, price: 450, inStock: true },
-      { id: 'MED002', name: 'Lisinopril 10mg', dosage: '30 tablets', quantity: 1, price: 380, inStock: true }
-    ],
-    pharmacy: {
-      name: 'Apollo Pharmacy',
-      address: 'Rose Hill, Mauritius',
-      phone: '+230 401-3000',
-      rating: 4.8,
-      deliveryTime: '2-4 hours'
-    },
-    totalAmount: 830,
-    deliveryFee: 50,
-    estimatedDelivery: 'Today by 6:00 PM',
-    paymentMethod: 'insurance'
-  }
+  const patient = localPatientData || patientData
 
-  const allPrescriptions = [
-    ...(patientData.activePrescriptions || []),
-    ...(patientData.prescriptionHistory || [])
-  ]
-
-  // Filter and sort prescriptions
-  const filteredPrescriptions = allPrescriptions.filter(prescription => {
-    const matchesSearch = 
-      prescription.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.diagnosis.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.medicines.some(med => med.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    
-    const matchesStatus = 
-      filterStatus === 'all' || 
-      (filterStatus === 'active' && prescription.isActive) ||
-      (filterStatus === 'expired' && !prescription.isActive)
-
-    return matchesSearch && matchesStatus
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'date':
-        return new Date(b.date).getTime() - new Date(a.date).getTime()
-      case 'doctor':
-        return a.doctorName.localeCompare(b.doctorName)
-      case 'medicine':
-        return a.medicines[0]?.name.localeCompare(b.medicines[0]?.name) || 0
-      default:
-        return 0
-    }
-  })
-
-  const getDaysUntilRefill = (prescription: Prescription): number => {
-    if (!prescription.nextRefill) return 0
-    const refillDate = new Date(prescription.nextRefill)
-    const today = new Date()
-    const diffTime = refillDate.getTime() - today.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  }
-
-  const getRefillUrgency = (prescription: Prescription): 'urgent' | 'soon' | 'normal' => {
-    const days = getDaysUntilRefill(prescription)
-    if (days <= 7) return 'urgent'
-    if (days <= 14) return 'soon'
-    return 'normal'
-  }
-
-  const toggleMedicineForOrder = (medicineId: string) => {
-    setSelectedForOrder(prev => 
-      prev.includes(medicineId) 
-        ? prev.filter(id => id !== medicineId)
-        : [...prev, medicineId]
+  if (!patient) {
+    return (
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-gray-200">
+        <FaShieldAlt className="text-gray-400 text-3xl sm:text-4xl mx-auto mb-4" />
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">No Insurance Data Available</h3>
+        <p className="text-gray-500 text-sm sm:text-base">Please update your insurance information</p>
+      </div>
     )
   }
 
-  const renderActivePrescriptions = () => (
-    <div className="space-y-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <button 
-          onClick={() => setActiveTab('reminders')}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 text-center"
-        >
-          <FaBell className="text-2xl mx-auto mb-2" />
-          <p className="font-semibold">Set Reminders</p>
-          <p className="text-xs opacity-80">Never miss a dose</p>
-        </button>
+  const toggleSection = (sectionId: string) => {
+    setExpandedSection(expandedSection === sectionId ? '' : sectionId)
+  }
 
-        <button 
-          onClick={() => setActiveTab('order')}
-          className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 text-center"
-        >
-          <FaShoppingCart className="text-2xl mx-auto mb-2" />
-          <p className="font-semibold">Order Medicines</p>
-          <p className="text-xs opacity-80">Home delivery</p>
-        </button>
+  const sections = [
+    { id: 'coverage', label: 'Coverage Details', icon: FaShieldAlt, color: 'blue' },
+    { id: 'billing', label: 'Billing & Payment', icon: FaCreditCard, color: 'green' },
+    { id: 'subscription', label: 'Health Plan', icon: FaStar, color: 'purple' },
+    { id: 'claims', label: 'Claims History', icon: FaFileInvoice, color: 'orange' },
+    { id: 'benefits', label: 'Benefits Usage', icon: FaGift, color: 'pink' }
+  ]
 
-        <button className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 text-center">
-          <FaUserMd className="text-2xl mx-auto mb-2" />
-          <p className="font-semibold">Consult Doctor</p>
-          <p className="text-xs opacity-80">Ask questions</p>
-        </button>
+  // Calculate coverage percentages
+  const calculateCoverageUsage = () => {
+    const deductibleUsed = patient.medicineOrders ? 
+      patient.medicineOrders.reduce((sum, order) => sum + order.totalAmount, 0) * 0.2 : 0
+    const deductiblePercentage = Math.min((deductibleUsed / patient.insuranceCoverage.deductible) * 100, 100)
+    
+    return {
+      deductibleUsed,
+      deductiblePercentage,
+      remainingDeductible: Math.max(patient.insuranceCoverage.deductible - deductibleUsed, 0)
+    }
+  }
 
-        <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 text-center">
-          <FaAllergies className="text-2xl mx-auto mb-2" />
-          <p className="font-semibold">Drug Interactions</p>
-          <p className="text-xs opacity-80">Safety check</p>
-        </button>
-      </div>
+  const coverageUsage = calculateCoverageUsage()
 
-      {/* Refill Alerts */}
-      {patientData.activePrescriptions && patientData.activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-200">
-          <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
-            <FaExclamationTriangle className="mr-2" />
-            Refill Reminders
-          </h3>
-          <div className="space-y-3">
-            {patientData.activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').map((prescription) => {
-              const urgency = getRefillUrgency(prescription)
-              const days = getDaysUntilRefill(prescription)
-              return (
-                <div key={prescription.id} className={`p-4 rounded-xl border-l-4 ${
-                  urgency === 'urgent' ? 'bg-red-50 border-red-500' : 'bg-yellow-50 border-yellow-500'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{prescription.medicines[0]?.name}</p>
-                      <p className={`text-sm ${urgency === 'urgent' ? 'text-red-600' : 'text-yellow-600'}`}>
-                        Refill needed in {days} days • Next refill: {prescription.nextRefill}
-                      </p>
-                    </div>
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                      Refill Now
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+  // Mock claims data based on patient's medical history
+  const generateClaims = () => {
+    const claims: { id: string; date: string; type: string; provider: string; amount: number; coveredAmount: number; copay: number; status: string; description: string }[] = []
+    
+    // Generate claims from appointments
+    if (patient.pastAppointments) {
+      patient.pastAppointments.forEach((apt, index) => {
+        claims.push({
+          id: `CLM-${apt.id}`,
+          date: apt.date,
+          type: 'Consultation',
+          provider: apt.doctorName,
+          amount: 1500,
+          coveredAmount: 1200,
+          copay: 300,
+          status: 'approved',
+          description: apt.reason
+        })
+      })
+    }
+    
+    // Generate claims from lab tests
+    if (patient.labTests) {
+      patient.labTests.forEach((test, index) => {
+        claims.push({
+          id: `CLM-LAB-${test.id}`,
+          date: test.date,
+          type: 'Lab Test',
+          provider: test.facility,
+          amount: 2500,
+          coveredAmount: 2000,
+          copay: 500,
+          status: 'approved',
+          description: test.testName
+        })
+      })
+    }
+    
+    // Generate claims from medicine orders
+    if (patient.medicineOrders) {
+      patient.medicineOrders.forEach((order, index) => {
+        if (order.status === 'delivered') {
+          claims.push({
+            id: `CLM-MED-${order.id}`,
+            date: order.orderDate,
+            type: 'Pharmacy',
+            provider: 'Pharmacy Services',
+            amount: order.totalAmount,
+            coveredAmount: order.totalAmount * 0.8,
+            copay: order.totalAmount * 0.2,
+            status: 'approved',
+            description: 'Prescription Medications'
+          })
+        }
+      })
+    }
+    
+    return claims.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
 
-      {/* Active Prescriptions List */}
-      <div className="space-y-4">
-        {filteredPrescriptions.filter(p => p.isActive).map((prescription) => (
-          <div key={prescription.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">Prescription #{prescription.id}</h3>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                      <FaCheckCircle className="inline mr-1" />
-                      Active
-                    </span>
-                    {getRefillUrgency(prescription) !== 'normal' && (
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        getRefillUrgency(prescription) === 'urgent' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        <FaExclamationTriangle className="inline mr-1" />
-                        Refill {getRefillUrgency(prescription)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <FaUserMd className="text-blue-500" />
-                      <span>{prescription.doctorName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-green-500" />
-                      <span>{new Date(prescription.date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FaClock className="text-purple-500" />
-                      <span>{prescription.time}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FaSyncAlt className="text-orange-500" />
-                      <span>Next refill: {prescription.nextRefill}</span>
-                    </div>
-                  </div>
-                </div>
+  const claims = generateClaims()
+  
+  // Calculate total savings
+  const totalClaimsAmount = claims.reduce((sum, claim) => sum + claim.amount, 0)
+  const totalCoveredAmount = claims.reduce((sum, claim) => sum + claim.coveredAmount, 0)
+  const totalSavings = totalCoveredAmount
 
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => setExpandedPrescription(
-                      expandedPrescription === prescription.id ? null : prescription.id
-                    )}
-                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
-                  >
-                    <FaEye className="inline mr-2" />
-                    {expandedPrescription === prescription.id ? 'Less' : 'Details'}
-                  </button>
-                  
-                  <button className="px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition">
-                    <FaShoppingCart className="inline mr-2" />
-                    Reorder
-                  </button>
-                </div>
-              </div>
-
-              {/* Diagnosis */}
-              <div className="mb-4 p-4 bg-blue-50 rounded-xl">
-                <h4 className="font-medium text-blue-800 mb-1 flex items-center">
-                  <FaStethoscope className="mr-2" />
-                  Diagnosis
-                </h4>
-                <p className="text-blue-700">{prescription.diagnosis}</p>
-              </div>
-
-              {/* Medicines Overview */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 flex items-center">
-                  <FaPills className="mr-2 text-green-500" />
-                  Medications ({prescription.medicines.length})
-                </h4>
-                <div className="grid gap-3">
-                  {prescription.medicines.map((medicine, index) => (
-                    <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h5 className="font-semibold text-gray-900 mb-2 flex items-center">
-                            <FaCapsules className="mr-2 text-purple-500" />
-                            {medicine.name}
-                          </h5>
-                          
-                          <div className="grid md:grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-gray-600">
-                                <span className="font-medium">Dosage:</span> {medicine.dosage}
-                              </p>
-                              <p className="text-gray-600">
-                                <span className="font-medium">Frequency:</span> {medicine.frequency}
-                              </p>
-                              <p className="text-gray-600">
-                                <span className="font-medium">Duration:</span> {medicine.duration}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">
-                                <span className="font-medium">Quantity:</span> {medicine.quantity}
-                              </p>
-                              <p className="text-gray-600">
-                                <span className="font-medium">Take:</span> {medicine.beforeFood ? 'Before food' : 'After food'}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
-                            <p className="text-sm text-yellow-800">
-                              <FaInfoCircle className="inline mr-2" />
-                              <strong>Instructions:</strong> {medicine.instructions}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2 ml-4">
-                          <button 
-                            onClick={() => toggleMedicineForOrder(medicine.name)}
-                            className={`px-3 py-2 rounded-lg text-sm transition ${
-                              selectedForOrder.includes(medicine.name)
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            <FaShoppingCart className="inline mr-1" />
-                            {selectedForOrder.includes(medicine.name) ? 'Added' : 'Add to Cart'}
-                          </button>
-                          
-                          <button className="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition text-sm">
-                            <FaBell className="inline mr-1" />
-                            Remind
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Expanded Details */}
-              {expandedPrescription === prescription.id && (
-                <div className="mt-6 pt-6 border-t space-y-4">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
-                        <FaUser className="mr-2 text-blue-500" />
-                        Doctor Information
-                      </h5>
-                      <div className="space-y-2 text-sm">
-                        <p><strong>Name:</strong> {prescription.doctorName}</p>
-                        <p><strong>Doctor ID:</strong> {prescription.doctorId}</p>
-                        <p><strong>Prescribed:</strong> {new Date(prescription.date).toLocaleDateString()} at {prescription.time}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-green-800 mb-3 flex items-center">
-                        <FaCalendarAlt className="mr-2" />
-                        Prescription Timeline
-                      </h5>
-                      <div className="space-y-2 text-sm">
-                        <p><strong>Issued:</strong> {new Date(prescription.date).toLocaleDateString()}</p>
-                        <p><strong>Next Refill:</strong> {prescription.nextRefill}</p>
-                        <p><strong>Days Until Refill:</strong> {getDaysUntilRefill(prescription)} days</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {prescription.notes && (
-                    <div className="bg-blue-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-blue-800 mb-2 flex items-center">
-                        <FaInfoCircle className="mr-2" />
-                        Additional Notes
-                      </h5>
-                      <p className="text-blue-700 text-sm">{prescription.notes}</p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-3">
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
-                      <FaDownload />
-                      Download Prescription
-                    </button>
-                    <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2">
-                      <FaPrint />
-                      Print
-                    </button>
-                    <button className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
-                      <FaUserMd />
-                      Contact Doctor
-                    </button>
-                  </div>
-                </div>
+  const renderCoverageDetails = () => (
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Insurance Card */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <FaShieldAlt className="text-2xl sm:text-3xl" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{patient.insuranceCoverage.provider}</h3>
+            </div>
+            <div className="space-y-1 text-xs sm:text-sm">
+              <p><span className="opacity-80">Policy:</span> {patient.insuranceCoverage.policyNumber}</p>
+              <p><span className="opacity-80">Member ID:</span> {patient.insuranceCoverage.subscriberId}</p>
+              {patient.insuranceCoverage.groupNumber && (
+                <p><span className="opacity-80">Group:</span> {patient.insuranceCoverage.groupNumber}</p>
               )}
             </div>
           </div>
-        ))}
-      </div>
-
-      {filteredPrescriptions.filter(p => p.isActive).length === 0 && (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-lg border border-gray-100">
-          <FaPills className="text-gray-400 text-5xl mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Active Prescriptions</h3>
-          <p className="text-gray-500 mb-6">You don&apos;t have any active prescriptions at the moment</p>
-          <button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all">
-            Consult a Doctor
-          </button>
-        </div>
-      )}
-    </div>
-  )
-
-  const renderReminders = () => (
-    <div className="space-y-6">
-      {/* Today's Medication Schedule */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-            <FaBell className="mr-2 text-blue-500" />
-            Today&apos;s Medication Schedule
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Reminders</span>
-            <button
-              onClick={() => setShowReminders(!showReminders)}
-              className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${showReminders ? 'translate-x-6 bg-blue-500' : 'translate-x-1'}`} />
-            </button>
+          <div className="text-right">
+            <p className="text-xs sm:text-sm opacity-80">Coverage Type</p>
+            <p className="text-base sm:text-lg md:text-xl font-bold capitalize">{patient.insuranceCoverage.coverageType}</p>
+            <p className="text-xs sm:text-sm mt-2">
+              Valid until {new Date(patient.insuranceCoverage.validUntil).toLocaleDateString()}
+            </p>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {mockReminders.map((reminder) => (
-            <div key={reminder.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <FaPills className="text-blue-600 text-xl" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 mb-1">{reminder.medicineName}</h4>
-                    <p className="text-sm text-gray-600 mb-2">{reminder.dosage} • {reminder.frequency}</p>
-                    
-                    <div className="flex items-center gap-4">
-                      {reminder.times.map((time, index) => (
-                        <div key={index} className={`flex items-center gap-2 px-3 py-1 rounded-lg ${
-                          reminder.taken[index] 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          <FaClock className="text-sm" />
-                          <span className="text-sm font-medium">{time}</span>
-                          {reminder.taken[index] ? (
-                            <FaCheckCircle className="text-green-600" />
-                          ) : (
-                            <FaExclamationCircle className="text-yellow-600" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <p className="text-xs text-gray-500 mt-2">
-                      Next dose: {reminder.nextDose}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <button className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-sm">
-                    <FaCheckCircle className="inline mr-1" />
-                    Mark Taken
-                  </button>
-                  <button className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm">
-                    <FaEdit className="inline mr-1" />
-                    Edit
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Coverage Status */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 border border-green-200">
+          <div className="flex items-center justify-between mb-2">
+            <FaHospital className="text-green-600 text-lg sm:text-xl" />
+            <span className={`text-xs font-medium ${patient.insuranceCoverage.emergencyCoverage ? 'text-green-600' : 'text-red-600'}`}>
+              {patient.insuranceCoverage.emergencyCoverage ? 'Active' : 'Not Covered'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600">Emergency Care</p>
+          <p className="text-base sm:text-lg font-bold text-gray-900">
+            {patient.insuranceCoverage.emergencyCoverage ? '100% Covered' : 'Not Available'}
+          </p>
         </div>
 
-        <div className="mt-6 pt-6 border-t">
-          <button className="w-full p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 transition">
-            <FaPlus className="inline mr-2" />
-            Set New Medication Reminder
-          </button>
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-purple-200">
+          <div className="flex items-center justify-between mb-2">
+            <FaPills className="text-purple-600 text-lg sm:text-xl" />
+            <span className={`text-xs font-medium ${patient.insuranceCoverage.pharmacyCoverage ? 'text-green-600' : 'text-red-600'}`}>
+              {patient.insuranceCoverage.pharmacyCoverage ? 'Active' : 'Not Covered'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600">Pharmacy</p>
+          <p className="text-base sm:text-lg font-bold text-gray-900">
+            {patient.insuranceCoverage.pharmacyCoverage ? '80% Covered' : 'Not Available'}
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-3 sm:p-4 border border-yellow-200">
+          <div className="flex items-center justify-between mb-2">
+            <FaTooth className="text-yellow-600 text-lg sm:text-xl" />
+            <span className={`text-xs font-medium ${patient.insuranceCoverage.dentalCoverage ? 'text-green-600' : 'text-red-600'}`}>
+              {patient.insuranceCoverage.dentalCoverage ? 'Active' : 'Not Covered'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600">Dental</p>
+          <p className="text-base sm:text-lg font-bold text-gray-900">
+            {patient.insuranceCoverage.dentalCoverage ? '70% Covered' : 'Not Available'}
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-3 sm:p-4 border border-cyan-200">
+          <div className="flex items-center justify-between mb-2">
+            <FaEye className="text-cyan-600 text-lg sm:text-xl" />
+            <span className={`text-xs font-medium ${patient.insuranceCoverage.visionCoverage ? 'text-green-600' : 'text-red-600'}`}>
+              {patient.insuranceCoverage.visionCoverage ? 'Active' : 'Not Covered'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600">Vision</p>
+          <p className="text-base sm:text-lg font-bold text-gray-900">
+            {patient.insuranceCoverage.visionCoverage ? '60% Covered' : 'Not Available'}
+          </p>
         </div>
       </div>
 
-      {/* Medication Adherence */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-          <FaClipboardCheck className="mr-2 text-green-500" />
-          Medication Adherence
-        </h3>
+      {/* Deductible and Copay Information */}
+      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-indigo-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaMoneyBillWave className="mr-2 text-indigo-600" />
+          Deductible & Out-of-Pocket
+        </h4>
         
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span className="text-2xl font-bold text-green-600">87%</span>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs sm:text-sm text-gray-600">Annual Deductible</span>
+              <span className="text-sm sm:text-base font-bold text-gray-900">
+                Rs {coverageUsage.deductibleUsed.toFixed(0)} / Rs {patient.insuranceCoverage.deductible}
+              </span>
             </div>
-            <p className="font-semibold text-gray-900">This Week</p>
-            <p className="text-sm text-gray-600">6 of 7 days on track</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span className="text-2xl font-bold text-blue-600">92%</span>
+            <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5">
+              <div 
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 sm:h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${coverageUsage.deductiblePercentage}%` }}
+              ></div>
             </div>
-            <p className="font-semibold text-gray-900">This Month</p>
-            <p className="text-sm text-gray-600">28 of 30 days completed</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FaStar className="text-purple-600 text-2xl" />
-            </div>
-            <p className="font-semibold text-gray-900">Overall Rating</p>
-            <p className="text-sm text-gray-600">Excellent adherence</p>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-green-50 rounded-xl">
-          <h4 className="font-semibold text-green-800 mb-2">Tips for Better Adherence</h4>
-          <ul className="text-sm text-green-700 space-y-1">
-            <li>• Set consistent daily routines</li>
-            <li>• Use pill organizers or reminder apps</li>
-            <li>• Keep medications visible and accessible</li>
-            <li>• Track your progress regularly</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderOrderMedicines = () => (
-    <div className="space-y-6">
-      {/* Order Summary */}
-      {selectedForOrder.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-200">
-          <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
-            <FaShoppingCart className="mr-2" />
-            Your Medicine Cart ({selectedForOrder.length} items)
-          </h3>
-          
-          <div className="space-y-3">
-            {selectedForOrder.map((medicineName, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FaPills className="text-green-600" />
-                  <span className="font-medium">{medicineName}</span>
-                </div>
-                <button 
-                  onClick={() => toggleMedicineForOrder(medicineName)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <FaTimesCircle />
-                </button>
-              </div>
-            ))}
-          </div>
-          
-          <button className="w-full mt-4 bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition">
-            Proceed to Order
-          </button>
-        </div>
-      )}
-
-      {/* Current Order */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-          <FaTruck className="mr-2 text-blue-500" />
-          Current Order
-        </h3>
-
-        <div className="space-y-4 mb-6">
-          {mockOrder.medicines.map((medicine) => (
-            <div key={medicine.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FaPills className="text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">{medicine.name}</h4>
-                  <p className="text-sm text-gray-600">{medicine.dosage}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      medicine.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {medicine.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-lg">Rs {medicine.price}</p>
-                <p className="text-sm text-gray-600">Qty: {medicine.quantity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Pharmacy Info */}
-        <div className="bg-blue-50 rounded-xl p-4 mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
-                <FaMapMarkerAlt className="mr-2" />
-                {mockOrder.pharmacy.name}
-              </h4>
-              <div className="text-sm text-blue-800 space-y-1">
-                <p>{mockOrder.pharmacy.address}</p>
-                <p className="flex items-center gap-2">
-                  <FaPhone />
-                  {mockOrder.pharmacy.phone}
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <FaStar className="text-yellow-500" />
-                    <span>{mockOrder.pharmacy.rating}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <FaClock />
-                    <span>Delivery: {mockOrder.pharmacy.deliveryTime}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Summary */}
-        <div className="border-t pt-4">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>Rs {mockOrder.totalAmount}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Delivery Fee:</span>
-              <span>Rs {mockOrder.deliveryFee}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg border-t pt-2">
-              <span>Total:</span>
-              <span>Rs {mockOrder.totalAmount + mockOrder.deliveryFee}</span>
-            </div>
-          </div>
-
-          <div className="mt-4 p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-800">
-              <FaTruck className="inline mr-2" />
-              Estimated delivery: {mockOrder.estimatedDelivery}
+            <p className="text-xs text-gray-500 mt-1">
+              Rs {coverageUsage.remainingDeductible.toFixed(0)} remaining
             </p>
           </div>
 
-          <div className="mt-6 space-y-3">
-            <button className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition">
-              Confirm Order
-            </button>
-            <button className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition">
-              Pay with Insurance
-            </button>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white bg-opacity-70 rounded-lg p-3">
+              <p className="text-xs sm:text-sm text-gray-600">Standard Copay</p>
+              <p className="text-lg sm:text-xl font-bold text-indigo-600">Rs {patient.insuranceCoverage.copay}</p>
+              <p className="text-xs text-gray-500">Per visit</p>
+            </div>
+            <div className="bg-white bg-opacity-70 rounded-lg p-3">
+              <p className="text-xs sm:text-sm text-gray-600">Out-of-Pocket Max</p>
+              <p className="text-lg sm:text-xl font-bold text-purple-600">Rs 50,000</p>
+              <p className="text-xs text-gray-500">Annual limit</p>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  )
 
-      {/* Recent Orders */}
-      {patientData.medicineOrders && patientData.medicineOrders.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <FaHistory className="mr-2 text-purple-500" />
-            Recent Orders
-          </h3>
-          
-          <div className="space-y-4">
-            {patientData.medicineOrders.slice(0, 3).map((order) => (
-              <div key={order.id} className="border border-gray-200 rounded-xl p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Order #{order.id}</h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(order.orderDate).toLocaleDateString()}
-                    </p>
+  const renderBillingPayment = () => (
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Payment Methods */}
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-green-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaCreditCard className="mr-2 text-green-600" />
+          Payment Methods
+        </h4>
+        
+        <div className="space-y-3">
+          {patient.billingInformation.map((billing) => (
+            <div 
+              key={billing.id}
+              className={`bg-white bg-opacity-80 rounded-xl p-3 sm:p-4 border-2 transition-all cursor-pointer hover:shadow-md ${
+                billing.isDefault ? 'border-green-400' : 'border-gray-200'
+              }`}
+              onClick={() => setSelectedBillingMethod(billing.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center ${
+                    billing.type === 'mcb_juice' ? 'bg-orange-100' : 'bg-blue-100'
+                  }`}>
+                    <FaCreditCard className={`text-lg sm:text-xl ${
+                      billing.type === 'mcb_juice' ? 'text-orange-600' : 'text-blue-600'
+                    }`} />
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                    order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-yellow-100 text-yellow-800'
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">
+                      {billing.type === 'mcb_juice' ? 'MCB Juice' : 'Credit Card'}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {billing.cardNumber} • Exp: {billing.expiryDate}
+                    </p>
+                    <p className="text-xs text-gray-500">{billing.cardHolder}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {billing.isDefault && (
+                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                      Default
+                    </span>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Added {new Date(billing.addedDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+          <FaCreditCard />
+          Add New Payment Method
+        </button>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-blue-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaReceipt className="mr-2 text-blue-600" />
+          Recent Transactions
+        </h4>
+        
+        <div className="space-y-3">
+          {patient.medicineOrders && patient.medicineOrders.slice(0, 3).map((order) => (
+            <div key={order.id} className="bg-white bg-opacity-80 rounded-lg p-3 sm:p-4 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">Medicine Order #{order.id}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {new Date(order.orderDate).toLocaleDateString()}
+                  </p>
+                  <div className="mt-1">
+                    {order.medicines.slice(0, 2).map((med, index) => (
+                      <p key={index} className="text-xs text-gray-500">• {med.name}</p>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-base sm:text-lg font-bold text-gray-900">Rs {order.totalAmount}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                    order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                    'bg-yellow-100 text-yellow-700'
                   }`}>
                     {order.status}
                   </span>
                 </div>
-
-                <div className="space-y-2 mb-3">
-                  {order.medicines.map((medicine, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg p-2">
-                      <span>{medicine.name} x {medicine.quantity}</span>
-                      <span className="font-medium">Rs {medicine.price}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t">
-                  <p className="font-semibold text-gray-900">Total: Rs {order.totalAmount}</p>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm">
-                      Reorder
-                    </button>
-                    <button className="px-3 py-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition text-sm">
-                      Track
-                    </button>
-                  </div>
-                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   )
 
-  const renderHistory = () => (
-    <div className="space-y-6">
-      {/* History Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100 text-center">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FaHistory className="text-blue-600 text-xl" />
+  const renderSubscriptionPlan = () => (
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Current Plan */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <FaStar className="text-2xl sm:text-3xl" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{patient.subscriptionPlan.planName}</h3>
+            </div>
+            <p className="text-xs sm:text-sm opacity-90 capitalize">
+              {patient.subscriptionPlan.type} Plan • {patient.subscriptionPlan.billingCycle} Billing
+            </p>
+            {patient.subscriptionPlan.corporateName && (
+              <p className="text-xs sm:text-sm mt-1 opacity-80">
+                Sponsored by {patient.subscriptionPlan.corporateName}
+              </p>
+            )}
           </div>
-          <p className="text-2xl font-bold text-blue-600">{allPrescriptions.length}</p>
-          <p className="text-sm text-gray-600">Total Prescriptions</p>
+          <div className="text-right">
+            <p className="text-2xl sm:text-3xl font-bold">
+              Rs {patient.subscriptionPlan.corporateDiscount ? 0 : patient.subscriptionPlan.price}
+            </p>
+            <p className="text-xs sm:text-sm opacity-80">per {patient.subscriptionPlan.billingCycle}</p>
+            {patient.subscriptionPlan.corporateDiscount && (
+              <p className="text-xs sm:text-sm mt-1 bg-white bg-opacity-20 rounded px-2 py-1 inline-block">
+                {patient.subscriptionPlan.corporateDiscount}% Corporate Discount
+              </p>
+            )}
+          </div>
         </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-green-100 text-center">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FaCheckCircle className="text-green-600 text-xl" />
-          </div>
-          <p className="text-2xl font-bold text-green-600">
-            {allPrescriptions.filter(p => p.isActive).length}
-          </p>
-          <p className="text-sm text-gray-600">Currently Active</p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100 text-center">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FaUserMd className="text-purple-600 text-xl" />
-          </div>
-          <p className="text-2xl font-bold text-purple-600">
-            {new Set(allPrescriptions.map(p => p.doctorName)).size}
-          </p>
-          <p className="text-sm text-gray-600">Different Doctors</p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100 text-center">
-          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FaPills className="text-orange-600 text-xl" />
-          </div>
-          <p className="text-2xl font-bold text-orange-600">
-            {allPrescriptions.reduce((sum, p) => sum + p.medicines.length, 0)}
-          </p>
-          <p className="text-sm text-gray-600">Total Medicines</p>
+        
+        <div className="mt-4 pt-4 border-t border-white border-opacity-30">
+          <p className="text-xs sm:text-sm opacity-80">Valid from {new Date(patient.subscriptionPlan.startDate).toLocaleDateString()} to {patient.subscriptionPlan.endDate ? new Date(patient.subscriptionPlan.endDate).toLocaleDateString() : 'Ongoing'}</p>
         </div>
       </div>
 
-      {/* All Prescriptions */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800">Prescription History</h3>
-          
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search prescriptions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
+      {/* Plan Features */}
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-purple-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaGift className="mr-2 text-purple-600" />
+          Plan Benefits & Features
+        </h4>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {patient.subscriptionPlan.features.map((feature, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <FaCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs sm:text-sm text-gray-700">{feature}</p>
             </div>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'doctor' | 'medicine')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="doctor">Sort by Doctor</option>
-              <option value="medicine">Sort by Medicine</option>
-            </select>
-            
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'expired')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active Only</option>
-              <option value="expired">Expired Only</option>
-            </select>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Usage Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-blue-200">
+          <FaUserMd className="text-blue-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs text-gray-600">Consultations</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">
+            {patient.pastAppointments ? patient.pastAppointments.length : 0}
+          </p>
+          <p className="text-xs text-gray-500">This period</p>
         </div>
 
-        <div className="space-y-4">
-          {filteredPrescriptions.map((prescription) => (
-            <div key={prescription.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
-              <div className="flex items-start justify-between">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 border border-green-200">
+          <FaPills className="text-green-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs text-gray-600">Prescriptions</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">
+            {patient.activePrescriptions ? patient.activePrescriptions.length : 0}
+          </p>
+          <p className="text-xs text-gray-500">Active</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-purple-200">
+          <FaFlask className="text-purple-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs text-gray-600">Lab Tests</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">
+            {patient.labTests ? patient.labTests.length : 0}
+          </p>
+          <p className="text-xs text-gray-500">Completed</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-3 sm:p-4 border border-orange-200">
+          <FaHeartbeat className="text-orange-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs text-gray-600">Wellness Score</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">{patient.healthScore}%</p>
+          <p className="text-xs text-gray-500">Current</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderClaimsHistory = () => (
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Claims Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 border border-green-200">
+          <FaMoneyBillWave className="text-green-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs sm:text-sm text-gray-600">Total Claims</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">Rs {totalClaimsAmount.toFixed(0)}</p>
+          <p className="text-xs text-gray-500">All time</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-blue-200">
+          <FaShieldAlt className="text-blue-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs sm:text-sm text-gray-600">Insurance Paid</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">Rs {totalCoveredAmount.toFixed(0)}</p>
+          <p className="text-xs text-gray-500">Total covered</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 border border-purple-200">
+          <FaPercentage className="text-purple-600 text-lg sm:text-xl mb-2" />
+          <p className="text-xs sm:text-sm text-gray-600">You Saved</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900">Rs {totalSavings.toFixed(0)}</p>
+          <p className="text-xs text-gray-500">With insurance</p>
+        </div>
+      </div>
+
+      {/* Claims List */}
+      <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-orange-200">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
+            <FaFileInvoice className="mr-2 text-orange-600" />
+            Recent Claims
+          </h4>
+          <button 
+            onClick={() => setShowClaimForm(!showClaimForm)}
+            className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition text-xs sm:text-sm"
+          >
+            File New Claim
+          </button>
+        </div>
+        
+        <div className="space-y-3">
+          {claims.slice(0, 5).map((claim) => (
+            <div key={claim.id} className="bg-white bg-opacity-80 rounded-lg p-3 sm:p-4 border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="font-semibold text-gray-900">Prescription #{prescription.id}</h4>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      prescription.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">{claim.description}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      claim.status === 'approved' ? 'bg-green-100 text-green-700' :
+                      claim.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
                     }`}>
-                      {prescription.isActive ? 'Active' : 'Completed'}
+                      {claim.status}
                     </span>
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-4 mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Doctor:</strong> {prescription.doctorName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Date:</strong> {new Date(prescription.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Diagnosis:</strong> {prescription.diagnosis}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <strong>Medicines:</strong> {prescription.medicines.length}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {prescription.medicines.slice(0, 3).map((medicine, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
-                        {medicine.name}
-                      </span>
-                    ))}
-                    {prescription.medicines.length > 3 && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                        +{prescription.medicines.length - 3} more
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {claim.type} • {claim.provider} • {new Date(claim.date).toLocaleDateString()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Claim ID: {claim.id}</p>
                 </div>
-
-                <div className="flex flex-col gap-2 ml-4">
-                  <button className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm">
-                    <FaEye className="inline mr-1" />
-                    View
-                  </button>
-                  <button className="px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition text-sm">
-                    <FaDownload className="inline mr-1" />
-                    Download
-                  </button>
+                <div className="flex sm:flex-col gap-4 sm:gap-1 sm:text-right">
+                  <div>
+                    <p className="text-xs text-gray-500">Billed</p>
+                    <p className="text-sm sm:text-base font-semibold text-gray-900">Rs {claim.amount}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Covered</p>
+                    <p className="text-sm sm:text-base font-semibold text-green-600">Rs {claim.coveredAmount}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Your Cost</p>
+                    <p className="text-sm sm:text-base font-semibold text-orange-600">Rs {claim.copay}</p>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {filteredPrescriptions.length === 0 && (
-          <div className="text-center py-8">
-            <FaSearch className="text-gray-400 text-3xl mx-auto mb-3" />
-            <p className="text-gray-500">No prescriptions found matching your criteria</p>
-          </div>
-        )}
+        <button className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 rounded-lg hover:from-orange-200 hover:to-yellow-200 transition text-sm">
+          View All Claims History
+        </button>
       </div>
     </div>
   )
 
-  if (allPrescriptions.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl p-8 shadow-lg text-center border border-gray-100">
-        <div className="bg-purple-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-          <FaPills className="text-purple-500 text-3xl" />
+  const renderBenefitsUsage = () => (
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Annual Benefits Overview */}
+      <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-pink-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaChartLine className="mr-2 text-pink-600" />
+          Annual Benefits Usage
+        </h4>
+        
+        <div className="space-y-4">
+          {/* Doctor Visits */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <FaUserMd className="text-blue-600" />
+                <span className="text-xs sm:text-sm text-gray-700">Doctor Consultations</span>
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-gray-900">
+                {patient.pastAppointments ? patient.pastAppointments.length : 0} / Unlimited
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style={{ width: '25%' }}></div>
+            </div>
+          </div>
+
+          {/* Lab Tests */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <FaFlask className="text-purple-600" />
+                <span className="text-xs sm:text-sm text-gray-700">Free Lab Tests</span>
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-gray-900">
+                {patient.labTests ? patient.labTests.length : 0} / 4 per year
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full" 
+                style={{ width: `${Math.min((patient.labTests ? patient.labTests.length : 0) / 4 * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Wellness Programs */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <FaHeartbeat className="text-green-600" />
+                <span className="text-xs sm:text-sm text-gray-700">Wellness Programs</span>
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-gray-900">3 / 12 sessions</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style={{ width: '25%' }}></div>
+            </div>
+          </div>
+
+          {/* Home Nurse Visits */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <FaUserNurse className="text-pink-600" />
+                <span className="text-xs sm:text-sm text-gray-700">Home Nurse Visits</span>
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-gray-900">
+                {patient.nurseBookings ? patient.nurseBookings.length : 0} / 24 per year
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-pink-500 to-purple-600 h-2 rounded-full" 
+                style={{ width: `${Math.min((patient.nurseBookings ? patient.nurseBookings.length : 0) / 24 * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-3">No Prescriptions Found</h3>
-        <p className="text-gray-500 mb-6">You don&apos;t have any prescriptions yet. Consult with a doctor to get started.</p>
-        <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto">
-          <FaUserMd />
-          Consult a Doctor
-        </button>
       </div>
-    )
-  }
+
+      {/* Additional Benefits */}
+      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-cyan-200">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <FaGift className="mr-2 text-cyan-600" />
+          Additional Benefits Available
+        </h4>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-white bg-opacity-70 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-start gap-3">
+              <FaStethoscope className="text-blue-600 mt-1" />
+              <div>
+                <p className="font-medium text-gray-900 text-sm">Annual Health Screening</p>
+                <p className="text-xs text-gray-600">Comprehensive checkup included</p>
+                <button className="mt-2 text-xs text-blue-600 hover:underline">Schedule Now →</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white bg-opacity-70 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-start gap-3">
+              <FaBaby className="text-pink-600 mt-1" />
+              <div>
+                <p className="font-medium text-gray-900 text-sm">Childcare Services</p>
+                <p className="text-xs text-gray-600">Nanny services available</p>
+                <button className="mt-2 text-xs text-pink-600 hover:underline">Learn More →</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white bg-opacity-70 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-start gap-3">
+              <FaTooth className="text-yellow-600 mt-1" />
+              <div>
+                <p className="font-medium text-gray-900 text-sm">Dental Care</p>
+                <p className="text-xs text-gray-600">70% coverage on treatments</p>
+                <button className="mt-2 text-xs text-yellow-600 hover:underline">Find Dentist →</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white bg-opacity-70 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-start gap-3">
+              <FaAmbulance className="text-red-600 mt-1" />
+              <div>
+                <p className="font-medium text-gray-900 text-sm">Emergency Services</p>
+                <p className="text-xs text-gray-600">24/7 ambulance service</p>
+                <button className="mt-2 text-xs text-red-600 hover:underline">View Details →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 rounded-2xl p-6 text-white">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold mb-2 flex items-center">
-              <FaPills className="mr-3" />
-              Prescription Management
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 flex items-center">
+              <FaShieldAlt className="mr-2 sm:mr-3" />
+              Insurance & Benefits
             </h2>
-            <p className="opacity-90">Manage your medications, set reminders, and order refills</p>
+            <p className="opacity-90 text-xs sm:text-sm md:text-base">Manage your insurance coverage and health benefits</p>
           </div>
-          <div className="mt-4 md:mt-0 grid grid-cols-3 gap-4 text-center">
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <p className="text-2xl font-bold">{patientData.activePrescriptions?.length || 0}</p>
-              <p className="text-xs opacity-80">Active</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
+            <div className="bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">100%</p>
+              <p className="text-xs opacity-90">Coverage Active</p>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <p className="text-2xl font-bold">{allPrescriptions.length}</p>
-              <p className="text-xs opacity-80">Total</p>
+            <div className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">Rs {totalSavings.toFixed(0)}</p>
+              <p className="text-xs opacity-90">Total Saved</p>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <p className="text-2xl font-bold">{mockReminders.length}</p>
-              <p className="text-xs opacity-80">Reminders</p>
+            <div className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">{claims.length}</p>
+              <p className="text-xs opacity-90">Claims Filed</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="border-b">
+      {/* Mobile Accordion / Desktop Tabs */}
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        {/* Desktop Tab Navigation */}
+        <div className="hidden sm:block border-b">
           <div className="flex overflow-x-auto">
-            {[
-              { id: 'active', label: 'Active Prescriptions', icon: FaCheckCircle, count: patientData.activePrescriptions?.length },
-              { id: 'reminders', label: 'Reminders', icon: FaBell, count: mockReminders.length },
-              { id: 'order', label: 'Order Medicines', icon: FaShoppingCart },
-              { id: 'history', label: 'History', icon: FaHistory, count: allPrescriptions.length }
-            ].map((tab) => (
+            {sections.map((section) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'active' | 'history' | 'reminders' | 'order')}
-                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-all flex items-center gap-2 ${
-                  activeTab === tab.id 
-                    ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' 
+                key={section.id}
+                onClick={() => setExpandedSection(section.id)}
+                className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-4 text-center font-medium transition-all ${
+                  expandedSection === section.id 
+                    ? `text-${section.color}-600 border-b-2 border-current bg-${section.color}-50` 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <tab.icon />
-                <span className="whitespace-nowrap">{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {tab.count}
-                  </span>
-                )}
+                <section.icon className="inline mr-2 text-sm md:text-base" />
+                <span className="whitespace-nowrap text-sm md:text-base">{section.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="p-6">
-          {activeTab === 'active' && renderActivePrescriptions()}
-          {activeTab === 'reminders' && renderReminders()}
-          {activeTab === 'order' && renderOrderMedicines()}
-          {activeTab === 'history' && renderHistory()}
+        {/* Mobile Accordion */}
+        <div className="sm:hidden">
+          {sections.map((section) => (
+            <div key={section.id} className="border-b border-gray-200">
+              <button
+                onClick={() => toggleSection(section.id)}
+                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
+                  expandedSection === section.id ? `bg-${section.color}-50` : 'bg-white bg-opacity-50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <section.icon className={`text-${section.color}-500`} />
+                  <span className={`font-medium ${
+                    expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
+                  }`}>
+                    {section.label}
+                  </span>
+                </div>
+                {expandedSection === section.id ? (
+                  <FaChevronUp className={`text-${section.color}-500`} />
+                ) : (
+                  <FaChevronDown className="text-gray-400" />
+                )}
+              </button>
+              {expandedSection === section.id && (
+                <div className="p-4 bg-white bg-opacity-50">
+                  {section.id === 'coverage' && renderCoverageDetails()}
+                  {section.id === 'billing' && renderBillingPayment()}
+                  {section.id === 'subscription' && renderSubscriptionPlan()}
+                  {section.id === 'claims' && renderClaimsHistory()}
+                  {section.id === 'benefits' && renderBenefitsUsage()}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Content */}
+        <div className="hidden sm:block p-4 md:p-6">
+          {expandedSection === 'coverage' && renderCoverageDetails()}
+          {expandedSection === 'billing' && renderBillingPayment()}
+          {expandedSection === 'subscription' && renderSubscriptionPlan()}
+          {expandedSection === 'claims' && renderClaimsHistory()}
+          {expandedSection === 'benefits' && renderBenefitsUsage()}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
+        <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-4 sm:gap-3 md:gap-4">
+          <button className="w-full bg-gradient-to-br from-indigo-400/20 to-purple-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-indigo-400/30 hover:to-purple-400/30 transition text-left">
+            <FaFileInvoice className="text-xl sm:text-2xl mb-2" />
+            <p className="font-medium text-sm sm:text-base">File a Claim</p>
+            <p className="text-xs sm:text-sm opacity-90">Submit new claim</p>
+          </button>
+          
+          <button className="w-full bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left">
+            <FaDownload className="text-xl sm:text-2xl mb-2" />
+            <p className="font-medium text-sm sm:text-base">Download Card</p>
+            <p className="text-xs sm:text-sm opacity-90">Get insurance card</p>
+          </button>
+          
+          <button className="w-full bg-gradient-to-br from-blue-400/20 to-cyan-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-blue-400/30 hover:to-cyan-400/30 transition text-left">
+            <FaPhone className="text-xl sm:text-2xl mb-2" />
+            <p className="font-medium text-sm sm:text-base">Contact Support</p>
+            <p className="text-xs sm:text-sm opacity-90">Insurance help</p>
+          </button>
+          
+          <button className="w-full bg-gradient-to-br from-pink-400/20 to-purple-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-pink-400/30 hover:to-purple-400/30 transition text-left">
+            <FaHospital className="text-xl sm:text-2xl mb-2" />
+            <p className="font-medium text-sm sm:text-base">Find Provider</p>
+            <p className="text-xs sm:text-sm opacity-90">Network hospitals</p>
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-export default PrescriptionManagement
+export default InsuranceInfo
