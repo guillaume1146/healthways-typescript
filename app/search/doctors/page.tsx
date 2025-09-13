@@ -53,14 +53,46 @@ const aiSearchDoctors = (query: string, specialization: string) => {
       
       if (query) {
         const lowerQuery = query.toLowerCase()
-        results = results.filter(doc => 
-          doc.firstName.toLowerCase().includes(lowerQuery) ||
-          doc.lastName.toLowerCase().includes(lowerQuery) ||
-          doc.specialty.some(s => s.toLowerCase().includes(lowerQuery)) ||
-          doc.location.toLowerCase().includes(lowerQuery) ||
-          doc.bio.toLowerCase().includes(lowerQuery) ||
-          doc.education.some(e => e.toLowerCase().includes(lowerQuery))
-        )
+        results = results.filter(doc => {
+          // Search in basic fields
+          const matchesBasic = 
+            doc.firstName.toLowerCase().includes(lowerQuery) ||
+            doc.lastName.toLowerCase().includes(lowerQuery) ||
+            doc.specialty.some(s => s.toLowerCase().includes(lowerQuery)) ||
+            doc.location.toLowerCase().includes(lowerQuery) ||
+            doc.bio.toLowerCase().includes(lowerQuery)
+          
+          // Search in education (now objects)
+          const matchesEducation = doc.education.some(edu => 
+            edu.degree.toLowerCase().includes(lowerQuery) ||
+            edu.institution.toLowerCase().includes(lowerQuery)
+          )
+          
+          // Search in work history (if available)
+          const matchesWorkHistory = doc.workHistory && doc.workHistory.some(work => 
+            work.position.toLowerCase().includes(lowerQuery) ||
+            work.organization.toLowerCase().includes(lowerQuery)
+          )
+          
+          // Search in certifications (if available)
+          const matchesCertifications = doc.certifications && doc.certifications.some(cert => 
+            cert.name.toLowerCase().includes(lowerQuery) ||
+            cert.issuingBody.toLowerCase().includes(lowerQuery)
+          )
+          
+          // Search in languages
+          const matchesLanguages = doc.languages.some(lang => 
+            lang.toLowerCase().includes(lowerQuery)
+          )
+          
+          // Search in sub-specialties
+          const matchesSubSpecialties = doc.subSpecialties && doc.subSpecialties.some(sub => 
+            sub.toLowerCase().includes(lowerQuery)
+          )
+          
+          return matchesBasic || matchesEducation || matchesWorkHistory || 
+                 matchesCertifications || matchesLanguages || matchesSubSpecialties
+        })
       }
       
       resolve(results)
@@ -107,7 +139,15 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
                   ? 'bg-purple-100 text-purple-700' 
                   : doctor.category === 'General Practice'
                   ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
+                  : doctor.category === 'Emergency'
+                  ? 'bg-red-100 text-red-700'
+                  : doctor.category === 'Surgeon'
+                  ? 'bg-orange-100 text-orange-700'
+                  : doctor.category === 'Mental Health'
+                  ? 'bg-blue-100 text-blue-700'
+                  : doctor.category === 'Dentist'
+                  ? 'bg-teal-100 text-teal-700'
+                  : 'bg-gray-100 text-gray-700'
               }`}>
                 {doctor.category}
               </span>

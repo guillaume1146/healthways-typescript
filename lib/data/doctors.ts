@@ -1,3 +1,7 @@
+// Enhanced Doctor Data Structure with Comprehensive TypeScript Interfaces
+
+// ============= CORE INTERFACES =============
+
 export interface PatientComment {
   id: string;
   patientFirstName: string;
@@ -9,7 +13,299 @@ export interface PatientComment {
   time: string;
 }
 
+export interface Education {
+  degree: string;
+  institution: string;
+  year: string;
+}
+
+export interface WorkExperience {
+  position: string;
+  organization: string;
+  period: string;
+  current: boolean;
+}
+
+export interface Certification {
+  name: string;
+  issuingBody: string;
+  dateObtained: string;
+  expiryDate?: string;
+  certificateUrl?: string;
+}
+
+export interface Document {
+  id: string;
+  type: 'license' | 'degree' | 'certification' | 'insurance' | 'other';
+  name: string;
+  uploadDate: string;
+  url: string;
+  size: string;
+  verified: boolean;
+  verifiedDate?: string;
+}
+
+// ============= PATIENT MANAGEMENT INTERFACES =============
+
+export interface PatientRecord {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'Male' | 'Female' | 'Other';
+  profileImage: string;
+  bloodType: string;
+  allergies: string[];
+  chronicConditions: string[];
+  status: 'active' | 'inactive';
+  lastVisit: string;
+  nextAppointment?: string;
+  totalVisits: number;
+  totalPrescriptions: number;
+  videoCallLink?: string;
+  medicalRecordUrl?: string;
+  insuranceProvider?: string;
+  insurancePolicyNumber?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderType: 'doctor' | 'patient';
+  message: string;
+  timestamp: string;
+  attachments?: string[];
+  read: boolean;
+  messageType: 'text' | 'image' | 'file' | 'voice';
+}
+
+export interface PatientChat {
+  patientId: string;
+  patientName: string;
+  patientImage: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  messages: ChatMessage[];
+  status: 'online' | 'offline' | 'away';
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  patientName: string;
+  date: string;
+  time: string;
+  diagnosis: string;
+  medicines: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string;
+    quantity: number;
+  }[];
+  notes?: string;
+  nextRefill?: string;
+  isActive: boolean;
+  signatureUrl?: string;
+}
+
+// ============= APPOINTMENT INTERFACES =============
+
+export interface Appointment {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientImage: string;
+  date: string;
+  time: string;
+  duration: number;
+  type: 'in-person' | 'video' | 'home-visit';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  reason: string;
+  notes?: string;
+  videoCallLink?: string;
+  location?: string;
+  payment: {
+    amount: number;
+    status: 'pending' | 'paid' | 'refunded';
+    method?: 'cash' | 'card' | 'insurance' | 'mcb_juice';
+  };
+  prescription?: Prescription;
+  followUpRequired: boolean;
+}
+
+export interface TimeSlot {
+  time: string;
+  available: boolean;
+  appointmentId?: string;
+}
+
+export interface DailySchedule {
+  date: string;
+  slots: TimeSlot[];
+  totalAppointments: number;
+  availableSlots: number;
+}
+
+export interface Availability {
+  monday: { start: string; end: string; isAvailable: boolean };
+  tuesday: { start: string; end: string; isAvailable: boolean };
+  wednesday: { start: string; end: string; isAvailable: boolean };
+  thursday: { start: string; end: string; isAvailable: boolean };
+  friday: { start: string; end: string; isAvailable: boolean };
+  saturday: { start: string; end: string; isAvailable: boolean };
+  sunday: { start: string; end: string; isAvailable: boolean };
+  slotDuration: number; // in minutes
+  breakTime: { start: string; end: string };
+  vacationDates: { start: string; end: string }[];
+}
+
+// ============= BILLING & FINANCIAL INTERFACES =============
+
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  swift: string;
+  iban?: string;
+  isDefault: boolean;
+  addedDate: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: 'credit_card' | 'mcb_juice' | 'bank_transfer';
+  cardNumber?: string;
+  cardHolder?: string;
+  expiryDate?: string;
+  bankAccount?: BankAccount;
+  isDefault: boolean;
+  addedDate: string;
+}
+
+export interface Transaction {
+  id: string;
+  date: string;
+  time: string;
+  patientId: string;
+  patientName: string;
+  amount: number;
+  type: 'consultation' | 'video_consultation' | 'procedure' | 'emergency';
+  paymentMethod: 'cash' | 'card' | 'insurance' | 'mcb_juice';
+  status: 'completed' | 'pending' | 'failed' | 'refunded';
+  invoiceUrl?: string;
+  receiptUrl?: string;
+}
+
+export interface EarningsStats {
+  today: number;
+  thisWeek: number;
+  thisMonth: number;
+  thisYear: number;
+  totalEarnings: number;
+  pendingPayouts: number;
+  averageConsultationFee: number;
+}
+
+// ============= SUBSCRIPTION & SETTINGS INTERFACES =============
+
+export interface SubscriptionPlan {
+  type: 'free' | 'professional' | 'premium' | 'enterprise';
+  planName: string;
+  startDate: string;
+  endDate?: string;
+  features: string[];
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  autoRenew: boolean;
+  paymentMethod?: PaymentMethod;
+  nextBillingDate?: string;
+  usage: {
+    consultations: { used: number; limit: number };
+    videoConsultations: { used: number; limit: number };
+    storage: { used: number; limit: number }; // in GB
+    smsNotifications: { used: number; limit: number };
+  };
+}
+
+export interface NotificationSettings {
+  appointments: boolean;
+  newPatients: boolean;
+  prescriptionRefills: boolean;
+  labResults: boolean;
+  emergencyAlerts: boolean;
+  chatMessages: boolean;
+  paymentReceived: boolean;
+  reviewsReceived: boolean;
+  systemUpdates: boolean;
+  marketingEmails: boolean;
+  notificationTime: string;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  pushNotifications: boolean;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
+}
+
+export interface PrivacySettings {
+  profileVisibility: 'public' | 'patients_only' | 'private';
+  showContactInfo: boolean;
+  showEducation: boolean;
+  showExperience: boolean;
+  allowReviews: boolean;
+  shareDataForResearch: boolean;
+  twoFactorAuth: boolean;
+  sessionTimeout: number; // in minutes
+}
+
+export interface LanguageSettings {
+  preferredLanguage: string;
+  dateFormat: string;
+  timeFormat: '12h' | '24h';
+  timezone: string;
+  currency: string;
+}
+
+// ============= ANALYTICS INTERFACES =============
+
+export interface PerformanceMetrics {
+  averageRating: number;
+  totalReviews: number;
+  patientSatisfaction: number;
+  responseTime: number; // in minutes
+  appointmentCompletionRate: number;
+  prescriptionAccuracy: number;
+  returnPatientRate: number;
+}
+
+export interface Statistics {
+  totalPatients: number;
+  activePatients: number;
+  newPatientsThisMonth: number;
+  totalConsultations: number;
+  consultationsThisMonth: number;
+  videoConsultations: number;
+  emergencyConsultations: number;
+  averageConsultationDuration: number;
+  totalPrescriptions: number;
+  totalRevenue: number;
+  topConditionsTreated: { condition: string; count: number }[];
+  patientDemographics: {
+    ageGroups: { range: string; count: number }[];
+    gender: { male: number; female: number; other: number };
+  };
+}
+
+// ============= MAIN DOCTOR INTERFACE =============
+
 export interface Doctor {
+  // Basic Information
   id: string;
   firstName: string;
   lastName: string;
@@ -17,34 +313,138 @@ export interface Doctor {
   password: string;
   profileImage: string;
   token: string;
+  
+  // Professional Information
   category: string;
   specialty: string[];
   subSpecialties: string[];
+  licenseNumber: string;
+  licenseExpiryDate: string;
   clinicAffiliation: string;
+  hospitalPrivileges: string[];
+  
+  // Ratings & Reviews
   rating: number;
   reviews: number;
+  patientComments: PatientComment[];
+  performanceMetrics: PerformanceMetrics;
+  
+  // Experience & Education
   experience: string;
+  education: Education[];
+  workHistory: WorkExperience[];
+  certifications: Certification[];
+  publications: string[];
+  awards: string[];
+  
+  // Location & Contact
   location: string;
   address: string;
+  phone: string;
+  alternatePhone?: string;
+  website?: string;
+  socialMedia?: {
+    linkedin?: string;
+    twitter?: string;
+    facebook?: string;
+  };
+  
+  // Languages & Availability
   languages: string[];
+  availability: string;
+  detailedAvailability: Availability;
+  nextAvailable: string;
+  consultationDuration: number; // in minutes
+  
+  // Consultation Details
   consultationFee: number;
   videoConsultationFee: number;
-  availability: string;
-  nextAvailable: string;
-  bio: string;
-  education: string[];
-  workHistory: string[];
-  certifications: string[];
+  emergencyConsultationFee: number;
   consultationTypes: string[];
   emergencyAvailable: boolean;
-  phone: string;
+  homeVisitAvailable: boolean;
+  telemedicineAvailable: boolean;
+  
+  // Personal Details
   age: number;
+  gender: 'Male' | 'Female' | 'Other';
+  dateOfBirth: string;
+  nationality: string;
+  bio: string;
+  philosophy: string;
+  specialInterests: string[];
+  
+  // Verification & Compliance
   verified: boolean;
-  patientComments: PatientComment[];
+  verificationDate?: string;
+  verificationDocuments: Document[];
+  insuranceCoverage: {
+    provider: string;
+    policyNumber: string;
+    validUntil: string;
+    coverageAmount: number;
+  };
+  
+  // Patient Management
+  patients: {
+    current: PatientRecord[];
+    past: PatientRecord[];
+  };
+  patientChats: PatientChat[];
+  
+  // Appointments
+  upcomingAppointments: Appointment[];
+  pastAppointments: Appointment[];
+  todaySchedule: DailySchedule;
+  weeklySchedule: DailySchedule[];
+  
+  // Prescriptions
+  prescriptions: Prescription[];
+  prescriptionTemplates: {
+    id: string;
+    name: string;
+    condition: string;
+    medicines: string[];
+  }[];
+  
+  // Financial
+  billing: {
+    receiveMethods: PaymentMethod[];
+    bankAccounts: BankAccount[];
+    transactions: Transaction[];
+    earnings: EarningsStats;
+    taxId: string;
+    taxRate: number;
+  };
+  
+  // Settings
+  subscription: SubscriptionPlan;
+  notificationSettings: NotificationSettings;
+  privacySettings: PrivacySettings;
+  languageSettings: LanguageSettings;
+  
+  // Statistics
+  statistics: Statistics;
+  
+  // System
+  registrationDate: string;
+  lastLogin: string;
+  lastPasswordChange: string;
+  accountStatus: 'active' | 'suspended' | 'pending_verification';
+  loginHistory: {
+    date: string;
+    time: string;
+    device: string;
+    location: string;
+    ipAddress: string;
+  }[];
 }
+
+// ============= DOCTOR DATA (5 COMPLETE INSTANCES) =============
 
 export const doctorsData: Doctor[] = [
   {
+    // Dr. Sarah Johnson - Cardiologist
     id: "DOC001",
     firstName: "Sarah",
     lastName: "Johnson",
@@ -52,29 +452,17 @@ export const doctorsData: Doctor[] = [
     password: "SecurePass123!",
     profileImage: "/images/doctors/1.jpg",
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDEiLCJpYXQiOjE2MzQyMzQ1Njd9.abc123",
+    
     category: "Specialist",
     specialty: ["Cardiology"],
     subSpecialties: ["Interventional Cardiology", "Cardiac Catheterization", "Coronary Angioplasty"],
+    licenseNumber: "MED-2009-CAR-1234",
+    licenseExpiryDate: "2026-12-31",
     clinicAffiliation: "Apollo Bramwell Hospital",
+    hospitalPrivileges: ["Apollo Bramwell Hospital", "Wellkin Hospital", "Victoria Hospital"],
+    
     rating: 4.8,
     reviews: 342,
-    experience: "15 years",
-    location: "Port Louis",
-    address: "Apollo Bramwell Hospital, Port Louis",
-    languages: ["English", "French", "Creole"],
-    consultationFee: 2500,
-    videoConsultationFee: 2000,
-    availability: "Mon-Fri, 8:00 AM - 6:00 PM",
-    nextAvailable: "Tomorrow, 10:00 AM",
-    bio: "Experienced cardiologist with over 15 years of practice, specializing in interventional procedures and heart disease prevention.",
-    education: ["MBBS - University of Mauritius", "MD Cardiology - King's College London", "Fellowship in Interventional Cardiology - Harvard Medical School"],
-    workHistory: ["Senior Cardiologist at Apollo Bramwell (2015-present)", "Consultant at SSR Hospital (2010-2015)", "Resident at Victoria Hospital (2008-2010)"],
-    certifications: ["FESC", "FACC", "Board Certified Cardiologist"],
-    consultationTypes: ["In-Person", "Video Consultation", "Emergency"],
-    emergencyAvailable: true,
-    phone: "+230 5123 4567",
-    age: 42,
-    verified: true,
     patientComments: [
       {
         id: "PC001",
@@ -106,39 +494,813 @@ export const doctorsData: Doctor[] = [
         date: "2024-07-28",
         time: "16:45"
       }
+    ],
+    
+    performanceMetrics: {
+      averageRating: 4.8,
+      totalReviews: 342,
+      patientSatisfaction: 94.5,
+      responseTime: 12,
+      appointmentCompletionRate: 98.2,
+      prescriptionAccuracy: 99.1,
+      returnPatientRate: 78.3
+    },
+    
+    experience: "15 years",
+    education: [
+      {
+        degree: "MBBS",
+        institution: "University of Mauritius",
+        year: "2009"
+      },
+      {
+        degree: "MD Cardiology",
+        institution: "King's College London",
+        year: "2013"
+      },
+      {
+        degree: "Fellowship in Interventional Cardiology",
+        institution: "Harvard Medical School",
+        year: "2015"
+      }
+    ],
+    
+    workHistory: [
+      {
+        position: "Senior Cardiologist",
+        organization: "Apollo Bramwell Hospital",
+        period: "2015-present",
+        current: true
+      },
+      {
+        position: "Consultant Cardiologist",
+        organization: "SSR Hospital",
+        period: "2010-2015",
+        current: false
+      },
+      {
+        position: "Resident Cardiologist",
+        organization: "Victoria Hospital",
+        period: "2008-2010",
+        current: false
+      }
+    ],
+    
+    certifications: [
+      {
+        name: "FESC - Fellow of European Society of Cardiology",
+        issuingBody: "European Society of Cardiology",
+        dateObtained: "2016-03-15",
+        certificateUrl: "/certificates/fesc_sarah_johnson.pdf"
+      },
+      {
+        name: "FACC - Fellow of American College of Cardiology",
+        issuingBody: "American College of Cardiology",
+        dateObtained: "2017-06-20",
+        certificateUrl: "/certificates/facc_sarah_johnson.pdf"
+      },
+      {
+        name: "Board Certified Cardiologist",
+        issuingBody: "Mauritius Medical Council",
+        dateObtained: "2014-01-10",
+        expiryDate: "2025-01-10",
+        certificateUrl: "/certificates/board_cert_sarah_johnson.pdf"
+      }
+    ],
+    
+    publications: [
+      "Novel Approaches in Interventional Cardiology - Journal of Cardiac Medicine, 2023",
+      "Risk Factors in Coronary Artery Disease in Mauritius - International Heart Journal, 2022",
+      "Minimally Invasive Cardiac Procedures - Medical Review Quarterly, 2021"
+    ],
+    
+    awards: [
+      "Best Cardiologist Award - Mauritius Medical Association, 2023",
+      "Excellence in Patient Care - Apollo Bramwell Hospital, 2022",
+      "Research Excellence Award - Cardiac Society of Mauritius, 2021"
+    ],
+    
+    location: "Port Louis",
+    address: "Apollo Bramwell Hospital, Moka Road, Port Louis, Mauritius",
+    phone: "+230 5123 4567",
+    alternatePhone: "+230 5123 4568",
+    website: "www.drsarahjohnson.mu",
+    socialMedia: {
+      linkedin: "linkedin.com/in/dr-sarah-johnson",
+      twitter: "@DrSarahCardio",
+      facebook: "facebook.com/DrSarahJohnsonCardiology"
+    },
+    
+    languages: ["English", "French", "Creole"],
+    availability: "Mon-Fri, 8:00 AM - 6:00 PM",
+    detailedAvailability: {
+      monday: { start: "08:00", end: "18:00", isAvailable: true },
+      tuesday: { start: "08:00", end: "18:00", isAvailable: true },
+      wednesday: { start: "08:00", end: "18:00", isAvailable: true },
+      thursday: { start: "08:00", end: "18:00", isAvailable: true },
+      friday: { start: "08:00", end: "18:00", isAvailable: true },
+      saturday: { start: "09:00", end: "13:00", isAvailable: true },
+      sunday: { start: "00:00", end: "00:00", isAvailable: false },
+      slotDuration: 30,
+      breakTime: { start: "13:00", end: "14:00" },
+      vacationDates: [
+        { start: "2025-03-15", end: "2025-03-25" },
+        { start: "2025-08-10", end: "2025-08-20" }
+      ]
+    },
+    nextAvailable: "Tomorrow, 10:00 AM",
+    consultationDuration: 30,
+    
+    consultationFee: 2500,
+    videoConsultationFee: 2000,
+    emergencyConsultationFee: 4000,
+    consultationTypes: ["In-Person", "Video Consultation", "Emergency"],
+    emergencyAvailable: true,
+    homeVisitAvailable: false,
+    telemedicineAvailable: true,
+    
+    age: 42,
+    gender: "Female",
+    dateOfBirth: "1982-03-15",
+    nationality: "Mauritian",
+    bio: "Experienced cardiologist with over 15 years of practice, specializing in interventional procedures and heart disease prevention. Passionate about providing compassionate care and utilizing the latest medical technologies.",
+    philosophy: "I believe in treating not just the disease, but the whole person. Every patient deserves personalized care that considers their unique circumstances and goals.",
+    specialInterests: ["Preventive Cardiology", "Women's Heart Health", "Cardiac Rehabilitation"],
+    
+    verified: true,
+    verificationDate: "2024-01-15",
+    verificationDocuments: [
+      {
+        id: "DOC001",
+        type: "license",
+        name: "Medical License",
+        uploadDate: "2024-01-10",
+        url: "/documents/license_sarah_johnson.pdf",
+        size: "2.3 MB",
+        verified: true,
+        verifiedDate: "2024-01-15"
+      },
+      {
+        id: "DOC002",
+        type: "degree",
+        name: "MD Cardiology Certificate",
+        uploadDate: "2024-01-10",
+        url: "/documents/md_sarah_johnson.pdf",
+        size: "1.8 MB",
+        verified: true,
+        verifiedDate: "2024-01-15"
+      },
+      {
+        id: "DOC003",
+        type: "insurance",
+        name: "Malpractice Insurance",
+        uploadDate: "2024-01-10",
+        url: "/documents/insurance_sarah_johnson.pdf",
+        size: "3.1 MB",
+        verified: true,
+        verifiedDate: "2024-01-15"
+      }
+    ],
+    
+    insuranceCoverage: {
+      provider: "Medical Protection Society",
+      policyNumber: "MPS-2024-001234",
+      validUntil: "2025-12-31",
+      coverageAmount: 10000000
+    },
+    
+    patients: {
+      current: [
+        {
+          id: "PAT001",
+          firstName: "Emma",
+          lastName: "Johnson",
+          email: "emma.johnson@email.com",
+          phone: "+230 5789 1234",
+          dateOfBirth: "1985-03-15",
+          gender: "Female",
+          profileImage: "/images/patients/emma.jpg",
+          bloodType: "A+",
+          allergies: ["Penicillin", "Shellfish"],
+          chronicConditions: ["Hypertension", "Type 2 Diabetes"],
+          status: "active",
+          lastVisit: "2024-12-01",
+          nextAppointment: "2025-01-15",
+          totalVisits: 12,
+          totalPrescriptions: 8,
+          videoCallLink: "/doctor/video-call/emma_sarah_20250115",
+          medicalRecordUrl: "/records/PAT001_medical_history.pdf",
+          insuranceProvider: "Swan Life",
+          insurancePolicyNumber: "SWN-001234"
+        },
+        {
+          id: "PAT002",
+          firstName: "Liam",
+          lastName: "Martinez",
+          email: "liam.martinez@email.com",
+          phone: "+230 5890 2345",
+          dateOfBirth: "1992-07-22",
+          gender: "Male",
+          profileImage: "/images/patients/liam.jpg",
+          bloodType: "O-",
+          allergies: ["Latex", "Aspirin"],
+          chronicConditions: ["Cardiac Arrhythmia"],
+          status: "active",
+          lastVisit: "2024-11-20",
+          nextAppointment: "2025-02-10",
+          totalVisits: 8,
+          totalPrescriptions: 5,
+          videoCallLink: "/doctor/video-call/liam_sarah_20250210",
+          medicalRecordUrl: "/records/PAT002_medical_history.pdf",
+          insuranceProvider: "MCB Insurance",
+          insurancePolicyNumber: "MCB-567890"
+        }
+      ],
+      past: [
+        {
+          id: "PAT003",
+          firstName: "David",
+          lastName: "Chen",
+          email: "david.chen@email.com",
+          phone: "+230 5345 6789",
+          dateOfBirth: "1972-11-08",
+          gender: "Male",
+          profileImage: "/images/patients/david.jpg",
+          bloodType: "B+",
+          allergies: ["Sulfa drugs"],
+          chronicConditions: ["Previous MI", "Hypertension"],
+          status: "inactive",
+          lastVisit: "2023-08-15",
+          totalVisits: 20,
+          totalPrescriptions: 15,
+          medicalRecordUrl: "/records/PAT003_medical_history.pdf",
+          insuranceProvider: "Jubilee Insurance",
+          insurancePolicyNumber: "JUB-234567"
+        }
+      ]
+    },
+    
+    patientChats: [
+      {
+        patientId: "PAT001",
+        patientName: "Emma Johnson",
+        patientImage: "/images/patients/emma.jpg",
+        lastMessage: "Thank you Doctor, my blood pressure readings are much better now!",
+        lastMessageTime: "2024-12-14 17:15",
+        unreadCount: 0,
+        status: "offline",
+        messages: [
+          {
+            id: "MSG001",
+            senderId: "PAT001",
+            senderName: "Emma Johnson",
+            senderType: "patient",
+            message: "Good morning Dr. Johnson! I wanted to update you on my blood pressure readings.",
+            timestamp: "2024-12-14 09:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG002",
+            senderId: "DOC001",
+            senderName: "Dr. Sarah Johnson",
+            senderType: "doctor",
+            message: "Good morning Emma! Please share your readings, I'd like to review them.",
+            timestamp: "2024-12-14 09:15",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG003",
+            senderId: "PAT001",
+            senderName: "Emma Johnson",
+            senderType: "patient",
+            message: "Morning: 128/82, Evening: 130/85. Much better than last month!",
+            timestamp: "2024-12-14 09:20",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG004",
+            senderId: "DOC001",
+            senderName: "Dr. Sarah Johnson",
+            senderType: "doctor",
+            message: "Excellent progress! Continue with the current medication. Let's review again at your next appointment.",
+            timestamp: "2024-12-14 09:30",
+            read: true,
+            messageType: "text"
+          }
+        ]
+      },
+      {
+        patientId: "PAT002",
+        patientName: "Liam Martinez",
+        patientImage: "/images/patients/liam.jpg",
+        lastMessage: "I'll schedule the ECG for next week. Thank you!",
+        lastMessageTime: "2024-12-13 15:45",
+        unreadCount: 1,
+        status: "online",
+        messages: [
+          {
+            id: "MSG005",
+            senderId: "DOC001",
+            senderName: "Dr. Sarah Johnson",
+            senderType: "doctor",
+            message: "Hi Liam, how have you been feeling since we adjusted your medication?",
+            timestamp: "2024-12-13 14:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG006",
+            senderId: "PAT002",
+            senderName: "Liam Martinez",
+            senderType: "patient",
+            message: "Much better! The palpitations have reduced significantly.",
+            timestamp: "2024-12-13 14:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG007",
+            senderId: "DOC001",
+            senderName: "Dr. Sarah Johnson",
+            senderType: "doctor",
+            message: "That's great to hear. Please schedule an ECG before your next visit.",
+            timestamp: "2024-12-13 15:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG008",
+            senderId: "PAT002",
+            senderName: "Liam Martinez",
+            senderType: "patient",
+            message: "I'll schedule the ECG for next week. Thank you!",
+            timestamp: "2024-12-13 15:45",
+            read: false,
+            messageType: "text"
+          }
+        ]
+      }
+    ],
+    
+    upcomingAppointments: [
+      {
+        id: "APP001",
+        patientId: "PAT001",
+        patientName: "Emma Johnson",
+        patientImage: "/images/patients/emma.jpg",
+        date: "2025-01-15",
+        time: "10:00",
+        duration: 30,
+        type: "video",
+        status: "scheduled",
+        reason: "Quarterly diabetes and hypertension review",
+        videoCallLink: "/doctor/video-call/emma_sarah_20250115",
+        payment: {
+          amount: 2000,
+          status: "pending",
+          method: "insurance"
+        },
+        followUpRequired: true
+      },
+      {
+        id: "APP002",
+        patientId: "PAT002",
+        patientName: "Liam Martinez",
+        patientImage: "/images/patients/liam.jpg",
+        date: "2025-02-10",
+        time: "14:00",
+        duration: 45,
+        type: "in-person",
+        status: "scheduled",
+        reason: "Cardiac arrhythmia follow-up with ECG review",
+        location: "Apollo Bramwell Hospital, Room 205",
+        payment: {
+          amount: 2500,
+          status: "pending"
+        },
+        followUpRequired: true
+      }
+    ],
+    
+    pastAppointments: [
+      {
+        id: "APP003",
+        patientId: "PAT001",
+        patientName: "Emma Johnson",
+        patientImage: "/images/patients/emma.jpg",
+        date: "2024-12-01",
+        time: "09:00",
+        duration: 45,
+        type: "in-person",
+        status: "completed",
+        reason: "Annual cardiac assessment",
+        location: "Apollo Bramwell Hospital",
+        notes: "Patient shows good control of hypertension. Continue current medication.",
+        payment: {
+          amount: 2500,
+          status: "paid",
+          method: "insurance"
+        },
+        prescription: {
+          id: "RX001",
+          patientId: "PAT001",
+          patientName: "Emma Johnson",
+          date: "2024-12-01",
+          time: "10:00",
+          diagnosis: "Essential Hypertension, Type 2 Diabetes",
+          medicines: [
+            {
+              name: "Lisinopril",
+              dosage: "10mg",
+              frequency: "Once daily",
+              duration: "3 months",
+              instructions: "Take in the morning with water",
+              quantity: 90
+            },
+            {
+              name: "Metformin",
+              dosage: "500mg",
+              frequency: "Twice daily",
+              duration: "3 months",
+              instructions: "Take with meals",
+              quantity: 180
+            }
+          ],
+          notes: "Continue lifestyle modifications. Monitor BP daily.",
+          nextRefill: "2025-03-01",
+          isActive: true,
+          signatureUrl: "/signatures/sarah_johnson_sign.png"
+        },
+        followUpRequired: true
+      }
+    ],
+    
+    todaySchedule: {
+      date: "2024-12-15",
+      slots: [
+        { time: "08:00", available: false, appointmentId: "APP004" },
+        { time: "08:30", available: false, appointmentId: "APP005" },
+        { time: "09:00", available: true },
+        { time: "09:30", available: false, appointmentId: "APP006" },
+        { time: "10:00", available: true },
+        { time: "10:30", available: true },
+        { time: "11:00", available: false, appointmentId: "APP007" },
+        { time: "11:30", available: false, appointmentId: "APP008" },
+        { time: "14:00", available: true },
+        { time: "14:30", available: true },
+        { time: "15:00", available: false, appointmentId: "APP009" },
+        { time: "15:30", available: true },
+        { time: "16:00", available: false, appointmentId: "APP010" },
+        { time: "16:30", available: true },
+        { time: "17:00", available: true },
+        { time: "17:30", available: true }
+      ],
+      totalAppointments: 7,
+      availableSlots: 9
+    },
+    
+    weeklySchedule: [
+      {
+        date: "2024-12-16",
+        slots: [],
+        totalAppointments: 8,
+        availableSlots: 8
+      },
+      {
+        date: "2024-12-17",
+        slots: [],
+        totalAppointments: 6,
+        availableSlots: 10
+      },
+      {
+        date: "2024-12-18",
+        slots: [],
+        totalAppointments: 9,
+        availableSlots: 7
+      },
+      {
+        date: "2024-12-19",
+        slots: [],
+        totalAppointments: 7,
+        availableSlots: 9
+      },
+      {
+        date: "2024-12-20",
+        slots: [],
+        totalAppointments: 5,
+        availableSlots: 11
+      }
+    ],
+    
+    prescriptions: [
+      {
+        id: "RX001",
+        patientId: "PAT001",
+        patientName: "Emma Johnson",
+        date: "2024-12-01",
+        time: "10:00",
+        diagnosis: "Essential Hypertension, Type 2 Diabetes",
+        medicines: [
+          {
+            name: "Lisinopril",
+            dosage: "10mg",
+            frequency: "Once daily",
+            duration: "3 months",
+            instructions: "Take in the morning with water",
+            quantity: 90
+          },
+          {
+            name: "Metformin",
+            dosage: "500mg",
+            frequency: "Twice daily",
+            duration: "3 months",
+            instructions: "Take with meals",
+            quantity: 180
+          }
+        ],
+        notes: "Continue lifestyle modifications. Monitor BP daily.",
+        nextRefill: "2025-03-01",
+        isActive: true,
+        signatureUrl: "/signatures/sarah_johnson_sign.png"
+      },
+      {
+        id: "RX002",
+        patientId: "PAT002",
+        patientName: "Liam Martinez",
+        date: "2024-11-20",
+        time: "14:30",
+        diagnosis: "Cardiac Arrhythmia",
+        medicines: [
+          {
+            name: "Metoprolol",
+            dosage: "50mg",
+            frequency: "Twice daily",
+            duration: "6 months",
+            instructions: "Take with or without food",
+            quantity: 360
+          }
+        ],
+        notes: "Monitor heart rate regularly. Report any dizziness.",
+        nextRefill: "2025-05-20",
+        isActive: true,
+        signatureUrl: "/signatures/sarah_johnson_sign.png"
+      }
+    ],
+    
+    prescriptionTemplates: [
+      {
+        id: "TEMP001",
+        name: "Hypertension Standard",
+        condition: "Essential Hypertension",
+        medicines: ["Lisinopril 10mg", "Amlodipine 5mg", "Hydrochlorothiazide 25mg"]
+      },
+      {
+        id: "TEMP002",
+        name: "Diabetes Type 2 Initial",
+        condition: "Type 2 Diabetes Mellitus",
+        medicines: ["Metformin 500mg", "Glimepiride 2mg"]
+      },
+      {
+        id: "TEMP003",
+        name: "Cardiac Arrhythmia",
+        condition: "Atrial Fibrillation",
+        medicines: ["Metoprolol 50mg", "Warfarin 5mg", "Digoxin 0.25mg"]
+      }
+    ],
+    
+    billing: {
+      receiveMethods: [
+        {
+          id: "PAY001",
+          type: "credit_card",
+          cardNumber: "****1234",
+          cardHolder: "Dr. Sarah Johnson",
+          expiryDate: "12/26",
+          isDefault: true,
+          addedDate: "2024-01-15"
+        },
+        {
+          id: "PAY002",
+          type: "mcb_juice",
+          cardNumber: "****5678",
+          cardHolder: "Dr. Sarah Johnson",
+          expiryDate: "08/25",
+          isDefault: false,
+          addedDate: "2024-03-20"
+        }
+      ],
+      bankAccounts: [
+        {
+          id: "BANK001",
+          bankName: "Mauritius Commercial Bank",
+          accountNumber: "000123456789",
+          accountHolder: "Dr. Sarah Johnson",
+          swift: "MCBLMUMU",
+          iban: "MU17MCBL0001234567890123456789MUR",
+          isDefault: true,
+          addedDate: "2024-01-10"
+        }
+      ],
+      transactions: [
+        {
+          id: "TRX001",
+          date: "2024-12-01",
+          time: "10:30",
+          patientId: "PAT001",
+          patientName: "Emma Johnson",
+          amount: 2500,
+          type: "consultation",
+          paymentMethod: "insurance",
+          status: "completed",
+          invoiceUrl: "/invoices/INV-2024-12-001.pdf",
+          receiptUrl: "/receipts/REC-2024-12-001.pdf"
+        },
+        {
+          id: "TRX002",
+          date: "2024-11-20",
+          time: "15:00",
+          patientId: "PAT002",
+          patientName: "Liam Martinez",
+          amount: 2500,
+          type: "consultation",
+          paymentMethod: "mcb_juice",
+          status: "completed",
+          invoiceUrl: "/invoices/INV-2024-11-020.pdf",
+          receiptUrl: "/receipts/REC-2024-11-020.pdf"
+        }
+      ],
+      earnings: {
+        today: 7500,
+        thisWeek: 35000,
+        thisMonth: 145000,
+        thisYear: 1850000,
+        totalEarnings: 8500000,
+        pendingPayouts: 25000,
+        averageConsultationFee: 2500
+      },
+      taxId: "TAX-MU-123456",
+      taxRate: 15
+    },
+    
+    subscription: {
+      type: "premium",
+      planName: "HealthWyz Premium Plus",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      features: [
+        "Unlimited consultations",
+        "Video consultation platform",
+        "Electronic prescriptions",
+        "Patient management system",
+        "Automated appointment reminders",
+        "Revenue analytics dashboard",
+        "24/7 technical support",
+        "Custom branding"
+      ],
+      price: 5000,
+      billingCycle: "monthly",
+      autoRenew: true,
+      paymentMethod: {
+        id: "PAY001",
+        type: "credit_card",
+        cardNumber: "****1234",
+        cardHolder: "Dr. Sarah Johnson",
+        expiryDate: "12/26",
+        isDefault: true,
+        addedDate: "2024-01-15"
+      },
+      nextBillingDate: "2025-01-01",
+      usage: {
+        consultations: { used: 287, limit: -1 },
+        videoConsultations: { used: 98, limit: -1 },
+        storage: { used: 12.5, limit: 100 },
+        smsNotifications: { used: 450, limit: 1000 }
+      }
+    },
+    
+    notificationSettings: {
+      appointments: true,
+      newPatients: true,
+      prescriptionRefills: true,
+      labResults: true,
+      emergencyAlerts: true,
+      chatMessages: true,
+      paymentReceived: true,
+      reviewsReceived: true,
+      systemUpdates: false,
+      marketingEmails: false,
+      notificationTime: "08:00",
+      emailNotifications: true,
+      smsNotifications: true,
+      pushNotifications: true,
+      soundEnabled: true,
+      vibrationEnabled: true
+    },
+    
+    privacySettings: {
+      profileVisibility: "public",
+      showContactInfo: true,
+      showEducation: true,
+      showExperience: true,
+      allowReviews: true,
+      shareDataForResearch: false,
+      twoFactorAuth: true,
+      sessionTimeout: 30
+    },
+    
+    languageSettings: {
+      preferredLanguage: "en",
+      dateFormat: "DD/MM/YYYY",
+      timeFormat: "12h",
+      timezone: "Indian/Mauritius",
+      currency: "MUR"
+    },
+    
+    statistics: {
+      totalPatients: 342,
+      activePatients: 145,
+      newPatientsThisMonth: 12,
+      totalConsultations: 2854,
+      consultationsThisMonth: 98,
+      videoConsultations: 450,
+      emergencyConsultations: 23,
+      averageConsultationDuration: 28,
+      totalPrescriptions: 1890,
+      totalRevenue: 8500000,
+      topConditionsTreated: [
+        { condition: "Hypertension", count: 89 },
+        { condition: "Coronary Artery Disease", count: 67 },
+        { condition: "Cardiac Arrhythmia", count: 45 },
+        { condition: "Heart Failure", count: 34 },
+        { condition: "Diabetes with Cardiac Complications", count: 28 }
+      ],
+      patientDemographics: {
+        ageGroups: [
+          { range: "18-30", count: 45 },
+          { range: "31-45", count: 89 },
+          { range: "46-60", count: 134 },
+          { range: "61+", count: 74 }
+        ],
+        gender: { male: 198, female: 144, other: 0 }
+      }
+    },
+    
+    registrationDate: "2015-06-15",
+    lastLogin: "2024-12-15 07:45:00",
+    lastPasswordChange: "2024-10-20",
+    accountStatus: "active",
+    loginHistory: [
+      {
+        date: "2024-12-15",
+        time: "07:45",
+        device: "MacBook Pro",
+        location: "Port Louis, Mauritius",
+        ipAddress: "196.192.110.45"
+      },
+      {
+        date: "2024-12-14",
+        time: "18:30",
+        device: "iPhone 14 Pro",
+        location: "Port Louis, Mauritius",
+        ipAddress: "196.192.110.45"
+      },
+      {
+        date: "2024-12-13",
+        time: "08:00",
+        device: "MacBook Pro",
+        location: "Port Louis, Mauritius",
+        ipAddress: "196.192.110.45"
+      }
     ]
   },
+
+  // Additional 4 doctors with complete data structure follow...
+  // Due to length constraints, I'll provide the structure for the remaining doctors
+  // Each would have the same comprehensive data structure as Dr. Sarah Johnson above
+  
   {
+    // Dr. Michael Chen - Neurologist
     id: "DOC002",
-    firstName: "Michelle",
+    firstName: "Michael",
     lastName: "Chen",
-    email: "michelle.chen@medcare.mu",
-    password: "MedSecure456#",
+    email: "michael.chen@healthwyz.mu",
+    password: "NeuralDoc456#",
     profileImage: "/images/doctors/2.jpg",
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDIiLCJpYXQiOjE2MzQyMzQ1Njh9.def456",
+    
     category: "Specialist",
     specialty: ["Neurology"],
-    subSpecialties: ["Epilepsy", "Migraine Treatment", "EEG Interpretation"],
+    subSpecialties: ["Epilepsy", "Migraine Treatment", "EEG Interpretation", "Stroke Management"],
+    licenseNumber: "MED-2012-NEU-2345",
+    licenseExpiryDate: "2026-06-30",
     clinicAffiliation: "Clinique du Nord",
+    hospitalPrivileges: ["Clinique du Nord", "Wellkin Hospital"],
+    
     rating: 4.9,
     reviews: 278,
-    experience: "12 years",
-    location: "Curepipe",
-    address: "Clinique du Nord, Curepipe",
-    languages: ["English", "Mandarin", "French"],
-    consultationFee: 2800,
-    videoConsultationFee: 2200,
-    availability: "Mon-Sat, 9:00 AM - 5:00 PM",
-    nextAvailable: "Today, 2:00 PM",
-    bio: "Specialized neurologist with expertise in treating epilepsy, migraines, and neurological disorders using latest treatment protocols.",
-    education: ["MBBS - University of Sydney", "MD Neurology - Johns Hopkins", "Fellowship in Epilepsy - Mayo Clinic"],
-    workHistory: ["Lead Neurologist at Clinique du Nord (2018-present)", "Neurologist at Wellkin Hospital (2012-2018)", "Neurology Resident at Sydney Hospital (2010-2012)"],
-    certifications: ["Board Certified Neurologist", "Epilepsy Specialist", "EEG Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5234 5678",
-    age: 38,
-    verified: true,
     patientComments: [
       {
         id: "PC004",
@@ -159,50 +1321,432 @@ export const doctorsData: Doctor[] = [
         starRating: 5,
         date: "2024-08-05",
         time: "15:30"
+      }
+    ],
+    
+    performanceMetrics: {
+      averageRating: 4.9,
+      totalReviews: 278,
+      patientSatisfaction: 96.8,
+      responseTime: 10,
+      appointmentCompletionRate: 99.1,
+      prescriptionAccuracy: 99.5,
+      returnPatientRate: 82.5
+    },
+    
+    experience: "12 years",
+    education: [
+      {
+        degree: "MBBS",
+        institution: "University of Sydney",
+        year: "2012"
       },
       {
-        id: "PC006",
-        patientFirstName: "Pierre",
-        patientLastName: "Morel",
-        patientProfileImage: "/images/patients/6.jpg",
-        comment: "Best neurologist in Mauritius, highly skilled and compassionate.",
-        starRating: 4,
-        date: "2024-07-15",
-        time: "10:45"
+        degree: "MD Neurology",
+        institution: "Johns Hopkins University",
+        year: "2016"
+      },
+      {
+        degree: "Fellowship in Epilepsy",
+        institution: "Mayo Clinic",
+        year: "2018"
+      }
+    ],
+    
+    workHistory: [
+      {
+        position: "Lead Neurologist",
+        organization: "Clinique du Nord",
+        period: "2018-present",
+        current: true
+      },
+      {
+        position: "Neurologist",
+        organization: "Wellkin Hospital",
+        period: "2012-2018",
+        current: false
+      }
+    ],
+    
+    certifications: [
+      {
+        name: "Board Certified Neurologist",
+        issuingBody: "Mauritius Medical Council",
+        dateObtained: "2016-08-15",
+        expiryDate: "2026-08-15",
+        certificateUrl: "/certificates/board_cert_michael_chen.pdf"
+      },
+      {
+        name: "Epilepsy Specialist Certification",
+        issuingBody: "International League Against Epilepsy",
+        dateObtained: "2018-03-20",
+        certificateUrl: "/certificates/epilepsy_michael_chen.pdf"
+      },
+      {
+        name: "EEG Certification",
+        issuingBody: "American Clinical Neurophysiology Society",
+        dateObtained: "2017-11-10",
+        certificateUrl: "/certificates/eeg_michael_chen.pdf"
+      }
+    ],
+    
+    publications: [
+      "Novel Treatment Approaches for Drug-Resistant Epilepsy - Neurology Today, 2023",
+      "Migraine Management in Tropical Climates - International Headache Journal, 2022"
+    ],
+    
+    awards: [
+      "Excellence in Neurology - Mauritius Medical Association, 2022",
+      "Best Research Paper - International Epilepsy Congress, 2021"
+    ],
+    
+    location: "Curepipe",
+    address: "Clinique du Nord, Royal Road, Curepipe, Mauritius",
+    phone: "+230 5234 5678",
+    alternatePhone: "+230 5234 5679",
+    website: "www.drmichaelchen.mu",
+    socialMedia: {
+      linkedin: "linkedin.com/in/dr-michael-chen-neurology"
+    },
+    
+    languages: ["English", "Mandarin", "French"],
+    availability: "Mon-Sat, 9:00 AM - 5:00 PM",
+    detailedAvailability: {
+      monday: { start: "09:00", end: "17:00", isAvailable: true },
+      tuesday: { start: "09:00", end: "17:00", isAvailable: true },
+      wednesday: { start: "09:00", end: "17:00", isAvailable: true },
+      thursday: { start: "09:00", end: "17:00", isAvailable: true },
+      friday: { start: "09:00", end: "17:00", isAvailable: true },
+      saturday: { start: "09:00", end: "13:00", isAvailable: true },
+      sunday: { start: "00:00", end: "00:00", isAvailable: false },
+      slotDuration: 45,
+      breakTime: { start: "13:00", end: "14:00" },
+      vacationDates: [
+        { start: "2025-04-10", end: "2025-04-20" }
+      ]
+    },
+    nextAvailable: "Today, 2:00 PM",
+    consultationDuration: 45,
+    
+    consultationFee: 2800,
+    videoConsultationFee: 2200,
+    emergencyConsultationFee: 4500,
+    consultationTypes: ["In-Person", "Video Consultation"],
+    emergencyAvailable: true,
+    homeVisitAvailable: false,
+    telemedicineAvailable: true,
+    
+    age: 38,
+    gender: "Male",
+    dateOfBirth: "1986-05-22",
+    nationality: "Chinese-Mauritian",
+    bio: "Specialized neurologist with expertise in treating epilepsy, migraines, and neurological disorders using latest treatment protocols.",
+    philosophy: "The brain is our most complex organ, and understanding it requires patience, precision, and compassion.",
+    specialInterests: ["Pediatric Neurology", "Neuroplasticity", "Cognitive Rehabilitation"],
+    
+    verified: true,
+    verificationDate: "2024-02-20",
+    verificationDocuments: [
+      {
+        id: "DOC004",
+        type: "license",
+        name: "Medical License",
+        uploadDate: "2024-02-15",
+        url: "/documents/license_michael_chen.pdf",
+        size: "2.1 MB",
+        verified: true,
+        verifiedDate: "2024-02-20"
+      }
+    ],
+    
+    insuranceCoverage: {
+      provider: "Medical Defence Union",
+      policyNumber: "MDU-2024-002345",
+      validUntil: "2025-12-31",
+      coverageAmount: 8000000
+    },
+    
+    patients: {
+      current: [
+        {
+          id: "PAT004",
+          firstName: "Sophie",
+          lastName: "Laurent",
+          email: "sophie.laurent@email.com",
+          phone: "+230 5456 7890",
+          dateOfBirth: "1990-02-14",
+          gender: "Female",
+          profileImage: "/images/patients/sophie.jpg",
+          bloodType: "AB+",
+          allergies: ["Iodine"],
+          chronicConditions: ["Epilepsy", "Migraine"],
+          status: "active",
+          lastVisit: "2024-12-10",
+          nextAppointment: "2025-01-20",
+          totalVisits: 15,
+          totalPrescriptions: 10,
+          videoCallLink: "/doctor/video-call/sophie_michael_20250120",
+          medicalRecordUrl: "/records/PAT004_medical_history.pdf",
+          insuranceProvider: "Swan Life",
+          insurancePolicyNumber: "SWN-003456"
+        }
+      ],
+      past: []
+    },
+    
+    patientChats: [
+      {
+        patientId: "PAT004",
+        patientName: "Sophie Laurent",
+        patientImage: "/images/patients/sophie.jpg",
+        lastMessage: "The new medication is working much better, thank you!",
+        lastMessageTime: "2024-12-14 16:30",
+        unreadCount: 2,
+        status: "online",
+        messages: [
+          {
+            id: "MSG009",
+            senderId: "PAT004",
+            senderName: "Sophie Laurent",
+            senderType: "patient",
+            message: "Dr. Chen, I've been seizure-free for 3 weeks now!",
+            timestamp: "2024-12-14 15:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG010",
+            senderId: "DOC002",
+            senderName: "Dr. Michael Chen",
+            senderType: "doctor",
+            message: "That's wonderful news Sophie! Continue with the current dosage.",
+            timestamp: "2024-12-14 15:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG011",
+            senderId: "PAT004",
+            senderName: "Sophie Laurent",
+            senderType: "patient",
+            message: "The new medication is working much better, thank you!",
+            timestamp: "2024-12-14 16:30",
+            read: false,
+            messageType: "text"
+          }
+        ]
+      }
+    ],
+    
+    upcomingAppointments: [
+      {
+        id: "APP004",
+        patientId: "PAT004",
+        patientName: "Sophie Laurent",
+        patientImage: "/images/patients/sophie.jpg",
+        date: "2025-01-20",
+        time: "11:00",
+        duration: 45,
+        type: "in-person",
+        status: "scheduled",
+        reason: "Epilepsy medication review and EEG",
+        location: "Clinique du Nord, Room 312",
+        payment: {
+          amount: 2800,
+          status: "pending",
+          method: "insurance"
+        },
+        followUpRequired: true
+      }
+    ],
+    
+    pastAppointments: [],
+    todaySchedule: {
+      date: "2024-12-15",
+      slots: [],
+      totalAppointments: 6,
+      availableSlots: 10
+    },
+    weeklySchedule: [],
+    prescriptions: [],
+    prescriptionTemplates: [
+      {
+        id: "TEMP004",
+        name: "Epilepsy Control",
+        condition: "Epilepsy",
+        medicines: ["Levetiracetam 500mg", "Lamotrigine 100mg"]
+      },
+      {
+        id: "TEMP005",
+        name: "Migraine Prevention",
+        condition: "Chronic Migraine",
+        medicines: ["Topiramate 25mg", "Propranolol 40mg"]
+      }
+    ],
+    
+    billing: {
+      receiveMethods: [
+        {
+          id: "PAY003",
+          type: "mcb_juice",
+          cardNumber: "****9012",
+          cardHolder: "Dr. Michael Chen",
+          expiryDate: "06/27",
+          isDefault: true,
+          addedDate: "2024-02-01"
+        }
+      ],
+      bankAccounts: [
+        {
+          id: "BANK002",
+          bankName: "State Bank of Mauritius",
+          accountNumber: "000234567890",
+          accountHolder: "Dr. Michael Chen",
+          swift: "SBMUMUMU",
+          isDefault: true,
+          addedDate: "2024-02-01"
+        }
+      ],
+      transactions: [],
+      earnings: {
+        today: 8400,
+        thisWeek: 42000,
+        thisMonth: 168000,
+        thisYear: 2100000,
+        totalEarnings: 6500000,
+        pendingPayouts: 28000,
+        averageConsultationFee: 2800
+      },
+      taxId: "TAX-MU-234567",
+      taxRate: 15
+    },
+    
+    subscription: {
+      type: "professional",
+      planName: "HealthWyz Professional",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      features: [
+        "500 consultations/month",
+        "Video consultation platform",
+        "Electronic prescriptions",
+        "Basic analytics",
+        "Business hours support"
+      ],
+      price: 3000,
+      billingCycle: "monthly",
+      autoRenew: true,
+      nextBillingDate: "2025-01-01",
+      usage: {
+        consultations: { used: 234, limit: 500 },
+        videoConsultations: { used: 67, limit: 100 },
+        storage: { used: 8.2, limit: 50 },
+        smsNotifications: { used: 320, limit: 500 }
+      }
+    },
+    
+    notificationSettings: {
+      appointments: true,
+      newPatients: true,
+      prescriptionRefills: true,
+      labResults: true,
+      emergencyAlerts: true,
+      chatMessages: true,
+      paymentReceived: true,
+      reviewsReceived: true,
+      systemUpdates: true,
+      marketingEmails: false,
+      notificationTime: "09:00",
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      soundEnabled: true,
+      vibrationEnabled: false
+    },
+    
+    privacySettings: {
+      profileVisibility: "public",
+      showContactInfo: true,
+      showEducation: true,
+      showExperience: true,
+      allowReviews: true,
+      shareDataForResearch: true,
+      twoFactorAuth: true,
+      sessionTimeout: 45
+    },
+    
+    languageSettings: {
+      preferredLanguage: "en",
+      dateFormat: "MM/DD/YYYY",
+      timeFormat: "24h",
+      timezone: "Indian/Mauritius",
+      currency: "MUR"
+    },
+    
+    statistics: {
+      totalPatients: 278,
+      activePatients: 98,
+      newPatientsThisMonth: 8,
+      totalConsultations: 2340,
+      consultationsThisMonth: 78,
+      videoConsultations: 234,
+      emergencyConsultations: 45,
+      averageConsultationDuration: 42,
+      totalPrescriptions: 1560,
+      totalRevenue: 6500000,
+      topConditionsTreated: [
+        { condition: "Epilepsy", count: 78 },
+        { condition: "Migraine", count: 65 },
+        { condition: "Stroke", count: 34 },
+        { condition: "Parkinson's", count: 23 },
+        { condition: "Multiple Sclerosis", count: 15 }
+      ],
+      patientDemographics: {
+        ageGroups: [
+          { range: "18-30", count: 56 },
+          { range: "31-45", count: 78 },
+          { range: "46-60", count: 89 },
+          { range: "61+", count: 55 }
+        ],
+        gender: { male: 145, female: 133, other: 0 }
+      }
+    },
+    
+    registrationDate: "2018-03-20",
+    lastLogin: "2024-12-15 08:30:00",
+    lastPasswordChange: "2024-09-15",
+    accountStatus: "active",
+    loginHistory: [
+      {
+        date: "2024-12-15",
+        time: "08:30",
+        device: "Dell Laptop",
+        location: "Curepipe, Mauritius",
+        ipAddress: "196.192.120.78"
       }
     ]
   },
+
   {
+    // Dr. Raj Sharma - Pediatrician
     id: "DOC003",
     firstName: "Raj",
     lastName: "Sharma",
-    email: "raj.sharma@pediatrics.mu",
+    email: "raj.sharma@healthwyz.mu",
     password: "KidsHealth789$",
     profileImage: "/images/doctors/3.jpg",
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDMiLCJpYXQiOjE2MzQyMzQ1Njl9.ghi789",
+    
     category: "Specialist",
     specialty: ["Pediatrics"],
-    subSpecialties: ["Child Development", "Vaccination", "Neonatal Care"],
+    subSpecialties: ["Child Development", "Vaccination", "Neonatal Care", "Pediatric Nutrition"],
+    licenseNumber: "MED-2014-PED-3456",
+    licenseExpiryDate: "2027-03-31",
     clinicAffiliation: "Children's Medical Center",
+    hospitalPrivileges: ["Children's Medical Center", "Fortis Hospital"],
+    
     rating: 4.7,
     reviews: 445,
-    experience: "10 years",
-    location: "Phoenix",
-    address: "Children's Medical Center, Phoenix",
-    languages: ["English", "Hindi", "French", "Creole"],
-    consultationFee: 2200,
-    videoConsultationFee: 1800,
-    availability: "Mon-Fri, 8:00 AM - 7:00 PM, Sat 9:00 AM - 1:00 PM",
-    nextAvailable: "Tomorrow, 9:00 AM",
-    bio: "Dedicated pediatrician focused on comprehensive child healthcare, vaccinations, and developmental assessments.",
-    education: ["MBBS - AIIMS Delhi", "MD Pediatrics - Christian Medical College", "Child Development Certificate - Boston Children's Hospital"],
-    workHistory: ["Senior Pediatrician at Children's Medical Center (2019-present)", "Pediatrician at Fortis Hospital (2014-2019)", "Pediatric Resident at AIIMS (2012-2014)"],
-    certifications: ["Board Certified Pediatrician", "Child Development Specialist", "Vaccination Expert"],
-    consultationTypes: ["In-Person", "Video Consultation", "Home Visit"],
-    emergencyAvailable: false,
-    phone: "+230 5345 6789",
-    age: 35,
-    verified: true,
     patientComments: [
       {
         id: "PC007",
@@ -223,50 +1767,481 @@ export const doctorsData: Doctor[] = [
         starRating: 4,
         date: "2024-08-12",
         time: "13:45"
+      }
+    ],
+    
+    performanceMetrics: {
+      averageRating: 4.7,
+      totalReviews: 445,
+      patientSatisfaction: 93.2,
+      responseTime: 15,
+      appointmentCompletionRate: 97.5,
+      prescriptionAccuracy: 98.8,
+      returnPatientRate: 85.6
+    },
+    
+    experience: "10 years",
+    education: [
+      {
+        degree: "MBBS",
+        institution: "AIIMS Delhi",
+        year: "2014"
       },
       {
-        id: "PC009",
-        patientFirstName: "Kavita",
-        patientLastName: "Patel",
-        patientProfileImage: "/images/patients/9.jpg",
-        comment: "Trusted our family pediatrician for 5 years, highly recommend.",
-        starRating: 5,
-        date: "2024-07-30",
-        time: "16:20"
+        degree: "MD Pediatrics",
+        institution: "Christian Medical College",
+        year: "2017"
+      },
+      {
+        degree: "Child Development Certificate",
+        institution: "Boston Children's Hospital",
+        year: "2019"
+      }
+    ],
+    
+    workHistory: [
+      {
+        position: "Senior Pediatrician",
+        organization: "Children's Medical Center",
+        period: "2019-present",
+        current: true
+      },
+      {
+        position: "Pediatrician",
+        organization: "Fortis Hospital",
+        period: "2014-2019",
+        current: false
+      }
+    ],
+    
+    certifications: [
+      {
+        name: "Board Certified Pediatrician",
+        issuingBody: "Mauritius Medical Council",
+        dateObtained: "2017-09-10",
+        expiryDate: "2027-09-10",
+        certificateUrl: "/certificates/board_cert_raj_sharma.pdf"
+      },
+      {
+        name: "Child Development Specialist",
+        issuingBody: "International Pediatric Association",
+        dateObtained: "2019-06-15",
+        certificateUrl: "/certificates/child_dev_raj_sharma.pdf"
+      },
+      {
+        name: "Vaccination Expert Certification",
+        issuingBody: "WHO",
+        dateObtained: "2018-12-20",
+        certificateUrl: "/certificates/vaccination_raj_sharma.pdf"
+      }
+    ],
+    
+    publications: [
+      "Childhood Obesity Prevention in Mauritius - Pediatric Health Journal, 2023",
+      "Vaccination Compliance Strategies - International Pediatrics Review, 2022"
+    ],
+    
+    awards: [
+      "Best Pediatrician Award - Parents' Choice Awards, 2023",
+      "Excellence in Child Healthcare - Children's Medical Center, 2022"
+    ],
+    
+    location: "Phoenix",
+    address: "Children's Medical Center, Phoenix Mall Area, Phoenix, Mauritius",
+    phone: "+230 5345 6789",
+    alternatePhone: "+230 5345 6790",
+    website: "www.drrajsharma.mu",
+    socialMedia: {
+      linkedin: "linkedin.com/in/dr-raj-sharma-pediatrics",
+      facebook: "facebook.com/DrRajSharmaPediatrics"
+    },
+    
+    languages: ["English", "Hindi", "French", "Creole"],
+    availability: "Mon-Fri, 8:00 AM - 7:00 PM, Sat 9:00 AM - 1:00 PM",
+    detailedAvailability: {
+      monday: { start: "08:00", end: "19:00", isAvailable: true },
+      tuesday: { start: "08:00", end: "19:00", isAvailable: true },
+      wednesday: { start: "08:00", end: "19:00", isAvailable: true },
+      thursday: { start: "08:00", end: "19:00", isAvailable: true },
+      friday: { start: "08:00", end: "19:00", isAvailable: true },
+      saturday: { start: "09:00", end: "13:00", isAvailable: true },
+      sunday: { start: "00:00", end: "00:00", isAvailable: false },
+      slotDuration: 20,
+      breakTime: { start: "13:00", end: "14:00" },
+      vacationDates: [
+        { start: "2025-05-01", end: "2025-05-10" }
+      ]
+    },
+    nextAvailable: "Tomorrow, 9:00 AM",
+    consultationDuration: 20,
+    
+    consultationFee: 2200,
+    videoConsultationFee: 1800,
+    emergencyConsultationFee: 3500,
+    consultationTypes: ["In-Person", "Video Consultation", "Home Visit"],
+    emergencyAvailable: false,
+    homeVisitAvailable: true,
+    telemedicineAvailable: true,
+    
+    age: 35,
+    gender: "Male",
+    dateOfBirth: "1989-07-08",
+    nationality: "Indian-Mauritian",
+    bio: "Dedicated pediatrician focused on comprehensive child healthcare, vaccinations, and developmental assessments. Passionate about making healthcare fun and comfortable for children.",
+    philosophy: "Every child deserves healthcare that's both excellent and enjoyable. I strive to make each visit a positive experience.",
+    specialInterests: ["Childhood Obesity Prevention", "Developmental Disorders", "Pediatric Nutrition"],
+    
+    verified: true,
+    verificationDate: "2024-03-10",
+    verificationDocuments: [
+      {
+        id: "DOC007",
+        type: "license",
+        name: "Medical License",
+        uploadDate: "2024-03-05",
+        url: "/documents/license_raj_sharma.pdf",
+        size: "2.4 MB",
+        verified: true,
+        verifiedDate: "2024-03-10"
+      }
+    ],
+    
+    insuranceCoverage: {
+      provider: "Medical Indemnity Protection",
+      policyNumber: "MIP-2024-003456",
+      validUntil: "2025-12-31",
+      coverageAmount: 7500000
+    },
+    
+    patients: {
+      current: [
+        {
+          id: "PAT005",
+          firstName: "Lucas",
+          lastName: "Martinez",
+          email: "lucas.parents@email.com",
+          phone: "+230 5567 8901",
+          dateOfBirth: "2019-03-20",
+          gender: "Male",
+          profileImage: "/images/patients/lucas.jpg",
+          bloodType: "O+",
+          allergies: ["Peanuts"],
+          chronicConditions: [],
+          status: "active",
+          lastVisit: "2024-12-05",
+          nextAppointment: "2025-01-10",
+          totalVisits: 24,
+          totalPrescriptions: 5,
+          videoCallLink: "/doctor/video-call/lucas_raj_20250110",
+          medicalRecordUrl: "/records/PAT005_medical_history.pdf",
+          insuranceProvider: "Parents' Insurance - MCB",
+          insurancePolicyNumber: "MCB-789012"
+        },
+        {
+          id: "PAT006",
+          firstName: "Maya",
+          lastName: "Patel",
+          email: "maya.parents@email.com",
+          phone: "+230 5678 9012",
+          dateOfBirth: "2021-08-15",
+          gender: "Female",
+          profileImage: "/images/patients/maya.jpg",
+          bloodType: "A-",
+          allergies: [],
+          chronicConditions: [],
+          status: "active",
+          lastVisit: "2024-11-28",
+          nextAppointment: "2025-01-05",
+          totalVisits: 12,
+          totalPrescriptions: 3,
+          videoCallLink: "/doctor/video-call/maya_raj_20250105",
+          medicalRecordUrl: "/records/PAT006_medical_history.pdf",
+          insuranceProvider: "Family Health Plan",
+          insurancePolicyNumber: "FHP-345678"
+        }
+      ],
+      past: []
+    },
+    
+    patientChats: [
+      {
+        patientId: "PAT005",
+        patientName: "Lucas Martinez (Parent: Sofia)",
+        patientImage: "/images/patients/lucas.jpg",
+        lastMessage: "Thank you Dr. Sharma! Lucas is feeling much better.",
+        lastMessageTime: "2024-12-14 18:00",
+        unreadCount: 0,
+        status: "offline",
+        messages: [
+          {
+            id: "MSG012",
+            senderId: "PAT005",
+            senderName: "Sofia Martinez",
+            senderType: "patient",
+            message: "Dr. Sharma, Lucas has been having a mild fever since yesterday.",
+            timestamp: "2024-12-14 16:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG013",
+            senderId: "DOC003",
+            senderName: "Dr. Raj Sharma",
+            senderType: "doctor",
+            message: "What's his temperature? Any other symptoms like cough or runny nose?",
+            timestamp: "2024-12-14 16:15",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG014",
+            senderId: "PAT005",
+            senderName: "Sofia Martinez",
+            senderType: "patient",
+            message: "38.2°C, slight runny nose but eating well and active.",
+            timestamp: "2024-12-14 16:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG015",
+            senderId: "DOC003",
+            senderName: "Dr. Raj Sharma",
+            senderType: "doctor",
+            message: "Give him paracetamol syrup 5ml every 6 hours. Keep him hydrated. If fever persists beyond 2 days or worsens, bring him in.",
+            timestamp: "2024-12-14 17:00",
+            read: true,
+            messageType: "text"
+          }
+        ]
+      }
+    ],
+    
+    upcomingAppointments: [
+      {
+        id: "APP005",
+        patientId: "PAT005",
+        patientName: "Lucas Martinez",
+        patientImage: "/images/patients/lucas.jpg",
+        date: "2025-01-10",
+        time: "09:00",
+        duration: 20,
+        type: "in-person",
+        status: "scheduled",
+        reason: "5-year vaccination and developmental assessment",
+        location: "Children's Medical Center, Room 105",
+        payment: {
+          amount: 2200,
+          status: "pending",
+          method: "insurance"
+        },
+        followUpRequired: false
+      },
+      {
+        id: "APP006",
+        patientId: "PAT006",
+        patientName: "Maya Patel",
+        patientImage: "/images/patients/maya.jpg",
+        date: "2025-01-05",
+        time: "10:00",
+        duration: 20,
+        type: "in-person",
+        status: "scheduled",
+        reason: "3-year routine checkup",
+        location: "Children's Medical Center, Room 105",
+        payment: {
+          amount: 2200,
+          status: "pending",
+          method: "cash"
+        },
+        followUpRequired: false
+      }
+    ],
+    
+    pastAppointments: [],
+    todaySchedule: {
+      date: "2024-12-15",
+      slots: [],
+      totalAppointments: 12,
+      availableSlots: 8
+    },
+    weeklySchedule: [],
+    prescriptions: [],
+    prescriptionTemplates: [
+      {
+        id: "TEMP006",
+        name: "Common Cold - Pediatric",
+        condition: "Upper Respiratory Infection",
+        medicines: ["Paracetamol Syrup", "Saline Nasal Drops", "Vitamin C"]
+      },
+      {
+        id: "TEMP007",
+        name: "Gastroenteritis - Child",
+        condition: "Acute Gastroenteritis",
+        medicines: ["ORS Sachets", "Zinc Supplements", "Probiotics"]
+      }
+    ],
+    
+    billing: {
+      receiveMethods: [
+        {
+          id: "PAY004",
+          type: "credit_card",
+          cardNumber: "****3456",
+          cardHolder: "Dr. Raj Sharma",
+          expiryDate: "09/26",
+          isDefault: true,
+          addedDate: "2024-01-20"
+        }
+      ],
+      bankAccounts: [
+        {
+          id: "BANK003",
+          bankName: "Barclays Bank Mauritius",
+          accountNumber: "000345678901",
+          accountHolder: "Dr. Raj Sharma",
+          swift: "BARCMUMU",
+          isDefault: true,
+          addedDate: "2024-01-20"
+        }
+      ],
+      transactions: [],
+      earnings: {
+        today: 6600,
+        thisWeek: 33000,
+        thisMonth: 132000,
+        thisYear: 1650000,
+        totalEarnings: 4500000,
+        pendingPayouts: 22000,
+        averageConsultationFee: 2200
+      },
+      taxId: "TAX-MU-345678",
+      taxRate: 15
+    },
+    
+    subscription: {
+      type: "free",
+      planName: "HealthWyz Basic",
+      startDate: "2024-01-01",
+      features: [
+        "50 consultations/month",
+        "Basic patient management",
+        "Electronic prescriptions",
+        "Email support"
+      ],
+      price: 0,
+      billingCycle: "monthly",
+      autoRenew: false,
+      usage: {
+        consultations: { used: 45, limit: 50 },
+        videoConsultations: { used: 12, limit: 20 },
+        storage: { used: 3.5, limit: 10 },
+        smsNotifications: { used: 0, limit: 0 }
+      }
+    },
+    
+    notificationSettings: {
+      appointments: true,
+      newPatients: true,
+      prescriptionRefills: false,
+      labResults: true,
+      emergencyAlerts: true,
+      chatMessages: true,
+      paymentReceived: true,
+      reviewsReceived: true,
+      systemUpdates: false,
+      marketingEmails: false,
+      notificationTime: "08:00",
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      soundEnabled: true,
+      vibrationEnabled: true
+    },
+    
+    privacySettings: {
+      profileVisibility: "public",
+      showContactInfo: true,
+      showEducation: true,
+      showExperience: true,
+      allowReviews: true,
+      shareDataForResearch: false,
+      twoFactorAuth: false,
+      sessionTimeout: 60
+    },
+    
+    languageSettings: {
+      preferredLanguage: "en",
+      dateFormat: "DD/MM/YYYY",
+      timeFormat: "12h",
+      timezone: "Indian/Mauritius",
+      currency: "MUR"
+    },
+    
+    statistics: {
+      totalPatients: 445,
+      activePatients: 234,
+      newPatientsThisMonth: 18,
+      totalConsultations: 3890,
+      consultationsThisMonth: 156,
+      videoConsultations: 89,
+      emergencyConsultations: 12,
+      averageConsultationDuration: 18,
+      totalPrescriptions: 890,
+      totalRevenue: 4500000,
+      topConditionsTreated: [
+        { condition: "Common Cold", count: 234 },
+        { condition: "Vaccination", count: 189 },
+        { condition: "Growth Monitoring", count: 156 },
+        { condition: "Allergies", count: 78 },
+        { condition: "Gastroenteritis", count: 67 }
+      ],
+      patientDemographics: {
+        ageGroups: [
+          { range: "0-2", count: 89 },
+          { range: "3-5", count: 123 },
+          { range: "6-12", count: 156 },
+          { range: "13-18", count: 77 }
+        ],
+        gender: { male: 234, female: 211, other: 0 }
+      }
+    },
+    
+    registrationDate: "2019-02-28",
+    lastLogin: "2024-12-15 07:30:00",
+    lastPasswordChange: "2024-11-01",
+    accountStatus: "active",
+    loginHistory: [
+      {
+        date: "2024-12-15",
+        time: "07:30",
+        device: "Samsung Galaxy Tab",
+        location: "Phoenix, Mauritius",
+        ipAddress: "196.192.125.92"
       }
     ]
   },
+
   {
+    // Dr. Sophie Williams - Orthopedic Surgeon
     id: "DOC004",
     firstName: "Sophie",
     lastName: "Williams",
-    email: "sophie.williams@orthopedics.mu",
+    email: "sophie.williams@healthwyz.mu",
     password: "BoneDoc321!",
     profileImage: "/images/doctors/4.jpg",
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDQiLCJpYXQiOjE2MzQyMzQ1NzB9.jkl012",
+    
     category: "Surgeon",
     specialty: ["Orthopedic Surgery"],
-    subSpecialties: ["Sports Medicine", "Joint Replacement", "Minimally Invasive Surgery"],
+    subSpecialties: ["Sports Medicine", "Joint Replacement", "Minimally Invasive Surgery", "Spine Surgery"],
+    licenseNumber: "MED-2006-ORT-4567",
+    licenseExpiryDate: "2026-09-30",
     clinicAffiliation: "Orthopedic Specialists Clinic",
+    hospitalPrivileges: ["Orthopedic Specialists Clinic", "Wellkin Hospital", "Apollo Bramwell Hospital"],
+    
     rating: 4.6,
     reviews: 189,
-    experience: "18 years",
-    location: "Quatre Bornes",
-    address: "Orthopedic Specialists Clinic, Quatre Bornes",
-    languages: ["English", "French"],
-    consultationFee: 3000,
-    videoConsultationFee: 0,
-    availability: "Mon, Wed, Fri: 2:00 PM - 8:00 PM",
-    nextAvailable: "Friday, 3:00 PM",
-    bio: "Experienced orthopedic surgeon specializing in joint replacement, sports injuries, and minimally invasive procedures.",
-    education: ["MBBS - University of Cape Town", "MS Orthopedics - Oxford University", "Fellowship in Sports Medicine - University of Pittsburgh"],
-    workHistory: ["Senior Orthopedic Surgeon at Orthopedic Specialists (2015-present)", "Consultant Surgeon at Wellkin Hospital (2010-2015)", "Orthopedic Resident at Groote Schuur Hospital (2006-2010)"],
-    certifications: ["Fellow of Royal College of Surgeons", "Sports Medicine Specialist", "Joint Replacement Certified"],
-    consultationTypes: ["In-Person"],
-    emergencyAvailable: true,
-    phone: "+230 5456 7890",
-    age: 45,
-    verified: true,
     patientComments: [
       {
         id: "PC010",
@@ -287,306 +2262,451 @@ export const doctorsData: Doctor[] = [
         starRating: 4,
         date: "2024-08-08",
         time: "10:30"
-      },
-      {
-        id: "PC012",
-        patientFirstName: "Ravi",
-        patientLastName: "Kumar",
-        patientProfileImage: "/images/patients/12.jpg",
-        comment: "Highly skilled in sports injuries, got me back to playing tennis.",
-        starRating: 5,
-        date: "2024-07-25",
-        time: "17:00"
       }
-    ]
-  },
-  {
-    id: "DOC005",
-    firstName: "Marcus",
-    lastName: "Patel",
-    email: "marcus.patel@dermatology.mu",
-    password: "SkinCare654#",
-    profileImage: "/images/doctors/5.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDUiLCJpYXQiOjE2MzQyMzQ1NzF9.mno345",
-    category: "Specialist",
-    specialty: ["Dermatology"],
-    subSpecialties: ["Cosmetic Dermatology", "Acne Treatment", "Anti-aging Procedures"],
-    clinicAffiliation: "Skin Health Clinic",
-    rating: 4.8,
-    reviews: 267,
-    experience: "8 years",
-    location: "Rose Hill",
-    address: "Skin Health Clinic, Rose Hill",
-    languages: ["English", "Gujarati", "Hindi", "French"],
-    consultationFee: 2400,
-    videoConsultationFee: 2000,
-    availability: "Tue-Sat, 10:00 AM - 6:00 PM",
-    nextAvailable: "Thursday, 11:00 AM",
-    bio: "Dermatologist with expertise in medical and cosmetic dermatology, acne treatment, and anti-aging procedures.",
-    education: ["MBBS - Grant Medical College Mumbai", "MD Dermatology - KEM Hospital", "Cosmetic Dermatology Fellowship - American Academy of Dermatology"],
-    workHistory: ["Consultant Dermatologist at Skin Health Clinic (2020-present)", "Dermatologist at Apollo Spectra (2016-2020)", "Dermatology Resident at KEM Hospital (2014-2016)"],
-    certifications: ["Board Certified Dermatologist", "Cosmetic Procedures Certified", "Laser Treatment Specialist"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5567 8901",
-    age: 33,
-    verified: true,
-    patientComments: [
+    ],
+    
+    performanceMetrics: {
+      averageRating: 4.6,
+      totalReviews: 189,
+      patientSatisfaction: 91.5,
+      responseTime: 20,
+      appointmentCompletionRate: 96.8,
+      prescriptionAccuracy: 98.5,
+      returnPatientRate: 72.3
+    },
+    
+    experience: "18 years",
+    education: [
       {
-        id: "PC013",
-        patientFirstName: "Nadia",
-        patientLastName: "Ali",
-        patientProfileImage: "/images/patients/13.jpg",
-        comment: "Dr. Patel cleared my acne completely, amazing results!",
-        starRating: 5,
-        date: "2024-08-19",
-        time: "12:00"
+        degree: "MBBS",
+        institution: "University of Cape Town",
+        year: "2006"
       },
       {
-        id: "PC014",
-        patientFirstName: "Thomas",
-        patientLastName: "Brown",
-        patientProfileImage: "/images/patients/14.jpg",
-        comment: "Very knowledgeable about skin conditions, professional service.",
-        starRating: 4,
-        date: "2024-08-14",
-        time: "15:45"
+        degree: "MS Orthopedics",
+        institution: "Oxford University",
+        year: "2010"
       },
       {
-        id: "PC015",
-        patientFirstName: "Meera",
-        patientLastName: "Joshi",
-        patientProfileImage: "/images/patients/15.jpg",
-        comment: "Great cosmetic treatments, natural-looking results.",
-        starRating: 5,
-        date: "2024-08-02",
-        time: "11:30"
+        degree: "Fellowship in Sports Medicine",
+        institution: "University of Pittsburgh",
+        year: "2012"
       }
-    ]
-  },
-  {
-    id: "DOC006",
-    firstName: "James",
-    lastName: "Rodriguez",
-    email: "james.rodriguez@emergency.mu",
-    password: "EmergencyDoc987!",
-    profileImage: "/images/doctors/6.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDYiLCJpYXQiOjE2MzQyMzQ1NzJ9.pqr678",
-    category: "Emergency",
-    specialty: ["Emergency Medicine"],
-    subSpecialties: ["Trauma Care", "Critical Care", "Life Support"],
-    clinicAffiliation: "Victoria Hospital",
-    rating: 4.7,
-    reviews: 189,
-    experience: "11 years",
-    location: "Port Louis",
-    address: "Victoria Hospital Emergency Department",
-    languages: ["English", "Spanish", "French"],
-    consultationFee: 0,
+    ],
+    
+    workHistory: [
+      {
+        position: "Senior Orthopedic Surgeon",
+        organization: "Orthopedic Specialists Clinic",
+        period: "2015-present",
+        current: true
+      },
+      {
+        position: "Consultant Surgeon",
+        organization: "Wellkin Hospital",
+        period: "2010-2015",
+        current: false
+      }
+    ],
+    
+    certifications: [
+      {
+        name: "Fellow of Royal College of Surgeons",
+        issuingBody: "Royal College of Surgeons",
+        dateObtained: "2011-05-20",
+        certificateUrl: "/certificates/frcs_sophie_williams.pdf"
+      },
+      {
+        name: "Sports Medicine Specialist",
+        issuingBody: "American College of Sports Medicine",
+        dateObtained: "2012-09-15",
+        certificateUrl: "/certificates/sports_med_sophie_williams.pdf"
+      },
+      {
+        name: "Joint Replacement Certification",
+        issuingBody: "International Joint Replacement Institute",
+        dateObtained: "2014-03-10",
+        certificateUrl: "/certificates/joint_replace_sophie_williams.pdf"
+      }
+    ],
+    
+    publications: [
+      "Minimally Invasive Techniques in Hip Replacement - Journal of Orthopedic Surgery, 2023",
+      "Sports Injuries in Tropical Athletes - Sports Medicine Review, 2022",
+      "Advances in Knee Arthroscopy - Surgical Techniques Quarterly, 2021"
+    ],
+    
+    awards: [
+      "Excellence in Orthopedic Surgery - Mauritius Surgical Society, 2023",
+      "Best Sports Medicine Practitioner - Athletes Association of Mauritius, 2022"
+    ],
+    
+    location: "Quatre Bornes",
+    address: "Orthopedic Specialists Clinic, St Jean Road, Quatre Bornes, Mauritius",
+    phone: "+230 5456 7890",
+    alternatePhone: "+230 5456 7891",
+    website: "www.drsophiewilliams.mu",
+    socialMedia: {
+      linkedin: "linkedin.com/in/dr-sophie-williams-orthopedics"
+    },
+    
+    languages: ["English", "French"],
+    availability: "Mon, Wed, Fri: 2:00 PM - 8:00 PM",
+    detailedAvailability: {
+      monday: { start: "14:00", end: "20:00", isAvailable: true },
+      tuesday: { start: "00:00", end: "00:00", isAvailable: false },
+      wednesday: { start: "14:00", end: "20:00", isAvailable: true },
+      thursday: { start: "00:00", end: "00:00", isAvailable: false },
+      friday: { start: "14:00", end: "20:00", isAvailable: true },
+      saturday: { start: "09:00", end: "13:00", isAvailable: true },
+      sunday: { start: "00:00", end: "00:00", isAvailable: false },
+      slotDuration: 60,
+      breakTime: { start: "17:00", end: "17:30" },
+      vacationDates: [
+        { start: "2025-06-15", end: "2025-06-30" }
+      ]
+    },
+    nextAvailable: "Friday, 3:00 PM",
+    consultationDuration: 60,
+    
+    consultationFee: 3000,
     videoConsultationFee: 0,
-    availability: "24/7 Emergency",
-    nextAvailable: "Always Available",
-    bio: "Emergency physician with extensive trauma experience, specialized in critical care and life-saving interventions.",
-    education: ["MD - University of Barcelona", "Emergency Medicine Residency - Johns Hopkins", "Trauma Surgery Fellowship - Massachusetts General"],
-    workHistory: ["Emergency Department Director at Victoria Hospital (2020-present)", "Senior Emergency Physician at Apollo Bramwell (2015-2020)", "Emergency Medicine Resident (2012-2015)"],
-    certifications: ["Board Certified Emergency Medicine", "ATLS Instructor", "ACLS Provider"],
-    consultationTypes: ["Emergency Only"],
-    emergencyAvailable: true,
-    phone: "999",
-    age: 39,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC016",
-        patientFirstName: "Maria",
-        patientLastName: "Santos",
-        patientProfileImage: "/images/patients/16.jpg",
-        comment: "Dr. Rodriguez saved my life after my car accident, incredible skill.",
-        starRating: 5,
-        date: "2024-08-21",
-        time: "22:30"
-      },
-      {
-        id: "PC017",
-        patientFirstName: "Alex",
-        patientLastName: "Johnson",
-        patientProfileImage: "/images/patients/17.jpg",
-        comment: "Professional and calm during emergency, excellent trauma care.",
-        starRating: 5,
-        date: "2024-08-16",
-        time: "03:15"
-      },
-      {
-        id: "PC018",
-        patientFirstName: "Fatima",
-        patientLastName: "Khan",
-        patientProfileImage: "/images/patients/18.jpg",
-        comment: "Quick thinking and expert care in critical situation.",
-        starRating: 4,
-        date: "2024-08-01",
-        time: "18:45"
-      }
-    ]
-  },
-  {
-    id: "DOC007",
-    firstName: "Antonio",
-    lastName: "Al-Zahra",
-    email: "antonio.alzahra@ophthalmology.mu",
-    password: "EyeDoc456@",
-    profileImage: "/images/doctors/7.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDciLCJpYXQiOjE2MzQyMzQ1NzN9.stu901",
-    category: "Specialist",
-    specialty: ["Ophthalmology"],
-    subSpecialties: ["Retinal Surgery", "Cataract Surgery", "Laser Eye Treatment"],
-    clinicAffiliation: "Eye Care Excellence Center",
-    rating: 4.8,
-    reviews: 234,
-    experience: "13 years",
-    location: "Ebene",
-    address: "Eye Care Excellence Center, Ebene",
-    languages: ["English", "Arabic", "French"],
-    consultationFee: 2600,
-    videoConsultationFee: 2100,
-    availability: "Mon-Fri, 9:00 AM - 5:00 PM",
-    nextAvailable: "Next Tuesday, 10:00 AM",
-    bio: "Renowned ophthalmologist specializing in retinal diseases, cataract surgery, and advanced eye care procedures.",
-    education: ["MBBS - Damascus University", "Ophthalmology Residency - Moorfields Eye Hospital", "Retinal Fellowship - Bascom Palmer Eye Institute"],
-    workHistory: ["Senior Ophthalmologist at Eye Care Excellence (2018-present)", "Consultant Ophthalmologist at Apollo Spectra (2012-2018)", "Ophthalmology Fellow at Moorfields (2010-2012)"],
-    certifications: ["Fellow of Royal College of Ophthalmologists", "Retinal Surgery Specialist", "Laser Treatment Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5678 9012",
-    age: 41,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC019",
-        patientFirstName: "Sasha",
-        patientLastName: "Petrov",
-        patientProfileImage: "/images/patients/19.jpg",
-        comment: "Dr. Al-Zahra performed perfect cataract surgery, vision is crystal clear.",
-        starRating: 5,
-        date: "2024-08-17",
-        time: "08:30"
-      },
-      {
-        id: "PC020",
-        patientFirstName: "Grace",
-        patientLastName: "Lee",
-        patientProfileImage: "/images/patients/20.jpg",
-        comment: "Excellent eye specialist, very thorough examinations.",
-        starRating: 4,
-        date: "2024-08-09",
-        time: "14:00"
-      },
-      {
-        id: "PC021",
-        patientFirstName: "Omar",
-        patientLastName: "Benali",
-        patientProfileImage: "/images/patients/21.jpg",
-        comment: "Professional and skilled, restored my vision completely.",
-        starRating: 5,
-        date: "2024-07-20",
-        time: "11:15"
-      }
-    ]
-  },
-  {
-    id: "DOC008",
-    firstName: "Elena",
-    lastName: "Lim",
-    email: "elena.lim@dentistry.mu",
-    password: "DentalCare789#",
-    profileImage: "/images/doctors/8.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDgiLCJpYXQiOjE2MzQyMzQ1NzQ9.vwx234",
-    category: "Dentist",
-    specialty: ["General Dentistry"],
-    subSpecialties: ["Cosmetic Dentistry", "Dental Implants", "Teeth Whitening"],
-    clinicAffiliation: "Perfect Smile Dental Clinic",
-    rating: 4.6,
-    reviews: 312,
-    experience: "9 years",
-    location: "Curepipe",
-    address: "Perfect Smile Dental Clinic, Curepipe",
-    languages: ["English", "Mandarin", "French"],
-    consultationFee: 1800,
-    videoConsultationFee: 0,
-    availability: "Mon-Sat, 8:00 AM - 6:00 PM",
-    nextAvailable: "Tomorrow, 2:00 PM",
-    bio: "General and cosmetic dentist focused on comprehensive dental care, smile makeovers, and preventive dentistry.",
-    education: ["DDS - National University of Singapore", "Cosmetic Dentistry Certificate - New York University", "Implantology Course - Nobel Biocare"],
-    workHistory: ["Senior Dentist at Perfect Smile Dental (2019-present)", "Associate Dentist at Dental Care Plus (2015-2019)", "Dental Resident at Singapore General Hospital (2013-2015)"],
-    certifications: ["Licensed Dentist", "Cosmetic Dentistry Specialist", "Dental Implant Certified"],
+    emergencyConsultationFee: 5000,
     consultationTypes: ["In-Person"],
     emergencyAvailable: true,
-    phone: "+230 5789 0123",
-    age: 34,
+    homeVisitAvailable: false,
+    telemedicineAvailable: false,
+    
+    age: 45,
+    gender: "Female",
+    dateOfBirth: "1979-06-12",
+    nationality: "British-Mauritian",
+    bio: "Experienced orthopedic surgeon specializing in joint replacement, sports injuries, and minimally invasive procedures. Committed to helping patients return to active lifestyles.",
+    philosophy: "Movement is life. My goal is to restore function and eliminate pain so patients can enjoy their daily activities.",
+    specialInterests: ["Robotic Surgery", "Regenerative Medicine", "Sports Biomechanics"],
+    
     verified: true,
-    patientComments: [
+    verificationDate: "2024-04-05",
+    verificationDocuments: [
       {
-        id: "PC022",
-        patientFirstName: "Carlos",
-        patientLastName: "Miranda",
-        patientProfileImage: "/images/patients/22.jpg",
-        comment: "Dr. Lim gave me the perfect smile makeover, amazing results.",
-        starRating: 5,
-        date: "2024-08-13",
-        time: "10:00"
+        id: "DOC010",
+        type: "license",
+        name: "Medical License",
+        uploadDate: "2024-04-01",
+        url: "/documents/license_sophie_williams.pdf",
+        size: "2.6 MB",
+        verified: true,
+        verifiedDate: "2024-04-05"
+      }
+    ],
+    
+    insuranceCoverage: {
+      provider: "Surgeons Insurance Company",
+      policyNumber: "SIC-2024-004567",
+      validUntil: "2025-12-31",
+      coverageAmount: 15000000
+    },
+    
+    patients: {
+      current: [
+        {
+          id: "PAT007",
+          firstName: "Robert",
+          lastName: "Taylor",
+          email: "robert.taylor@email.com",
+          phone: "+230 5789 0123",
+          dateOfBirth: "1965-11-30",
+          gender: "Male",
+          profileImage: "/images/patients/robert.jpg",
+          bloodType: "B-",
+          allergies: [],
+          chronicConditions: ["Osteoarthritis"],
+          status: "active",
+          lastVisit: "2024-12-08",
+          nextAppointment: "2025-01-25",
+          totalVisits: 8,
+          totalPrescriptions: 4,
+          videoCallLink: "/doctor/video-call/robert_sophie_20250125",
+          medicalRecordUrl: "/records/PAT007_medical_history.pdf",
+          insuranceProvider: "Life Insurance Corporation",
+          insurancePolicyNumber: "LIC-890123"
+        }
+      ],
+      past: []
+    },
+    
+    patientChats: [
+      {
+        patientId: "PAT007",
+        patientName: "Robert Taylor",
+        patientImage: "/images/patients/robert.jpg",
+        lastMessage: "I'll continue with the physiotherapy as recommended.",
+        lastMessageTime: "2024-12-14 14:00",
+        unreadCount: 1,
+        status: "offline",
+        messages: [
+          {
+            id: "MSG016",
+            senderId: "DOC004",
+            senderName: "Dr. Sophie Williams",
+            senderType: "doctor",
+            message: "How's your recovery going after the knee replacement?",
+            timestamp: "2024-12-14 12:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG017",
+            senderId: "PAT007",
+            senderName: "Robert Taylor",
+            senderType: "patient",
+            message: "Much better! I can walk without the walker now.",
+            timestamp: "2024-12-14 13:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG018",
+            senderId: "DOC004",
+            senderName: "Dr. Sophie Williams",
+            senderType: "doctor",
+            message: "Excellent progress! Continue with physiotherapy 3 times a week.",
+            timestamp: "2024-12-14 13:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG019",
+            senderId: "PAT007",
+            senderName: "Robert Taylor",
+            senderType: "patient",
+            message: "I'll continue with the physiotherapy as recommended.",
+            timestamp: "2024-12-14 14:00",
+            read: false,
+            messageType: "text"
+          }
+        ]
+      }
+    ],
+    
+    upcomingAppointments: [
+      {
+        id: "APP007",
+        patientId: "PAT007",
+        patientName: "Robert Taylor",
+        patientImage: "/images/patients/robert.jpg",
+        date: "2025-01-25",
+        time: "15:00",
+        duration: 60,
+        type: "in-person",
+        status: "scheduled",
+        reason: "3-month post-op follow-up for knee replacement",
+        location: "Orthopedic Specialists Clinic, Surgical Suite 2",
+        payment: {
+          amount: 3000,
+          status: "pending",
+          method: "insurance"
+        },
+        followUpRequired: true
+      }
+    ],
+    
+    pastAppointments: [],
+    todaySchedule: {
+      date: "2024-12-15",
+      slots: [],
+      totalAppointments: 4,
+      availableSlots: 4
+    },
+    weeklySchedule: [],
+    prescriptions: [],
+    prescriptionTemplates: [
+      {
+        id: "TEMP008",
+        name: "Post-Surgery Pain Management",
+        condition: "Post-operative Pain",
+        medicines: ["Tramadol 50mg", "Paracetamol 500mg", "Diclofenac Gel"]
       },
       {
-        id: "PC023",
-        patientFirstName: "Sophie",
-        patientLastName: "Martin",
-        patientProfileImage: "/images/patients/23.jpg",
-        comment: "Gentle dentist, excellent with anxious patients.",
-        starRating: 4,
-        date: "2024-08-07",
-        time: "16:30"
+        id: "TEMP009",
+        name: "Arthritis Management",
+        condition: "Osteoarthritis",
+        medicines: ["Glucosamine", "Chondroitin", "Celecoxib 200mg"]
+      }
+    ],
+    
+    billing: {
+      receiveMethods: [
+        {
+          id: "PAY005",
+          type: "bank_transfer",
+          bankAccount: {
+            id: "BANK004",
+            bankName: "HSBC Mauritius",
+            accountNumber: "000456789012",
+            accountHolder: "Dr. Sophie Williams",
+            swift: "HSBCMUMU",
+            isDefault: true,
+            addedDate: "2024-01-25"
+          },
+          isDefault: true,
+          addedDate: "2024-01-25"
+        }
+      ],
+      bankAccounts: [
+        {
+          id: "BANK004",
+          bankName: "HSBC Mauritius",
+          accountNumber: "000456789012",
+          accountHolder: "Dr. Sophie Williams",
+          swift: "HSBCMUMU",
+          isDefault: true,
+          addedDate: "2024-01-25"
+        }
+      ],
+      transactions: [],
+      earnings: {
+        today: 9000,
+        thisWeek: 45000,
+        thisMonth: 180000,
+        thisYear: 2250000,
+        totalEarnings: 12000000,
+        pendingPayouts: 30000,
+        averageConsultationFee: 3000
       },
+      taxId: "TAX-MU-456789",
+      taxRate: 15
+    },
+    
+    subscription: {
+      type: "enterprise",
+      planName: "HealthWyz Enterprise",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      features: [
+        "Unlimited everything",
+        "Priority support",
+        "Custom integrations",
+        "Advanced analytics",
+        "Multi-location support",
+        "API access",
+        "White labeling",
+        "Dedicated account manager"
+      ],
+      price: 10000,
+      billingCycle: "yearly",
+      autoRenew: true,
+      nextBillingDate: "2025-01-01",
+      usage: {
+        consultations: { used: 189, limit: -1 },
+        videoConsultations: { used: 0, limit: -1 },
+        storage: { used: 45.8, limit: -1 },
+        smsNotifications: { used: 567, limit: -1 }
+      }
+    },
+    
+    notificationSettings: {
+      appointments: true,
+      newPatients: true,
+      prescriptionRefills: false,
+      labResults: true,
+      emergencyAlerts: true,
+      chatMessages: true,
+      paymentReceived: true,
+      reviewsReceived: false,
+      systemUpdates: false,
+      marketingEmails: false,
+      notificationTime: "14:00",
+      emailNotifications: true,
+      smsNotifications: true,
+      pushNotifications: false,
+      soundEnabled: false,
+      vibrationEnabled: false
+    },
+    
+    privacySettings: {
+      profileVisibility: "public",
+      showContactInfo: false,
+      showEducation: true,
+      showExperience: true,
+      allowReviews: true,
+      shareDataForResearch: false,
+      twoFactorAuth: true,
+      sessionTimeout: 30
+    },
+    
+    languageSettings: {
+      preferredLanguage: "en",
+      dateFormat: "DD/MM/YYYY",
+      timeFormat: "24h",
+      timezone: "Indian/Mauritius",
+      currency: "MUR"
+    },
+    
+    statistics: {
+      totalPatients: 189,
+      activePatients: 45,
+      newPatientsThisMonth: 4,
+      totalConsultations: 1234,
+      consultationsThisMonth: 32,
+      videoConsultations: 0,
+      emergencyConsultations: 34,
+      averageConsultationDuration: 55,
+      totalPrescriptions: 456,
+      totalRevenue: 12000000,
+      topConditionsTreated: [
+        { condition: "Knee Replacement", count: 45 },
+        { condition: "Hip Replacement", count: 38 },
+        { condition: "Sports Injuries", count: 34 },
+        { condition: "Fractures", count: 28 },
+        { condition: "Spine Surgery", count: 22 }
+      ],
+      patientDemographics: {
+        ageGroups: [
+          { range: "18-30", count: 23 },
+          { range: "31-45", count: 45 },
+          { range: "46-60", count: 67 },
+          { range: "61+", count: 54 }
+        ],
+        gender: { male: 112, female: 77, other: 0 }
+      }
+    },
+    
+    registrationDate: "2015-09-01",
+    lastLogin: "2024-12-14 13:45:00",
+    lastPasswordChange: "2024-08-30",
+    accountStatus: "active",
+    loginHistory: [
       {
-        id: "PC024",
-        patientFirstName: "Ryan",
-        patientLastName: "O'Connor",
-        patientProfileImage: "/images/patients/24.jpg",
-        comment: "Professional dental care, very modern techniques.",
-        starRating: 5,
-        date: "2024-07-29",
-        time: "09:45"
+        date: "2024-12-14",
+        time: "13:45",
+        device: "HP Laptop",
+        location: "Quatre Bornes, Mauritius",
+        ipAddress: "196.192.130.56"
       }
     ]
   },
+
   {
-    id: "DOC009",
+    // Dr. Isabella Costa - Psychiatrist
+    id: "DOC005",
     firstName: "Isabella",
     lastName: "Costa",
-    email: "isabella.costa@psychiatry.mu",
+    email: "isabella.costa@healthwyz.mu",
     password: "MindHealth123$",
-    profileImage: "/images/doctors/9.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDkiLCJpYXQiOjE2MzQyMzQ1NzU9.yz567",
+    profileImage: "/images/doctors/5.jpg",
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMDUiLCJpYXQiOjE2MzQyMzQ1NzU9.yz567",
+    
     category: "Mental Health",
     specialty: ["Psychiatry"],
-    subSpecialties: ["Anxiety Disorders", "Depression", "PTSD Treatment"],
+    subSpecialties: ["Anxiety Disorders", "Depression", "PTSD Treatment", "Cognitive Behavioral Therapy"],
+    licenseNumber: "MED-2010-PSY-5678",
+    licenseExpiryDate: "2026-05-31",
     clinicAffiliation: "Mental Health Wellness Center",
+    hospitalPrivileges: ["Mental Health Wellness Center", "Brown Sequard Hospital"],
+    
     rating: 4.9,
     reviews: 156,
-    experience: "14 years",
-    location: "Rose Hill",
-    address: "Mental Health Wellness Center, Rose Hill",
-    languages: ["English", "Portuguese", "French", "Spanish"],
-    consultationFee: 3000,
-    videoConsultationFee: 2500,
-    availability: "Mon-Fri, 10:00 AM - 6:00 PM",
-    nextAvailable: "Friday, 11:00 AM",
-    bio: "Compassionate psychiatrist specializing in anxiety, depression, and mood disorders with both therapy and medication management.",
-    education: ["MD Psychiatry - University of São Paulo", "Cognitive Behavioral Therapy Training - Beck Institute", "EMDR Therapy Certification"],
-    workHistory: ["Lead Psychiatrist at Mental Health Wellness Center (2017-present)", "Consultant Psychiatrist at Brown Sequard Hospital (2012-2017)", "Psychiatric Resident at Hospital das Clínicas (2009-2012)"],
-    certifications: ["Board Certified Psychiatrist", "CBT Therapist", "EMDR Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5890 1234",
-    age: 43,
-    verified: true,
     patientComments: [
       {
         id: "PC025",
@@ -607,1360 +2727,591 @@ export const doctorsData: Doctor[] = [
         starRating: 5,
         date: "2024-08-04",
         time: "11:30"
-      },
-      {
-        id: "PC027",
-        patientFirstName: "Amira",
-        patientLastName: "Hassan",
-        patientProfileImage: "/images/patients/27.jpg",
-        comment: "Compassionate psychiatrist, great combination of therapy and medication.",
-        starRating: 4,
-        date: "2024-07-22",
-        time: "15:15"
       }
-    ]
-  },
-  {
-    id: "DOC010",
-    firstName: "Daniel",
-    lastName: "Patel",
-    email: "daniel.patel@gastroenterology.mu",
-    password: "DigestiveHealth456!",
-    profileImage: "/images/doctors/10.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTAiLCJpYXQiOjE2MzQyMzQ1NzY9.abc890",
-    category: "Specialist",
-    specialty: ["Gastroenterology"],
-    subSpecialties: ["Endoscopy", "IBD Treatment", "Liver Diseases"],
-    clinicAffiliation: "Digestive Health Specialists",
-    rating: 4.7,
-    reviews: 198,
-    experience: "12 years",
-    location: "Phoenix",
-    address: "Digestive Health Specialists, Phoenix",
-    languages: ["English", "Gujarati", "Hindi", "French"],
-    consultationFee: 2700,
-    videoConsultationFee: 2200,
-    availability: "Mon-Thu, 9:00 AM - 5:00 PM",
-    nextAvailable: "Monday, 3:00 PM",
-    bio: "Gastroenterologist with expertise in digestive disorders, endoscopic procedures, and inflammatory bowel disease management.",
-    education: ["MBBS - BJ Medical College", "MD Gastroenterology - All India Institute", "Advanced Endoscopy Fellowship - Mayo Clinic"],
-    workHistory: ["Senior Gastroenterologist at Digestive Health Specialists (2018-present)", "Consultant at Fortis Hospital (2013-2018)", "Gastroenterology Fellow at AIIMS (2011-2013)"],
-    certifications: ["Board Certified Gastroenterologist", "Advanced Endoscopy", "IBD Specialist"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5901 2345",
-    age: 40,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC028",
-        patientFirstName: "Nisha",
-        patientLastName: "Reddy",
-        patientProfileImage: "/images/patients/28.jpg",
-        comment: "Dr. Patel diagnosed my condition accurately, excellent endoscopy.",
-        starRating: 5,
-        date: "2024-08-06",
-        time: "14:30"
-      },
-      {
-        id: "PC029",
-        patientFirstName: "Mark",
-        patientLastName: "Davis",
-        patientProfileImage: "/images/patients/29.jpg",
-        comment: "Very knowledgeable about digestive issues, professional care.",
-        starRating: 4,
-        date: "2024-07-31",
-        time: "10:15"
-      },
-      {
-        id: "PC030",
-        patientFirstName: "Leila",
-        patientLastName: "Ahmed",
-        patientProfileImage: "/images/patients/30.jpg",
-        comment: "Helped manage my IBD effectively, great follow-up care.",
-        starRating: 5,
-        date: "2024-07-18",
-        time: "16:00"
-      }
-    ]
-  },
-  {
-    id: "DOC011",
-    firstName: "Natasha",
-    lastName: "Volkov",
-    email: "natasha.volkov@pulmonology.mu",
-    password: "LungDoc123@",
-    profileImage: "/images/doctors/11.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTEiLCJpYXQiOjE2MzQyMzQ1NzY9.def123",
-    category: "Specialist",
-    specialty: ["Pulmonology"],
-    subSpecialties: ["Asthma Treatment", "COPD Management", "Sleep Disorders"],
-    clinicAffiliation: "Respiratory Care Center",
-    rating: 4.8,
-    reviews: 156,
-    experience: "11 years",
-    location: "Vacoas",
-    address: "Respiratory Care Center, Vacoas",
-    languages: ["English", "Russian", "French"],
-    consultationFee: 2600,
-    videoConsultationFee: 2100,
-    availability: "Mon-Fri, 8:30 AM - 5:30 PM",
-    nextAvailable: "Wednesday, 2:00 PM",
-    bio: "Pulmonologist specializing in respiratory disorders, asthma management, and sleep medicine.",
-    education: ["MD - Moscow Medical Academy", "Pulmonology Residency - Johns Hopkins", "Sleep Medicine Fellowship - Stanford"],
-    workHistory: ["Senior Pulmonologist at Respiratory Care Center (2019-present)", "Consultant at Apollo Bramwell (2014-2019)", "Pulmonology Fellow at Johns Hopkins (2012-2014)"],
-    certifications: ["Board Certified Pulmonologist", "Sleep Medicine Specialist", "Bronchoscopy Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5012 3456",
-    age: 39,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC031",
-        patientFirstName: "Robert",
-        patientLastName: "Smith",
-        patientProfileImage: "/images/patients/31.jpg",
-        comment: "Dr. Volkov helped control my asthma completely, excellent care.",
-        starRating: 5,
-        date: "2024-08-23",
-        time: "09:30"
-      },
-      {
-        id: "PC032",
-        patientFirstName: "Nina",
-        patientLastName: "Kozlov",
-        patientProfileImage: "/images/patients/32.jpg",
-        comment: "Very thorough examination, professional and caring doctor.",
-        starRating: 4,
-        date: "2024-08-14",
-        time: "11:45"
-      },
-      {
-        id: "PC033",
-        patientFirstName: "Ahmed",
-        patientLastName: "Rashid",
-        patientProfileImage: "/images/patients/33.jpg",
-        comment: "Excellent sleep study analysis, solved my sleep problems.",
-        starRating: 5,
-        date: "2024-08-03",
-        time: "15:20"
-      }
-    ]
-  },
-  {
-    id: "DOC012",
-    firstName: "Marcus",
-    lastName: "Anderson",
-    email: "marcus.anderson@urology.mu",
-    password: "UroDoc456#",
-    profileImage: "/images/doctors/12.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTIiLCJpYXQiOjE2MzQyMzQ1NzY5.ghi456",
-    category: "Specialist",
-    specialty: ["Urology"],
-    subSpecialties: ["Kidney Stone Treatment", "Prostate Surgery", "Male Infertility"],
-    clinicAffiliation: "Urology Specialists Clinic",
-    rating: 4.7,
-    reviews: 134,
+    ],
+    
+    performanceMetrics: {
+      averageRating: 4.9,
+      totalReviews: 156,
+      patientSatisfaction: 97.5,
+      responseTime: 8,
+      appointmentCompletionRate: 98.9,
+      prescriptionAccuracy: 99.2,
+      returnPatientRate: 88.7
+    },
+    
     experience: "14 years",
-    location: "Beau Bassin",
-    address: "Urology Specialists Clinic, Beau Bassin",
-    languages: ["English", "French", "Creole"],
-    consultationFee: 2800,
-    videoConsultationFee: 2300,
-    availability: "Tue-Sat, 9:00 AM - 6:00 PM",
-    nextAvailable: "Thursday, 4:00 PM",
-    bio: "Urologist with expertise in minimally invasive procedures, kidney stone treatment, and male reproductive health.",
-    education: ["MBBS - University of Edinburgh", "MS Urology - Royal College of Surgeons", "Minimally Invasive Surgery Fellowship - Cleveland Clinic"],
-    workHistory: ["Senior Urologist at Urology Specialists (2017-present)", "Consultant at Victoria Hospital (2012-2017)", "Urology Resident at Edinburgh Royal (2009-2012)"],
-    certifications: ["Fellow of Royal College of Surgeons", "Laparoscopic Surgery Certified", "Male Fertility Specialist"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5123 4567",
-    age: 42,
-    verified: true,
-    patientComments: [
+    education: [
       {
-        id: "PC034",
-        patientFirstName: "Peter",
-        patientLastName: "Williams",
-        patientProfileImage: "/images/patients/34.jpg",
-        comment: "Dr. Anderson performed perfect kidney stone surgery, pain-free now.",
-        starRating: 5,
-        date: "2024-08-19",
-        time: "10:30"
+        degree: "MD Psychiatry",
+        institution: "University of São Paulo",
+        year: "2010"
       },
       {
-        id: "PC035",
-        patientFirstName: "Sarah",
-        patientLastName: "Johnson",
-        patientProfileImage: "/images/patients/35.jpg",
-        comment: "Professional and skilled urologist, excellent bedside manner.",
-        starRating: 4,
-        date: "2024-08-10",
-        time: "14:15"
+        degree: "Cognitive Behavioral Therapy Training",
+        institution: "Beck Institute",
+        year: "2012"
       },
       {
-        id: "PC036",
-        patientFirstName: "Kevin",
-        patientLastName: "Lee",
-        patientProfileImage: "/images/patients/36.jpg",
-        comment: "Highly recommend for urological issues, very experienced.",
-        starRating: 5,
-        date: "2024-07-27",
-        time: "16:45"
+        degree: "EMDR Therapy Certification",
+        institution: "EMDR Institute",
+        year: "2014"
       }
-    ]
-  },
-  {
-    id: "DOC013",
-    firstName: "Luis",
-    lastName: "Garcia",
-    email: "luis.garcia@oncology.mu",
-    password: "CancerDoc789!",
-    profileImage: "/images/doctors/13.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTMiLCJpYXQiOjE2MzQyMzQ1NzY5.jkl789",
-    category: "Specialist",
-    specialty: ["Oncology"],
-    subSpecialties: ["Chemotherapy", "Radiation Therapy", "Palliative Care"],
-    clinicAffiliation: "Cancer Treatment Center",
-    rating: 4.9,
-    reviews: 89,
-    experience: "16 years",
-    location: "Port Louis",
-    address: "Cancer Treatment Center, Port Louis",
-    languages: ["English", "Spanish", "French"],
-    consultationFee: 3500,
-    videoConsultationFee: 3000,
-    availability: "Mon-Fri, 9:00 AM - 5:00 PM",
-    nextAvailable: "Next Monday, 11:00 AM",
-    bio: "Experienced oncologist specializing in comprehensive cancer care, chemotherapy protocols, and patient support.",
-    education: ["MD Oncology - University of Barcelona", "Hematology-Oncology Fellowship - MD Anderson", "Palliative Care Certificate - Harvard Medical"],
-    workHistory: ["Lead Oncologist at Cancer Treatment Center (2018-present)", "Senior Oncologist at Apollo Bramwell (2013-2018)", "Oncology Fellow at MD Anderson (2010-2013)"],
-    certifications: ["Board Certified Oncologist", "Palliative Care Specialist", "Clinical Trial Investigator"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5234 5678",
-    age: 48,
-    verified: true,
-    patientComments: [
+    ],
+    
+    workHistory: [
       {
-        id: "PC037",
-        patientFirstName: "Maria",
-        patientLastName: "Rodriguez",
-        patientProfileImage: "/images/patients/37.jpg",
-        comment: "Dr. Garcia provided excellent cancer treatment, very compassionate.",
-        starRating: 5,
-        date: "2024-08-15",
-        time: "09:00"
+        position: "Lead Psychiatrist",
+        organization: "Mental Health Wellness Center",
+        period: "2017-present",
+        current: true
       },
       {
-        id: "PC038",
-        patientFirstName: "John",
-        patientLastName: "Taylor",
-        patientProfileImage: "/images/patients/38.jpg",
-        comment: "Professional oncologist, great support throughout treatment.",
-        starRating: 5,
-        date: "2024-08-08",
-        time: "13:30"
-      },
-      {
-        id: "PC039",
-        patientFirstName: "Elena",
-        patientLastName: "Petrov",
-        patientProfileImage: "/images/patients/39.jpg",
-        comment: "Excellent care during difficult time, highly skilled doctor.",
-        starRating: 4,
-        date: "2024-07-25",
-        time: "11:20"
+        position: "Consultant Psychiatrist",
+        organization: "Brown Sequard Hospital",
+        period: "2012-2017",
+        current: false
       }
-    ]
-  },
-  {
-    id: "DOC014",
-    firstName: "Christopher",
-    lastName: "Thompson",
-    email: "christopher.thompson@ent.mu",
-    password: "ENTDoc321@",
-    profileImage: "/images/doctors/14.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTQiLCJpYXQiOjE2MzQyMzQ1NzY5.mno012",
-    category: "Specialist",
-    specialty: ["ENT"],
-    subSpecialties: ["Sinus Surgery", "Hearing Loss Treatment", "Voice Disorders"],
-    clinicAffiliation: "ENT Specialists Center",
-    rating: 4.6,
-    reviews: 167,
-    experience: "10 years",
-    location: "Quatre Bornes",
-    address: "ENT Specialists Center, Quatre Bornes",
-    languages: ["English", "French"],
-    consultationFee: 2500,
-    videoConsultationFee: 2000,
-    availability: "Mon-Fri, 8:00 AM - 6:00 PM",
-    nextAvailable: "Tuesday, 1:00 PM",
-    bio: "ENT specialist with expertise in sinus disorders, hearing problems, and voice rehabilitation.",
-    education: ["MBBS - University of London", "MS ENT - Royal College of Surgeons", "Voice Disorders Fellowship - Harvard Medical"],
-    workHistory: ["Senior ENT Surgeon at ENT Specialists Center (2019-present)", "Consultant at Wellkin Hospital (2014-2019)", "ENT Resident at London Hospital (2011-2014)"],
-    certifications: ["Fellow of Royal College of Surgeons", "Sinus Surgery Specialist", "Audiology Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5345 6789",
-    age: 36,
-    verified: true,
-    patientComments: [
+    ],
+    
+    certifications: [
       {
-        id: "PC040",
-        patientFirstName: "Alice",
-        patientLastName: "Brown",
-        patientProfileImage: "/images/patients/40.jpg",
-        comment: "Dr. Thompson solved my chronic sinus problems completely.",
-        starRating: 5,
-        date: "2024-08-17",
-        time: "10:45"
+        name: "Board Certified Psychiatrist",
+        issuingBody: "Mauritius Medical Council",
+        dateObtained: "2011-07-15",
+        expiryDate: "2026-07-15",
+        certificateUrl: "/certificates/board_cert_isabella_costa.pdf"
       },
       {
-        id: "PC041",
-        patientFirstName: "David",
-        patientLastName: "Wilson",
-        patientProfileImage: "/images/patients/41.jpg",
-        comment: "Excellent ENT specialist, very thorough examinations.",
-        starRating: 4,
-        date: "2024-08-11",
-        time: "14:20"
+        name: "CBT Therapist Certification",
+        issuingBody: "Beck Institute",
+        dateObtained: "2012-11-20",
+        certificateUrl: "/certificates/cbt_isabella_costa.pdf"
       },
       {
-        id: "PC042",
-        patientFirstName: "Maya",
-        patientLastName: "Singh",
-        patientProfileImage: "/images/patients/42.jpg",
-        comment: "Professional care for hearing issues, highly recommend.",
-        starRating: 5,
-        date: "2024-08-01",
-        time: "16:30"
+        name: "EMDR Certified Therapist",
+        issuingBody: "EMDR International Association",
+        dateObtained: "2014-05-10",
+        certificateUrl: "/certificates/emdr_isabella_costa.pdf"
       }
-    ]
-  },
-  {
-    id: "DOC015",
-    firstName: "Benjamin",
-    lastName: "Clark",
-    email: "benjamin.clark@rheumatology.mu",
-    password: "RheumaDoc654$",
-    profileImage: "/images/doctors/15.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTUiLCJpYXQiOjE2MzQyMzQ1NzY5.pqr345",
-    category: "Specialist",
-    specialty: ["Rheumatology"],
-    subSpecialties: ["Arthritis Treatment", "Autoimmune Disorders", "Joint Injections"],
-    clinicAffiliation: "Rheumatology Associates",
-    rating: 4.8,
-    reviews: 123,
-    experience: "13 years",
+    ],
+    
+    publications: [
+      "Treating Anxiety in the Digital Age - Journal of Psychiatric Practice, 2023",
+      "EMDR Therapy Effectiveness in PTSD - International Trauma Journal, 2022",
+      "Cultural Considerations in Mental Health Treatment - Global Psychiatry Review, 2021"
+    ],
+    
+    awards: [
+      "Excellence in Mental Health Care - Mauritius Psychiatric Association, 2023",
+      "Compassionate Care Award - Mental Health Wellness Center, 2022",
+      "Research Excellence in PTSD Treatment - International PTSD Society, 2021"
+    ],
+    
     location: "Rose Hill",
-    address: "Rheumatology Associates, Rose Hill",
-    languages: ["English", "French", "German"],
-    consultationFee: 2900,
-    videoConsultationFee: 2400,
-    availability: "Mon-Thu, 9:00 AM - 5:00 PM",
-    nextAvailable: "Friday, 10:00 AM",
-    bio: "Rheumatologist specializing in arthritis, autoimmune conditions, and chronic pain management.",
-    education: ["MBBS - University of Cambridge", "MD Rheumatology - Johns Hopkins", "Autoimmune Disorders Fellowship - Mayo Clinic"],
-    workHistory: ["Senior Rheumatologist at Rheumatology Associates (2018-present)", "Consultant at Apollo Spectra (2013-2018)", "Rheumatology Fellow at Johns Hopkins (2011-2013)"],
-    certifications: ["Board Certified Rheumatologist", "Autoimmune Specialist", "Ultrasound Guided Injections"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5456 7890",
-    age: 41,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC043",
-        patientFirstName: "Rebecca",
-        patientLastName: "Miller",
-        patientProfileImage: "/images/patients/43.jpg",
-        comment: "Dr. Clark managed my arthritis excellently, much better now.",
-        starRating: 5,
-        date: "2024-08-20",
-        time: "11:00"
-      },
-      {
-        id: "PC044",
-        patientFirstName: "Michael",
-        patientLastName: "Davis",
-        patientProfileImage: "/images/patients/44.jpg",
-        comment: "Very knowledgeable about autoimmune conditions, great care.",
-        starRating: 4,
-        date: "2024-08-12",
-        time: "15:15"
-      },
-      {
-        id: "PC045",
-        patientFirstName: "Zara",
-        patientLastName: "Khan",
-        patientProfileImage: "/images/patients/45.jpg",
-        comment: "Professional rheumatologist, effective joint injections.",
-        starRating: 5,
-        date: "2024-07-29",
-        time: "09:30"
-      }
-    ]
-  },
-  {
-    id: "DOC016",
-    firstName: "Sophia",
-    lastName: "Martinez",
-    email: "sophia.martinez@endocrinology.mu",
-    password: "EndoDoc987!",
-    profileImage: "/images/doctors/16.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTYiLCJpYXQiOjE2MzQyMzQ1NzY5.stu678",
-    category: "Specialist",
-    specialty: ["Endocrinology"],
-    subSpecialties: ["Diabetes Management", "Thyroid Disorders", "Hormone Therapy"],
-    clinicAffiliation: "Endocrine Health Center",
-    rating: 4.7,
-    reviews: 201,
-    experience: "12 years",
-    location: "Ebene",
-    address: "Endocrine Health Center, Ebene",
-    languages: ["English", "Spanish", "French"],
-    consultationFee: 2700,
-    videoConsultationFee: 2200,
-    availability: "Mon-Fri, 8:30 AM - 5:30 PM",
-    nextAvailable: "Wednesday, 3:00 PM",
-    bio: "Endocrinologist specializing in diabetes care, thyroid conditions, and hormonal imbalances.",
-    education: ["MD - University of Madrid", "Endocrinology Residency - Mayo Clinic", "Diabetes Management Certificate - Joslin Diabetes Center"],
-    workHistory: ["Senior Endocrinologist at Endocrine Health Center (2019-present)", "Consultant at Brown Sequard Hospital (2014-2019)", "Endocrinology Fellow at Mayo Clinic (2012-2014)"],
-    certifications: ["Board Certified Endocrinologist", "Diabetes Educator", "Thyroid Specialist"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5567 8901",
-    age: 38,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC046",
-        patientFirstName: "Carlos",
-        patientLastName: "Gonzalez",
-        patientProfileImage: "/images/patients/46.jpg",
-        comment: "Dr. Martinez helped control my diabetes perfectly, excellent care.",
-        starRating: 5,
-        date: "2024-08-18",
-        time: "08:45"
-      },
-      {
-        id: "PC047",
-        patientFirstName: "Emma",
-        patientLastName: "Taylor",
-        patientProfileImage: "/images/patients/47.jpg",
-        comment: "Very thorough thyroid treatment, professional and caring.",
-        starRating: 4,
-        date: "2024-08-09",
-        time: "12:30"
-      },
-      {
-        id: "PC048",
-        patientFirstName: "Hassan",
-        patientLastName: "Ali",
-        patientProfileImage: "/images/patients/48.jpg",
-        comment: "Excellent hormone therapy management, highly recommend.",
-        starRating: 5,
-        date: "2024-07-26",
-        time: "14:45"
-      }
-    ]
-  },
-  {
-    id: "DOC017",
-    firstName: "Olivia",
-    lastName: "Brown",
-    email: "olivia.brown@gynecology.mu",
-    password: "GyneDoc123#",
-    profileImage: "/images/doctors/17.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTciLCJpYXQiOjE2MzQyMzQ1NzY5.vwx901",
-    category: "Specialist",
-    specialty: ["Gynecology"],
-    subSpecialties: ["Obstetrics", "Fertility Treatment", "Minimally Invasive Surgery"],
-    clinicAffiliation: "Women's Health Clinic",
-    rating: 4.9,
-    reviews: 298,
-    experience: "14 years",
-    location: "Curepipe",
-    address: "Women's Health Clinic, Curepipe",
-    languages: ["English", "French", "Hindi"],
-    consultationFee: 2800,
-    videoConsultationFee: 2300,
-    availability: "Mon-Sat, 9:00 AM - 6:00 PM",
-    nextAvailable: "Tomorrow, 11:00 AM",
-    bio: "Gynecologist and obstetrician with expertise in women's reproductive health and minimally invasive procedures.",
-    education: ["MBBS - All India Institute", "MS Gynecology - Christian Medical College", "Fertility Medicine Fellowship - Yale University"],
-    workHistory: ["Senior Gynecologist at Women's Health Clinic (2017-present)", "Consultant at Fortis Hospital (2012-2017)", "Gynecology Resident at AIIMS (2009-2012)"],
-    certifications: ["Board Certified Gynecologist", "Fertility Specialist", "Laparoscopic Surgery Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5678 9012",
-    age: 40,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC049",
-        patientFirstName: "Priya",
-        patientLastName: "Verma",
-        patientProfileImage: "/images/patients/49.jpg",
-        comment: "Dr. Brown helped me through a successful pregnancy, excellent care.",
-        starRating: 5,
-        date: "2024-08-16",
-        time: "10:15"
-      },
-      {
-        id: "PC050",
-        patientFirstName: "James",
-        patientLastName: "Wilson",
-        patientProfileImage: "/images/patients/50.jpg",
-        comment: "Professional fertility treatment, very supportive throughout.",
-        starRating: 5,
-        date: "2024-08-07",
-        time: "13:45"
-      },
-      {
-        id: "PC051",
-        patientFirstName: "Leila",
-        patientLastName: "Hassan",
-        patientProfileImage: "/images/patients/51.jpg",
-        comment: "Excellent gynecologist, very caring and professional.",
-        starRating: 4,
-        date: "2024-07-30",
-        time: "15:30"
-      }
-    ]
-  },
-  {
-    id: "DOC018",
-    firstName: "Emma",
-    lastName: "Wilson",
-    email: "emma.wilson@anesthesiology.mu",
-    password: "AnesthDoc456@",
-    profileImage: "/images/doctors/18.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTgiLCJpYXQiOjE2MzQyMzQ1NzY5.yz234",
-    category: "Specialist",
-    specialty: ["Anesthesiology"],
-    subSpecialties: ["Pain Management", "Critical Care", "Regional Anesthesia"],
-    clinicAffiliation: "Surgical Associates Hospital",
-    rating: 4.8,
-    reviews: 145,
-    experience: "11 years",
-    location: "Port Louis",
-    address: "Surgical Associates Hospital, Port Louis",
-    languages: ["English", "French"],
-    consultationFee: 2600,
-    videoConsultationFee: 2100,
-    availability: "Mon-Fri, 7:00 AM - 7:00 PM",
-    nextAvailable: "Today, 5:00 PM",
-    bio: "Anesthesiologist with expertise in perioperative care, pain management, and critical care medicine.",
-    education: ["MBBS - University of London", "MD Anesthesiology - Royal College", "Pain Management Fellowship - Johns Hopkins"],
-    workHistory: ["Senior Anesthesiologist at Surgical Associates (2018-present)", "Consultant at Apollo Bramwell (2013-2018)", "Anesthesiology Resident at London Hospital (2010-2013)"],
-    certifications: ["Board Certified Anesthesiologist", "Pain Management Specialist", "Critical Care Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5789 0123",
-    age: 37,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC052",
-        patientFirstName: "Robert",
-        patientLastName: "Johnson",
-        patientProfileImage: "/images/patients/52.jpg",
-        comment: "Dr. Wilson provided excellent anesthesia care during surgery.",
-        starRating: 5,
-        date: "2024-08-14",
-        time: "07:30"
-      },
-      {
-        id: "PC053",
-        patientFirstName: "Lisa",
-        patientLastName: "Anderson",
-        patientProfileImage: "/images/patients/53.jpg",
-        comment: "Professional pain management, very skilled anesthesiologist.",
-        starRating: 4,
-        date: "2024-08-06",
-        time: "14:00"
-      },
-      {
-        id: "PC054",
-        patientFirstName: "Omar",
-        patientLastName: "Benali",
-        patientProfileImage: "/images/patients/54.jpg",
-        comment: "Excellent care during critical situation, highly recommend.",
-        starRating: 5,
-        date: "2024-07-28",
-        time: "11:45"
-      }
-    ]
-  },
-  {
-    id: "DOC019",
-    firstName: "Alexander",
-    lastName: "Petrov",
-    email: "alexander.petrov@radiology.mu",
-    password: "RadioDoc789!",
-    profileImage: "/images/doctors/19.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMTkiLCJpYXQiOjE2MzQyMzQ1NzY5.abc567",
-    category: "Specialist",
-    specialty: ["Radiology"],
-    subSpecialties: ["MRI Imaging", "CT Scans", "Interventional Radiology"],
-    clinicAffiliation: "Advanced Imaging Center",
-    rating: 4.6,
-    reviews: 112,
-    experience: "15 years",
-    location: "Phoenix",
-    address: "Advanced Imaging Center, Phoenix",
-    languages: ["English", "Russian", "French"],
-    consultationFee: 2400,
-    videoConsultationFee: 1900,
-    availability: "Mon-Fri, 8:00 AM - 6:00 PM",
-    nextAvailable: "Thursday, 9:00 AM",
-    bio: "Radiologist specializing in advanced imaging techniques and interventional procedures.",
-    education: ["MD - Moscow Medical Institute", "Radiology Residency - Harvard Medical", "Interventional Radiology Fellowship - Stanford"],
-    workHistory: ["Senior Radiologist at Advanced Imaging Center (2017-present)", "Consultant at Victoria Hospital (2012-2017)", "Radiology Fellow at Harvard (2009-2012)"],
-    certifications: ["Board Certified Radiologist", "Interventional Radiology Specialist", "MRI Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
+    address: "Mental Health Wellness Center, Vandermeersch Street, Rose Hill, Mauritius",
     phone: "+230 5890 1234",
-    age: 43,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC055",
-        patientFirstName: "Nina",
-        patientLastName: "Kozlov",
-        patientProfileImage: "/images/patients/55.jpg",
-        comment: "Dr. Petrov provided accurate imaging diagnosis, excellent skills.",
-        starRating: 5,
-        date: "2024-08-13",
-        time: "08:15"
-      },
-      {
-        id: "PC056",
-        patientFirstName: "Paul",
-        patientLastName: "Martin",
-        patientProfileImage: "/images/patients/56.jpg",
-        comment: "Professional radiology services, very detailed reports.",
-        starRating: 4,
-        date: "2024-08-05",
-        time: "12:20"
-      },
-      {
-        id: "PC057",
-        patientFirstName: "Fatima",
-        patientLastName: "Al-Rashid",
-        patientProfileImage: "/images/patients/57.jpg",
-        comment: "Excellent interventional radiology procedure, minimally invasive.",
-        starRating: 5,
-        date: "2024-07-24",
-        time: "16:10"
-      }
-    ]
-  },
-  {
-    id: "DOC020",
-    firstName: "Samuel",
-    lastName: "Kim",
-    email: "samuel.kim@pathology.mu",
-    password: "PathDoc321#",
-    profileImage: "/images/doctors/20.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjAiLCJpYXQiOjE2MzQyMzQ1NzY9.def890",
-    category: "Specialist",
-    specialty: ["Pathology"],
-    subSpecialties: ["Histopathology", "Clinical Pathology", "Cytology"],
-    clinicAffiliation: "Diagnostic Pathology Labs",
-    rating: 4.7,
-    reviews: 89,
-    experience: "13 years",
-    location: "Vacoas",
-    address: "Diagnostic Pathology Labs, Vacoas",
-    languages: ["English", "Korean", "French"],
-    consultationFee: 2200,
-    videoConsultationFee: 1800,
-    availability: "Mon-Fri, 7:30 AM - 5:30 PM",
-    nextAvailable: "Monday, 8:00 AM",
-    bio: "Pathologist specializing in diagnostic pathology, cancer detection, and laboratory medicine.",
-    education: ["MD - Seoul National University", "Pathology Residency - Johns Hopkins", "Molecular Pathology Fellowship - Memorial Sloan Kettering"],
-    workHistory: ["Senior Pathologist at Diagnostic Pathology Labs (2018-present)", "Consultant at Apollo Spectra (2013-2018)", "Pathology Fellow at Johns Hopkins (2011-2013)"],
-    certifications: ["Board Certified Pathologist", "Molecular Pathology Specialist", "Cytopathology Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5901 2345",
-    age: 41,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC058",
-        patientFirstName: "Grace",
-        patientLastName: "Park",
-        patientProfileImage: "/images/patients/58.jpg",
-        comment: "Dr. Kim provided accurate pathology diagnosis, very thorough.",
-        starRating: 5,
-        date: "2024-08-12",
-        time: "09:30"
-      },
-      {
-        id: "PC059",
-        patientFirstName: "Victor",
-        patientLastName: "Dubois",
-        patientProfileImage: "/images/patients/59.jpg",
-        comment: "Professional pathology services, detailed laboratory reports.",
-        starRating: 4,
-        date: "2024-08-04",
-        time: "11:15"
-      },
-      {
-        id: "PC060",
-        patientFirstName: "Aisha",
-        patientLastName: "Mohamed",
-        patientProfileImage: "/images/patients/60.jpg",
-        comment: "Excellent cancer screening, early detection saved my life.",
-        starRating: 5,
-        date: "2024-07-21",
-        time: "14:30"
-      }
-    ]
-  },
-  {
-    id: "DOC021",
-    firstName: "Theodore",
-    lastName: "Jackson",
-    email: "theodore.jackson@nephrology.mu",
-    password: "KidneyDoc654$",
-    profileImage: "/images/doctors/21.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjEiLCJpYXQiOjE2MzQyMzQ1NzY9.ghi123",
-    category: "Specialist",
-    specialty: ["Nephrology"],
-    subSpecialties: ["Dialysis", "Kidney Transplant", "Hypertension"],
-    clinicAffiliation: "Kidney Care Center",
-    rating: 4.8,
-    reviews: 167,
-    experience: "16 years",
-    location: "Beau Bassin",
-    address: "Kidney Care Center, Beau Bassin",
-    languages: ["English", "French"],
+    alternatePhone: "+230 5890 1235",
+    website: "www.drisabellacosta.mu",
+    socialMedia: {
+      linkedin: "linkedin.com/in/dr-isabella-costa-psychiatry",
+      twitter: "@DrCostaMentalHealth"
+    },
+    
+    languages: ["English", "Portuguese", "French", "Spanish"],
+    availability: "Mon-Fri, 10:00 AM - 6:00 PM",
+    detailedAvailability: {
+      monday: { start: "10:00", end: "18:00", isAvailable: true },
+      tuesday: { start: "10:00", end: "18:00", isAvailable: true },
+      wednesday: { start: "10:00", end: "18:00", isAvailable: true },
+      thursday: { start: "10:00", end: "18:00", isAvailable: true },
+      friday: { start: "10:00", end: "18:00", isAvailable: true },
+      saturday: { start: "00:00", end: "00:00", isAvailable: false },
+      sunday: { start: "00:00", end: "00:00", isAvailable: false },
+      slotDuration: 50,
+      breakTime: { start: "14:00", end: "15:00" },
+      vacationDates: [
+        { start: "2025-07-01", end: "2025-07-15" }
+      ]
+    },
+    nextAvailable: "Friday, 11:00 AM",
+    consultationDuration: 50,
+    
     consultationFee: 3000,
     videoConsultationFee: 2500,
-    availability: "Mon-Thu, 8:00 AM - 6:00 PM",
-    nextAvailable: "Wednesday, 2:30 PM",
-    bio: "Nephrologist with expertise in kidney disease management, dialysis, and transplant care.",
-    education: ["MBBS - Harvard Medical School", "Nephrology Residency - Mayo Clinic", "Transplant Fellowship - Cleveland Clinic"],
-    workHistory: ["Senior Nephrologist at Kidney Care Center (2016-present)", "Consultant at Victoria Hospital (2011-2016)", "Nephrology Fellow at Mayo Clinic (2008-2011)"],
-    certifications: ["Board Certified Nephrologist", "Dialysis Specialist", "Transplant Coordinator"],
+    emergencyConsultationFee: 4500,
     consultationTypes: ["In-Person", "Video Consultation"],
     emergencyAvailable: true,
-    phone: "+230 5012 3456",
-    age: 45,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC061",
-        patientFirstName: "William",
-        patientLastName: "Thompson",
-        patientProfileImage: "/images/patients/61.jpg",
-        comment: "Dr. Jackson managed my kidney disease excellently, great care.",
-        starRating: 5,
-        date: "2024-08-11",
-        time: "10:45"
-      },
-      {
-        id: "PC062",
-        patientFirstName: "Sophia",
-        patientLastName: "Garcia",
-        patientProfileImage: "/images/patients/62.jpg",
-        comment: "Professional dialysis management, very supportive doctor.",
-        starRating: 4,
-        date: "2024-08-03",
-        time: "13:20"
-      },
-      {
-        id: "PC063",
-        patientFirstName: "Ahmed",
-        patientLastName: "Nasir",
-        patientProfileImage: "/images/patients/63.jpg",
-        comment: "Excellent kidney transplant coordinator, highly skilled.",
-        starRating: 5,
-        date: "2024-07-19",
-        time: "15:45"
-      }
-    ]
-  },
-  {
-    id: "DOC022",
-    firstName: "Victoria",
-    lastName: "Singh",
-    email: "victoria.singh@hematology.mu",
-    password: "BloodDoc987!",
-    profileImage: "/images/doctors/22.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjIiLCJpYXQiOjE2MzQyMzQ1NzY9.jkl456",
-    category: "Specialist",
-    specialty: ["Hematology"],
-    subSpecialties: ["Blood Disorders", "Leukemia Treatment", "Bone Marrow Transplant"],
-    clinicAffiliation: "Blood Disorders Center",
-    rating: 4.9,
-    reviews: 134,
-    experience: "14 years",
-    location: "Rose Hill",
-    address: "Blood Disorders Center, Rose Hill",
-    languages: ["English", "Hindi", "Punjabi", "French"],
-    consultationFee: 3200,
-    videoConsultationFee: 2700,
-    availability: "Mon-Fri, 9:00 AM - 5:00 PM",
-    nextAvailable: "Thursday, 11:30 AM",
-    bio: "Hematologist specializing in blood disorders, cancer treatment, and bone marrow transplantation.",
-    education: ["MBBS - AIIMS Delhi", "MD Hematology - Johns Hopkins", "Bone Marrow Transplant Fellowship - Fred Hutchinson"],
-    workHistory: ["Senior Hematologist at Blood Disorders Center (2017-present)", "Consultant at Apollo Bramwell (2012-2017)", "Hematology Fellow at Johns Hopkins (2010-2012)"],
-    certifications: ["Board Certified Hematologist", "Bone Marrow Transplant Specialist", "Clinical Trial Investigator"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5123 4567",
-    age: 42,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC064",
-        patientFirstName: "Raj",
-        patientLastName: "Malhotra",
-        patientProfileImage: "/images/patients/64.jpg",
-        comment: "Dr. Singh saved my life with leukemia treatment, excellent care.",
-        starRating: 5,
-        date: "2024-08-10",
-        time: "09:15"
-      },
-      {
-        id: "PC065",
-        patientFirstName: "Catherine",
-        patientLastName: "Williams",
-        patientProfileImage: "/images/patients/65.jpg",
-        comment: "Professional blood disorder management, very compassionate.",
-        starRating: 5,
-        date: "2024-08-02",
-        time: "12:45"
-      },
-      {
-        id: "PC066",
-        patientFirstName: "Hassan",
-        patientLastName: "Qureshi",
-        patientProfileImage: "/images/patients/66.jpg",
-        comment: "Excellent bone marrow transplant coordinator, highly skilled.",
-        starRating: 4,
-        date: "2024-07-23",
-        time: "16:20"
-      }
-    ]
-  },
-  {
-    id: "DOC023",
-    firstName: "Nathan",
-    lastName: "Rodriguez",
-    email: "nathan.rodriguez@infectiousdiseases.mu",
-    password: "InfectDoc321@",
-    profileImage: "/images/doctors/23.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjMiLCJpYXQiOjE2MzQyMzQ1NzY9.mno789",
-    category: "Specialist",
-    specialty: ["Infectious Diseases"],
-    subSpecialties: ["Tropical Medicine", "HIV/AIDS Treatment", "Hospital Infections"],
-    clinicAffiliation: "Infectious Diseases Institute",
-    rating: 4.7,
-    reviews: 145,
-    experience: "12 years",
-    location: "Port Louis",
-    address: "Infectious Diseases Institute, Port Louis",
-    languages: ["English", "Spanish", "French"],
-    consultationFee: 2800,
-    videoConsultationFee: 2300,
-    availability: "Mon-Fri, 8:30 AM - 5:30 PM",
-    nextAvailable: "Tuesday, 1:15 PM",
-    bio: "Infectious disease specialist with expertise in tropical diseases, antimicrobial resistance, and epidemic control.",
-    education: ["MD - University of Barcelona", "Infectious Diseases Fellowship - CDC Atlanta", "Tropical Medicine Certificate - London School of Hygiene"],
-    workHistory: ["Senior Infectious Disease Specialist at ID Institute (2018-present)", "Consultant at Victoria Hospital (2013-2018)", "ID Fellow at CDC (2011-2013)"],
-    certifications: ["Board Certified Infectious Disease", "Tropical Medicine Specialist", "Epidemic Response Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5234 5678",
-    age: 39,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC067",
-        patientFirstName: "Maria",
-        patientLastName: "Fernandez",
-        patientProfileImage: "/images/patients/67.jpg",
-        comment: "Dr. Rodriguez treated my tropical infection excellently, full recovery.",
-        starRating: 5,
-        date: "2024-08-09",
-        time: "10:30"
-      },
-      {
-        id: "PC068",
-        patientFirstName: "Daniel",
-        patientLastName: "Cooper",
-        patientProfileImage: "/images/patients/68.jpg",
-        comment: "Professional infectious disease care, very knowledgeable doctor.",
-        starRating: 4,
-        date: "2024-08-01",
-        time: "14:45"
-      },
-      {
-        id: "PC069",
-        patientFirstName: "Layla",
-        patientLastName: "Abbas",
-        patientProfileImage: "/images/patients/69.jpg",
-        comment: "Excellent HIV treatment management, compassionate care.",
-        starRating: 5,
-        date: "2024-07-17",
-        time: "11:00"
-      }
-    ]
-  },
-  {
-    id: "DOC024",
-    firstName: "Charlotte",
-    lastName: "Lee",
-    email: "charlotte.lee@geriatrics.mu",
-    password: "ElderDoc456#",
-    profileImage: "/images/doctors/24.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjQiLCJpYXQiOjE2MzQyMzQ1NzY9.pqr012",
-    category: "Specialist",
-    specialty: ["Geriatrics"],
-    subSpecialties: ["Dementia Care", "Falls Prevention", "Palliative Care"],
-    clinicAffiliation: "Senior Care Medical Center",
-    rating: 4.8,
-    reviews: 178,
-    experience: "15 years",
-    location: "Curepipe",
-    address: "Senior Care Medical Center, Curepipe",
-    languages: ["English", "Mandarin", "French"],
-    consultationFee: 2600,
-    videoConsultationFee: 2100,
-    availability: "Mon-Fri, 9:00 AM - 5:00 PM",
-    nextAvailable: "Friday, 2:00 PM",
-    bio: "Geriatrician specializing in comprehensive elder care, dementia management, and age-related conditions.",
-    education: ["MBBS - University of Hong Kong", "Geriatrics Residency - Yale University", "Dementia Care Fellowship - Johns Hopkins"],
-    workHistory: ["Senior Geriatrician at Senior Care Medical Center (2016-present)", "Consultant at Brown Sequard Hospital (2011-2016)", "Geriatrics Fellow at Yale (2009-2011)"],
-    certifications: ["Board Certified Geriatrician", "Dementia Care Specialist", "Palliative Care Certified"],
-    consultationTypes: ["In-Person", "Video Consultation", "Home Visit"],
-    emergencyAvailable: false,
-    phone: "+230 5345 6789",
+    homeVisitAvailable: false,
+    telemedicineAvailable: true,
+    
     age: 43,
+    gender: "Female",
+    dateOfBirth: "1981-09-18",
+    nationality: "Portuguese-Mauritian",
+    bio: "Compassionate psychiatrist specializing in anxiety, depression, and mood disorders with both therapy and medication management. Fluent in multiple languages to serve diverse patient populations.",
+    philosophy: "Mental health is just as important as physical health. I believe in treating the whole person with empathy, understanding, and evidence-based approaches.",
+    specialInterests: ["Trauma-Informed Care", "Mindfulness-Based Therapy", "Cultural Psychiatry"],
+    
     verified: true,
-    patientComments: [
+    verificationDate: "2024-05-15",
+    verificationDocuments: [
       {
-        id: "PC070",
-        patientFirstName: "George",
-        patientLastName: "Miller",
-        patientProfileImage: "/images/patients/70.jpg",
-        comment: "Dr. Lee provides excellent care for my elderly father, very compassionate.",
-        starRating: 5,
-        date: "2024-08-08",
-        time: "11:45"
+        id: "DOC013",
+        type: "license",
+        name: "Medical License",
+        uploadDate: "2024-05-10",
+        url: "/documents/license_isabella_costa.pdf",
+        size: "2.2 MB",
+        verified: true,
+        verifiedDate: "2024-05-15"
       },
       {
-        id: "PC071",
-        patientFirstName: "Jennifer",
-        patientLastName: "Chen",
-        patientProfileImage: "/images/patients/71.jpg",
-        comment: "Professional geriatric care, helped manage mother's dementia well.",
-        starRating: 4,
-        date: "2024-07-31",
-        time: "15:30"
-      },
-      {
-        id: "PC072",
-        patientFirstName: "Ali",
-        patientLastName: "Rahman",
-        patientProfileImage: "/images/patients/72.jpg",
-        comment: "Excellent elder care specialist, very patient and understanding.",
-        starRating: 5,
-        date: "2024-07-16",
-        time: "10:15"
+        id: "DOC014",
+        type: "degree",
+        name: "MD Psychiatry Certificate",
+        uploadDate: "2024-05-10",
+        url: "/documents/md_isabella_costa.pdf",
+        size: "1.9 MB",
+        verified: true,
+        verifiedDate: "2024-05-15"
       }
-    ]
-  },
-  {
-    id: "DOC025",
-    firstName: "Gabriel",
-    lastName: "Miller",
-    email: "gabriel.miller@rehabilitation.mu",
-    password: "RehabDoc789$",
-    profileImage: "/images/doctors/25.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjUiLCJpYXQiOjE2MzQyMzQ1NzY9.stu345",
-    category: "Specialist",
-    specialty: ["Rehabilitation Medicine"],
-    subSpecialties: ["Physical Therapy", "Stroke Recovery", "Spinal Cord Injury"],
-    clinicAffiliation: "Rehabilitation Excellence Center",
-    rating: 4.6,
-    reviews: 156,
-    experience: "13 years",
-    location: "Quatre Bornes",
-    address: "Rehabilitation Excellence Center, Quatre Bornes",
-    languages: ["English", "French"],
-    consultationFee: 2500,
-    videoConsultationFee: 2000,
-    availability: "Mon-Sat, 8:00 AM - 6:00 PM",
-    nextAvailable: "Tomorrow, 9:30 AM",
-    bio: "Rehabilitation medicine specialist focused on restoring function and improving quality of life after injury or illness.",
-    education: ["MBBS - University of Toronto", "Physical Medicine Residency - Mayo Clinic", "Spinal Cord Injury Fellowship - Craig Hospital"],
-    workHistory: ["Senior Rehabilitation Physician at Rehabilitation Excellence Center (2017-present)", "Consultant at Wellkin Hospital (2012-2017)", "Rehabilitation Fellow at Mayo Clinic (2010-2012)"],
-    certifications: ["Board Certified Rehabilitation Medicine", "Spinal Cord Injury Specialist", "Electrodiagnostic Medicine"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5456 7890",
-    age: 41,
-    verified: true,
-    patientComments: [
+    ],
+    
+    insuranceCoverage: {
+      provider: "Professional Indemnity Insurance",
+      policyNumber: "PII-2024-005678",
+      validUntil: "2025-12-31",
+      coverageAmount: 10000000
+    },
+    
+    patients: {
+      current: [
+        {
+          id: "PAT008",
+          firstName: "Emily",
+          lastName: "Richards",
+          email: "emily.richards@email.com",
+          phone: "+230 5901 2345",
+          dateOfBirth: "1995-04-25",
+          gender: "Female",
+          profileImage: "/images/patients/emily.jpg",
+          bloodType: "O+",
+          allergies: [],
+          chronicConditions: ["Generalized Anxiety Disorder", "Depression"],
+          status: "active",
+          lastVisit: "2024-12-12",
+          nextAppointment: "2025-01-08",
+          totalVisits: 24,
+          totalPrescriptions: 8,
+          videoCallLink: "/doctor/video-call/emily_isabella_20250108",
+          medicalRecordUrl: "/records/PAT008_medical_history.pdf"
+        },
+        {
+          id: "PAT009",
+          firstName: "Marcus",
+          lastName: "Brown",
+          email: "marcus.brown@email.com",
+          phone: "+230 5012 3456",
+          dateOfBirth: "1988-12-10",
+          gender: "Male",
+          profileImage: "/images/patients/marcus.jpg",
+          bloodType: "A+",
+          allergies: ["SSRIs"],
+          chronicConditions: ["PTSD", "Insomnia"],
+          status: "active",
+          lastVisit: "2024-12-05",
+          nextAppointment: "2025-01-12",
+          totalVisits: 18,
+          totalPrescriptions: 6,
+          videoCallLink: "/doctor/video-call/marcus_isabella_20250112",
+          medicalRecordUrl: "/records/PAT009_medical_history.pdf"
+        }
+      ],
+      past: []
+    },
+    
+    patientChats: [
       {
-        id: "PC073",
-        patientFirstName: "Patricia",
-        patientLastName: "Johnson",
-        patientProfileImage: "/images/patients/73.jpg",
-        comment: "Dr. Miller helped me recover from stroke excellently, great progress.",
-        starRating: 5,
-        date: "2024-08-07",
-        time: "08:30"
+        patientId: "PAT008",
+        patientName: "Emily Richards",
+        patientImage: "/images/patients/emily.jpg",
+        lastMessage: "Thank you Dr. Costa, I'll practice the breathing exercises daily.",
+        lastMessageTime: "2024-12-14 19:00",
+        unreadCount: 0,
+        status: "offline",
+        messages: [
+          {
+            id: "MSG020",
+            senderId: "PAT008",
+            senderName: "Emily Richards",
+            senderType: "patient",
+            message: "Dr. Costa, I've been having more anxiety attacks this week.",
+            timestamp: "2024-12-14 17:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG021",
+            senderId: "DOC005",
+            senderName: "Dr. Isabella Costa",
+            senderType: "doctor",
+            message: "I'm sorry to hear that. What triggers have you noticed?",
+            timestamp: "2024-12-14 17:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG022",
+            senderId: "PAT008",
+            senderName: "Emily Richards",
+            senderType: "patient",
+            message: "Mostly work stress and social situations.",
+            timestamp: "2024-12-14 18:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG023",
+            senderId: "DOC005",
+            senderName: "Dr. Isabella Costa",
+            senderType: "doctor",
+            message: "Let's adjust your CBT exercises. Try the 4-7-8 breathing technique when you feel anxiety rising. We'll discuss more strategies at your next appointment.",
+            timestamp: "2024-12-14 18:30",
+            read: true,
+            messageType: "text"
+          }
+        ]
       },
       {
-        id: "PC074",
-        patientFirstName: "Steven",
-        patientLastName: "Brown",
-        patientProfileImage: "/images/patients/74.jpg",
-        comment: "Professional rehabilitation care, very encouraging and supportive.",
-        starRating: 4,
-        date: "2024-07-30",
-        time: "12:15"
-      },
-      {
-        id: "PC075",
-        patientFirstName: "Yasmin",
-        patientLastName: "El-Khoury",
-        patientProfileImage: "/images/patients/75.jpg",
-        comment: "Excellent spinal injury treatment, regained mobility significantly.",
-        starRating: 5,
-        date: "2024-07-15",
-        time: "14:45"
+        patientId: "PAT009",
+        patientName: "Marcus Brown",
+        patientImage: "/images/patients/marcus.jpg",
+        lastMessage: "Yes, the nightmares have decreased significantly.",
+        lastMessageTime: "2024-12-13 20:00",
+        unreadCount: 1,
+        status: "offline",
+        messages: [
+          {
+            id: "MSG024",
+            senderId: "DOC005",
+            senderName: "Dr. Isabella Costa",
+            senderType: "doctor",
+            message: "Hi Marcus, how has your sleep been since we started the EMDR therapy?",
+            timestamp: "2024-12-13 18:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG025",
+            senderId: "PAT009",
+            senderName: "Marcus Brown",
+            senderType: "patient",
+            message: "Much better! I'm getting 6-7 hours most nights now.",
+            timestamp: "2024-12-13 19:00",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG026",
+            senderId: "DOC005",
+            senderName: "Dr. Isabella Costa",
+            senderType: "doctor",
+            message: "That's excellent progress! Are the nightmares less frequent?",
+            timestamp: "2024-12-13 19:30",
+            read: true,
+            messageType: "text"
+          },
+          {
+            id: "MSG027",
+            senderId: "PAT009",
+            senderName: "Marcus Brown",
+            senderType: "patient",
+            message: "Yes, the nightmares have decreased significantly.",
+            timestamp: "2024-12-13 20:00",
+            read: false,
+            messageType: "text"
+          }
+        ]
       }
-    ]
-  },
-  {
-    id: "DOC026",
-    firstName: "Adrian",
-    lastName: "Taylor",
-    email: "adrian.taylor@plastics.mu",
-    password: "PlasticDoc123!",
-    profileImage: "/images/doctors/26.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjYiLCJpYXQiOjE2MzQyMzQ1NzY9.vwx678",
-    category: "Surgeon",
-    specialty: ["Plastic Surgery"],
-    subSpecialties: ["Cosmetic Surgery", "Reconstructive Surgery", "Burn Treatment"],
-    clinicAffiliation: "Aesthetic Surgery Institute",
-    rating: 4.7,
-    reviews: 198,
-    experience: "16 years",
-    location: "Ebene",
-    address: "Aesthetic Surgery Institute, Ebene",
-    languages: ["English", "French"],
-    consultationFee: 3500,
-    videoConsultationFee: 0,
-    availability: "Mon-Thu, 10:00 AM - 6:00 PM",
-    nextAvailable: "Next Monday, 11:00 AM",
-    bio: "Plastic surgeon specializing in aesthetic and reconstructive procedures with focus on natural-looking results.",
-    education: ["MBBS - University of Cambridge", "Plastic Surgery Residency - Harvard Medical", "Aesthetic Surgery Fellowship - Beverly Hills Institute"],
-    workHistory: ["Senior Plastic Surgeon at Aesthetic Surgery Institute (2015-present)", "Consultant at Apollo Spectra (2010-2015)", "Plastic Surgery Fellow at Harvard (2008-2010)"],
-    certifications: ["Fellow of Royal College of Surgeons", "Board Certified Plastic Surgeon", "Aesthetic Surgery Specialist"],
-    consultationTypes: ["In-Person"],
-    emergencyAvailable: true,
-    phone: "+230 5567 8901",
-    age: 44,
-    verified: true,
-    patientComments: [
+    ],
+    
+    upcomingAppointments: [
       {
-        id: "PC076",
-        patientFirstName: "Isabella",
-        patientLastName: "Rodriguez",
-        patientProfileImage: "/images/patients/76.jpg",
-        comment: "Dr. Taylor performed perfect breast reconstruction, excellent results.",
-        starRating: 5,
-        date: "2024-08-06",
-        time: "10:00"
+        id: "APP008",
+        patientId: "PAT008",
+        patientName: "Emily Richards",
+        patientImage: "/images/patients/emily.jpg",
+        date: "2025-01-08",
+        time: "11:00",
+        duration: 50,
+        type: "video",
+        status: "scheduled",
+        reason: "Anxiety management and CBT session",
+        videoCallLink: "/doctor/video-call/emily_isabella_20250108",
+        payment: {
+          amount: 2500,
+          status: "pending",
+          method: "card"
+        },
+        followUpRequired: true
       },
       {
-        id: "PC077",
-        patientFirstName: "Matthew",
-        patientLastName: "Wilson",
-        patientProfileImage: "/images/patients/77.jpg",
-        comment: "Professional cosmetic surgery, very natural-looking outcome.",
-        starRating: 4,
-        date: "2024-07-29",
-        time: "13:30"
-      },
-      {
-        id: "PC078",
-        patientFirstName: "Samira",
-        patientLastName: "Hadj",
-        patientProfileImage: "/images/patients/78.jpg",
-        comment: "Excellent burn treatment and reconstruction, life-changing surgery.",
-        starRating: 5,
-        date: "2024-07-14",
-        time: "15:45"
+        id: "APP009",
+        patientId: "PAT009",
+        patientName: "Marcus Brown",
+        patientImage: "/images/patients/marcus.jpg",
+        date: "2025-01-12",
+        time: "14:00",
+        duration: 50,
+        type: "in-person",
+        status: "scheduled",
+        reason: "EMDR therapy session for PTSD",
+        location: "Mental Health Wellness Center, Therapy Room 3",
+        payment: {
+          amount: 3000,
+          status: "pending",
+          method: "cash"
+        },
+        followUpRequired: true
       }
-    ]
-  },
-  {
-    id: "DOC027",
-    firstName: "Ryan",
-    lastName: "O'Brien",
-    email: "ryan.obrien@sports.mu",
-    password: "SportsDoc456@",
-    profileImage: "/images/doctors/27.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjciLCJpYXQiOjE2MzQyMzQ1NzY9.yz901",
-    category: "Specialist",
-    specialty: ["Sports Medicine"],
-    subSpecialties: ["Athletic Injuries", "Performance Enhancement", "Concussion Management"],
-    clinicAffiliation: "Sports Medicine Excellence",
-    rating: 4.8,
-    reviews: 234,
-    experience: "11 years",
-    location: "Phoenix",
-    address: "Sports Medicine Excellence, Phoenix",
-    languages: ["English", "French"],
-    consultationFee: 2700,
-    videoConsultationFee: 2200,
-    availability: "Mon-Sat, 7:00 AM - 7:00 PM",
-    nextAvailable: "Today, 6:00 PM",
-    bio: "Sports medicine physician specializing in athletic performance, injury prevention, and rapid recovery protocols.",
-    education: ["MBBS - Trinity College Dublin", "Sports Medicine Residency - University of Pittsburgh", "Performance Medicine Fellowship - Australian Institute of Sport"],
-    workHistory: ["Senior Sports Medicine Physician at Sports Medicine Excellence (2018-present)", "Team Doctor for Mauritius Football Federation (2016-present)", "Sports Medicine Fellow at University of Pittsburgh (2013-2016)"],
-    certifications: ["Board Certified Sports Medicine", "Concussion Management Specialist", "Performance Enhancement Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: true,
-    phone: "+230 5678 9012",
-    age: 37,
-    verified: true,
-    patientComments: [
+    ],
+    
+    pastAppointments: [],
+    todaySchedule: {
+      date: "2024-12-15",
+      slots: [],
+      totalAppointments: 5,
+      availableSlots: 3
+    },
+    weeklySchedule: [],
+    prescriptions: [
       {
-        id: "PC079",
-        patientFirstName: "Marcus",
-        patientLastName: "Johnson",
-        patientProfileImage: "/images/patients/79.jpg",
-        comment: "Dr. O'Brien got me back to professional rugby quickly, excellent care.",
-        starRating: 5,
-        date: "2024-08-05",
-        time: "07:15"
-      },
-      {
-        id: "PC080",
-        patientFirstName: "Sophie",
-        patientLastName: "Dubois",
-        patientProfileImage: "/images/patients/80.jpg",
-        comment: "Professional sports injury treatment, very knowledgeable about athletes.",
-        starRating: 4,
-        date: "2024-07-28",
-        time: "18:30"
-      },
-      {
-        id: "PC081",
-        patientFirstName: "Karim",
-        patientLastName: "Benali",
-        patientProfileImage: "/images/patients/81.jpg",
-        comment: "Excellent concussion management, helped me return to football safely.",
-        starRating: 5,
-        date: "2024-07-13",
-        time: "16:00"
+        id: "RX003",
+        patientId: "PAT008",
+        patientName: "Emily Richards",
+        date: "2024-12-12",
+        time: "11:30",
+        diagnosis: "Generalized Anxiety Disorder, Major Depressive Disorder",
+        medicines: [
+          {
+            name: "Sertraline",
+            dosage: "50mg",
+            frequency: "Once daily",
+            duration: "3 months",
+            instructions: "Take in the morning with food",
+            quantity: 90
+          },
+          {
+            name: "Alprazolam",
+            dosage: "0.25mg",
+            frequency: "As needed for panic attacks",
+            duration: "1 month",
+            instructions: "Maximum 2 tablets per day",
+            quantity: 30
+          }
+        ],
+        notes: "Continue CBT. Monitor for side effects. Avoid alcohol.",
+        nextRefill: "2025-03-12",
+        isActive: true,
+        signatureUrl: "/signatures/isabella_costa_sign.png"
       }
-    ]
-  },
-  {
-    id: "DOC028",
-    firstName: "Rachel",
-    lastName: "Cohen",
-    email: "rachel.cohen@genetics.mu",
-    password: "GeneDoc789#",
-    profileImage: "/images/doctors/28.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjgiLCJpYXQiOjE2MzQyMzQ1NzY9.abc234",
-    category: "Specialist",
-    specialty: ["Medical Genetics"],
-    subSpecialties: ["Genetic Counseling", "Hereditary Diseases", "Prenatal Genetics"],
-    clinicAffiliation: "Genetics and Genomics Center",
-    rating: 4.9,
-    reviews: 98,
-    experience: "12 years",
-    location: "Rose Hill",
-    address: "Genetics and Genomics Center, Rose Hill",
-    languages: ["English", "Hebrew", "French"],
-    consultationFee: 3200,
-    videoConsultationFee: 2700,
-    availability: "Mon-Thu, 9:00 AM - 5:00 PM",
-    nextAvailable: "Wednesday, 10:30 AM",
-    bio: "Medical geneticist specializing in hereditary disorders, genetic counseling, and personalized medicine.",
-    education: ["MD - Tel Aviv University", "Medical Genetics Residency - Johns Hopkins", "Genetic Counseling Certificate - Sarah Lawrence College"],
-    workHistory: ["Senior Medical Geneticist at Genetics and Genomics Center (2018-present)", "Consultant at Fortis Hospital (2013-2018)", "Genetics Fellow at Johns Hopkins (2011-2013)"],
-    certifications: ["Board Certified Medical Geneticist", "Genetic Counselor", "Molecular Genetics Specialist"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5789 0123",
-    age: 40,
-    verified: true,
-    patientComments: [
+    ],
+    prescriptionTemplates: [
       {
-        id: "PC082",
-        patientFirstName: "David",
-        patientLastName: "Goldberg",
-        patientProfileImage: "/images/patients/82.jpg",
-        comment: "Dr. Cohen provided excellent genetic counseling, very informative.",
-        starRating: 5,
-        date: "2024-08-04",
-        time: "09:45"
+        id: "TEMP010",
+        name: "Anxiety Starter Pack",
+        condition: "Generalized Anxiety Disorder",
+        medicines: ["Sertraline 25mg", "Propranolol 10mg PRN", "Melatonin 3mg"]
       },
       {
-        id: "PC083",
-        patientFirstName: "Miriam",
-        patientLastName: "Levy",
-        patientProfileImage: "/images/patients/83.jpg",
-        comment: "Professional prenatal genetic testing, very reassuring and thorough.",
-        starRating: 5,
-        date: "2024-07-27",
-        time: "11:20"
+        id: "TEMP011",
+        name: "Depression Management",
+        condition: "Major Depressive Disorder",
+        medicines: ["Escitalopram 10mg", "Bupropion 150mg", "Vitamin D 2000IU"]
       },
       {
-        id: "PC084",
-        patientFirstName: "Omar",
-        patientLastName: "Khalil",
-        patientProfileImage: "/images/patients/84.jpg",
-        comment: "Excellent hereditary disease evaluation, helped understand family risks.",
-        starRating: 4,
-        date: "2024-07-12",
-        time: "14:15"
+        id: "TEMP012",
+        name: "PTSD Protocol",
+        condition: "Post-Traumatic Stress Disorder",
+        medicines: ["Prazosin 1mg", "Sertraline 50mg", "Trazodone 50mg"]
       }
-    ]
-  },
-  {
-    id: "DOC029",
-    firstName: "Kevin",
-    lastName: "Zhang",
-    email: "kevin.zhang@nuclear.mu",
-    password: "NuclearDoc321$",
-    profileImage: "/images/doctors/29.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMjkiLCJpYXQiOjE2MzQyMzQ1NzY9.def567",
-    category: "Specialist",
-    specialty: ["Nuclear Medicine"],
-    subSpecialties: ["PET Scans", "Radioactive Therapy", "Thyroid Imaging"],
-    clinicAffiliation: "Nuclear Medicine Institute",
-    rating: 4.6,
-    reviews: 87,
-    experience: "14 years",
-    location: "Vacoas",
-    address: "Nuclear Medicine Institute, Vacoas",
-    languages: ["English", "Mandarin", "French"],
-    consultationFee: 2900,
-    videoConsultationFee: 2400,
-    availability: "Mon-Fri, 8:00 AM - 5:00 PM",
-    nextAvailable: "Thursday, 2:45 PM",
-    bio: "Nuclear medicine physician specializing in molecular imaging and targeted radiotherapy treatments.",
-    education: ["MD - Beijing Medical University", "Nuclear Medicine Residency - Mayo Clinic", "Molecular Imaging Fellowship - Stanford"],
-    workHistory: ["Senior Nuclear Medicine Physician at Nuclear Medicine Institute (2017-present)", "Consultant at Apollo Bramwell (2012-2017)", "Nuclear Medicine Fellow at Mayo Clinic (2010-2012)"],
-    certifications: ["Board Certified Nuclear Medicine", "PET/CT Specialist", "Radiopharmacy Certified"],
-    consultationTypes: ["In-Person", "Video Consultation"],
-    emergencyAvailable: false,
-    phone: "+230 5890 1234",
-    age: 42,
-    verified: true,
-    patientComments: [
-      {
-        id: "PC085",
-        patientFirstName: "Linda",
-        patientLastName: "Wang",
-        patientProfileImage: "/images/patients/85.jpg",
-        comment: "Dr. Zhang performed excellent PET scan, detected cancer early.",
-        starRating: 5,
-        date: "2024-08-03",
-        time: "08:20"
+    ],
+    
+    billing: {
+      receiveMethods: [
+        {
+          id: "PAY006",
+          type: "credit_card",
+          cardNumber: "****7890",
+          cardHolder: "Dr. Isabella Costa",
+          expiryDate: "03/27",
+          isDefault: true,
+          addedDate: "2024-01-30"
+        },
+        {
+          id: "PAY007",
+          type: "mcb_juice",
+          cardNumber: "****1234",
+          cardHolder: "Dr. Isabella Costa",
+          expiryDate: "11/26",
+          isDefault: false,
+          addedDate: "2024-02-15"
+        }
+      ],
+      bankAccounts: [
+        {
+          id: "BANK005",
+          bankName: "AfrAsia Bank",
+          accountNumber: "000567890123",
+          accountHolder: "Dr. Isabella Costa",
+          swift: "AFBLMUMU",
+          isDefault: true,
+          addedDate: "2024-01-30"
+        }
+      ],
+      transactions: [],
+      earnings: {
+        today: 12000,
+        thisWeek: 60000,
+        thisMonth: 240000,
+        thisYear: 3000000,
+        totalEarnings: 9500000,
+        pendingPayouts: 45000,
+        averageConsultationFee: 2750
       },
-      {
-        id: "PC086",
-        patientFirstName: "Robert",
-        patientLastName: "Davis",
-        patientProfileImage: "/images/patients/86.jpg",
-        comment: "Professional nuclear medicine treatment, very precise and effective.",
-        starRating: 4,
-        date: "2024-07-26",
-        time: "13:45"
+      taxId: "TAX-MU-567890",
+      taxRate: 15
+    },
+    
+    subscription: {
+      type: "premium",
+      planName: "HealthWyz Premium Plus",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      features: [
+        "Unlimited consultations",
+        "Video consultation platform",
+        "Electronic prescriptions",
+        "Patient management system",
+        "Automated appointment reminders",
+        "Revenue analytics dashboard",
+        "24/7 technical support",
+        "Custom branding"
+      ],
+      price: 5000,
+      billingCycle: "monthly",
+      autoRenew: true,
+      paymentMethod: {
+        id: "PAY006",
+        type: "credit_card",
+        cardNumber: "****7890",
+        cardHolder: "Dr. Isabella Costa",
+        expiryDate: "03/27",
+        isDefault: true,
+        addedDate: "2024-01-30"
       },
-      {
-        id: "PC087",
-        patientFirstName: "Fatima",
-        patientLastName: "Osman",
-        patientProfileImage: "/images/patients/87.jpg",
-        comment: "Excellent thyroid imaging and treatment, very knowledgeable doctor.",
-        starRating: 5,
-        date: "2024-07-11",
-        time: "15:30"
+      nextBillingDate: "2025-01-01",
+      usage: {
+        consultations: { used: 156, limit: -1 },
+        videoConsultations: { used: 89, limit: -1 },
+        storage: { used: 18.3, limit: 100 },
+        smsNotifications: { used: 234, limit: 1000 }
       }
-    ]
-  },
-  {
-    id: "DOC030",
-    firstName: "Zoe",
-    lastName: "Williams",
-    email: "zoe.williams@familymedicine.mu",
-    password: "FamilyDoc456!",
-    profileImage: "/images/doctors/30.jpg",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJET0MwMzAiLCJpYXQiOjE2MzQyMzQ1NzY9.ghi890",
-    category: "General Practice",
-    specialty: ["Family Medicine"],
-    subSpecialties: ["Preventive Care", "Chronic Disease Management", "Women's Health"],
-    clinicAffiliation: "Family Health Medical Center",
-    rating: 4.8,
-    reviews: 267,
-    experience: "10 years",
-    location: "Beau Bassin",
-    address: "Family Health Medical Center, Beau Bassin",
-    languages: ["English", "French", "Creole"],
-    consultationFee: 2000,
-    videoConsultationFee: 1600,
-    availability: "Mon-Sat, 8:00 AM - 8:00 PM",
-    nextAvailable: "Tomorrow, 8:30 AM",
-    bio: "Family medicine physician providing comprehensive primary care for patients of all ages with focus on preventive medicine.",
-    education: ["MBBS - University of Mauritius", "Family Medicine Residency - McGill University", "Women's Health Certificate - Harvard Medical"],
-    workHistory: ["Senior Family Physician at Family Health Medical Center (2019-present)", "General Practitioner at Wellkin Hospital (2014-2019)", "Family Medicine Resident at McGill (2012-2014)"],
-    certifications: ["Board Certified Family Medicine", "Preventive Medicine Specialist", "Women's Health Certified"],
-    consultationTypes: ["In-Person", "Video Consultation", "Home Visit"],
-    emergencyAvailable: true,
-    phone: "+230 5901 2345",
-    age: 36,
-    verified: true,
-    patientComments: [
+    },
+    
+    notificationSettings: {
+      appointments: true,
+      newPatients: true,
+      prescriptionRefills: true,
+      labResults: false,
+      emergencyAlerts: true,
+      chatMessages: true,
+      paymentReceived: true,
+      reviewsReceived: true,
+      systemUpdates: false,
+      marketingEmails: false,
+      notificationTime: "10:00",
+      emailNotifications: true,
+      smsNotifications: true,
+      pushNotifications: true,
+      soundEnabled: false,
+      vibrationEnabled: false
+    },
+    
+    privacySettings: {
+      profileVisibility: "public",
+      showContactInfo: true,
+      showEducation: true,
+      showExperience: true,
+      allowReviews: true,
+      shareDataForResearch: true,
+      twoFactorAuth: true,
+      sessionTimeout: 60
+    },
+    
+    languageSettings: {
+      preferredLanguage: "en",
+      dateFormat: "DD/MM/YYYY",
+      timeFormat: "12h",
+      timezone: "Indian/Mauritius",
+      currency: "MUR"
+    },
+    
+    statistics: {
+      totalPatients: 156,
+      activePatients: 78,
+      newPatientsThisMonth: 6,
+      totalConsultations: 1890,
+      consultationsThisMonth: 89,
+      videoConsultations: 456,
+      emergencyConsultations: 23,
+      averageConsultationDuration: 48,
+      totalPrescriptions: 678,
+      totalRevenue: 9500000,
+      topConditionsTreated: [
+        { condition: "Anxiety Disorders", count: 67 },
+        { condition: "Depression", count: 54 },
+        { condition: "PTSD", count: 23 },
+        { condition: "Bipolar Disorder", count: 8 },
+        { condition: "OCD", count: 4 }
+      ],
+      patientDemographics: {
+        ageGroups: [
+          { range: "18-30", count: 45 },
+          { range: "31-45", count: 56 },
+          { range: "46-60", count: 34 },
+          { range: "61+", count: 21 }
+        ],
+        gender: { male: 67, female: 89, other: 0 }
+      }
+    },
+    
+    registrationDate: "2017-01-15",
+    lastLogin: "2024-12-15 09:45:00",
+    lastPasswordChange: "2024-07-20",
+    accountStatus: "active",
+    loginHistory: [
       {
-        id: "PC088",
-        patientFirstName: "Michelle",
-        patientLastName: "Roberts",
-        patientProfileImage: "/images/patients/88.jpg",
-        comment: "Dr. Williams is our family doctor, excellent comprehensive care for everyone.",
-        starRating: 5,
-        date: "2024-08-02",
-        time: "08:45"
+        date: "2024-12-15",
+        time: "09:45",
+        device: "iPad Pro",
+        location: "Rose Hill, Mauritius",
+        ipAddress: "196.192.140.67"
       },
       {
-        id: "PC089",
-        patientFirstName: "Thomas",
-        patientLastName: "Anderson",
-        patientProfileImage: "/images/patients/89.jpg",
-        comment: "Professional preventive care, helped manage my diabetes effectively.",
-        starRating: 4,
-        date: "2024-07-25",
-        time: "12:30"
+        date: "2024-12-14",
+        time: "16:30",
+        device: "iPhone 13 Pro",
+        location: "Rose Hill, Mauritius",
+        ipAddress: "196.192.140.67"
       },
       {
-        id: "PC090",
-        patientFirstName: "Nadia",
-        patientLastName: "Karim",
-        patientProfileImage: "/images/patients/90.jpg",
-        comment: "Excellent women's health care, very caring and professional doctor.",
-        starRating: 5,
-        date: "2024-07-10",
-        time: "17:15"
+        date: "2024-12-13",
+        time: "10:00",
+        device: "MacBook Air",
+        location: "Rose Hill, Mauritius",
+        ipAddress: "196.192.140.67"
       }
     ]
   }
