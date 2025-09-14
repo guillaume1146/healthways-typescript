@@ -31,8 +31,6 @@ import {
   FaChevronRight
 } from 'react-icons/fa'
 
-/* ---------------- Types ---------------- */
-
 type UserType = 'doctor' | 'patient'
 
 type AppointmentType = 'video' | 'in-person' | 'home-visit'
@@ -42,8 +40,8 @@ interface Appointment {
   id: string
   patientId: string
   patientName: string
-  date: string // ISO
-  time: string // HH:mm or similar
+  date: string
+  time: string
   type: AppointmentType
   status?: AppointmentStatus
   reason: string
@@ -89,11 +87,8 @@ interface ConsultationHistoryEntry {
   timestamp: string
 }
 
-/* ---------------- Component ---------------- */
-
 const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
   const router = useRouter()
-  // Assume your useSocket hook returns a socket.io-client Socket (or null)
   const { socket } = useSocket() as { socket: Socket | null }
 
   const [isInCall, setIsInCall] = useState(false)
@@ -116,17 +111,14 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map())
-  const streamCleanupRef = useRef<() => void>(() => {})
   const callIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Doctor info
   const doctorInfo = {
     id: doctorData?.id || '',
     name: `${doctorData?.firstName || ''} ${doctorData?.lastName || ''}`.trim(),
     type: 'doctor' as UserType
   }
 
-  // WebRTC hook (no casts; use the hook’s real types)
   const webRTC = useWebRTC({
     socket,
     roomId,
@@ -137,10 +129,10 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
   })
 
   const {
-    peers, // Map<string, { peer: SimplePeer; socketId; userId; userName; userType }>
-    remoteStreams, // Map<string, MediaStream>
-    chatMessages, // ChatMessage[]
-    roomParticipants, // any[] from the hook; cast when using
+    peers,
+    remoteStreams,
+    chatMessages,
+    roomParticipants,
     isScreenSharing,
     sendChatMessage,
     toggleVideo: toggleVideoWebRTC,
@@ -151,7 +143,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
 
   const participants = roomParticipants as unknown as Participant[]
 
-  // Dedupe outgoing chat echoes (same sender+content within 1s)
   const dedupedChatMessages = useMemo(() => {
     return chatMessages.filter((msg, idx, arr) => {
       const thisTime = new Date(msg.timestamp).getTime()
@@ -165,11 +156,9 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     })
   }, [chatMessages])
 
-  // Upcoming video appointments
   const videoAppointments: Appointment[] =
     doctorData?.upcomingAppointments?.filter((apt) => apt.type === 'video') ?? []
 
-  // Auto-pick first upcoming appointment
   useEffect(() => {
     if (!selectedAppointment && videoAppointments.length > 0) {
       setSelectedAppointment(videoAppointments[0])
@@ -179,7 +168,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     }
   }, [videoAppointments, selectedAppointment])
 
-  // Cleanup media stream
   const cleanupMediaStream = () => {
     if (localStream) {
       localStream.getTracks().forEach((track) => {
@@ -189,72 +177,13 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
       setLocalStream(null)
     }
   }
-  streamCleanupRef.current = cleanupMediaStream
 
-  // Init media on call start
-  useEffect(() => {
-    if (!isInCall || !doctorInfo.id) return
-    let mounted = true
-    let currentStream: MediaStream | null = null
-
-    const initMediaStream = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices()
-        const hasVideo = devices.some((d) => d.kind === 'videoinput')
-        const hasAudio = devices.some((d) => d.kind === 'audioinput')
-        if (!hasVideo) throw new Error('No camera found. Please connect a camera and refresh.')
-        if (!hasAudio) throw new Error('No microphone found. Please connect a microphone and refresh.')
-
-        if (localStream) localStream.getTracks().forEach((t) => t.stop())
-        await new Promise((r) => setTimeout(r, 500))
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-        })
-        if (mounted) {
-          currentStream = stream
-          setLocalStream(stream)
-          setMediaError('')
-        } else {
-          stream.getTracks().forEach((t) => t.stop())
-        }
-      } catch (error) {
-        let errorMessage = 'Media access error'
-        if (typeof error === 'object' && error) {
-          const err = error as { name?: string; message?: string }
-          errorMessage =
-            err.name === 'NotAllowedError'
-              ? 'Camera and microphone access was denied. Please allow access and refresh.'
-              : err.name === 'NotFoundError'
-              ? 'Camera or microphone not found. Please check your devices and refresh.'
-              : `Media access error: ${err.message ?? ''}`
-        }
-        setMediaError(errorMessage)
-        alert(errorMessage)
-      }
-    }
-
-    void initMediaStream()
-    return () => {
-      mounted = false
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => {
-          track.stop()
-          track.enabled = false
-        })
-      }
-    }
-  }, [isInCall, doctorInfo.id, localStream])
-
-  // Bind local stream to video
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream
     }
   }, [localStream])
 
-  // Bind remote streams
   useEffect(() => {
     remoteStreams.forEach((stream, socketId) => {
       const videoElement = remoteVideoRefs.current.get(socketId)
@@ -262,7 +191,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     })
   }, [remoteStreams])
 
-  // Call timer
   useEffect(() => {
     if (isInCall) {
       callIntervalRef.current = setInterval(() => {
@@ -277,7 +205,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     }
   }, [isInCall])
 
-  // Cleanup on unmount
   useEffect(() => {
     const handleBeforeUnload = () => {
       cleanupMediaStream()
@@ -295,26 +222,38 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
       : `${m}:${s.toString().padStart(2, '0')}`
   }
 
-  const startCall = (appointment: Appointment) => {
+  const startCall = async (appointment: Appointment) => {
     const appointmentRoomId = appointment.roomId
     if (!appointmentRoomId) {
       alert('No room ID found for this appointment')
       return
     }
-    setRoomId(appointmentRoomId)
-    setSelectedAppointment(appointment)
-    setIsInCall(true)
-    setConnectionQuality('excellent')
-
-    const consultationData = {
-      patientId: appointment.patientId,
-      patientName: appointment.patientName,
-      doctorId: doctorInfo.id,
-      doctorName: doctorInfo.name,
-      roomId: appointmentRoomId,
-      startTime: new Date().toISOString()
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      })
+      
+      setLocalStream(stream)
+      setRoomId(appointmentRoomId)
+      setSelectedAppointment(appointment)
+      setIsInCall(true)
+      setConnectionQuality('excellent')
+      
+      const consultationData = {
+        patientId: appointment.patientId,
+        patientName: appointment.patientName,
+        doctorId: doctorInfo.id,
+        doctorName: doctorInfo.name,
+        roomId: appointmentRoomId,
+        startTime: new Date().toISOString()
+      }
+      localStorage.setItem(`consultation_${appointmentRoomId}`, JSON.stringify(consultationData))
+    } catch (error) {
+      console.error('Failed to initialize media:', error)
+      alert('Failed to access camera/microphone. Please check permissions.')
     }
-    localStorage.setItem(`consultation_${appointmentRoomId}`, JSON.stringify(consultationData))
   }
 
   const handleEndCall = () => {
@@ -335,7 +274,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     }
 
     cleanupMediaStream()
-    // Destroy all peer connections (peers is a Map from the hook)
     peers.forEach((pc) => {
       try {
         if (pc?.peer && typeof pc.peer.destroy === 'function') {
@@ -344,7 +282,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
           ;(pc.peer as { close?: () => void }).close?.()
         }
       } catch {
-        // ignore
       }
     })
     if (socket) socket.emit('leave-room')
@@ -429,11 +366,9 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     }
   }
 
-  /* ---------- NOT IN CALL ---------- */
   if (!isInCall) {
     return (
       <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
@@ -452,10 +387,8 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
           </div>
         </div>
 
-        {/* Waiting Room */}
         {selectedAppointment ? (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -476,7 +409,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
               </div>
             </div>
 
-            {/* Waiting Room Body */}
             <div className="relative bg-gray-900 h-[600px] flex items-center justify-center py-6">
               <div className="text-center text-white flex flex-col items-center justify-center">
                 <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6">
@@ -489,11 +421,9 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
                 </p>
                 <p className="text-sm text-blue-200 mb-8">Room ID: {selectedAppointment.roomId}</p>
 
-                {/* Pre-call setup */}
                 <div className="bg-black/30 rounded-xl p-6 w-full max-w-md">
                   <h4 className="text-lg font-semibold mb-4">Check Your Setup</h4>
                   <div className="space-y-3">
-                    {/* Camera */}
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Camera</span>
                       <div className="flex items-center space-x-2">
@@ -508,7 +438,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
                         </button>
                       </div>
                     </div>
-                    {/* Microphone */}
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Microphone</span>
                       <div className="flex items-center space-x-2">
@@ -525,7 +454,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="mt-6 flex items-center justify-center gap-3">
                     <button
                       onClick={() => {
@@ -544,7 +472,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
           </div>
         ) : null}
 
-        {/* Upcoming Video Appointments */}
         <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:py-6 shadow-lg border border-gray-200">
           <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Upcoming Video Consultations</h3>
 
@@ -598,7 +525,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     )
   }
 
-  /* ---------- MEDIA ERROR ---------- */
   if (mediaError) {
     return (
       <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
@@ -622,10 +548,8 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
     )
   }
 
-  /* ---------- IN CALL ---------- */
   return (
     <div className="fixed inset-0 bg-gray-900 flex flex-col z-50">
-      {/* Header */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 sm:px-6 py-3 flex items-center justify-between border-b border-gray-700">
         <div className="flex items-center gap-3">
           <button onClick={() => setShowSidebar(!showSidebar)} className="text-gray-400 hover:text-white transition lg:hidden">
@@ -670,12 +594,9 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Video Area */}
         <div className="flex-1 relative bg-gray-900 p-2 sm:p-4">
           <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4">
-            {/* Remote Videos */}
             {Array.from(remoteStreams.entries()).map(([remoteSocketId]) => {
               const participant = participants.find((p) => p.socketId === remoteSocketId)
               return (
@@ -698,7 +619,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
               )
             })}
 
-            {/* Local Video (Doctor) */}
             <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden">
               <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
               <div className="absolute top-3 left-3 bg-black/60 px-3 py-1 rounded-full">
@@ -715,7 +635,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
             </div>
           </div>
 
-          {/* Patient Info Overlay */}
           {selectedAppointment && (
             <div className="absolute bottom-4 left-4 bg-gradient-to-r from-gray-800/90 to-gray-900/90 rounded-lg p-3 max-w-xs">
               <div className="text-white text-xs space-y-1">
@@ -733,10 +652,8 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
           )}
         </div>
 
-        {/* Sidebar */}
         {showSidebar && (
           <div className="w-80 bg-gradient-to-br from-gray-800 to-gray-900 border-l border-gray-700 flex flex-col">
-            {/* Tabs */}
             <div className="flex border-b border-gray-700">
               <button
                 onClick={() => {
@@ -764,7 +681,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
               </button>
             </div>
 
-            {/* Chat */}
             {showChat && (
               <div className="flex-1 flex flex-col">
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -802,7 +718,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
               </div>
             )}
 
-            {/* Notes */}
             {showNotes && (
               <div className="flex-1 flex flex-col">
                 <div className="flex-1 p-4">
@@ -836,7 +751,6 @@ const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
         )}
       </div>
 
-      {/* Control Bar */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-700">
         <div className="flex items-center justify-center gap-2 sm:gap-4">
           <button
