@@ -1,6 +1,6 @@
 'use client'
 
-import { FaBrain, FaRocket, FaExclamationTriangle, FaLightbulb } from 'react-icons/fa'
+import { FaBrain } from 'react-icons/fa'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -37,10 +37,6 @@ export default function PredictiveAnalytics({ dateRange, region }: { dateRange: 
     { metric: 'Provider Network', current: 38421, predicted: 45000, confidence: 85, timeframe: '3 months', factors: ['Recruitment efforts', 'Incentives'] }
   ];
 
-  const insights = [
-    { type: 'opportunity', title: `High Growth in ${region === 'all' ? 'Kenya' : region}`, description: 'ML models predict 45% user growth over next quarter based on market conditions.', action: 'Increase marketing budget.', impact: 'high' },
-    { type: 'warning', title: 'Potential Server Capacity Issues', description: 'Server capacity may reach 85% with predicted growth.', action: 'Scale infrastructure preemptively.', impact: 'medium' },
-  ];
 
   const growthData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -50,21 +46,6 @@ export default function PredictiveAnalytics({ dateRange, region }: { dateRange: 
     ]
   };
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'opportunity': return <FaRocket className="text-green-600" />;
-      case 'warning': return <FaExclamationTriangle className="text-yellow-600" />;
-      default: return <FaLightbulb className="text-blue-600" />;
-    }
-  };
-  
-  const getInsightBgColor = (type: string) => {
-    switch (type) {
-      case 'opportunity': return 'bg-green-100';
-      case 'warning': return 'bg-yellow-100';
-      default: return 'bg-blue-100';
-    }
-  };
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg">

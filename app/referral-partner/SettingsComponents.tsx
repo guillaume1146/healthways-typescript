@@ -1,8 +1,5 @@
 import React from 'react'
 import { 
-  FaUserEdit, 
-  FaCreditCard, 
-  FaBell, 
   FaFileUpload,
   FaSave,
   FaToggleOn,

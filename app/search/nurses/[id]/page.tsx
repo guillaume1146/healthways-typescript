@@ -4,13 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { nursesData, type Nurse } from '@/lib/data'
+import { nursesData } from '@/lib/data'
 import { 
-  FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
+  FaArrowLeft, FaStar, FaMapMarkerAlt, FaCalendarAlt, 
   FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
-  FaCertificate, FaGraduationCap, FaBriefcase, FaAward, FaHeart,
-  FaUserNurse, FaDollarSign, FaExclamationCircle, FaComments,
-  FaStethoscope, FaHospital, FaShieldAlt, FaUser, FaCalendar
+  FaCertificate, FaGraduationCap, FaBriefcase,
+  FaUserNurse,  FaComments, FaHospital, FaShieldAlt,
 } from 'react-icons/fa'
 
 export default function NurseDetailsPage() {

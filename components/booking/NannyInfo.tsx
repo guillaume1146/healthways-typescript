@@ -1,6 +1,6 @@
 // ===== NannyInfo.tsx =====
 import Image from 'next/image'
-import { FaStar, FaMapMarkerAlt, FaUsers, FaLanguage, FaCertificate, FaBaby, FaClock } from 'react-icons/fa'
+import { FaStar, FaMapMarkerAlt, FaUsers, FaLanguage, FaCertificate, FaClock } from 'react-icons/fa'
 import type { Nanny } from '@/lib/data'
 
 interface NannyInfoProps {

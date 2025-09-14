@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { 
-  FaStore, FaClipboardList, FaDollarSign, FaReceipt, FaChartLine, 
+  FaClipboardList, FaDollarSign, FaReceipt, 
   FaBell, FaTruck, FaEdit, FaClock, FaFileExport,
-  FaCheckCircle, FaSpinner, FaBoxOpen , FaStar
+  FaCheckCircle, FaBoxOpen , FaStar
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 

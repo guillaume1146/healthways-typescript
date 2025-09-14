@@ -55,11 +55,9 @@ interface Star {
 const HeroSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const { config, loading } = useAppConfig()
-  // State for the floating stars
+  const { config } = useAppConfig()
   const [stars, setStars] = useState<Star[]>([]);
 
-  // useEffect to generate random star properties only on the client-side
   useEffect(() => {
     const generatedStars = [...Array(15)].map((_, i) => ({
       id: i,
@@ -69,7 +67,7 @@ const HeroSection: React.FC = () => {
       delay: Math.random() * 5,
     }));
     setStars(generatedStars);
-  }, []); // Empty dependency array ensures this runs only once after mount
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

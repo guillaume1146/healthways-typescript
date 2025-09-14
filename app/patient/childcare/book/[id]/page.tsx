@@ -1,23 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { 
   FaArrowLeft,
   FaMapMarkerAlt,
-  FaVideo,
-  FaUser,
   FaCheck,
-  FaCreditCard,
   FaInfoCircle,
   FaStar,
   FaPhone,
   FaCalendarAlt,
   FaClock,
   FaShieldAlt,
-  FaBuilding,
   FaWallet,
-  FaFileInvoiceDollar,
   FaTicketAlt,
   FaDownload,
   FaPrint,

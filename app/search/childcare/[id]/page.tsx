@@ -7,10 +7,10 @@ import { useParams } from 'next/navigation'
 import { nanniesData, type Nanny } from '@/lib/data'
 import { 
   FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
-  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
-  FaCertificate, FaGraduationCap, FaBriefcase, FaAward, FaHeart,
-  FaBaby, FaDollarSign, FaExclamationCircle, FaComments,
-  FaUsers, FaShieldAlt, FaUser, FaCalendar, FaChild
+  FaPhone, FaEnvelope,  FaHome, FaLanguage, FaCheckCircle, 
+  FaCertificate, FaGraduationCap, FaBriefcase,  FaHeart,
+  FaBaby, FaExclamationCircle, FaComments,
+  FaUsers, FaShieldAlt
 } from 'react-icons/fa'
 
 export default function NannyDetailsPage() {

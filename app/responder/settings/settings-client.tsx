@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
     FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
-    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, 
-    FaUniversity, FaSync, FaClock, FaRocket, FaExclamationCircle
+    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff,  FaShieldAlt, 
+    FaUniversity, FaSync, FaRocket, FaExclamationCircle
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 

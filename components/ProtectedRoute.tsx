@@ -16,6 +16,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [userType, setUserType] = useState<string | null>(null)
+  console.log(userType)
   const router = useRouter()
 
   useEffect(() => {

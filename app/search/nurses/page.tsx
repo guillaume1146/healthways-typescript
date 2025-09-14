@@ -5,36 +5,9 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { nursesData, type Nurse } from '@/lib/data'
 import { 
-  FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
-  FaHeart, FaBrain, FaBaby, FaBone, FaEye, FaTooth, FaStethoscope,
-  FaFilter, FaCertificate, FaShieldAlt, FaPhone, FaEnvelope,
+  FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock,  FaShieldAlt,
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
-  FaGraduationCap, FaAward, FaDollarSign
 } from 'react-icons/fa'
-
-// Specialization icons mapping
-const specializationIcons = {
-  "Elderly Care": FaHeart,
-  "Post-Surgery Care": FaStethoscope,
-  "Child Care": FaBaby,
-  "ICU Care": FaHeart,
-  "Mental Health": FaBrain,
-  "Cancer Care": FaHeart,
-  "Cardiac Care": FaHeart,
-  "Labor & Delivery": FaBaby,
-  "Rehabilitation": FaBone,
-  "Emergency Care": FaExclamationCircle,
-  "Renal Care": FaStethoscope,
-  "Orthopedic Care": FaBone,
-  "Surgical Care": FaStethoscope,
-  "Respiratory Care": FaStethoscope,
-  "Dermatological Care": FaUserNurse,
-  "Neurological Care": FaBrain,
-  "Diabetes Care": FaStethoscope,
-  "Eye Care": FaEye,
-  "Urological Care": FaStethoscope,
-  "Digestive Care": FaStethoscope
-}
 
 // AI search simulation function using centralized data
 const aiSearchNurses = (query: string, specialization: string) => {

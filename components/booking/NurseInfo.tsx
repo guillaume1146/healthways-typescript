@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { FaStar, FaMapMarkerAlt, FaHospital, FaLanguage, FaCertificate, FaUserNurse } from 'react-icons/fa'
+import { FaStar, FaMapMarkerAlt, FaHospital, FaLanguage, FaCertificate } from 'react-icons/fa'
 import type { Nurse } from '@/lib/data'
 
 interface NurseInfoProps {

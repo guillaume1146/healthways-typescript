@@ -7,9 +7,6 @@ import Link from "next/link"
 import {
   FaArrowLeft,
   FaMapMarkerAlt,
-  FaPhone,
-  FaCheck,
-  FaWallet,
   FaExclamationTriangle,
   FaAmbulance,
   FaLocationArrow,
@@ -20,8 +17,6 @@ import {
   FaPhoneAlt,
   FaClock,
   FaDownload,
-  FaPrint,
-  FaCreditCard,
   FaMobileAlt,
   FaUserFriends,
   FaTimes,

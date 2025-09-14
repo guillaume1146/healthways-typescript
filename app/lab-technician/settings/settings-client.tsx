@@ -2,10 +2,9 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { 
-    FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, FaTruck,
-    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, 
-    FaUniversity, FaSync, FaClock, FaRocket, FaExclamationCircle, FaStore, FaUserMd
+import {  FaCreditCard, FaFileUpload, FaSave, FaTrash, FaTruck,
+    FaCheckCircle,  FaToggleOn, FaToggleOff,
+    FaUniversity,  FaClock, FaStore, FaUserMd
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 

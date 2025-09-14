@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Image from 'next/image'
-import { FaShieldAlt, FaWallet, FaCreditCard, FaLock, FaInfoCircle } from 'react-icons/fa'
+import { FaShieldAlt, FaWallet, FaCreditCard, FaLock } from 'react-icons/fa'
 import type { NannyBookingData, PaymentMethod, CreditCardData } from '@/app/booking/nannies/[id]/page'
 
 interface NannyPaymentOptionsProps {

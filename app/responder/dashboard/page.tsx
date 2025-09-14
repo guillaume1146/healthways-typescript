@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { 
-  FaExclamationTriangle, FaCalendarCheck, FaDollarSign, FaRoute, FaChartLine, 
-  FaBell, FaClipboardList, FaEdit, FaClock, FaFileExport,
-  FaCheckCircle, FaSpinner, FaTimesCircle, FaBroadcastTower, FaLocationArrow, FaUserInjured, FaPhoneAlt
+import {  FaDollarSign, FaClipboardList, FaEdit, FaClock, 
+   FaBroadcastTower, FaLocationArrow, FaUserInjured 
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 

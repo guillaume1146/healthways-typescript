@@ -83,7 +83,6 @@ export const getProfileById = (id: string): HealthcareProfile | null => {
  * Advanced search function with multiple filters
  */
 export const searchProfiles = (
-  query: string = '', 
   filters: SearchFilters = {}
 ): SearchResult => {
   let profiles = getAllProfiles();

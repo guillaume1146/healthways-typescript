@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react' 
 import { Patient } from '@/lib/data/patients'
 import { 
   FaCalendarAlt, 
@@ -7,13 +7,8 @@ import {
   FaMapMarkerAlt, 
   FaPlus, 
   FaStethoscope,
-  FaPhoneAlt,
   FaComments,
   FaFileAlt,
-  FaHeart,
-  FaEye,
-  FaStar,
-  FaFilter,
   FaSearch,
   FaChevronDown,
   FaChevronUp,
@@ -21,15 +16,42 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaTimesCircle,
-  FaNotesMedical,
   FaPrescriptionBottle,
-  FaDownload
+  FaDownload,
+  FaEye,
+  FaFilter
 } from 'react-icons/fa'
-import Link from 'next/link'
+
+/** Shared appointment fields */
+type AppointmentBase = {
+  id: string
+  doctorId: string
+  doctorName: string
+  specialty: string
+  date: string          // ISO string or date-like
+  time: string
+  duration: number
+  status: 'upcoming' | 'completed' | 'cancelled'
+  reason: string
+  notes?: string
+}
+
+/** Variants */
+type VideoAppointment = AppointmentBase & {
+  type: 'video'
+  roomId: string
+}
+
+type InPersonAppointment = AppointmentBase & {
+  type: 'in-person'
+  location: string
+}
+
+type Appointment = VideoAppointment | InPersonAppointment
 
 interface Props {
   patientData: Patient
-  onVideoCall: () => void
+  onVideoCall: (appointment?: VideoAppointment) => void
 }
 
 interface FilterOptions {
@@ -48,12 +70,10 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [expandedAppointment, setExpandedAppointment] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
 
-  const allAppointments = [
-    ...(patientData.upcomingAppointments || []),
-    ...(patientData.pastAppointments || [])
-  ]
-
-  console.log('All Appointments:', allAppointments)
+  // If your Patient type already has these correctly typed, remove the `as` assertions below.
+  const upcoming = (patientData.upcomingAppointments ?? []) as Appointment[]
+  const past = (patientData.pastAppointments ?? []) as Appointment[]
+  const allAppointments: Appointment[] = [...upcoming, ...past]
 
   // Get unique specialties
   const specialties = Array.from(new Set(allAppointments.map(apt => apt.specialty)))
@@ -72,7 +92,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     return matchesSearch && matchesStatus && matchesType && matchesSpecialty
   })
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: Appointment['status']) => {
     switch (status) {
       case 'upcoming': return 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200'
       case 'completed': return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200'
@@ -81,12 +101,22 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: Appointment['status']) => {
     switch (status) {
       case 'upcoming': return <FaClock className="mr-1" />
       case 'completed': return <FaCheckCircle className="mr-1" />
       case 'cancelled': return <FaTimesCircle className="mr-1" />
       default: return <FaExclamationCircle className="mr-1" />
+    }
+  }
+
+  const handleVideoCall = (appointment: VideoAppointment) => {
+    // Store the appointment data in localStorage for the video consultation
+    if (appointment.roomId) {
+      localStorage.setItem(`current_video_appointment`, JSON.stringify(appointment))
+      onVideoCall(appointment)
+    } else {
+      alert('This appointment does not have a room ID for video consultation')
     }
   }
 
@@ -241,6 +271,9 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                           <>
                             <FaVideo className="text-purple-500" />
                             <span>Video Call</span>
+                            {appointment.roomId && (
+                              <span className="text-xs text-gray-500 ml-1">(Room: {appointment.roomId})</span>
+                            )}
                           </>
                         ) : (
                           <>
@@ -254,13 +287,14 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 </div>
 
                 <div className="flex gap-2 sm:flex-shrink-0">
-                  {appointment.status === 'upcoming' && appointment.type === 'video' && appointment.meetingLink && (
-                    <Link href={appointment.meetingLink} target="_blank" rel="noopener noreferrer">
-                      <button onClick={onVideoCall} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm" >
-                        <FaVideo />
-                        <span className="hidden sm:inline">Join Call</span>
-                      </button>
-                    </Link>
+                  {appointment.status === 'upcoming' && appointment.type === 'video' && appointment.roomId && (
+                    <button 
+                      onClick={() => handleVideoCall(appointment)}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                    >
+                      <FaVideo />
+                      <span className="hidden sm:inline">Join Call</span>
+                    </button>
                   )}
                   
                   <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
@@ -305,7 +339,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                         <p><strong>Name:</strong> {appointment.doctorName}</p>
                         <p><strong>Specialty:</strong> {appointment.specialty}</p>
                         <p><strong>Doctor ID:</strong> {appointment.doctorId}</p>
-                        {appointment.type === 'in-person' && appointment.location && (
+                        {appointment.type === 'in-person' && (
                           <p><strong>Location:</strong> {appointment.location}</p>
                         )}
                       </div>
@@ -321,11 +355,9 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                         <p><strong>Time:</strong> {appointment.time}</p>
                         <p><strong>Duration:</strong> {appointment.duration} minutes</p>
                         <p><strong>Type:</strong> {appointment.type === 'video' ? 'Video Consultation' : 'In-Person Visit'}</p>
-                        {appointment.type === 'video' && appointment.meetingLink && (
-                          <p className="truncate"><strong>Meeting:</strong> 
-                            <a href={appointment.meetingLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
-                              Join Here
-                            </a>
+                        {appointment.type === 'video' && (
+                          <p className="truncate">
+                            <strong>Room ID:</strong> {appointment.roomId}
                           </p>
                         )}
                       </div>
@@ -333,7 +365,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   </div>
 
                   {/* Prescription History for this Doctor */}
-                  {patientData.activePrescriptions?.filter(rx => rx.doctorId === appointment.doctorId).length > 0 && (
+                  {patientData.activePrescriptions?.filter(rx => rx.doctorId === appointment.doctorId).length ? (
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <h4 className="font-semibold text-purple-800 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
                         <FaPrescriptionBottle className="mr-2" />
@@ -353,7 +385,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                           ))}
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
@@ -450,7 +482,18 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
             <p className="text-xs sm:text-sm opacity-90">Schedule with your preferred doctor</p>
           </button>
           
-          <button className="w-full bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left">
+          <button 
+            onClick={() => {
+              const nextVideoAppointment = (patientData.upcomingAppointments as Appointment[] | undefined)
+                ?.find((apt): apt is VideoAppointment => apt.type === 'video' && 'roomId' in apt && Boolean(apt.roomId))
+              if (nextVideoAppointment) {
+                handleVideoCall(nextVideoAppointment)
+              } else {
+                alert('No upcoming video consultations found')
+              }
+            }}
+            className="w-full bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left"
+          >
             <FaVideo className="text-xl sm:text-2xl mb-2" />
             <p className="font-medium text-sm sm:text-base">Join Video Call</p>
             <p className="text-xs sm:text-sm opacity-90">Connect to ongoing consultation</p>

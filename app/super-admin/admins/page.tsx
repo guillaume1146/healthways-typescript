@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaUserPlus, FaSearch, FaCheck, FaTimes, FaBan } from 'react-icons/fa'
+import {  FaSearch, FaCheck, FaTimes, FaBan } from 'react-icons/fa'
 import type { Admin } from '@/types/super-admin'
 
 const mockAdmins: Admin[] = [

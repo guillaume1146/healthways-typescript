@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthData } from '@/app/login/data/userData';
 import { patientsData } from '@/lib/data/patients';
+import { doctorsData } from '@/lib/data/doctors';  // Add this import
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,15 +27,37 @@ export async function POST(request: NextRequest) {
       );
       
       if (completePatientData) {
-        // Merge patient data with auth properties
         fullUserData = {
           ...completePatientData,
-          userType: user.userType,  // Add userType from auth data
-          token: user.token,         // Ensure token is included
-          password: undefined        // Remove password from response
+          userType: user.userType,
+          token: user.token,
+          password: undefined  // Remove password from response
         };
       } else {
-        // Fallback to basic user data if patient not found
+        fullUserData = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          token: user.token,
+          userType: user.userType,
+          profileImage: user.profileImage
+        };
+      }
+    } else if (userType === 'doctor') {
+      // Add complete doctor data handling
+      const completeDoctorData = doctorsData.find(
+        doctor => doctor.id === user.id
+      );
+      
+      if (completeDoctorData) {
+        fullUserData = {
+          ...completeDoctorData,  // All doctor fields
+          userType: user.userType,
+          token: user.token,
+          password: undefined  // Remove password from response
+        };
+      } else {
         fullUserData = {
           id: user.id,
           firstName: user.firstName,
@@ -46,7 +69,7 @@ export async function POST(request: NextRequest) {
         };
       }
     } else {
-      // For non-patient users, return basic data
+      // For other user types, return basic data
       fullUserData = {
         id: user.id,
         firstName: user.firstName,

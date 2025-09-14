@@ -10,10 +10,8 @@ import {
   FaFileAlt, 
   FaHeart, 
   FaVideo, 
-  FaClipboardList,
   FaBell,
   FaSearch,
-  FaPlus,
   FaClock,
   FaSignOutAlt,
   FaEdit,
@@ -28,10 +26,7 @@ import {
   FaBars,
   FaTimes,
   FaHome,
-  FaPhone,
   FaStethoscope,
-  FaTint,
-  FaDumbbell,
   FaChartLine
 } from 'react-icons/fa'
 

@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { 
   FaCheck, FaVideo, FaInfoCircle, FaDownload, FaPrint, 
   FaCalendarPlus, FaPhone, FaStar, FaMapMarkerAlt, FaHospital,
-  FaHome, FaUserNurse, FaCertificate, FaClock
+  FaHome, FaUserNurse, FaCertificate
 } from 'react-icons/fa'
 import type { NurseBookingData } from '@/app/booking/nurses/[id]/page'
 
@@ -29,21 +29,7 @@ export default function NurseBookingConfirmation({ bookingData }: NurseBookingCo
     }
   }
 
-  const getServiceIcon = () => {
-    switch (bookingData.type) {
-      case 'video': return FaVideo
-      case 'home-visit': return FaHome
-      default: return FaUserNurse
-    }
-  }
 
-  const getLocationText = () => {
-    switch (bookingData.type) {
-      case 'video': return 'Online Video Call'
-      case 'home-visit': return 'Your Home/Location'
-      default: return bookingData.nurse.clinicAffiliation
-    }
-  }
 
   const getHourlyRate = () => {
     return bookingData.type === 'video' 
@@ -51,7 +37,6 @@ export default function NurseBookingConfirmation({ bookingData }: NurseBookingCo
       : bookingData.nurse.hourlyRate
   }
 
-  const ServiceIcon = getServiceIcon()
 
   return (
     <div className="max-w-2xl mx-auto">

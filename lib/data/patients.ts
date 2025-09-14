@@ -156,7 +156,7 @@ export interface Appointment {
   reason: string;
   duration: number;
   location?: string;
-  meetingLink?: string;
+  roomId?: string;
   notes?: string;
 }
 
@@ -727,7 +727,7 @@ export const patientsData = [
         specialty: "Endocrinology",
         reason: "Quarterly diabetes management review",
         duration: 30,
-        meetingLink: "/patient/video-call/emma_sarah_20250115",
+        roomId: "emma_sarah_20250115",
         notes: "Review HbA1c results and adjust treatment plan if needed"
       },
       {
@@ -1907,7 +1907,7 @@ export const patientsData = [
         specialty: "Pulmonology",
         reason: "Mid-cycle check-in",
         duration: 20,
-        meetingLink: "/patient/video-call/liam_michael_20250125",
+        roomId: "liam_michael_20250125",
         notes: "Quick assessment of symptom control and adherence"
       }
     ],

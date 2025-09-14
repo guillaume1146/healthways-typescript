@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FaSearch, FaShieldAlt, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaHome, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance, FaCalendarAlt, FaClipboardList, FaBuilding, FaUsers, FaMoneyBillWave, FaUserShield, FaClipboardCheck, FaCreditCard, FaCalculator, FaGift } from 'react-icons/fa'
+import { FaSearch, FaShieldAlt, FaStar,  FaClock,  FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaExclamationTriangle,  FaHeadset,  FaHeart,  FaBaby,  FaHandHoldingMedical, FaPercent,  FaAmbulance,  FaBuilding, FaUsers, FaMoneyBillWave, FaUserShield, FaCreditCard, FaCalculator, FaGift } from 'react-icons/fa'
 
 const mockInsurancePlans = [
   {
@@ -251,7 +251,6 @@ const aiSearchInsurance = (query: string, type: string, budget: string) => {
       }
       
       if (budget !== 'all') {
-        const budgetNum = parseInt(budget)
         results = results.filter(plan => {
           const premium = parseInt(plan.monthlyPremium.replace(/[^\d]/g, ''))
           if (budget === '2000') return premium <= 2000

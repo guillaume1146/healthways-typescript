@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import {  FaPaperPlane, FaRobot, FaUser, FaCopy, FaThumbsUp, FaThumbsDown, FaUserMd, FaAmbulance, FaShieldAlt, FaBaby, FaUserNurse, FaPills, FaFlask, FaLightbulb, FaExclamationTriangle, FaHeart, FaClipboardList } from 'react-icons/fa'
+import {  FaPaperPlane, FaRobot, FaUser, FaCopy, FaThumbsUp, FaThumbsDown, FaUserMd, FaAmbulance, FaShieldAlt,  FaUserNurse, FaPills, FaFlask, FaLightbulb, FaExclamationTriangle } from 'react-icons/fa'
 
 interface Message {
   id: string

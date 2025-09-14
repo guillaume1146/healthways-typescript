@@ -1,7 +1,3 @@
-// Enhanced Doctor Data Structure with Comprehensive TypeScript Interfaces
-
-// ============= CORE INTERFACES =============
-
 export interface PatientComment {
   id: string;
   patientFirstName: string;
@@ -45,8 +41,6 @@ export interface Document {
   verifiedDate?: string;
 }
 
-// ============= PATIENT MANAGEMENT INTERFACES =============
-
 export interface PatientRecord {
   id: string;
   firstName: string;
@@ -64,7 +58,7 @@ export interface PatientRecord {
   nextAppointment?: string;
   totalVisits: number;
   totalPrescriptions: number;
-  videoCallLink?: string;
+  roomId?: string;
   medicalRecordUrl?: string;
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
@@ -128,7 +122,7 @@ export interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
   reason: string;
   notes?: string;
-  videoCallLink?: string;
+  roomId?: string;
   location?: string;
   payment: {
     amount: number;
@@ -688,7 +682,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-15",
           totalVisits: 12,
           totalPrescriptions: 8,
-          videoCallLink: "/doctor/video-call/emma_sarah_20250115",
+          roomId: "emma_sarah_20250115",
           medicalRecordUrl: "/records/PAT001_medical_history.pdf",
           insuranceProvider: "Swan Life",
           insurancePolicyNumber: "SWN-001234"
@@ -710,7 +704,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-02-10",
           totalVisits: 8,
           totalPrescriptions: 5,
-          videoCallLink: "/doctor/video-call/liam_sarah_20250210",
+          roomId: "liam_sarah_20250210",
           medicalRecordUrl: "/records/PAT002_medical_history.pdf",
           insuranceProvider: "MCB Insurance",
           insurancePolicyNumber: "MCB-567890"
@@ -857,7 +851,7 @@ export const doctorsData: Doctor[] = [
         type: "video",
         status: "scheduled",
         reason: "Quarterly diabetes and hypertension review",
-        videoCallLink: "/doctor/video-call/emma_sarah_20250115",
+        roomId: "emma_sarah_20250115",
         payment: {
           amount: 2000,
           status: "pending",
@@ -1485,7 +1479,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-20",
           totalVisits: 15,
           totalPrescriptions: 10,
-          videoCallLink: "/doctor/video-call/sophie_michael_20250120",
+          roomId: "sophie_michael_20250120",
           medicalRecordUrl: "/records/PAT004_medical_history.pdf",
           insuranceProvider: "Swan Life",
           insurancePolicyNumber: "SWN-003456"
@@ -1932,7 +1926,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-10",
           totalVisits: 24,
           totalPrescriptions: 5,
-          videoCallLink: "/doctor/video-call/lucas_raj_20250110",
+          roomId: "lucas_raj_20250110",
           medicalRecordUrl: "/records/PAT005_medical_history.pdf",
           insuranceProvider: "Parents' Insurance - MCB",
           insurancePolicyNumber: "MCB-789012"
@@ -1954,7 +1948,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-05",
           totalVisits: 12,
           totalPrescriptions: 3,
-          videoCallLink: "/doctor/video-call/maya_raj_20250105",
+          roomId: "maya_raj_20250105",
           medicalRecordUrl: "/records/PAT006_medical_history.pdf",
           insuranceProvider: "Family Health Plan",
           insurancePolicyNumber: "FHP-345678"
@@ -2426,7 +2420,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-25",
           totalVisits: 8,
           totalPrescriptions: 4,
-          videoCallLink: "/doctor/video-call/robert_sophie_20250125",
+          roomId: "robert_sophie_20250125",
           medicalRecordUrl: "/records/PAT007_medical_history.pdf",
           insuranceProvider: "Life Insurance Corporation",
           insurancePolicyNumber: "LIC-890123"
@@ -2904,7 +2898,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-08",
           totalVisits: 24,
           totalPrescriptions: 8,
-          videoCallLink: "/doctor/video-call/emily_isabella_20250108",
+          roomId: "emily_isabella_20250108",
           medicalRecordUrl: "/records/PAT008_medical_history.pdf"
         },
         {
@@ -2924,7 +2918,7 @@ export const doctorsData: Doctor[] = [
           nextAppointment: "2025-01-12",
           totalVisits: 18,
           totalPrescriptions: 6,
-          videoCallLink: "/doctor/video-call/marcus_isabella_20250112",
+          roomId: "marcus_isabella_20250112",
           medicalRecordUrl: "/records/PAT009_medical_history.pdf"
         }
       ],
@@ -3048,7 +3042,7 @@ export const doctorsData: Doctor[] = [
         type: "video",
         status: "scheduled",
         reason: "Anxiety management and CBT session",
-        videoCallLink: "/doctor/video-call/emily_isabella_20250108",
+        roomId: "emily_isabella_20250108",
         payment: {
           amount: 2500,
           status: "pending",

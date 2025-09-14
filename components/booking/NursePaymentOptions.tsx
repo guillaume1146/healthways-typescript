@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Image from 'next/image'
-import { FaShieldAlt, FaWallet, FaCreditCard, FaLock, FaInfoCircle } from 'react-icons/fa'
+import { FaShieldAlt, FaWallet, FaCreditCard, FaLock } from 'react-icons/fa'
 import type { NurseBookingData, PaymentMethod, CreditCardData } from '@/app/booking/nurses/[id]/page'
 
 interface NursePaymentOptionsProps {

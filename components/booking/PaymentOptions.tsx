@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Image from 'next/image'
-import { FaShieldAlt, FaWallet, FaCreditCard, FaLock, FaInfoCircle } from 'react-icons/fa'
+import { FaShieldAlt, FaWallet, FaCreditCard, FaLock } from 'react-icons/fa'
 import type { BookingData, PaymentMethod, CreditCardData } from '@/app/booking/doctors/[id]/page'
 
 interface PaymentOptionsProps {
@@ -111,30 +111,6 @@ export default function PaymentOptions({
     const cleaned = value.replace(/\s/g, '')
     const limited = cleaned.slice(0, 16)
     return limited.replace(/(.{4})/g, '$1 ').trim()
-  }
-
-  const validateCreditCard = () => {
-    const errors: Record<string, string> = {}
-    
-    if (!creditCardData.holderName.trim()) {
-      errors.holderName = 'Cardholder name is required'
-    }
-    
-    const cleanedNumber = creditCardData.cardNumber.replace(/\s/g, '')
-    if (cleanedNumber.length < 13 || cleanedNumber.length > 16) {
-      errors.cardNumber = 'Invalid card number'
-    }
-    
-    if (!creditCardData.expiryDate.match(/^(0[1-9]|1[0-2])\/([0-9]{2})$/)) {
-      errors.expiryDate = 'Invalid expiry date (MM/YY)'
-    }
-    
-    if (creditCardData.cvv.length < 3 || creditCardData.cvv.length > 4) {
-      errors.cvv = 'Invalid CVV'
-    }
-    
-    setCardErrors(errors)
-    return Object.keys(errors).length === 0
   }
 
   const handleCreditCardChange = (field: keyof CreditCardData, value: string) => {

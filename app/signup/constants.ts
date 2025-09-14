@@ -11,7 +11,6 @@ import {
   FaCheck,
   FaFileAlt,
   FaBuilding,
-  FaUsers,
   FaGlobe,
   FaHandshake
 } from 'react-icons/fa'

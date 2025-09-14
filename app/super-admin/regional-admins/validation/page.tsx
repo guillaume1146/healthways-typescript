@@ -92,6 +92,8 @@ export default function ValidationPage() {
     }
   ])
 
+  console.log(setRequests)
+
   const [selectedRequest, setSelectedRequest] = useState<ValidationRequest | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'scoring' | 'decision'>('overview')
 

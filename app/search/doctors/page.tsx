@@ -5,39 +5,10 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { doctorsData, type Doctor } from '@/lib/data'
 import { 
-  FaSearch, FaUserMd, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
-  FaHeart, FaBrain, FaBaby, FaBone, FaEye, FaTooth, FaStethoscope,
-  FaFilter, FaCertificate, FaShieldAlt, FaPhone, FaEnvelope,
+  FaSearch, FaUserMd, FaStar, FaMapMarkerAlt, FaClock, 
+   FaShieldAlt, 
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
-  FaGraduationCap, FaAward, FaDollarSign
 } from 'react-icons/fa'
-
-// Specialization icons mapping
-const specializationIcons = {
-  "Cardiology": FaHeart,
-  "Interventional Cardiology": FaHeart,
-  "Neurology": FaBrain,
-  "Epilepsy": FaBrain,
-  "Pediatrics": FaBaby,
-  "Child Development": FaBaby,
-  "Orthopedic Surgery": FaBone,
-  "Sports Medicine": FaBone,
-  "Dermatology": FaUserMd,
-  "Cosmetic Dermatology": FaUserMd,
-  "General Practitioner": FaStethoscope,
-  "Family Medicine": FaStethoscope,
-  "Ophthalmology": FaEye,
-  "Retinal Surgery": FaEye,
-  "Emergency Medicine": FaUserMd,
-  "Trauma Care": FaUserMd,
-  "General Dentistry": FaTooth,
-  "Cosmetic Dentistry": FaTooth,
-  "Psychiatry": FaBrain,
-  "Anxiety Disorders": FaBrain,
-  "Depression": FaBrain,
-  "Gastroenterology": FaUserMd,
-  "Endoscopy": FaUserMd
-}
 
 // AI search simulation function using centralized data
 const aiSearchDoctors = (query: string, specialization: string) => {

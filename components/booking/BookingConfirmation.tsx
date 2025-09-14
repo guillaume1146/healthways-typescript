@@ -24,12 +24,6 @@ export default function BookingConfirmation({ bookingData }: BookingConfirmation
     return bookingData.type === 'video' ? 'Video Consultation' : 'In-Person Visit'
   }
 
-  const getFeeAmount = () => {
-    return bookingData.type === 'video' 
-      ? bookingData.doctor.videoConsultationFee 
-      : bookingData.doctor.consultationFee
-  }
-
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-2xl p-8 shadow-lg text-center">

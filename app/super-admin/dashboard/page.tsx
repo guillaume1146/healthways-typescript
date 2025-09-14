@@ -7,8 +7,7 @@ import RevenueAnalytics from './RevenueAnalytics'
 import PlatformHealth from './PlatformHealth'
 import ActivityHeatmap from './ActivityHeatMap'
 import {
-  FaGlobe, FaChartLine, FaServer, FaUsers,
-  FaDollarSign, FaExclamationTriangle, FaBell,
+   FaExclamationTriangle, FaBell,
   FaCog, FaChartPie, FaUsersCog
 } from 'react-icons/fa'
 

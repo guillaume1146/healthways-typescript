@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaHome, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance, FaCalendarAlt, FaClipboardList, FaBuilding } from 'react-icons/fa'
+import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock,FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaHome, FaExclamationTriangle, FaCertificate, FaHeadset,  FaHeart,  FaBaby, FaHandHoldingMedical,  FaVial, FaPercent,  FaUserMd,  FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance,  FaClipboardList } from 'react-icons/fa'
 
 const mockLabTests = [
   {

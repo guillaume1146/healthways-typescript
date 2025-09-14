@@ -6,11 +6,11 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { doctorsData, type Doctor } from '@/lib/data'
 import { 
-  FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
+  FaArrowLeft, FaStar, FaMapMarkerAlt,  FaCalendarAlt, 
   FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
-  FaCertificate, FaGraduationCap, FaBriefcase, FaAward, FaHeart,
-  FaUserMd, FaDollarSign, FaExclamationCircle, FaComments,
-  FaStethoscope, FaHospital, FaShieldAlt, FaUser, FaCalendar,
+  FaCertificate, FaGraduationCap, FaBriefcase, 
+  FaUserMd,  FaExclamationCircle, FaComments,
+   FaHospital, FaShieldAlt, 
   FaChevronDown, FaChevronUp
 } from 'react-icons/fa'
 

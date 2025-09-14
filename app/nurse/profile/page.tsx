@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
+   FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
   FaPhone, FaEnvelope, FaLanguage, FaCheckCircle, FaShieldAlt,
-  FaGraduationCap, FaCertificate, FaAward, FaHeart, FaComment,
-  FaStethoscope, FaHospital, FaAmbulance, FaUserFriends,
-  FaChevronLeft, FaChevronRight, FaQuoteLeft, FaFileDownload,
+  FaGraduationCap, FaCertificate,  FaHeart, 
+  FaStethoscope, FaHospital, FaAmbulance, 
+  FaChevronLeft,  FaQuoteLeft, FaFileDownload,
   FaVideo, FaWhatsapp, FaShareAlt, FaBookmark, FaExclamationTriangle
 } from 'react-icons/fa'
 

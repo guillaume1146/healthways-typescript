@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { 
   FaCheck, FaInfoCircle, FaDownload, FaPrint, 
   FaCalendarPlus, FaPhone, FaStar, FaMapMarkerAlt,
-  FaBaby, FaCertificate, FaClock, FaUsers
+  FaBaby, FaCertificate, FaUsers
 } from 'react-icons/fa'
 import type { NannyBookingData } from '@/app/booking/nannies/[id]/page'
 

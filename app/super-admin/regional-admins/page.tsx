@@ -5,8 +5,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
-  FaUsersCog, FaCheckCircle, FaClock, FaBan, FaEye, 
-  FaEdit, FaTrash, FaSearch, FaFilter, FaDownload,
+  FaUsersCog, FaCheckCircle, FaClock, FaEye, 
+   FaSearch,  FaDownload,
   FaChartBar, FaStar, FaExclamationTriangle
 } from 'react-icons/fa'
 
@@ -127,11 +127,14 @@ export default function RegionalAdminsPage() {
     }
   ])
 
+  console.log(setAdmins)
+
   const [selectedAdmin, setSelectedAdmin] = useState<RegionalAdmin | null>(null)
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showValidationModal, setShowValidationModal] = useState(false)
-
+  console.log(selectedAdmin)
+  console.log(showValidationModal)
   const getStatusBadge = (status: string) => {
     const styles = {
       active: 'bg-green-100 text-green-800',
