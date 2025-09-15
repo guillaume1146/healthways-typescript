@@ -3,7 +3,6 @@ import prisma from '@/lib/db';
 
 export async function GET() {
   try {
-    // Test creating a user
     const testUser = await prisma.user.create({
       data: {
         email: `test-${Date.now()}@example.com`,
@@ -11,10 +10,7 @@ export async function GET() {
         role: 'patient'
       }
     });
-
-    // Get all users
     const users = await prisma.user.findMany();
-
     return NextResponse.json({
       success: true,
       message: 'Database working!',
