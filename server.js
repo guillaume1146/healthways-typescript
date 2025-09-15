@@ -1,4 +1,3 @@
-// server.js - Production-ready WebRTC Signaling Server
 const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
@@ -9,11 +8,22 @@ const app = next({ dev })
 const handle = app.getRequestHandler()
 const port = process.env.PORT || 3000
 
-// Store active rooms and their participants
 const rooms = new Map()
 const socketToRoom = new Map()
 
-app.prepare().then(() => {
+async function startServer() {
+  if (!dev) {
+    try {
+      const { initializeServiceAccounts } = require('./lib/secrets')
+      await initializeServiceAccounts()
+      console.log('✅ Service accounts loaded from Secret Manager')
+    } catch (error) {
+      console.error('⚠️ Failed to load secrets, using default service account:', error)
+    }
+  }
+
+  await app.prepare()
+  
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true)
     handle(req, res, parsedUrl)
@@ -22,27 +32,18 @@ app.prepare().then(() => {
   const io = new Server(server, {
     cors: {
       origin: function(origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true)
-        
-        // Allow all origins in development
         if (dev) return callback(null, true)
         
-        // In production, allow:
-        // 1. The Render domain
-        // 2. Any HTTPS origin (for flexibility)
-        // 3. Localhost for testing
         const allowedOrigins = [
           'http://localhost:3000',
           'https://healthways-typescript.onrender.com',
-          // Add any other domains you might use
+          'https://healthwyz-app-pylrovz4aq-uc.a.run.app'
         ]
         
-        // Check if origin is allowed
         if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
           callback(null, true)
         } else if (origin.startsWith('https://')) {
-          // Allow any HTTPS origin in production (adjust if needed for security)
           callback(null, true)
         } else {
           console.log('CORS blocked origin:', origin)
@@ -58,12 +59,8 @@ app.prepare().then(() => {
 
   io.on('connection', (socket) => {
     console.log('🔌 Client connected:', socket.id)
-    
-    // Join a video call room
     socket.on('join-room', ({ roomId, userId, userType, userName }) => {
       console.log(`👤 ${userName} (${userType}) joining room: ${roomId}`)
-      
-      // Leave any existing room
       const currentRoom = socketToRoom.get(socket.id)
       if (currentRoom) {
         socket.leave(currentRoom)
@@ -78,11 +75,9 @@ app.prepare().then(() => {
         }
       }
       
-      // Join new room
       socket.join(roomId)
       socketToRoom.set(socket.id, roomId)
       
-      // Initialize room if it doesn't exist
       if (!rooms.has(roomId)) {
         rooms.set(roomId, {
           id: roomId,
@@ -99,23 +94,14 @@ app.prepare().then(() => {
         userName,
         joinedAt: new Date()
       }
-      
-      // Get existing participants
+
       const existingParticipants = room.participants
-      
-      // Add new participant
       room.participants.push(participant)
-      
-      // Send existing participants to the new user
       socket.emit('existing-participants', existingParticipants)
-      
-      // Notify others in the room about new participant
       socket.to(roomId).emit('user-joined', participant)
-      
       console.log(`📊 Room ${roomId} now has ${room.participants.length} participants`)
     })
     
-    // WebRTC signaling
     socket.on('offer', ({ offer, to }) => {
       console.log(`📤 Sending offer from ${socket.id} to ${to}`)
       io.to(to).emit('offer', {
@@ -140,7 +126,6 @@ app.prepare().then(() => {
       })
     })
     
-    // Toggle media states
     socket.on('toggle-video', ({ enabled, roomId }) => {
       socket.to(roomId).emit('peer-toggle-video', {
         socketId: socket.id,
@@ -155,7 +140,6 @@ app.prepare().then(() => {
       })
     })
     
-    // Screen sharing
     socket.on('start-screen-share', ({ roomId }) => {
       socket.to(roomId).emit('peer-started-screen-share', {
         socketId: socket.id
@@ -168,7 +152,6 @@ app.prepare().then(() => {
       })
     })
     
-    // Chat messages
     socket.on('chat-message', ({ roomId, message, userName, userType }) => {
       const timestamp = new Date().toISOString()
       io.to(roomId).emit('new-chat-message', {
@@ -180,14 +163,12 @@ app.prepare().then(() => {
       })
     })
     
-    // Leave room
     socket.on('leave-room', () => {
       const roomId = socketToRoom.get(socket.id)
       if (roomId) {
         console.log(`👋 ${socket.id} leaving room: ${roomId}`)
         socket.leave(roomId)
         socketToRoom.delete(socket.id)
-        
         const room = rooms.get(roomId)
         if (room) {
           room.participants = room.participants.filter(p => p.socketId !== socket.id)
@@ -201,11 +182,9 @@ app.prepare().then(() => {
       }
     })
     
-    // Handle disconnect
     socket.on('disconnect', () => {
       console.log('🔌 Client disconnected:', socket.id)
       const roomId = socketToRoom.get(socket.id)
-      
       if (roomId) {
         const room = rooms.get(roomId)
         if (room) {
@@ -221,7 +200,6 @@ app.prepare().then(() => {
       }
     })
     
-    // Get room info
     socket.on('get-room-info', ({ roomId }) => {
       const room = rooms.get(roomId)
       socket.emit('room-info', room || null)
@@ -238,4 +216,9 @@ app.prepare().then(() => {
       console.log('> CORS configured for production domains')
     }
   })
+}
+
+startServer().catch(err => {
+  console.error('Failed to start server:', err)
+  process.exit(1)
 })

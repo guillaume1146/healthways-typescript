@@ -4,15 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "NODE_ENV=production node server.js",
-    "start:next": "next start"
+    "start:next": "next start",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@google-cloud/secret-manager": "^6.1.0",
+    "@google-cloud/storage": "^7.17.1",
+    "@google-cloud/vertexai": "^1.10.0",
     "@heroicons/react": "^2.2.0",
+    "@prisma/client": "^6.16.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
     "next": "15.4.6",
+    "prisma": "^6.16.1",
     "react": "19.1.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "19.1.0",
@@ -34,6 +44,10 @@
     "eslint-config-next": "15.4.6",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+credentials/
+credentials/*.json
+service-account-*.json
+storage-sa.json
+vertex-sa.json
+/lib/generated/prisma
