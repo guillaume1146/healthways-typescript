@@ -4,7 +4,6 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
-  // Clear existing data
   await prisma.nutritionAnalysis.deleteMany()
   await prisma.emergencyContact.deleteMany()
   await prisma.pillReminder.deleteMany()
@@ -20,7 +19,6 @@ async function main() {
   await prisma.nurse.deleteMany()
   await prisma.nanny.deleteMany()
 
-  // Create Patient Emma Johnson with COMPLETE data
   const patient1 = await prisma.patient.create({
     data: {
       id: "PAT001",
@@ -49,8 +47,6 @@ async function main() {
       chronicConditions: ["Hypertension", "Type 2 Diabetes"],
       healthScore: 78,
       bodyAge: 42,
-      
-      // Medical Records
       medicalRecords: {
         create: [
           {
@@ -96,8 +92,6 @@ async function main() {
           }
         ]
       },
-      
-      // Prescriptions (both active and history)
       prescriptions: {
         create: [
           {
@@ -190,8 +184,6 @@ async function main() {
           }
         ]
       },
-      
-      // Vital Signs
       vitalSigns: {
         create: [
           {
@@ -225,8 +217,6 @@ async function main() {
           }
         ]
       },
-      
-      // Appointments (upcoming and past)
       appointments: {
         create: [
           {
@@ -286,8 +276,6 @@ async function main() {
           }
         ]
       },
-      
-      // Video Call History
       videoCallHistory: {
         create: [
           {
@@ -316,8 +304,6 @@ async function main() {
           }
         ]
       },
-      
-      // Billing Information
       billingInformation: {
         create: [
           {
@@ -340,8 +326,6 @@ async function main() {
           }
         ]
       },
-      
-      // Pill Reminders
       pillReminders: {
         create: [
           {
@@ -376,8 +360,6 @@ async function main() {
           }
         ]
       },
-      
-      // Emergency Contacts
       emergencyContacts: {
         create: [
           {
@@ -406,8 +388,6 @@ async function main() {
           }
         ]
       },
-      
-      // Nutrition Analyses
       nutritionAnalyses: {
         create: [
           {
@@ -438,8 +418,6 @@ async function main() {
           }
         ]
       },
-      
-      // JSON fields with complete data
       nurseBookings: [
         {
           id: "NB001",
