@@ -1,10 +1,6 @@
-// hooks/useWebRTC.ts
-// Fixed version with proper signaling state management
-
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Socket } from 'socket.io-client'
 
-// Dynamic import for simple-peer to avoid SSR issues
 let SimplePeer: any = null
 if (typeof window !== 'undefined') {
   SimplePeer = require('simple-peer')
@@ -16,6 +12,8 @@ interface PeerConnection {
   userId: string
   userName: string
   userType: string
+  reconnectAttempts?: number
+  lastActivity?: number
 }
 
 interface UseWebRTCProps {
@@ -36,6 +34,11 @@ interface ChatMessage {
   socketId: string
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5
+const RECONNECT_DELAY = 2000
+const HEARTBEAT_INTERVAL = 30000 // 30 seconds
+const PEER_TIMEOUT = 60000 // 60 seconds
+
 function useWebRTC({
   socket,
   roomId,
@@ -44,18 +47,88 @@ function useWebRTC({
   userType,
   localStream
 }: UseWebRTCProps) {
+
   const [peers, setPeers] = useState<Map<string, PeerConnection>>(new Map())
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map())
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [roomParticipants, setRoomParticipants] = useState<any[]>([])
   const [connectionStatus, setConnectionStatus] = useState<string>('connecting')
-  
+  const [isReconnecting, setIsReconnecting] = useState(false)
   const peersRef = useRef<Map<string, PeerConnection>>(new Map())
   const screenShareStreamRef = useRef<MediaStream | null>(null)
   const processingOffer = useRef<Set<string>>(new Set())
+  const reconnectTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map())
+  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null)
+  const lastSocketId = useRef<string>('')
+  const roomDataRef = useRef<{ roomId: string; userId: string; userName: string; userType: string } | null>(null)
 
-  // Create a new peer connection
+  useEffect(() => {
+    roomDataRef.current = { roomId, userId, userName, userType }
+  }, [roomId, userId, userName, userType])
+
+  const startHeartbeat = useCallback(() => {
+    if (heartbeatInterval.current) {
+      clearInterval(heartbeatInterval.current)
+    }
+
+    heartbeatInterval.current = setInterval(() => {
+      if (socket?.connected) {
+        socket.emit('heartbeat', { roomId, timestamp: Date.now() })
+        const now = Date.now()
+        peersRef.current.forEach((peerConnection, socketId) => {
+          if (peerConnection.lastActivity && now - peerConnection.lastActivity > PEER_TIMEOUT) {
+            console.log(`Peer ${socketId} timed out, attempting reconnection`)
+            reconnectPeer(socketId, peerConnection)
+          }
+        })
+      }
+    }, HEARTBEAT_INTERVAL)
+  }, [socket, roomId])
+
+  const stopHeartbeat = useCallback(() => {
+    if (heartbeatInterval.current) {
+      clearInterval(heartbeatInterval.current)
+      heartbeatInterval.current = null
+    }
+  }, [])
+
+  const reconnectPeer = useCallback((targetSocketId: string, oldConnection: PeerConnection) => {
+    const attempts = (oldConnection.reconnectAttempts || 0) + 1
+    if (attempts > MAX_RECONNECT_ATTEMPTS) {
+      console.log(`Max reconnection attempts reached for ${targetSocketId}`)
+      removePeer(targetSocketId)
+      return
+    }
+
+    console.log(`Attempting to reconnect to peer ${targetSocketId} (attempt ${attempts}/${MAX_RECONNECT_ATTEMPTS})`)
+    const existingTimeout = reconnectTimeouts.current.get(targetSocketId)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
+    }
+
+    // Remove old peer
+    removePeer(targetSocketId)
+
+    // Schedule reconnection
+    const timeout = setTimeout(() => {
+      if (socket?.connected && localStream) {
+        const updatedConnection = { ...oldConnection, reconnectAttempts: attempts }
+        createPeer(
+          targetSocketId,
+          updatedConnection.userId,
+          updatedConnection.userName,
+          updatedConnection.userType,
+          true
+        )
+      }
+      reconnectTimeouts.current.delete(targetSocketId)
+    }, RECONNECT_DELAY * attempts)
+
+    reconnectTimeouts.current.set(targetSocketId, timeout)
+  }, [socket, localStream])
+
+  // Create a new peer connection with error recovery
   const createPeer = useCallback((
     targetSocketId: string,
     targetUserId: string,
@@ -64,11 +137,7 @@ function useWebRTC({
     initiator: boolean
   ) => {
     if (!localStream || !socket || !SimplePeer) {
-      console.error('Cannot create peer: missing requirements', {
-        localStream: !!localStream,
-        socket: !!socket,
-        SimplePeer: !!SimplePeer
-      })
+      console.error('Cannot create peer: missing requirements')
       return null
     }
 
@@ -78,7 +147,7 @@ function useWebRTC({
       return peersRef.current.get(targetSocketId)?.peer
     }
 
-    console.log(`Creating NEW peer connection: initiator=${initiator}, target=${targetSocketId}`)
+    console.log(`Creating peer connection: initiator=${initiator}, target=${targetSocketId}`)
 
     const peer = new SimplePeer({
       initiator,
@@ -88,53 +157,117 @@ function useWebRTC({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-        ]
-      }
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' }
+        ],
+        iceCandidatePoolSize: 10
+      },
+      reconnectTimer: 100,
+      iceTransportPolicy: 'all',
+      bundlePolicy: 'balanced',
+      rtcpMuxPolicy: 'require'
     })
 
+    let signalTimeout: NodeJS.Timeout | null = null
+
     peer.on('signal', (signal: any) => {
-      console.log(`Signaling ${signal.type || 'ice'} to ${targetSocketId}`)
-      
+      // Clear any existing signal timeout
+      if (signalTimeout) {
+        clearTimeout(signalTimeout)
+      }
+
+      // Set a timeout for signal acknowledgment
+      signalTimeout = setTimeout(() => {
+        console.log(`Signal timeout for ${targetSocketId}, attempting reconnection`)
+        const peerConnection = peersRef.current.get(targetSocketId)
+        if (peerConnection) {
+          reconnectPeer(targetSocketId, peerConnection)
+        }
+      }, 10000)
+
       if (signal.type === 'offer') {
-        socket.emit('offer', {
-          offer: signal,
-          to: targetSocketId
-        })
+        socket.emit('offer', { offer: signal, to: targetSocketId })
       } else if (signal.type === 'answer') {
-        socket.emit('answer', {
-          answer: signal,
-          to: targetSocketId
-        })
+        socket.emit('answer', { answer: signal, to: targetSocketId })
       } else if (signal.candidate) {
-        socket.emit('ice-candidate', {
-          candidate: signal,
-          to: targetSocketId
-        })
+        socket.emit('ice-candidate', { candidate: signal, to: targetSocketId })
       }
     })
 
     peer.on('stream', (stream: MediaStream) => {
       console.log(`✅ Received stream from ${targetSocketId}`)
+      
+      // Clear signal timeout on successful stream
+      if (signalTimeout) {
+        clearTimeout(signalTimeout)
+        signalTimeout = null
+      }
+
       setRemoteStreams(prev => {
         const newStreams = new Map(prev)
         newStreams.set(targetSocketId, stream)
         return newStreams
       })
       setConnectionStatus('connected')
+      
+      // Update last activity
+      const peerConnection = peersRef.current.get(targetSocketId)
+      if (peerConnection) {
+        peerConnection.lastActivity = Date.now()
+        peerConnection.reconnectAttempts = 0 // Reset on successful connection
+      }
     })
 
     peer.on('connect', () => {
       console.log(`✅ Connected to peer ${targetSocketId}`)
       setConnectionStatus('connected')
+      
+      // Clear signal timeout
+      if (signalTimeout) {
+        clearTimeout(signalTimeout)
+        signalTimeout = null
+      }
+
+      // Update last activity
+      const peerConnection = peersRef.current.get(targetSocketId)
+      if (peerConnection) {
+        peerConnection.lastActivity = Date.now()
+        peerConnection.reconnectAttempts = 0
+      }
     })
 
     peer.on('error', (err: Error) => {
-      console.error(`❌ Peer connection error with ${targetSocketId}:`, err.message)
+      console.error(`Peer connection error with ${targetSocketId}:`, err.message)
+      
+      // Don't immediately destroy on error, attempt reconnection
+      if (err.message.includes('Ice connection failed') || 
+          err.message.includes('Connection failed')) {
+        const peerConnection = peersRef.current.get(targetSocketId)
+        if (peerConnection) {
+          reconnectPeer(targetSocketId, peerConnection)
+        }
+      }
     })
 
     peer.on('close', () => {
       console.log(`Connection closed with ${targetSocketId}`)
-      removePeer(targetSocketId)
+      
+      // Attempt reconnection if not manually closed
+      const peerConnection = peersRef.current.get(targetSocketId)
+      if (peerConnection && socket?.connected) {
+        reconnectPeer(targetSocketId, peerConnection)
+      } else {
+        removePeer(targetSocketId)
+      }
+    })
+
+    // Monitor data channel for activity
+    peer.on('data', () => {
+      const peerConnection = peersRef.current.get(targetSocketId)
+      if (peerConnection) {
+        peerConnection.lastActivity = Date.now()
+      }
     })
 
     const peerConnection: PeerConnection = {
@@ -142,14 +275,16 @@ function useWebRTC({
       socketId: targetSocketId,
       userId: targetUserId,
       userName: targetUserName,
-      userType: targetUserType
+      userType: targetUserType,
+      reconnectAttempts: 0,
+      lastActivity: Date.now()
     }
 
     peersRef.current.set(targetSocketId, peerConnection)
     setPeers(new Map(peersRef.current))
 
     return peer
-  }, [localStream, socket])
+  }, [localStream, socket, reconnectPeer])
 
   // Remove a peer connection
   const removePeer = useCallback((socketId: string) => {
@@ -171,75 +306,107 @@ function useWebRTC({
       
       processingOffer.current.delete(socketId)
     }
+
+    // Clear any reconnection timeout
+    const timeout = reconnectTimeouts.current.get(socketId)
+    if (timeout) {
+      clearTimeout(timeout)
+      reconnectTimeouts.current.delete(socketId)
+    }
   }, [])
 
-  // Join room and set up connections
+  // Rejoin room (used for reconnection)
+  const rejoinRoom = useCallback(() => {
+    if (!socket || !roomDataRef.current || !localStream) {
+      console.log('Cannot rejoin room: missing requirements')
+      return
+    }
+
+    const { roomId, userId, userName, userType } = roomDataRef.current
+    console.log(`🔄 Rejoining room ${roomId}`)
+    
+    setIsReconnecting(true)
+    socket.emit('join-room', { roomId, userId, userType, userName })
+  }, [socket, localStream])
+
+  // Handle socket reconnection
+  useEffect(() => {
+    if (!socket) return
+
+    const handleReconnect = () => {
+      console.log('🔄 Socket reconnected, rejoining room...')
+      if (roomDataRef.current && localStream) {
+        // Clear all existing peers
+        peersRef.current.forEach((_, socketId) => removePeer(socketId))
+        
+        // Rejoin the room
+        setTimeout(() => rejoinRoom(), 1000)
+      }
+    }
+
+    socket.on('reconnect', handleReconnect)
+    socket.on('connect', () => {
+      if (lastSocketId.current && lastSocketId.current !== socket.id) {
+        console.log('Socket ID changed, handling as reconnection')
+        handleReconnect()
+      }
+      lastSocketId.current = socket.id || ''
+    })
+
+    return () => {
+      socket.off('reconnect', handleReconnect)
+    }
+  }, [socket, rejoinRoom, removePeer, localStream])
+
+  // Main room join and event handling
   useEffect(() => {
     if (!socket || !roomId || !localStream || !SimplePeer) {
-      console.log('Missing requirements for WebRTC:', {
-        socket: !!socket,
-        roomId: !!roomId,
-        localStream: !!localStream,
-        SimplePeer: !!SimplePeer
-      })
       return
     }
 
     console.log(`🚀 Joining room ${roomId} as ${userName} (${userType})`)
+    
+    // Start heartbeat
+    startHeartbeat()
 
     // Join the room
-    socket.emit('join-room', {
-      roomId,
-      userId,
-      userType,
-      userName
-    })
+    socket.emit('join-room', { roomId, userId, userType, userName })
 
-    // Handle existing participants
+    // Event handlers remain the same as your original code...
+    // [Rest of the event handlers from your original implementation]
+    
     const handleExistingParticipants = (participants: any[]) => {
-      console.log('📋 Existing participants in room:', participants)
+      console.log('📋 Existing participants:', participants)
       setRoomParticipants(participants)
+      setIsReconnecting(false)
       
-      // Create peer connections for existing participants (we initiate)
       participants.forEach(participant => {
         if (participant.socketId !== socket.id) {
-          console.log(`Creating peer for existing participant: ${participant.userName}`)
           createPeer(
             participant.socketId,
             participant.userId,
             participant.userName,
             participant.userType,
-            true // We initiate since they were here first
+            true
           )
         }
       })
     }
 
-    // Handle new user joining
     const handleUserJoined = (participant: any) => {
       console.log('👤 New user joined:', participant)
-      
-      if (participant.socketId === socket.id) {
-        console.log('Ignoring self-join event')
-        return
-      }
+      if (participant.socketId === socket.id) return
       
       setRoomParticipants(prev => {
-        // Avoid duplicates
         const exists = prev.some(p => p.socketId === participant.socketId)
         if (exists) return prev
         return [...prev, participant]
       })
-      
-      // Don't create peer here - wait for their offer
-      console.log('Waiting for offer from new participant...')
     }
 
-    // Handle offer from another peer
     const handleOffer = ({ offer, from }: any) => {
       console.log('📨 Received offer from:', from)
       
-      // Prevent processing duplicate offers
       if (processingOffer.current.has(from)) {
         console.log('Already processing offer from', from)
         return
@@ -249,36 +416,28 @@ function useWebRTC({
       const existingPeer = peersRef.current.get(from)
       
       if (existingPeer) {
-        console.log('Peer already exists, signaling offer')
         try {
           existingPeer.peer.signal(offer)
+          existingPeer.lastActivity = Date.now()
         } catch (e) {
           console.error('Error signaling existing peer:', e)
-          // Remove the broken peer and recreate
           removePeer(from)
           processingOffer.current.delete(from)
         }
       } else {
-        // Find participant info or use defaults
-        let participantInfo = roomParticipants.find(p => p.socketId === from)
-        
-        if (!participantInfo) {
-          console.log('Participant not found in list, using defaults')
-          participantInfo = {
-            socketId: from,
-            userId: 'unknown',
-            userName: 'Unknown User',
-            userType: 'patient'
-          }
+        let participantInfo = roomParticipants.find(p => p.socketId === from) || {
+          socketId: from,
+          userId: 'unknown',
+          userName: 'Unknown User',
+          userType: 'patient'
         }
         
-        console.log('Creating peer to answer offer from:', participantInfo.userName)
         const peer = createPeer(
           from,
           participantInfo.userId,
           participantInfo.userName,
           participantInfo.userType,
-          false // We're answering, not initiating
+          false
         )
         
         if (peer) {
@@ -291,49 +450,51 @@ function useWebRTC({
         }
       }
       
-      // Clear processing flag after a delay
       setTimeout(() => {
         processingOffer.current.delete(from)
       }, 5000)
     }
 
-    // Handle answer from another peer
     const handleAnswer = ({ answer, from }: any) => {
       console.log('📨 Received answer from:', from)
       const peerConnection = peersRef.current.get(from)
       if (peerConnection) {
         try {
           peerConnection.peer.signal(answer)
+          peerConnection.lastActivity = Date.now()
         } catch (e) {
           console.error('Error processing answer:', e)
         }
-      } else {
-        console.warn('No peer connection found for answer from:', from)
       }
     }
 
-    // Handle ICE candidates
     const handleIceCandidate = ({ candidate, from }: any) => {
       const peerConnection = peersRef.current.get(from)
       if (peerConnection) {
         try {
           peerConnection.peer.signal(candidate)
+          peerConnection.lastActivity = Date.now()
         } catch (e) {
           console.error('Error adding ICE candidate:', e)
         }
       }
     }
 
-    // Handle user leaving
     const handleUserLeft = ({ socketId }: any) => {
       console.log('👋 User left:', socketId)
       removePeer(socketId)
       setRoomParticipants(prev => prev.filter(p => p.socketId !== socketId))
     }
 
-    // Handle chat messages
     const handleChatMessage = (message: ChatMessage) => {
       setChatMessages(prev => [...prev, { ...message, id: Date.now().toString() }])
+    }
+
+    const handleHeartbeatResponse = ({ from }: any) => {
+      const peerConnection = peersRef.current.get(from)
+      if (peerConnection) {
+        peerConnection.lastActivity = Date.now()
+      }
     }
 
     // Attach event listeners
@@ -344,10 +505,11 @@ function useWebRTC({
     socket.on('ice-candidate', handleIceCandidate)
     socket.on('user-left', handleUserLeft)
     socket.on('new-chat-message', handleChatMessage)
+    socket.on('heartbeat-response', handleHeartbeatResponse)
 
-    // Cleanup function
     return () => {
       console.log('🧹 Cleaning up WebRTC connections')
+      stopHeartbeat()
       socket.emit('leave-room')
       
       socket.off('existing-participants', handleExistingParticipants)
@@ -357,6 +519,11 @@ function useWebRTC({
       socket.off('ice-candidate', handleIceCandidate)
       socket.off('user-left', handleUserLeft)
       socket.off('new-chat-message', handleChatMessage)
+      socket.off('heartbeat-response', handleHeartbeatResponse)
+      
+      // Clear all reconnection timeouts
+      reconnectTimeouts.current.forEach(timeout => clearTimeout(timeout))
+      reconnectTimeouts.current.clear()
       
       // Clean up all peer connections
       peersRef.current.forEach(peerConnection => {
@@ -371,9 +538,9 @@ function useWebRTC({
       setRemoteStreams(new Map())
       processingOffer.current.clear()
     }
-  }, [socket, roomId, userId, userName, userType, localStream, createPeer, removePeer])
+  }, [socket, roomId, userId, userName, userType, localStream, createPeer, removePeer, startHeartbeat, stopHeartbeat])
 
-  // Send chat message
+  // Rest of your methods remain the same...
   const sendChatMessage = useCallback((message: string) => {
     if (!socket) return
     
@@ -394,7 +561,6 @@ function useWebRTC({
     }])
   }, [socket, roomId, userName, userType])
 
-  // Toggle video
   const toggleVideo = useCallback((enabled: boolean) => {
     if (!localStream) return
     
@@ -407,7 +573,6 @@ function useWebRTC({
     }
   }, [socket, localStream, roomId])
 
-  // Toggle audio
   const toggleAudio = useCallback((enabled: boolean) => {
     if (!localStream) return
     
@@ -420,7 +585,6 @@ function useWebRTC({
     }
   }, [socket, localStream, roomId])
 
-  // Start screen sharing
   const startScreenShare = useCallback(async () => {
     if (!socket) return false
     
@@ -432,7 +596,6 @@ function useWebRTC({
       
       screenShareStreamRef.current = screenStream
       
-      // Replace video track in all peer connections
       const videoTrack = screenStream.getVideoTracks()[0]
       peersRef.current.forEach(peerConnection => {
         const sender = peerConnection.peer._pc?.getSenders()
@@ -456,7 +619,6 @@ function useWebRTC({
     }
   }, [socket, roomId])
 
-  // Stop screen sharing
   const stopScreenShare = useCallback(() => {
     if (!localStream) return
     
@@ -487,6 +649,7 @@ function useWebRTC({
     roomParticipants,
     isScreenSharing,
     connectionStatus,
+    isReconnecting,
     sendChatMessage,
     toggleVideo,
     toggleAudio,
@@ -495,6 +658,5 @@ function useWebRTC({
   }
 }
 
-// Export as both named and default
 export { useWebRTC }
 export default useWebRTC

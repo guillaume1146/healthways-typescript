@@ -1,822 +1,425 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo, FormEvent } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSocket } from '@/hooks/useSocket'
-import { useWebRTC } from '@/hooks/useWebRTC'
-import type { Socket } from 'socket.io-client'
-import {
-  FaVideo,
-  FaVideoSlash,
-  FaMicrophone,
-  FaMicrophoneSlash,
+import { useWebRTC } from '@/hooks/useWebRTC' // This should be the enhanced version
+import VideoCallRoom from './VideoCallRoom' // New mobile-responsive component
+import { Patient } from '@/lib/data/patients'
+import { Doctor } from '@/lib/data/doctors'
+import { 
+  FaVideo, 
+  FaVideoSlash, 
+  FaMicrophone, 
+  FaMicrophoneSlash, 
   FaPhone,
-  FaDesktop,
-  FaComments,
-  FaUserMd,
-  FaUser,
-  FaWifi,
   FaClock,
-  FaPaperPlane,
-  FaExpand,
-  FaCompress,
-  FaRecordVinyl,
-  FaNotesMedical,
-  FaPrescriptionBottleAlt,
-  FaFileDownload,
-  FaSync,
   FaCalendarAlt,
   FaStethoscope,
-  FaChevronLeft,
-  FaChevronRight
+  FaUser,
+  FaUserMd,
+  FaDownload,
+  FaPrescriptionBottle
 } from 'react-icons/fa'
+
+interface Props {
+  patientData?: Patient
+  doctorData?: Doctor
+}
 
 type UserType = 'doctor' | 'patient'
 
-type AppointmentType = 'video' | 'in-person' | 'home-visit'
-type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-
-interface Appointment {
+interface VideoAppointment {
   id: string
-  patientId: string
-  patientName: string
-  date: string
-  time: string
-  type: AppointmentType
-  status?: AppointmentStatus
-  reason: string
-  roomId?: string
-}
-
-interface DoctorData {
-  id: string
-  firstName: string
-  lastName: string
-  upcomingAppointments?: Appointment[]
-  pastAppointments?: Appointment[]
-}
-
-interface Props {
-  doctorData: DoctorData
-}
-
-interface Participant {
-  socketId: string
-  userId: string
-  userName: string
-  userType: UserType
-}
-
-interface ChatMessage {
-  id: string
-  message: string
-  userName: string
-  userType: string
-  timestamp: string
-  socketId: string
-}
-
-interface ConsultationHistoryEntry {
-  roomId: string
-  doctorId: string
-  doctorName: string
+  type: 'video'
+  doctorId?: string
+  doctorName?: string
   patientId?: string
   patientName?: string
-  notes: string
-  duration: number
-  timestamp: string
+  specialty?: string
+  date: string
+  time: string
+  reason?: string
+  roomId: string
 }
 
-const VideoConsultation: React.FC<Props> = ({ doctorData }) => {
+const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
   const router = useRouter()
-  const { socket } = useSocket() as { socket: Socket | null }
-
+  const { socket } = useSocket()
+  
   const [isInCall, setIsInCall] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [selectedAppointment, setSelectedAppointment] = useState<VideoAppointment | null>(null)
   const [roomId, setRoomId] = useState<string>('')
-
+  
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true)
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true)
-  const [showChat, setShowChat] = useState(false)
-  const [showNotes, setShowNotes] = useState(false)
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [isVideoOn, setIsVideoOn] = useState(true)
+  const [isMicOn, setIsMicOn] = useState(true)
   const [callDuration, setCallDuration] = useState(0)
-  const [consultationNotes, setConsultationNotes] = useState('')
-  const [newMessage, setNewMessage] = useState('')
-  const [isRecording, setIsRecording] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [connectionQuality, setConnectionQuality] = useState<'excellent' | 'good' | 'poor'>('good')
-  const [mediaError, setMediaError] = useState<string>('')
-
-  const localVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map())
-  const callIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const doctorInfo = {
+  const [showChat, setShowChat] = useState(false)
+  const [chatMessage, setChatMessage] = useState('')
+  
+  const callIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Determine user info based on whether it's patient or doctor
+  const userInfo = patientData ? {
+    id: patientData.id,
+    name: `${patientData.firstName} ${patientData.lastName}`,
+    type: 'patient' as UserType
+  } : {
     id: doctorData?.id || '',
-    name: `${doctorData?.firstName || ''} ${doctorData?.lastName || ''}`.trim(),
+    name: `Dr. ${doctorData?.firstName} ${doctorData?.lastName}`,
     type: 'doctor' as UserType
   }
-
-  const webRTC = useWebRTC({
-    socket,
-    roomId,
-    userId: doctorInfo.id,
-    userName: doctorInfo.name,
-    userType: doctorInfo.type,
-    localStream
-  })
-
+  
+  // Get video appointments
+  const videoAppointments: VideoAppointment[] = (() => {
+    if (patientData) {
+      return patientData.upcomingAppointments?.filter(apt => apt.type === 'video') as VideoAppointment[] || []
+    } else if (doctorData) {
+      return doctorData.upcomingAppointments?.filter(apt => apt.type === 'video') as VideoAppointment[] || []
+    }
+    return []
+  })()
+  
+  // Use the enhanced WebRTC hook
   const {
     peers,
     remoteStreams,
     chatMessages,
     roomParticipants,
     isScreenSharing,
+    connectionStatus,
+    isReconnecting, // New state from enhanced hook
     sendChatMessage,
     toggleVideo: toggleVideoWebRTC,
     toggleAudio: toggleAudioWebRTC,
     startScreenShare,
     stopScreenShare
-  } = webRTC
-
-  const participants = roomParticipants as unknown as Participant[]
-
-  const dedupedChatMessages = useMemo(() => {
-    return chatMessages.filter((msg, idx, arr) => {
-      const thisTime = new Date(msg.timestamp).getTime()
-      const firstIdx = arr.findIndex(
-        (m) =>
-          m.socketId === msg.socketId &&
-          m.message === msg.message &&
-          Math.abs(new Date(m.timestamp).getTime() - thisTime) < 1000
-      )
-      return idx === firstIdx
-    })
-  }, [chatMessages])
-
-  const videoAppointments: Appointment[] =
-    doctorData?.upcomingAppointments?.filter((apt) => apt.type === 'video') ?? []
-
+  } = useWebRTC({
+    socket,
+    roomId,
+    userId: userInfo.id,
+    userName: userInfo.name,
+    userType: userInfo.type,
+    localStream
+  })
+  
+  // Initialize selected appointment
   useEffect(() => {
-    if (!selectedAppointment && videoAppointments.length > 0) {
+    if (videoAppointments.length > 0 && !selectedAppointment) {
       setSelectedAppointment(videoAppointments[0])
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
     }
   }, [videoAppointments, selectedAppointment])
-
-  const cleanupMediaStream = () => {
-    if (localStream) {
-      localStream.getTracks().forEach((track) => {
-        track.stop()
-        track.enabled = false
-      })
-      setLocalStream(null)
-    }
-  }
-
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream
-    }
-  }, [localStream])
-
-  useEffect(() => {
-    remoteStreams.forEach((stream, socketId) => {
-      const videoElement = remoteVideoRefs.current.get(socketId)
-      if (videoElement) videoElement.srcObject = stream
-    })
-  }, [remoteStreams])
-
+  
+  // Handle call duration
   useEffect(() => {
     if (isInCall) {
       callIntervalRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1)
+        setCallDuration(prev => prev + 1)
       }, 1000)
     } else {
-      if (callIntervalRef.current) clearInterval(callIntervalRef.current)
+      if (callIntervalRef.current) {
+        clearInterval(callIntervalRef.current)
+      }
       setCallDuration(0)
     }
+    
     return () => {
-      if (callIntervalRef.current) clearInterval(callIntervalRef.current)
+      if (callIntervalRef.current) {
+        clearInterval(callIntervalRef.current)
+      }
     }
   }, [isInCall])
-
+  
+  // Cleanup media stream on unmount
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      cleanupMediaStream()
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          track.stop()
+        })
+      }
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
-
-  const formatDuration = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    return h > 0
-      ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-      : `${m}:${s.toString().padStart(2, '0')}`
-  }
-
-  const startCall = async (appointment: Appointment) => {
-    const appointmentRoomId = appointment.roomId
-    if (!appointmentRoomId) {
+  }, [localStream])
+  
+  const joinCall = async (appointment: VideoAppointment) => {
+    if (!appointment.roomId) {
       alert('No room ID found for this appointment')
       return
     }
     
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       })
       
       setLocalStream(stream)
-      setRoomId(appointmentRoomId)
       setSelectedAppointment(appointment)
+      setRoomId(appointment.roomId)
       setIsInCall(true)
-      setConnectionQuality('excellent')
       
-      const consultationData = {
-        patientId: appointment.patientId,
-        patientName: appointment.patientName,
-        doctorId: doctorInfo.id,
-        doctorName: doctorInfo.name,
-        roomId: appointmentRoomId,
+      // Store call data for recovery
+      const callData = {
+        appointment,
+        userId: userInfo.id,
+        userName: userInfo.name,
+        userType: userInfo.type,
+        roomId: appointment.roomId,
         startTime: new Date().toISOString()
       }
-      localStorage.setItem(`consultation_${appointmentRoomId}`, JSON.stringify(consultationData))
+      sessionStorage.setItem(`active_call_${appointment.roomId}`, JSON.stringify(callData))
+      
     } catch (error) {
       console.error('Failed to initialize media:', error)
       alert('Failed to access camera/microphone. Please check permissions.')
     }
   }
-
-  const handleEndCall = () => {
-    if (consultationNotes.trim()) {
-      const notesData: ConsultationHistoryEntry = {
-        roomId,
-        doctorId: doctorInfo.id,
-        doctorName: doctorInfo.name,
-        patientId: selectedAppointment?.patientId,
-        patientName: selectedAppointment?.patientName,
-        notes: consultationNotes,
-        duration: callDuration,
-        timestamp: new Date().toISOString()
-      }
-      const existing = JSON.parse(localStorage.getItem('consultationHistory') || '[]') as ConsultationHistoryEntry[]
-      existing.push(notesData)
-      localStorage.setItem('consultationHistory', JSON.stringify(existing))
+  
+  const endCall = () => {
+    // Clean up media stream
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        track.stop()
+      })
     }
-
-    cleanupMediaStream()
-    peers.forEach((pc) => {
-      try {
-        if (pc?.peer && typeof pc.peer.destroy === 'function') {
-          pc.peer.destroy()
-        } else if (pc?.peer && typeof (pc.peer as { close?: () => void }).close === 'function') {
-          ;(pc.peer as { close?: () => void }).close?.()
-        }
-      } catch {
-      }
-    })
-    if (socket) socket.emit('leave-room')
-
+    
+    // Clean up WebRTC connections
+    if (socket) {
+      socket.emit('leave-room')
+    }
+    
+    // Clear session storage
+    if (roomId) {
+      sessionStorage.removeItem(`active_call_${roomId}`)
+    }
+    
+    // Reset states
     setIsInCall(false)
-    setSelectedAppointment(null)
-    setRoomId('')
     setLocalStream(null)
-    setConsultationNotes('')
+    setRoomId('')
     setCallDuration(0)
   }
-
+  
   const handleToggleVideo = () => {
-    const newState = !isVideoEnabled
-    setIsVideoEnabled(newState)
+    const newState = !isVideoOn
+    setIsVideoOn(newState)
     toggleVideoWebRTC(newState)
   }
-
-  const handleToggleAudio = () => {
-    const newState = !isAudioEnabled
-    setIsAudioEnabled(newState)
+  
+  const handleToggleMic = () => {
+    const newState = !isMicOn
+    setIsMicOn(newState)
     toggleAudioWebRTC(newState)
   }
-
-  const handleScreenShare = async () => {
-    isScreenSharing ? stopScreenShare() : await startScreenShare()
-  }
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      void document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
+  
+  const handleToggleScreenShare = async () => {
+    if (isScreenSharing) {
+      stopScreenShare()
     } else {
-      void document.exitFullscreen()
-      setIsFullscreen(false)
+      await startScreenShare()
     }
   }
-
-  const handleSendMessage = (e: FormEvent) => {
-    e.preventDefault()
-    if (newMessage.trim()) {
-      sendChatMessage(newMessage)
-      setNewMessage('')
+  
+  const handleToggleChat = () => {
+    setShowChat(!showChat)
+  }
+  
+  const handleSendMessage = () => {
+    if (chatMessage.trim()) {
+      sendChatMessage(chatMessage)
+      setChatMessage('')
     }
   }
-
-  const handleSaveNotes = () => {
-    const notesData = {
-      roomId,
-      doctorId: doctorInfo.id,
-      doctorName: doctorInfo.name,
-      notes: consultationNotes,
-      timestamp: new Date().toISOString()
-    }
-    localStorage.setItem(`consultation_notes_${roomId}`, JSON.stringify(notesData))
-    alert('Notes saved successfully!')
-  }
-
-  const handleCreatePrescription = () => {
-    if (consultationNotes) {
-      localStorage.setItem(`consultation_notes_${roomId}`, consultationNotes)
-    }
-    const fallbackPatientId = participants[0]?.userId
-    const patientId = selectedAppointment?.patientId || fallbackPatientId || ''
-    router.push(`/doctor/prescriptions/create/${patientId}?roomId=${roomId}`)
-  }
-
-  const retryMediaAccess = async () => {
-    setMediaError('')
-    cleanupMediaStream()
-    await new Promise((r) => setTimeout(r, 500))
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      setLocalStream(stream)
-      setMediaError('')
-    } catch (error) {
-      const message =
-        typeof error === 'object' && error && 'message' in error
-          ? String((error as { message?: unknown }).message ?? '')
-          : 'An unknown error occurred'
-      setMediaError(message)
-    }
-  }
-
+  
+  // Show waiting room if not in call
   if (!isInCall) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 flex items-center">
-                <FaVideo className="mr-2 sm:mr-3" />
-                Video Consultation Room
-              </h2>
-              <p className="opacity-90 text-xs sm:text-sm md:text-base">Connect with your patients virtually</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{videoAppointments.length}</p>
-                <p className="text-xs opacity-90">Scheduled</p>
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <FaStethoscope className="text-2xl" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Video Consultation</h2>
+                  {selectedAppointment && (
+                    <p className="text-blue-100">
+                      {patientData ? `with ${selectedAppointment.doctorName}` : `with ${selectedAppointment.patientName}`}
+                    </p>
+                  )}
+                </div>
               </div>
+            </div>
+          </div>
+          
+          <div className="relative bg-gray-900 h-[400px] sm:h-[500px] md:h-[600px] flex items-center justify-center">
+            <div className="text-center text-white">
+              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaClock className="text-4xl animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">Waiting Room</h3>
+              
+              {selectedAppointment ? (
+                <>
+                  <p className="text-blue-100 mb-6">
+                    Your consultation is scheduled for {selectedAppointment.time}
+                  </p>
+                  <p className="text-sm text-blue-200 mb-8">
+                    Room ID: {selectedAppointment.roomId}
+                  </p>
+                  
+                  <button
+                    onClick={() => joinCall(selectedAppointment)}
+                    className="px-8 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all transform hover:scale-105"
+                  >
+                    Join Consultation
+                  </button>
+                </>
+              ) : (
+                <p className="text-gray-400">No video consultations scheduled</p>
+              )}
             </div>
           </div>
         </div>
-
-        {selectedAppointment ? (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <FaStethoscope className="text-2xl" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Video Consultation</h2>
-                    <p className="text-blue-100">with {selectedAppointment.patientName}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-blue-100">Scheduled</p>
-                  <p className="text-lg font-bold">
-                    {new Date(selectedAppointment.date).toLocaleDateString()} at {selectedAppointment.time}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative bg-gray-900 h-[600px] flex items-center justify-center py-6">
-              <div className="text-center text-white flex flex-col items-center justify-center">
-                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6">
-                  <FaClock className="text-4xl animate-pulse" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-2">Waiting Room</h3>
-
-                <p className="text-blue-100 mb-6">
-                  Your consultation with {selectedAppointment.patientName} is about to begin
-                </p>
-                <p className="text-sm text-blue-200 mb-8">Room ID: {selectedAppointment.roomId}</p>
-
-                <div className="bg-black/30 rounded-xl p-6 w-full max-w-md">
-                  <h4 className="text-lg font-semibold mb-4">Check Your Setup</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Camera</span>
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm ${isVideoEnabled ? 'text-green-400' : 'text-red-400'}`}>
-                          {isVideoEnabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                        <button
-                          onClick={() => setIsVideoEnabled(!isVideoEnabled)}
-                          className={`p-2 rounded-full ${isVideoEnabled ? 'bg-green-500' : 'bg-red-500'} text-white`}
-                        >
-                          {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Microphone</span>
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm ${isAudioEnabled ? 'text-green-400' : 'text-red-400'}`}>
-                          {isAudioEnabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                        <button
-                          onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                          className={`p-2 rounded-full ${isAudioEnabled ? 'bg-green-500' : 'bg-red-500'} text-white`}
-                        >
-                          {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => {
-                        toggleVideoWebRTC(isVideoEnabled)
-                        toggleAudioWebRTC(isAudioEnabled)
-                        startCall(selectedAppointment)
-                      }}
-                      className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all transform hover:scale-105"
-                    >
-                      Start Consultation
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:py-6 shadow-lg border border-gray-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Upcoming Video Consultations</h3>
-
-          {videoAppointments.length > 0 ? (
+        
+        {/* Show upcoming video appointments */}
+        {videoAppointments.length > 0 && (
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Upcoming Video Consultations
+            </h3>
             <div className="space-y-3">
               {videoAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  onClick={() => {
-                    setSelectedAppointment(appointment)
-                    if (typeof window !== 'undefined') {
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    }
-                  }}
-                  className="cursor-pointer bg-gradient-to-br from-white/80 to-blue-50/30 rounded-lg sm:rounded-xl p-4 border border-gray-200 hover:shadow-lg transition-all"
+                  onClick={() => setSelectedAppointment(appointment)}
+                  className={`cursor-pointer rounded-xl p-4 border transition-all ${
+                    selectedAppointment?.id === appointment.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                        {appointment.patientName?.split(' ').map((n) => n[0]).join('')}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
+                        {patientData ? <FaUserMd /> : <FaUser />}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-800">{appointment.patientName}</h4>
+                        <p className="font-medium text-gray-900">
+                          {patientData ? appointment.doctorName : appointment.patientName}
+                        </p>
                         <p className="text-sm text-gray-600">
-                          <FaCalendarAlt className="inline mr-1 text-blue-500" />
                           {new Date(appointment.date).toLocaleDateString()} at {appointment.time}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <FaStethoscope className="inline mr-1 text-green-500" />
-                          {appointment.reason}
-                        </p>
-                        {appointment.roomId && <p className="text-xs text-gray-500 mt-1">Room ID: {appointment.roomId}</p>}
-                        {selectedAppointment?.id === appointment.id && (
-                          <p className="text-xs mt-2 text-emerald-600 font-medium">Selected for waiting room</p>
-                        )}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">Click to open in waiting room</div>
+                    {selectedAppointment?.id === appointment.id && (
+                      <span className="text-sm text-blue-600 font-medium">Selected</span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <FaVideo className="text-gray-400 text-4xl mx-auto mb-3" />
-              <p className="text-gray-500">No video consultations scheduled</p>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  if (mediaError) {
-    return (
-      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
-        <div className="text-center max-w-md">
-          <div className="bg-red-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <FaVideoSlash className="text-2xl" />
-          </div>
-          <h2 className="text-white text-xl font-semibold mb-2">Media Access Error</h2>
-          <p className="text-gray-400 mb-6">{mediaError}</p>
-          <button
-            onClick={retryMediaAccess}
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2 mx-auto"
-          >
-            <FaSync /> Retry Access
-          </button>
-          <button onClick={handleEndCall} className="mt-4 text-gray-400 hover:text-white transition block mx-auto">
-            End Call and Return
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="fixed inset-0 bg-gray-900 flex flex-col z-50">
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 sm:px-6 py-3 flex items-center justify-between border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowSidebar(!showSidebar)} className="text-gray-400 hover:text-white transition lg:hidden">
-            {showSidebar ? <FaChevronLeft /> : <FaChevronRight />}
-          </button>
-          <FaUserMd className="text-blue-400 text-xl" />
-          <div>
-            <h1 className="text-white font-semibold text-sm sm:text-base">Video Consultation</h1>
-            {selectedAppointment && <p className="text-gray-400 text-xs">Patient: {selectedAppointment.patientName}</p>}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-1">
-            <FaClock className="text-gray-400 text-sm" />
-            <span className="text-white font-mono text-sm">{formatDuration(callDuration)}</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <FaWifi
-              className={`text-sm ${
-                connectionQuality === 'excellent'
-                  ? 'text-green-400'
-                  : connectionQuality === 'good'
-                  ? 'text-yellow-400'
-                  : 'text-red-400'
-              }`}
-            />
-            <span className="text-white text-xs hidden sm:inline">{connectionQuality}</span>
-          </div>
-
-          {isRecording && (
-            <div className="flex items-center gap-1">
-              <FaRecordVinyl className="text-red-500 animate-pulse text-sm" />
-              <span className="text-red-500 text-xs hidden sm:inline">REC</span>
-            </div>
-          )}
-
-          <button onClick={toggleFullscreen} className="text-gray-400 hover:text-white transition">
-            {isFullscreen ? <FaCompress /> : <FaExpand />}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 relative bg-gray-900 p-2 sm:p-4">
-          <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4">
-            {Array.from(remoteStreams.entries()).map(([remoteSocketId]) => {
-              const participant = participants.find((p) => p.socketId === remoteSocketId)
-              return (
-                <div key={remoteSocketId} className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden">
-                  <video
-                    ref={(el) => {
-                      if (el) remoteVideoRefs.current.set(remoteSocketId, el)
-                    }}
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/60 px-3 py-1 rounded-full">
-                    <span className="text-white text-xs sm:text-sm flex items-center gap-1">
-                      <FaUser className="text-blue-400" />
-                      {participant?.userName || 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden">
-              <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-              <div className="absolute top-3 left-3 bg-black/60 px-3 py-1 rounded-full">
-                <span className="text-white text-xs sm:text-sm flex items-center gap-1">
-                  <FaUserMd className="text-green-400" />
-                  Dr. {doctorInfo.name} (You)
-                </span>
-              </div>
-              {!isVideoEnabled && (
-                <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                  <FaVideoSlash className="text-gray-500 text-4xl" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {selectedAppointment && (
-            <div className="absolute bottom-4 left-4 bg-gradient-to-r from-gray-800/90 to-gray-900/90 rounded-lg p-3 max-w-xs">
-              <div className="text-white text-xs space-y-1">
-                <p>
-                  <strong>Patient:</strong> {selectedAppointment.patientName}
-                </p>
-                <p>
-                  <strong>Reason:</strong> {selectedAppointment.reason}
-                </p>
-                <p>
-                  <strong>Participants:</strong> {participants.length}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {showSidebar && (
-          <div className="w-80 bg-gradient-to-br from-gray-800 to-gray-900 border-l border-gray-700 flex flex-col">
-            <div className="flex border-b border-gray-700">
-              <button
-                onClick={() => {
-                  setShowChat(true)
-                  setShowNotes(false)
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition ${
-                  showChat ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-                }`}
-              >
-                <FaComments className="inline mr-2" />
-                Chat
-              </button>
-              <button
-                onClick={() => {
-                  setShowNotes(true)
-                  setShowChat(false)
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition ${
-                  showNotes ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-                }`}
-              >
-                <FaNotesMedical className="inline mr-2" />
-                Notes
-              </button>
-            </div>
-
-            {showChat && (
-              <div className="flex-1 flex flex-col">
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {dedupedChatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.socketId === socket?.id ? 'justify-end' : 'justify-start'}`}>
-                      <div
-                        className={`max-w-xs px-4 py-2 rounded-lg ${
-                          msg.socketId === socket?.id
-                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
-                            : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white'
-                        }`}
-                      >
-                        <p className="text-xs opacity-75 mb-1">{msg.userName}</p>
-                        <p className="text-sm">{msg.message}</p>
-                        <p className="text-xs opacity-50 mt-1">{new Date(msg.timestamp).toLocaleTimeString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type a message..."
-                      className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button type="submit" className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">
-                      <FaPaperPlane />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {showNotes && (
-              <div className="flex-1 flex flex-col">
-                <div className="flex-1 p-4">
-                  <textarea
-                    value={consultationNotes}
-                    onChange={(e) => setConsultationNotes(e.target.value)}
-                    placeholder="Enter consultation notes, diagnosis, observations..."
-                    className="w-full h-full bg-gray-700 text-white p-3 rounded-lg resize-none text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="p-4 border-t border-gray-700 space-y-2">
-                  <button
-                    onClick={handleCreatePrescription}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-2 rounded-lg hover:from-purple-600 hover:to-pink-700 transition text-sm flex items-center justify-center gap-2"
-                  >
-                    <FaPrescriptionBottleAlt />
-                    Create Prescription
-                  </button>
-                  <button
-                    onClick={handleSaveNotes}
-                    className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition text-sm flex items-center justify-center gap-2"
-                  >
-                    <FaFileDownload />
-                    Save Notes
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
-
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-700">
-        <div className="flex items-center justify-center gap-2 sm:gap-4">
-          <button
-            onClick={handleToggleAudio}
-            className={`p-3 sm:p-4 rounded-full transition ${
-              isAudioEnabled
-                ? 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-            }`}
-          >
-            {isAudioEnabled ? (
-              <FaMicrophone className="text-white text-lg sm:text-xl" />
-            ) : (
-              <FaMicrophoneSlash className="text-white text-lg sm:text-xl" />
-            )}
-          </button>
-
-          <button
-            onClick={handleToggleVideo}
-            className={`p-3 sm:p-4 rounded-full transition ${
-              isVideoEnabled
-                ? 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-            }`}
-          >
-            {isVideoEnabled ? <FaVideo className="text-white text-lg sm:text-xl" /> : <FaVideoSlash className="text-white text-lg sm:text-xl" />}
-          </button>
-
-          <button
-            onClick={handleScreenShare}
-            className={`p-3 sm:p-4 rounded-full transition ${
-              isScreenSharing
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
-                : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
-            }`}
-          >
-            <FaDesktop className="text-white text-lg sm:text-xl" />
-          </button>
-
-          <button
-            onClick={() => setShowSidebar(!showSidebar)}
-            className="p-3 sm:p-4 rounded-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition hidden lg:block"
-          >
-            {showSidebar ? <FaChevronRight className="text-white text-lg sm:text-xl" /> : <FaChevronLeft className="text-white text-lg sm:text-xl" />}
-          </button>
-
-          <button
-            onClick={() => setIsRecording(!isRecording)}
-            className={`p-3 sm:p-4 rounded-full transition ${
-              isRecording
-                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 animate-pulse'
-                : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
-            }`}
-          >
-            <FaRecordVinyl className="text-white text-lg sm:text-xl" />
-          </button>
-
-          <button
-            onClick={handleEndCall}
-            className="p-3 sm:p-4 rounded-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition ml-4 sm:ml-8"
-          >
-            <FaPhone className="text-white text-lg sm:text-xl transform rotate-135" />
-          </button>
+    )
+  }
+  
+  // Render the mobile-responsive video call room
+  return (
+    <>
+      <VideoCallRoom
+        localStream={localStream}
+        remoteStreams={remoteStreams}
+        isVideoOn={isVideoOn}
+        isMicOn={isMicOn}
+        isScreenSharing={isScreenSharing}
+        isReconnecting={isReconnecting}
+        connectionStatus={connectionStatus}
+        callDuration={callDuration}
+        onToggleVideo={handleToggleVideo}
+        onToggleMic={handleToggleMic}
+        onToggleScreenShare={handleToggleScreenShare}
+        onEndCall={endCall}
+        onToggleChat={handleToggleChat}
+        participantName={userInfo.name}
+        remoteParticipantName={
+          patientData 
+            ? selectedAppointment?.doctorName 
+            : selectedAppointment?.patientName
+        }
+      />
+      
+      {/* Chat Overlay (Mobile Friendly) */}
+      {showChat && (
+        <div className="fixed bottom-20 right-0 w-full sm:w-96 h-96 bg-white shadow-2xl z-50 rounded-t-2xl sm:rounded-l-2xl">
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold">Chat</h3>
+              <button
+                onClick={handleToggleChat}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${
+                    msg.socketId === socket?.id ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-xs px-3 py-2 rounded-lg ${
+                      msg.socketId === socket?.id
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    <p className="text-xs opacity-75">{msg.userName}</p>
+                    <p className="text-sm">{msg.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-4 border-t">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type a message..."
+                  className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   )
 }
 
