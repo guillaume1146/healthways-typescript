@@ -1,3 +1,5 @@
+// components/VideoCallRoom.tsx
+// Fixed version with proper stream reattachment after reconnection
 
 import React, { useRef, useEffect, useState } from 'react'
 import {
@@ -12,7 +14,8 @@ import {
   FaWifi,
   FaSync,
   FaExpand,
-  FaCompress
+  FaCompress,
+  FaExclamationCircle
 } from 'react-icons/fa'
 
 interface VideoCallRoomProps {
@@ -24,6 +27,7 @@ interface VideoCallRoomProps {
   isReconnecting?: boolean
   connectionStatus: string
   callDuration: number
+  streamUpdateTrigger?: number // Add this prop
   onToggleVideo: () => void
   onToggleMic: () => void
   onToggleScreenShare: () => void
@@ -42,6 +46,7 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
   isReconnecting = false,
   connectionStatus,
   callDuration,
+  streamUpdateTrigger = 0,
   onToggleVideo,
   onToggleMic,
   onToggleScreenShare,
@@ -54,7 +59,8 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map())
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [localVideoPipPosition, setLocalVideoPipPosition] = useState<'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'>('bottom-right')
-  const [isDraggingPip, setIsDraggingPip] = useState(false)
+  const [streamError, setStreamError] = useState(false)
+  const streamAttachmentRetries = useRef<Map<string, number>>(new Map())
 
   // Format call duration
   const formatDuration = (seconds: number): string => {
@@ -77,6 +83,7 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
       case 'connected':
         return <FaWifi className="text-green-500" />
       case 'connecting':
+      case 'reconnecting':
         return <FaWifi className="text-yellow-500" />
       default:
         return <FaWifi className="text-red-500" />
@@ -94,29 +101,13 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
     }
   }
 
-  // Handle PiP position change on mobile (touch to move)
+  // Handle PiP position change
   const handlePipTouch = () => {
     const positions: Array<typeof localVideoPipPosition> = ['top-right', 'top-left', 'bottom-right', 'bottom-left']
     const currentIndex = positions.indexOf(localVideoPipPosition)
     const nextIndex = (currentIndex + 1) % positions.length
     setLocalVideoPipPosition(positions[nextIndex])
   }
-
-  // Update video elements when streams change
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream
-    }
-  }, [localStream])
-
-  useEffect(() => {
-    remoteStreams.forEach((stream, socketId) => {
-      const videoElement = remoteVideoRefs.current.get(socketId)
-      if (videoElement) {
-        videoElement.srcObject = stream
-      }
-    })
-  }, [remoteStreams])
 
   // PiP position classes
   const getPipPositionClasses = () => {
@@ -132,6 +123,146 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
     }
   }
 
+  // Attach local stream to video element with retry logic
+  const attachLocalStream = () => {
+    if (localVideoRef.current && localStream) {
+      try {
+        // Check if stream is still active
+        const videoTracks = localStream.getVideoTracks()
+        const audioTracks = localStream.getAudioTracks()
+        
+        if (videoTracks.length === 0 && audioTracks.length === 0) {
+          console.error('Local stream has no active tracks!')
+          setStreamError(true)
+          return
+        }
+        
+        // Only set if different
+        if (localVideoRef.current.srcObject !== localStream) {
+          console.log('Attaching local stream to video element')
+          localVideoRef.current.srcObject = localStream
+          
+          // Play the video
+          localVideoRef.current.play().catch(e => {
+            console.error('Error playing local video:', e)
+          })
+        }
+        
+        setStreamError(false)
+      } catch (error) {
+        console.error('Error attaching local stream:', error)
+        setStreamError(true)
+      }
+    }
+  }
+
+  // Attach remote streams with retry logic
+  const attachRemoteStream = (socketId: string, stream: MediaStream) => {
+    const videoElement = remoteVideoRefs.current.get(socketId)
+    
+    if (videoElement && stream) {
+      try {
+        // Check if stream is active
+        const videoTracks = stream.getVideoTracks()
+        const audioTracks = stream.getAudioTracks()
+        
+        if (videoTracks.length === 0 && audioTracks.length === 0) {
+          console.error(`Remote stream ${socketId} has no active tracks!`)
+          
+          // Retry attachment after a delay
+          const retries = streamAttachmentRetries.current.get(socketId) || 0
+          if (retries < 5) {
+            setTimeout(() => {
+              streamAttachmentRetries.current.set(socketId, retries + 1)
+              attachRemoteStream(socketId, stream)
+            }, 1000 * (retries + 1))
+          }
+          return
+        }
+        
+        // Only set if different
+        if (videoElement.srcObject !== stream) {
+          console.log(`Attaching remote stream ${socketId} to video element`)
+          videoElement.srcObject = stream
+          
+          // Play the video
+          videoElement.play().catch(e => {
+            console.error(`Error playing remote video ${socketId}:`, e)
+          })
+          
+          // Reset retry counter on success
+          streamAttachmentRetries.current.set(socketId, 0)
+        }
+      } catch (error) {
+        console.error(`Error attaching remote stream ${socketId}:`, error)
+        
+        // Retry attachment
+        const retries = streamAttachmentRetries.current.get(socketId) || 0
+        if (retries < 5) {
+          setTimeout(() => {
+            streamAttachmentRetries.current.set(socketId, retries + 1)
+            attachRemoteStream(socketId, stream)
+          }, 1000 * (retries + 1))
+        }
+      }
+    }
+  }
+
+  // Update local video when stream changes
+  useEffect(() => {
+    attachLocalStream()
+    
+    // Re-attach on stream update trigger
+    if (streamUpdateTrigger > 0) {
+      setTimeout(attachLocalStream, 100)
+    }
+  }, [localStream, streamUpdateTrigger])
+
+  // Update remote videos when streams change
+  useEffect(() => {
+    console.log(`Updating remote streams, count: ${remoteStreams.size}`)
+    
+    remoteStreams.forEach((stream, socketId) => {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        attachRemoteStream(socketId, stream)
+      }, 100)
+    })
+    
+    // Force re-attachment after a delay
+    if (remoteStreams.size > 0 && streamUpdateTrigger > 0) {
+      setTimeout(() => {
+        remoteStreams.forEach((stream, socketId) => {
+          attachRemoteStream(socketId, stream)
+        })
+      }, 500)
+    }
+  }, [remoteStreams, streamUpdateTrigger])
+
+  // Periodic check for stream health
+  useEffect(() => {
+    const checkStreams = setInterval(() => {
+      // Check local stream
+      if (localVideoRef.current && localStream) {
+        const videoElement = localVideoRef.current
+        if (videoElement.paused || videoElement.ended) {
+          console.log('Local video paused/ended, attempting to play')
+          videoElement.play().catch(console.error)
+        }
+      }
+      
+      // Check remote streams
+      remoteVideoRefs.current.forEach((videoElement, socketId) => {
+        if (videoElement && (videoElement.paused || videoElement.ended)) {
+          console.log(`Remote video ${socketId} paused/ended, attempting to play`)
+          videoElement.play().catch(console.error)
+        }
+      })
+    }, 2000)
+    
+    return () => clearInterval(checkStreams)
+  }, [localStream])
+
   return (
     <div className="fixed inset-0 bg-gray-900 flex flex-col">
       {/* Reconnecting Overlay */}
@@ -141,11 +272,20 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
             <FaSync className="text-yellow-500 text-4xl animate-spin mx-auto mb-4" />
             <p className="text-white text-lg font-semibold">Reconnecting...</p>
             <p className="text-gray-400 text-sm mt-2">Please wait while we restore your connection</p>
+            <p className="text-gray-500 text-xs mt-2">Video will resume automatically</p>
           </div>
         </div>
       )}
 
-      {/* Header - Minimal on mobile */}
+      {/* Stream Error Warning */}
+      {streamError && !isReconnecting && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-40 bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center">
+          <FaExclamationCircle className="mr-2" />
+          <span className="text-sm">Stream issue detected. Video may be unavailable.</span>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="bg-gradient-to-b from-black/60 to-transparent absolute top-0 left-0 right-0 z-20 px-3 py-2 sm:px-6 sm:py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -154,7 +294,12 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {getConnectionIcon()}
+            <div className="flex items-center gap-1">
+              {getConnectionIcon()}
+              <span className="text-white text-xs hidden sm:inline">
+                {isReconnecting ? 'Reconnecting' : connectionStatus}
+              </span>
+            </div>
             <button 
               onClick={toggleFullscreen}
               className="text-white hover:text-gray-300 transition hidden sm:block"
@@ -167,18 +312,29 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
 
       {/* Main Video Area */}
       <div className="flex-1 relative bg-black">
-        {/* Remote Video - Main View */}
-        {Array.from(remoteStreams.entries()).map(([socketId], index) => (
-          <div key={socketId} className="absolute inset-0">
+        {/* Remote Videos */}
+        {Array.from(remoteStreams.entries()).map(([socketId, stream]) => (
+          <div key={`remote-${socketId}`} className="absolute inset-0">
             <video
               ref={(el) => {
-                if (el) remoteVideoRefs.current.set(socketId, el)
+                if (el) {
+                  remoteVideoRefs.current.set(socketId, el)
+                  // Immediately try to attach stream
+                  if (stream) {
+                    attachRemoteStream(socketId, stream)
+                  }
+                }
               }}
               autoPlay
               playsInline
+              muted={false}
               className="w-full h-full object-cover"
+              onLoadedMetadata={(e) => {
+                console.log(`Remote video ${socketId} metadata loaded`)
+                const video = e.target as HTMLVideoElement
+                video.play().catch(console.error)
+              }}
             />
-            {/* Remote participant label */}
             <div className="absolute top-14 left-3 sm:top-16 sm:left-4 bg-black/50 px-3 py-1 rounded-full">
               <span className="text-white text-xs sm:text-sm">
                 {remoteParticipantName}
@@ -194,21 +350,22 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FaVideo className="text-gray-500 text-3xl sm:text-4xl" />
               </div>
-              <p className="text-gray-400 text-sm sm:text-base">Waiting for other participant...</p>
+              <p className="text-gray-400 text-sm sm:text-base">
+                {isReconnecting ? 'Reconnecting to participant...' : 'Waiting for other participant...'}
+              </p>
             </div>
           </div>
         )}
 
-        {/* Local Video - Picture-in-Picture */}
+        {/* Local Video PiP */}
         <div
           className={`absolute ${getPipPositionClasses()} z-30 transition-all duration-300`}
           onClick={handlePipTouch}
           style={{ cursor: 'pointer' }}
         >
           <div className="relative">
-            {/* PiP Container with responsive sizing */}
             <div className="w-24 h-32 sm:w-32 sm:h-44 md:w-40 md:h-52 rounded-lg overflow-hidden shadow-2xl border-2 border-gray-700">
-              {isVideoOn ? (
+              {isVideoOn && localStream ? (
                 <video
                   ref={localVideoRef}
                   autoPlay
@@ -216,6 +373,11 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
                   playsInline
                   className="w-full h-full object-cover mirror"
                   style={{ transform: 'scaleX(-1)' }}
+                  onLoadedMetadata={(e) => {
+                    console.log('Local video metadata loaded')
+                    const video = e.target as HTMLVideoElement
+                    video.play().catch(console.error)
+                  }}
                 />
               ) : (
                 <div className="w-full h-full bg-gray-800 flex items-center justify-center">
@@ -223,12 +385,10 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
                 </div>
               )}
               
-              {/* Local participant label */}
               <div className="absolute bottom-1 left-1 right-1 bg-black/60 px-2 py-0.5 rounded text-center">
                 <span className="text-white text-xs">{participantName}</span>
               </div>
               
-              {/* Muted indicator */}
               {!isMicOn && (
                 <div className="absolute top-1 right-1 bg-red-500 rounded-full p-1">
                   <FaMicrophoneSlash className="text-white text-xs" />
@@ -236,7 +396,6 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               )}
             </div>
             
-            {/* Touch hint for mobile */}
             <div className="sm:hidden absolute -bottom-5 left-0 right-0 text-center">
               <span className="text-white/50 text-xs">Tap to move</span>
             </div>
@@ -244,11 +403,10 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
         </div>
       </div>
 
-      {/* Control Bar - Optimized for mobile */}
+      {/* Control Bar */}
       <div className="bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 right-0 z-20">
         <div className="px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center justify-center gap-3 sm:gap-4">
-            {/* Mic Toggle */}
             <button
               onClick={onToggleMic}
               className={`p-3 sm:p-4 rounded-full transition-all ${
@@ -264,7 +422,6 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               )}
             </button>
 
-            {/* Video Toggle */}
             <button
               onClick={onToggleVideo}
               className={`p-3 sm:p-4 rounded-full transition-all ${
@@ -280,7 +437,6 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               )}
             </button>
 
-            {/* Screen Share - Hidden on small mobile */}
             <button
               onClick={onToggleScreenShare}
               className={`hidden sm:block p-3 sm:p-4 rounded-full transition-all ${
@@ -292,7 +448,6 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               <FaDesktop className="text-white text-lg sm:text-xl" />
             </button>
 
-            {/* Chat Toggle - Optional */}
             {onToggleChat && (
               <button
                 onClick={onToggleChat}
@@ -302,7 +457,6 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
               </button>
             )}
 
-            {/* End Call */}
             <button
               onClick={onEndCall}
               className="p-3 sm:p-4 rounded-full bg-red-500 hover:bg-red-600 transition-all ml-2 sm:ml-4"
