@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,48 +8,420 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Patient {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  firstName     String
-  lastName      String
-  dateOfBirth   DateTime
-  phone         String?
-  appointments  Appointment[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                    String                @id @default(uuid())
+  firstName             String
+  lastName              String
+  email                 String                @unique
+  password              String
+  profileImage          String?
+  token                 String?
+  dateOfBirth           String
+  age                   Int
+  userType              String                @default("patient")
+  gender                String
+  phone                 String
+  address               String
+  nationalId            String
+  passportNumber        String?
+  emergencyContact      Json                  // Stored as JSON
+  bloodType             String
+  allergies             String[]
+  chronicConditions     String[]
+  healthScore           Int
+  bodyAge               Int
+  
+  // Relations
+  medicalRecords        MedicalRecord[]
+  prescriptions         Prescription[]        // All prescriptions (both active and history)
+  vitalSigns            VitalSigns[]
+  appointments          Appointment[]         // All appointments
+  childcareBookings     ChildcareBooking[]
+  nurseBookings         Json[]                // Array of nurse booking objects
+  emergencyServiceContacts Json[]             // Array of emergency service contacts
+  
+  // Complex nested structures as JSON
+  chatHistory           Json                  // Complex nested structure
+  botHealthAssistant    Json                  // Complex nested structure
+  videoCallHistory      VideoCallSession[]
+  labTests              Json[]                // Array of lab test objects
+  healthMetrics         Json                  // Complex nested structure
+  insuranceCoverage     Json                  // Insurance details
+  billingInformation    BillingInfo[]
+  subscriptionPlan      Json                  // Subscription details
+  notificationPreferences Json                // Notification settings
+  securitySettings      Json                  // Security settings
+  documents             Json[]                // Array of document objects
+  
+  lastCheckupDate       String
+  nextScheduledCheckup  String
+  
+  // Additional arrays
+  pillReminders         PillReminder[]
+  emergencyContacts     EmergencyContact[]
+  nutritionAnalyses     NutritionAnalysis[]
+  medicineOrders        Json[]                // Array of medicine order objects
+  
+  registrationDate      String
+  lastLogin             String
+  verified              Boolean               @default(false)
+  profileCompleteness   Int
+  
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
 }
 
-model Doctor {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  firstName     String
-  lastName      String
-  specialty     String
-  licenseNumber String        @unique
-  appointments  Appointment[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+model MedicalRecord {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  title             String
+  date              String
+  time              String
+  type              String      // consultation, prescription, lab_result, imaging, vaccination, surgery
+  doctorResponsible String
+  nurseResponsible  String?
+  summary           String
+  diagnosis         String?
+  treatment         String?
+  notes             String?
+  attachments       String[]
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Prescription {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  date              String
+  time              String
+  doctorName        String
+  doctorId          String
+  medicines         Json[]      // Array of medicine objects
+  diagnosis         String
+  isActive          Boolean     // This field determines if it's active or history
+  nextRefill        String?
+  notes             String?
+  orderInformation  Json?       // Order information object
+  reminderSettings  Json?       // Reminder settings object
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model VitalSigns {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  date              String
+  time              String
+  bloodPressure     Json        // {systolic, diastolic}
+  heartRate         Int
+  temperature       Float
+  weight            Float
+  height            Float
+  oxygenSaturation  Int
+  glucose           Int?
+  cholesterol       Int?
+  labTechnician     String
+  facility          String
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model Appointment {
-  id         String   @id @default(uuid())
-  patientId  String
-  doctorId   String
-  date       DateTime
-  status     String   @default("pending")
-  notes      String?
-  patient    Patient  @relation(fields: [patientId], references: [id])
-  doctor     Doctor   @relation(fields: [doctorId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  date              String
+  time              String
+  type              String      // video or in-person
+  status            String      // upcoming, completed, cancelled
+  doctorName        String
+  doctorId          String
+  specialty         String
+  reason            String
+  duration          Int
+  location          String?
+  roomId            String?
+  notes             String?
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
+
+model ChildcareBooking {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  date              String
+  time              String
+  nannyName         String
+  nannyId           String
+  duration          Int
+  type              String      // regular or overnight
+  children          String[]
+  specialInstructions String?
+  status            String      // upcoming, completed, cancelled
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model VideoCallSession {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  date              String
+  startTime         String
+  endTime           String
+  duration          Int
+  withType          String      // doctor, nurse, nanny
+  withName          String
+  withId            String
+  callQuality       String      // poor, fair, good, excellent
+  recording         String?
+  notes             String?
+  prescription      String?
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model BillingInfo {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  type              String      // mcb_juice or credit_card
+  cardNumber        String
+  cardHolder        String
+  expiryDate        String
+  cvv               String?
+  isDefault         Boolean
+  addedDate         String
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model PillReminder {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  medicineId        String
+  medicineName      String
+  dosage            String
+  times             String[]
+  taken             Boolean[]
+  nextDose          String
+  frequency         String
+  prescriptionId    String
+  startDate         String
+  endDate           String
+  isActive          Boolean
+  notificationEnabled Boolean
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model EmergencyContact {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  name              String
+  service           String
+  phone             String
+  available24h      Boolean
+  responseTime      String
+  specialization    String[]
+  location          String
+  distance          String
+  priority          String      // high, medium, low
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model NutritionAnalysis {
+  id                String      @id @default(uuid())
+  patientId         String
+  patient           Patient     @relation(fields: [patientId], references: [id])
+  
+  foodName          String
+  date              String
+  time              String
+  calories          Int
+  carbs             Int
+  protein           Int
+  fat               Int
+  vitamins          String[]
+  healthScore       Int
+  suggestions       String[]
+  allergens         String[]
+  nutritionalBenefits String[]
+  mealType          String      // breakfast, lunch, dinner, snack
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Doctor {
+  id                String      @id @default(uuid())
+  
+  // Basic Information
+  firstName         String
+  lastName          String
+  email             String      @unique
+  password          String
+  profileImage      String?
+  token             String?
+  
+  // Professional Information
+  category          String
+  specialty         String[]
+  subSpecialties    String[]
+  licenseNumber     String
+  licenseExpiryDate String
+  clinicAffiliation String
+  hospitalPrivileges String[]
+  
+  // Ratings & Reviews
+  rating            Float
+  reviews           Int
+  patientComments   Json[]      // Array of PatientComment objects
+  performanceMetrics Json        // PerformanceMetrics object
+  
+  // Experience & Education
+  experience        String
+  education         Json[]      // Array of Education objects
+  workHistory       Json[]      // Array of WorkExperience objects
+  certifications    Json[]      // Array of Certification objects
+  publications      String[]
+  awards            String[]
+  
+  // Location & Contact
+  location          String
+  address           String
+  phone             String
+  alternatePhone    String?
+  website           String?
+  socialMedia       Json?       // Social media links object
+  
+  // Languages & Availability
+  languages         String[]
+  availability      String
+  detailedAvailability Json     // Availability object
+  nextAvailable     String
+  consultationDuration Int      // in minutes
+  
+  // Consultation Details
+  consultationFee   Float
+  videoConsultationFee Float
+  emergencyConsultationFee Float
+  consultationTypes String[]
+  emergencyAvailable Boolean
+  homeVisitAvailable Boolean
+  telemedicineAvailable Boolean
+  
+  // Personal Details
+  age               Int
+  gender            String
+  dateOfBirth       String
+  nationality       String
+  bio               String
+  philosophy        String
+  specialInterests  String[]
+  
+  // Verification & Compliance
+  verified          Boolean
+  verificationDate  String?
+  verificationDocuments Json[]  // Array of Document objects
+  insuranceCoverage Json        // Insurance coverage object
+  
+  // Patient Management
+  patients          Json        // Current and past patients object
+  patientChats      Json[]      // Array of PatientChat objects
+  
+  // Appointments
+  upcomingAppointments Json[]   // Array of Appointment objects
+  pastAppointments  Json[]      // Array of Appointment objects
+  todaySchedule     Json        // DailySchedule object
+  weeklySchedule    Json[]      // Array of DailySchedule objects
+  
+  // Prescriptions
+  prescriptions     Json[]      // Array of Prescription objects
+  prescriptionTemplates Json[]  // Array of prescription template objects
+  
+  // Financial
+  billing           Json        // Complete billing object
+  
+  // Settings
+  subscription      Json        // SubscriptionPlan object
+  notificationSettings Json     // NotificationSettings object
+  privacySettings   Json        // PrivacySettings object
+  languageSettings  Json        // LanguageSettings object
+  
+  // Statistics
+  statistics        Json        // Statistics object
+  
+  // System
+  registrationDate  String
+  lastLogin         String
+  lastPasswordChange String
+  accountStatus     String      // active, suspended, pending_verification
+  loginHistory      Json[]      // Array of login history objects
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+// Nurse model
+model Nurse {
+  id                String      @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String      @unique
+  password          String
+  profileImage      String?
+  token             String?
+  userType          String      @default("nurse")
+  licenseNumber     String
+  experience        Int
+  phone             String
+  specializations   String[]
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+// Nanny model
+model Nanny {
+  id                String      @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String      @unique
+  password          String
+  profileImage      String?
+  token             String?
+  userType          String      @default("child-care-nurse")
+  experience        Int
+  phone             String
+  certifications    String[]
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+
