@@ -1,1 +1,1 @@
-# Healthwyz-typescript
+# Healthwyz
