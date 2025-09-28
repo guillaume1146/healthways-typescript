@@ -1,5 +1,5 @@
 // components/VideoConsultation.tsx
-// Clean version with proper TypeScript types and no ESLint errors
+// Enhanced version with database session management
 
 'use client'
 
@@ -17,7 +17,10 @@ import {
   FaUserMd,
   FaSync,
   FaWifi,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaDatabase,
+  FaRedo
 } from 'react-icons/fa'
 
 interface Props {
@@ -41,10 +44,12 @@ interface VideoAppointment {
   roomId: string
 }
 
-// Define MediaError interface
-interface MediaErrorType {
-  message?: string
-  name?: string
+interface SessionData {
+  sessionId: string
+  roomId: string
+  status: string
+  isActive: boolean
+  canRecover: boolean
 }
 
 const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
@@ -68,9 +73,13 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
   const [showChat, setShowChat] = useState(false)
   const [chatMessage, setChatMessage] = useState('')
   const [mediaError, setMediaError] = useState<string>('')
+  const [sessionData, setSessionData] = useState<SessionData | null>(null)
+  const [recoveryAvailable, setRecoveryAvailable] = useState(false)
+  const [connectionHealth, setConnectionHealth] = useState<'good' | 'poor' | 'recovering'>('good')
   
   const callIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const callStartTime = useRef<number | null>(null)
+  const sessionCheckInterval = useRef<NodeJS.Timeout | null>(null)
   
   // Determine user info
   const userInfo = patientData ? {
@@ -93,22 +102,21 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
     return []
   })()
   
-  // Use enhanced WebRTC hook with room state persistence
+  // Use enhanced WebRTC hook
   const {
-    // Note: peers and roomParticipants are available but not used in this component
-    // They could be used for displaying participant list or peer connection status
-    // peers,
-    // roomParticipants,
     remoteStreams,
     chatMessages,
     isScreenSharing,
     connectionStatus,
     isReconnecting: webrtcReconnecting,
+    sessionId,
     sendChatMessage,
     toggleVideo: toggleVideoWebRTC,
     toggleAudio: toggleAudioWebRTC,
     startScreenShare,
-    stopScreenShare
+    stopScreenShare,
+    triggerIceRestart,
+    requestRecovery
   } = useWebRTC({
     socket,
     roomId,
@@ -123,10 +131,260 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
   // Combined reconnection status
   const isReconnecting = socketReconnecting || webrtcReconnecting
   
-  // Restore call state on mount if it exists
+  // Monitor connection health
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      setConnectionHealth('good')
+    } else if (connectionStatus === 'reconnecting' || isReconnecting) {
+      setConnectionHealth('recovering')
+    } else if (connectionStatus === 'failed') {
+      setConnectionHealth('poor')
+    }
+  }, [connectionStatus, isReconnecting])
+  
+  // Create or update database session
+  const createDatabaseSession = async (roomId: string) => {
+    try {
+      const response = await fetch('/api/webrtc/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId,
+          userId: userInfo.id,
+          userName: userInfo.name,
+          userType: userInfo.type
+        })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setSessionData({
+          sessionId: data.data.session.id,
+          roomId: data.data.session.roomId,
+          status: data.data.session.status,
+          isActive: true,
+          canRecover: true
+        })
+        console.log('Database session created:', data.data.session.id)
+      }
+    } catch (error) {
+      console.error('Failed to create database session:', error)
+    }
+  }
+  
+  // Check for existing session
+  const checkExistingSession = async (roomId: string) => {
+    try {
+      const response = await fetch(`/api/webrtc/session?roomId=${roomId}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.data && data.data.isActive) {
+          setSessionData({
+            sessionId: data.data.id,
+            roomId: data.data.roomId,
+            status: data.data.status,
+            isActive: data.data.isActive,
+            canRecover: true
+          })
+          setRecoveryAvailable(true)
+          return data.data
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check existing session:', error)
+    }
+    return null
+  }
+  
+  // Request recovery from database
+  const requestDatabaseRecovery = async () => {
+    if (!roomId || !userInfo.id) return
+    
+    try {
+      const response = await fetch('/api/webrtc/recovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId,
+          userId: userInfo.id
+        })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.canRecover) {
+          console.log('Recovery available:', data.data)
+          setRecoveryAvailable(true)
+          
+          // Re-initialize media and join
+          await initializeMediaAndJoin(selectedAppointment!)
+        } else {
+          console.log('Recovery not available:', data.reason)
+          setRecoveryAvailable(false)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to request recovery:', error)
+    }
+  }
+  
+  // Periodic session health check
+  useEffect(() => {
+    if (!isInCall || !sessionData) return
+    
+    sessionCheckInterval.current = setInterval(async () => {
+      try {
+        const response = await fetch('/api/webrtc/session', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: sessionData.sessionId,
+            userId: userInfo.id,
+            connectionState: connectionStatus,
+            iceState: connectionHealth === 'good' ? 'connected' : 'checking'
+          })
+        })
+        
+        if (!response.ok) {
+          console.error('Failed to update session health')
+        }
+      } catch (error) {
+        console.error('Session health check failed:', error)
+      }
+    }, 30000) // Every 30 seconds
+    
+    return () => {
+      if (sessionCheckInterval.current) {
+        clearInterval(sessionCheckInterval.current)
+      }
+    }
+  }, [isInCall, sessionData, connectionStatus, connectionHealth, userInfo.id])
+  
+  // Initialize media and join call
+  const initializeMediaAndJoin = async (appointment: VideoAppointment) => {
+    try {
+      setMediaError('')
+      
+      // Check for existing session first
+      const existingSession = await checkExistingSession(appointment.roomId)
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000
+        }
+      })
+      
+      setLocalStream(stream)
+      setRoomId(appointment.roomId)
+      setIsInCall(true)
+      
+      // Create database session if not exists
+      if (!existingSession) {
+        await createDatabaseSession(appointment.roomId)
+      }
+      
+      // Save state for recovery
+      const callData = {
+        appointment,
+        userId: userInfo.id,
+        userName: userInfo.name,
+        userType: userInfo.type,
+        roomId: appointment.roomId,
+        sessionId: existingSession?.id || sessionId,
+        startTime: new Date().toISOString()
+      }
+      
+      sessionStorage.setItem(`active_call_${appointment.roomId}`, JSON.stringify(callData))
+      
+      saveRoomState({
+        roomId: appointment.roomId,
+        userId: userInfo.id,
+        userName: userInfo.name,
+        userType: userInfo.type,
+        sessionId: existingSession?.id || sessionId
+      })
+      
+    } catch (error) {
+      console.error('Failed to initialize media:', error)
+      if (error instanceof Error) {
+        setMediaError(error.message || 'Failed to access camera/microphone')
+      } else {
+        setMediaError('Failed to access camera/microphone')
+      }
+    }
+  }
+  
+  // Join call handler
+  const joinCall = async (appointment: VideoAppointment) => {
+    if (!appointment.roomId) {
+      alert('No room ID found for this appointment')
+      return
+    }
+    
+    setSelectedAppointment(appointment)
+    await initializeMediaAndJoin(appointment)
+  }
+  
+  // Recover session
+  const recoverSession = async () => {
+    console.log('Attempting session recovery...')
+    await requestDatabaseRecovery()
+    requestRecovery() // WebRTC recovery
+  }
+  
+  // End call with database cleanup
+  const endCall = async () => {
+    // Update database session
+    if (sessionData) {
+      try {
+        await fetch(`/api/webrtc/session?sessionId=${sessionData.sessionId}&userId=${userInfo.id}`, {
+          method: 'DELETE'
+        })
+      } catch (error) {
+        console.error('Failed to end database session:', error)
+      }
+    }
+    
+    // Clear persisted states
+    if (roomId) {
+      sessionStorage.removeItem(`active_call_${roomId}`)
+    }
+    clearRoomState()
+    
+    // Clean up media stream
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        track.stop()
+      })
+    }
+    
+    // Leave room
+    if (socket && socket.connected) {
+      socket.emit('leave-room')
+    }
+    
+    // Reset all states
+    setIsInCall(false)
+    setLocalStream(null)
+    setRoomId('')
+    setCallDuration(0)
+    setSessionData(null)
+    setRecoveryAvailable(false)
+    callStartTime.current = null
+    setMediaError('')
+  }
+  
+  // Restore call state on mount
   useEffect(() => {
     const restoreCallState = async () => {
-      // Check for active call in session storage
       const activeCallKeys = Object.keys(sessionStorage).filter(key => 
         key.startsWith('active_call_')
       )
@@ -138,25 +396,16 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
           if (callData.roomId && callData.appointment) {
             console.log('Restoring previous call state:', callData)
             
-            // Restore appointment and room
             setSelectedAppointment(callData.appointment)
             setRoomId(callData.roomId)
             
-            // Re-initialize media stream
-            const stream = await navigator.mediaDevices.getUserMedia({
-              video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-              audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-            })
-            
-            setLocalStream(stream)
-            setIsInCall(true)
-            
-            // Calculate call duration
-            if (callData.startTime) {
-              const startTime = new Date(callData.startTime).getTime()
-              callStartTime.current = startTime
-              const elapsed = Math.floor((Date.now() - startTime) / 1000)
-              setCallDuration(elapsed)
+            // Check if session is still active in database
+            const session = await checkExistingSession(callData.roomId)
+            if (session) {
+              await initializeMediaAndJoin(callData.appointment)
+            } else {
+              // Session expired, clear state
+              sessionStorage.removeItem(activeCallKeys[0])
             }
           }
         } catch (error) {
@@ -169,14 +418,7 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
     restoreCallState()
   }, [])
   
-  // Initialize first appointment
-  useEffect(() => {
-    if (videoAppointments.length > 0 && !selectedAppointment) {
-      setSelectedAppointment(videoAppointments[0])
-    }
-  }, [videoAppointments, selectedAppointment])
-  
-  // Handle call duration with persistence
+  // Handle call duration
   useEffect(() => {
     if (isInCall) {
       if (!callStartTime.current) {
@@ -203,111 +445,6 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
       }
     }
   }, [isInCall, isReconnecting])
-  
-  // Persist media stream across reconnections
-  useEffect(() => {
-    // Don't cleanup media if reconnecting
-    if (isReconnecting) {
-      console.log('Maintaining media stream during reconnection')
-      return
-    }
-    
-    return () => {
-      if (!isReconnecting && localStream) {
-        localStream.getTracks().forEach(track => {
-          track.stop()
-        })
-      }
-    }
-  }, [localStream, isReconnecting])
-  
-  const joinCall = async (appointment: VideoAppointment) => {
-    if (!appointment.roomId) {
-      alert('No room ID found for this appointment')
-      return
-    }
-    
-    try {
-      setMediaError('')
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 48000
-        }
-      })
-      
-      setLocalStream(stream)
-      setSelectedAppointment(appointment)
-      setRoomId(appointment.roomId)
-      setIsInCall(true)
-      
-      // Save call state
-      const callData = {
-        appointment,
-        userId: userInfo.id,
-        userName: userInfo.name,
-        userType: userInfo.type,
-        roomId: appointment.roomId,
-        startTime: new Date().toISOString()
-      }
-      sessionStorage.setItem(`active_call_${appointment.roomId}`, JSON.stringify(callData))
-      
-      // Save room state for socket reconnection
-      saveRoomState({
-        roomId: appointment.roomId,
-        userId: userInfo.id,
-        userName: userInfo.name,
-        userType: userInfo.type
-      })
-      
-    } catch (error: unknown) {
-      console.error('Failed to initialize media:', error)
-      // Type guard for error handling
-      if (error instanceof Error) {
-        setMediaError(error.message || 'Failed to access camera/microphone')
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        setMediaError((error as MediaErrorType).message || 'Failed to access camera/microphone')
-      } else {
-        setMediaError('Failed to access camera/microphone')
-      }
-    }
-  }
-  
-  const endCall = () => {
-    // Clear persisted states
-    if (roomId) {
-      sessionStorage.removeItem(`active_call_${roomId}`)
-    }
-    clearRoomState()
-    
-    // Clean up media stream
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        track.stop()
-      })
-    }
-    
-    // Leave room
-    if (socket && socket.connected) {
-      socket.emit('leave-room')
-    }
-    
-    // Reset all states
-    setIsInCall(false)
-    setLocalStream(null)
-    setRoomId('')
-    setCallDuration(0)
-    callStartTime.current = null
-    setMediaError('')
-  }
   
   const handleToggleVideo = () => {
     const newState = !isVideoOn
@@ -343,6 +480,7 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
   const retryConnection = () => {
     console.log('Manual reconnection attempt')
     manualReconnect()
+    triggerIceRestart()
   }
   
   // Connection status banner
@@ -371,7 +509,62 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
       )
     }
     
+    if (sessionData && recoveryAvailable && !isInCall) {
+      return (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3 flex items-center justify-center">
+          <FaDatabase className="mr-2" />
+          <span>Previous session found. </span>
+          <button 
+            onClick={recoverSession}
+            className="ml-4 px-3 py-1 bg-white text-blue-600 rounded hover:bg-gray-100 flex items-center"
+          >
+            <FaRedo className="mr-1" />
+            Recover Session
+          </button>
+        </div>
+      )
+    }
+    
     return null
+  }
+  
+  // Connection health indicator
+  const renderConnectionHealth = () => {
+    if (!isInCall) return null
+    
+    return (
+      <div className="absolute top-20 right-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 z-40">
+        {connectionHealth === 'good' && (
+          <>
+            <FaCheckCircle className="text-green-500" />
+            <span className="text-sm">Connection Good</span>
+          </>
+        )}
+        {connectionHealth === 'poor' && (
+          <>
+            <FaExclamationTriangle className="text-red-500" />
+            <span className="text-sm">Poor Connection</span>
+            <button 
+              onClick={triggerIceRestart}
+              className="ml-2 text-xs bg-red-500 px-2 py-1 rounded hover:bg-red-600"
+            >
+              Fix
+            </button>
+          </>
+        )}
+        {connectionHealth === 'recovering' && (
+          <>
+            <FaSync className="text-yellow-500 animate-spin" />
+            <span className="text-sm">Recovering...</span>
+          </>
+        )}
+        {sessionData && (
+          <span className="text-xs opacity-70 ml-2">
+            Session: {sessionData.sessionId.substring(0, 8)}
+          </span>
+        )}
+      </div>
+    )
   }
   
   // Media error screen
@@ -525,6 +718,7 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
   return (
     <>
       {renderConnectionStatus()}
+      {renderConnectionHealth()}
       <VideoCallRoom
         localStream={localStream}
         remoteStreams={remoteStreams}

@@ -7,6 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+// Add this to your existing schema.prisma file
+
+model WebRTCSession {
+  id                String      @id @default(uuid())
+  roomId            String      @unique
+  sessionId         String      @unique
+  participants      Json[]      // Array of participant objects
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  lastActivity      DateTime    @default(now())
+  status            String      @default("active") // active, ended, paused
+  metadata          Json?       // Additional session data
+  iceRestartCount   Int         @default(0)
+  
+  // Relations
+  connections       WebRTCConnection[]
+  
+  @@index([roomId])
+  @@index([status])
+}
+
+model WebRTCConnection {
+  id                String      @id @default(uuid())
+  sessionId         String
+  session           WebRTCSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId            String
+  userType          String
+  userName          String
+  socketId          String?
+  connectionState   String      @default("new") // new, connecting, connected, disconnected, failed
+  lastSeen          DateTime    @default(now())
+  iceState          String?     // checking, connected, completed, failed, disconnected
+  signalData        Json?       // Store offer/answer for recovery
+  metadata          Json?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([socketId])
+}
+
 model Patient {
   id                    String                @id @default(uuid())
   firstName             String

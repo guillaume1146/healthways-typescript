@@ -1,5 +1,5 @@
 // hooks/useSocket.ts
-// Fixed version with correct client-side Socket.IO options
+// Fixed version with updated RoomState interface
 
 import { useEffect, useState, useRef } from 'react'
 import io, { Socket } from 'socket.io-client'
@@ -9,6 +9,7 @@ interface RoomState {
   userId: string
   userName: string
   userType: string
+  sessionId?: string  // Add this line to include sessionId as optional
 }
 
 export const useSocket = () => {
@@ -53,10 +54,6 @@ export const useSocket = () => {
       
       // Upgrade timeout
       upgrade: true,
-      
-      // NOTE: pingInterval and pingTimeout are SERVER-SIDE options
-      // The client will automatically respond to server pings
-      // Connection health is maintained by the server's ping/pong mechanism
     })
 
     socketRef.current = socketInstance
