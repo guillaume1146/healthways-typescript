@@ -283,30 +283,36 @@ export function useWebRTC({
         peerConnection.iceRestartCount = 0
       })
 
+
       peer.on('error', (err: Error) => {
-        // Ignore expected errors from normal disconnection
-        const errorMessage = err.message || err.toString()
-        const isExpectedError = 
-          errorMessage.includes('User-Initiated Abort') ||
-          errorMessage.includes('Close called') ||
-          errorMessage.includes('Ice connection failed') && peerConnection.isDestroyed ||
-          errorMessage.includes('Connection failed') && peerConnection.isDestroyed
-        
-        if (isExpectedError) {
-          console.log(`Expected disconnection for ${targetSocketId}`)
-          return
-        }
-        
-        console.error(`Peer error with ${targetSocketId}:`, errorMessage)
-        
-        if (!peerConnection.isDestroyed && peerConnection.iceRestartCount < MAX_ICE_RESTART_ATTEMPTS) {
-          setTimeout(() => {
-            if (!peerConnection.isDestroyed) {
-              performIceRestart(peerConnection)
-            }
-          }, ICE_RESTART_DELAY)
-        }
-      })
+          const errorMessage = err.message || err.toString()
+
+          // NEW: swallow benign negotiation races
+          if (/setRemoteDescription/i.test(errorMessage) || /Called in wrong state/i.test(errorMessage)) {
+            console.log(`Ignoring transient SDP state error for ${targetSocketId}: ${errorMessage}`)
+            return
+          }
+
+          const isExpectedError =
+            errorMessage.includes('User-Initiated Abort') ||
+            errorMessage.includes('Close called') ||
+            (errorMessage.includes('Ice connection failed') && peerConnection.isDestroyed) ||
+            (errorMessage.includes('Connection failed') && peerConnection.isDestroyed)
+
+          if (isExpectedError) {
+            console.log(`Expected disconnection for ${targetSocketId}`)
+            return
+          }
+
+          // was console.error(...) —> soften to warn
+          console.warn(`Peer error with ${targetSocketId}:`, errorMessage)
+
+          if (!peerConnection.isDestroyed && peerConnection.iceRestartCount < MAX_ICE_RESTART_ATTEMPTS) {
+            setTimeout(() => {
+              if (!peerConnection.isDestroyed) performIceRestart(peerConnection)
+            }, ICE_RESTART_DELAY)
+          }
+        })
 
       peer.on('close', () => {
         console.log(`Connection closed with ${targetSocketId}`)
