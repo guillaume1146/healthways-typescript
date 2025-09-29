@@ -3,7 +3,7 @@
   HOW TO RUN:
     1) Open PowerShell in the project root
     2) If scripts are blocked: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-    3) Execute: .\scripts\toolbox.ps1
+    3) Execute: .\tools.ps1
     4) Choose from the menu
 
   NOTES:
