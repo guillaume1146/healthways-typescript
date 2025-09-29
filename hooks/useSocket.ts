@@ -118,7 +118,14 @@ export const useSocket = () => {
     })
 
     socketInstance.on('connect_error', (error) => {
-      console.error('Connection error:', error.message)
+      // During reconnection, treat connection errors as expected behavior
+      if (isReconnecting || reconnectAttempts > 0) {
+        console.log('🔄 Server appears to be down, continuing reconnection attempts...')
+      } else {
+        // Only log as error on first connection attempt
+        console.warn('⚠️ Unable to connect to server:', error.message)
+      }
+      
       if (!connected && !isReconnecting) {
         setIsReconnecting(true)
       }

@@ -58,6 +58,7 @@ const VideoConsultation: React.FC<Props> = ({ patientData, doctorData }) => {
     connected, 
     isReconnecting: socketReconnecting,
     reconnectAttempts,
+    serverStatus,
     saveRoomState, 
     clearRoomState,
     manualReconnect 
