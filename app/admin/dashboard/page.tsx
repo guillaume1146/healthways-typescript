@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
+import {
   FaUsers, FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
   FaCheckCircle, FaChartBar, FaDollarSign, FaChartLine, FaPercentage,
-  FaNewspaper, FaCog, FaBell, FaHome, FaFileAlt, FaUsersCog
+  FaNewspaper, FaCog, FaHome, FaFileAlt, FaUsersCog
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 interface StatCard {
   title: string
@@ -27,6 +28,12 @@ interface QuickAction {
 
 const AdminDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
+  const [userId, setUserId] = useState<string>('')
+
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   const stats: StatCard[] = [
     { title: 'Total Users', value: '12,847', icon: FaUsers, trend: 12, color: 'bg-blue-500' },
@@ -54,43 +61,30 @@ const AdminDashboard = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <FaCog className="text-3xl text-gray-700" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-gray-600">System Administration & Management</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-blue-600">
-                <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  5
-                </span>
-              </button>
-              <select 
-                value={selectedPeriod} 
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 border rounded-lg text-sm"
-              >
-                <option value="day">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="year">This Year</option>
-              </select>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-6">
+          <WalletBalanceCard userId={userId} />
         </div>
+      )}
+
+      {/* Period Filter */}
+      <div className="flex justify-end mb-6">
+        <select
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+          className="px-4 py-2 border rounded-lg text-sm"
+        >
+          <option value="day">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="year">This Year</option>
+        </select>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, idx) => (
             <div key={idx} className="bg-white rounded-xl p-6 shadow-lg">
               <div className="flex items-center justify-between">
@@ -267,8 +261,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }
 

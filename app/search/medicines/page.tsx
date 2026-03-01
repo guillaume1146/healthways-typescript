@@ -1,10 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaLeaf, FaExclamationTriangle,  FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaHandHoldingMedical, FaMedkit, FaPercent,  FaPlus, FaMinus, FaTrash } from 'react-icons/fa'
 import { useCart } from '@/app/search/medicines/contexts/CartContext'
-import { mockMedicines } from '@/app/search/medicines/data/medicines'
 
 const categoryIcons = {
   "Pain Relief": FaHandHoldingMedical,
@@ -116,8 +115,9 @@ const FloatingCart = () => {
   )
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface MedicineProps {
-  medicine: typeof mockMedicines[0]
+  medicine: any
 }
 
 const MedicineCard = ({ medicine }: MedicineProps) => {
@@ -187,7 +187,7 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{medicine.description}</p>
         
         <div className="flex flex-wrap gap-2 mb-4">
-          {medicine.features.slice(0, 3).map((feature, index) => (
+          {medicine.features.slice(0, 3).map((feature: string, index: number) => (
             <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
               {feature}
             </span>
@@ -198,7 +198,7 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
             <FaMedkit className="text-green-500" />
-            <span>{medicine.quantity}</span>
+            <span>{medicine.stockQuantity > 0 ? `${medicine.stockQuantity} in stock` : 'Out of stock'}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <FaClock className="text-blue-500" />
@@ -236,10 +236,15 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
         
         {/* Stock Status */}
         <div className="mb-4">
-          {medicine.inStock ? (
+          {medicine.stockQuantity > 10 ? (
             <span className="text-sm text-green-600 font-medium flex items-center gap-1">
               <FaCheckCircle className="text-xs" />
-              In Stock
+              In Stock ({medicine.stockQuantity} available)
+            </span>
+          ) : medicine.stockQuantity > 0 ? (
+            <span className="text-sm text-yellow-600 font-medium flex items-center gap-1">
+              <FaExclamationTriangle className="text-xs" />
+              Only {medicine.stockQuantity} left
             </span>
           ) : (
             <span className="text-sm text-red-600 font-medium flex items-center gap-1">
@@ -262,12 +267,17 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
             <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
               Details
             </button>
-            <button 
+            <button
               onClick={() => addToCart(medicine)}
-              className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center gap-2 text-sm relative"
+              disabled={!medicine.inStock || medicine.stockQuantity <= 0}
+              className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center gap-2 text-sm relative ${
+                !medicine.inStock || medicine.stockQuantity <= 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800'
+              }`}
             >
               <FaShoppingCart />
-              Add to Cart
+              {medicine.stockQuantity <= 0 ? 'Unavailable' : 'Add to Cart'}
               {quantityInCart > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                   {quantityInCart}
@@ -281,34 +291,59 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
   )
 }
 
-// AI search simulation function
-const aiSearchMedicines = (query: string, category: string) => {
-  return new Promise<typeof mockMedicines>((resolve) => {
-    setTimeout(() => {
-      let results = [...mockMedicines]
-      
-      if (category !== 'all') {
-        results = results.filter(medicine => 
-          medicine.category.toLowerCase().includes(category.toLowerCase())
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(medicine => 
-          medicine.name.toLowerCase().includes(lowerQuery) ||
-          medicine.brand.toLowerCase().includes(lowerQuery) ||
-          medicine.genericName.toLowerCase().includes(lowerQuery) ||
-          medicine.category.toLowerCase().includes(lowerQuery) ||
-          medicine.description.toLowerCase().includes(lowerQuery) ||
-          medicine.activeIngredient.toLowerCase().includes(lowerQuery) ||
-          medicine.features.some(f => f.toLowerCase().includes(lowerQuery))
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
+// Map API response items to the shape the UI expects
+const mapApiMedicine = (item: any) => ({
+  id: item.id,
+  name: item.name,
+  brand: item.pharmacy || 'Unknown Pharmacy',
+  genericName: item.genericName || '',
+  category: item.category,
+  type: item.requiresPrescription ? 'Prescription' : 'Over-the-counter',
+  price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+  originalPrice: typeof item.price === 'number'
+    ? Math.round(item.price * 1.2)
+    : Math.round((parseFloat(item.price) || 0) * 1.2),
+  discount: '20% OFF',
+  rating: 4.5,
+  reviews: 0,
+  inStock: item.inStock && (item.quantity ?? 0) > 0,
+  quantity: item.quantity ?? 0,
+  stockQuantity: item.quantity ?? 0,
+  description: item.description || '',
+  image: item.imageUrl || 'https://via.placeholder.com/150x150/4F46E5/ffffff?text=Pills',
+  manufacturer: item.pharmacy || '',
+  expiryDate: '12/2026',
+  prescriptionRequired: item.requiresPrescription ?? false,
+  activeIngredient: item.genericName || item.name,
+  sideEffects: item.sideEffects || [],
+  dosage: item.strength || '',
+  maxDailyDose: '',
+  contraindications: [] as string[],
+  storage: 'Store in cool, dry place',
+  deliveryTime: '2-4 hours',
+  fastDelivery: true,
+  verified: item.pharmacist?.verified ?? false,
+  pharmacyLocation: item.pharmacy || 'Mauritius',
+  features: [item.dosageForm, item.strength, item.category].filter(Boolean),
+  stockStatus: (item.quantity ?? 0) > 10 ? 'In Stock' : (item.quantity ?? 0) > 0 ? `Only ${item.quantity} left` : 'Out of Stock',
+})
+
+// Fetch medicines from API with optional search params
+const aiSearchMedicines = async (query: string, category: string) => {
+  try {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (category && category !== 'all') params.set('category', category)
+    const res = await fetch(`/api/search/medicines?${params.toString()}`)
+    const json = await res.json()
+    if (json.success && Array.isArray(json.data)) {
+      return json.data.map(mapApiMedicine)
+    }
+    return []
+  } catch (error) {
+    console.error('Error searching medicines:', error)
+    return []
+  }
 }
 
 // Loading Animation Component
@@ -356,7 +391,9 @@ export default function MedicinesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(mockMedicines)
+  const [allMedicines, setAllMedicines] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchResults, setSearchResults] = useState<any[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [searchExamples] = useState([
     "Paracetamol for fever",
@@ -367,12 +404,33 @@ export default function MedicinesPage() {
     "Cough syrup for children"
   ])
 
+  const fetchMedicines = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/search/medicines')
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map(mapApiMedicine)
+        setAllMedicines(mapped)
+        setSearchResults(mapped)
+      }
+    } catch (error) {
+      console.error('Error fetching medicines:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchMedicines()
+  }, [fetchMedicines])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
+
     const results = await aiSearchMedicines(searchQuery, category)
-    
+
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -380,7 +438,7 @@ export default function MedicinesPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setCategory('all')
-    setSearchResults(mockMedicines)
+    setSearchResults(allMedicines)
     setHasSearched(false)
   }
 
@@ -522,7 +580,7 @@ export default function MedicinesPage() {
         
         {/* Results Section */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

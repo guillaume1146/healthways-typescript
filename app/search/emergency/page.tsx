@@ -1,213 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FaSearch, FaAmbulance, FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaExclamationTriangle, FaHospital, FaFireExtinguisher,  FaHeartbeat, FaShieldAlt, FaCheckCircle, FaInfoCircle, FaBell, FaStarHalfAlt, FaEnvelope, FaIdCard, FaHelicopter,  FaTruck,  FaWifi } from 'react-icons/fa'
 
-const mockEmergencyServices = [
-  {
-    id: 1,
-    name: "MediRescue Ambulance Service",
-    type: "Emergency Ambulance",
-    category: "Medical Emergency",
-    responseTime: "5-8 minutes",
-    availability: "24/7",
-    rating: 4.9,
-    reviews: 467,
-    location: "Port Louis",
-    coverage: "Port Louis & Surrounding Areas",
-    phone: "911",
-    alternatePhone: "+230 5789 9911",
-    email: "dispatch@medirescue.mu",
-    services: ["Advanced Life Support", "Cardiac Emergency", "Trauma Care", "Patient Transport"],
-    equipment: ["Ventilator", "Defibrillator", "Emergency Medications", "Trauma Kit"],
-    certifications: ["ISO 9001", "Emergency Medical Service License", "Advanced Cardiac Life Support"],
-    vehicleTypes: ["ALS Ambulance", "BLS Ambulance", "Critical Care Unit"],
-    languages: ["English", "French", "Creole", "Hindi"],
-    gpsTracking: true,
-    verified: true,
-    governmentApproved: true,
-    bio: "Leading emergency medical service with state-of-the-art ambulances and highly trained paramedics",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=MR&backgroundColor=ef4444"
-  },
-  {
-    id: 2,
-    name: "Rapid Response Fire & Rescue",
-    type: "Fire Emergency",
-    category: "Fire & Rescue",
-    responseTime: "4-6 minutes",
-    availability: "24/7",
-    rating: 4.8,
-    reviews: 234,
-    location: "Curepipe",
-    coverage: "Central Mauritius",
-    phone: "995",
-    alternatePhone: "+230 5789 9955",
-    email: "alert@firerescue.mu",
-    services: ["Fire Suppression", "Rescue Operations", "Hazmat Response", "Water Rescue"],
-    equipment: ["Fire Engines", "Ladder Trucks", "Rescue Tools", "Breathing Apparatus"],
-    certifications: ["National Fire Protection", "Hazmat Operations", "Technical Rescue"],
-    vehicleTypes: ["Fire Engine", "Ladder Truck", "Rescue Vehicle", "Hazmat Unit"],
-    languages: ["English", "French", "Creole"],
-    gpsTracking: true,
-    verified: true,
-    governmentApproved: true,
-    bio: "Professional fire and rescue service equipped for all types of emergencies including structural fires and technical rescues",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=FR&backgroundColor=f97316"
-  },
-  {
-    id: 3,
-    name: "Emergency Medical Center",
-    type: "Emergency Room",
-    category: "Hospital Emergency",
-    responseTime: "Immediate on arrival",
-    availability: "24/7",
-    rating: 4.7,
-    reviews: 892,
-    location: "Vacoas",
-    coverage: "Walk-in & Ambulance",
-    phone: "112",
-    alternatePhone: "+230 5789 1122",
-    email: "er@emergencycenter.mu",
-    services: ["Trauma Care", "Cardiac Emergency", "Pediatric Emergency", "Surgical Emergency"],
-    equipment: ["CT Scanner", "X-Ray", "Operating Theater", "ICU"],
-    certifications: ["Level 1 Trauma Center", "Stroke Center", "Cardiac Care Certification"],
-    vehicleTypes: ["Hospital-based"],
-    languages: ["English", "French", "Creole", "Hindi", "Mandarin"],
-    gpsTracking: false,
-    verified: true,
-    governmentApproved: true,
-    bio: "Full-service emergency department with specialized trauma team and advanced diagnostic equipment",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=EM&backgroundColor=10b981"
-  },
-  {
-    id: 4,
-    name: "Coast Guard Emergency",
-    type: "Maritime Rescue",
-    category: "Water Emergency",
-    responseTime: "10-15 minutes",
-    availability: "24/7",
-    rating: 4.8,
-    reviews: 156,
-    location: "Grand Baie",
-    coverage: "Coastal Waters",
-    phone: "999",
-    alternatePhone: "+230 5789 9999",
-    email: "rescue@coastguard.mu",
-    services: ["Water Rescue", "Boat Emergency", "Diving Accidents", "Medical Evacuation"],
-    equipment: ["Rescue Boats", "Diving Equipment", "Medical Supplies", "Helicopter Support"],
-    certifications: ["Maritime Safety", "Swift Water Rescue", "Diving Medical Officer"],
-    vehicleTypes: ["Patrol Boat", "Rescue Boat", "Jet Ski", "Helicopter"],
-    languages: ["English", "French", "Creole"],
-    gpsTracking: true,
-    verified: true,
-    governmentApproved: true,
-    bio: "Specialized maritime emergency service for all water-related emergencies and coastal rescue operations",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=CG&backgroundColor=3b82f6"
-  },
-  {
-    id: 5,
-    name: "Air Ambulance Mauritius",
-    type: "Air Medical Service",
-    category: "Critical Care Transport",
-    responseTime: "20-30 minutes",
-    availability: "24/7",
-    rating: 4.9,
-    reviews: 89,
-    location: "SSR International Airport",
-    coverage: "Island-wide & International",
-    phone: "988",
-    alternatePhone: "+230 5789 9888",
-    email: "flight@airambulance.mu",
-    services: ["Critical Care Transport", "Inter-hospital Transfer", "International Repatriation", "Organ Transport"],
-    equipment: ["ICU Equipment", "Ventilator", "ECMO", "Blood Products"],
-    certifications: ["Aviation Medical", "Critical Care Transport", "International Air Ambulance"],
-    vehicleTypes: ["Helicopter", "Fixed-wing Aircraft"],
-    languages: ["English", "French"],
-    gpsTracking: true,
-    verified: true,
-    governmentApproved: true,
-    bio: "Specialized air medical transport for critical patients requiring rapid transport or international medical evacuation",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=AA&backgroundColor=8b5cf6"
-  },
-  {
-    id: 6,
-    name: "Poison Control Center",
-    type: "Toxicology Emergency",
-    category: "Poison & Chemical",
-    responseTime: "Immediate phone support",
-    availability: "24/7",
-    rating: 4.7,
-    reviews: 234,
-    location: "Port Louis",
-    coverage: "Phone & On-site Support",
-    phone: "977",
-    alternatePhone: "+230 5789 9777",
-    email: "poison@emergency.mu",
-    services: ["Poison Identification", "Treatment Guidance", "Chemical Exposure", "Antidote Information"],
-    equipment: ["Toxicology Database", "Antidotes", "Decontamination", "Lab Testing"],
-    certifications: ["Clinical Toxicology", "Hazmat Response", "Medical Toxicology"],
-    vehicleTypes: ["Mobile Response Unit"],
-    languages: ["English", "French", "Creole", "Hindi"],
-    gpsTracking: false,
-    verified: true,
-    governmentApproved: true,
-    bio: "Specialized poison and chemical emergency service providing immediate telephone consultation and treatment guidance",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=PC&backgroundColor=dc2626"
-  },
-  {
-    id: 7,
-    name: "Mental Health Crisis Team",
-    type: "Psychiatric Emergency",
-    category: "Mental Health",
-    responseTime: "15-30 minutes",
-    availability: "24/7",
-    rating: 4.6,
-    reviews: 178,
-    location: "Quatre Bornes",
-    coverage: "Island-wide",
-    phone: "966",
-    alternatePhone: "+230 5789 9666",
-    email: "crisis@mentalhealth.mu",
-    services: ["Crisis Intervention", "Suicide Prevention", "Psychiatric Assessment", "Emergency Counseling"],
-    equipment: ["Mobile Crisis Unit", "Restraint Equipment", "Medications", "Assessment Tools"],
-    certifications: ["Crisis Intervention", "Mental Health First Aid", "De-escalation Training"],
-    vehicleTypes: ["Crisis Response Vehicle"],
-    languages: ["English", "French", "Creole"],
-    gpsTracking: false,
-    verified: true,
-    governmentApproved: true,
-    bio: "Specialized mental health emergency team providing immediate intervention for psychiatric crises and emotional emergencies",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=MH&backgroundColor=06b6d4"
-  },
-  {
-    id: 8,
-    name: "Disaster Response Unit",
-    type: "Natural Disaster Response",
-    category: "Disaster Management",
-    responseTime: "30-60 minutes",
-    availability: "24/7 On-Call",
-    rating: 4.8,
-    reviews: 123,
-    location: "Rose Hill",
-    coverage: "National Coverage",
-    phone: "933",
-    alternatePhone: "+230 5789 9333",
-    email: "disaster@emergency.mu",
-    services: ["Search & Rescue", "Evacuation", "Emergency Shelter", "Medical Support"],
-    equipment: ["Heavy Machinery", "Emergency Supplies", "Communication Systems", "Temporary Shelters"],
-    certifications: ["Disaster Management", "Urban Search & Rescue", "Emergency Management"],
-    vehicleTypes: ["Command Vehicle", "Supply Trucks", "Rescue Equipment"],
-    languages: ["English", "French", "Creole"],
-    gpsTracking: true,
-    verified: true,
-    governmentApproved: true,
-    bio: "National disaster response team equipped for cyclones, floods, and other natural disasters with comprehensive emergency management capabilities",
-    avatar: "https://api.dicebear.com/7.x/initials/svg?seed=DR&backgroundColor=ea580c"
-  }
-]
-
 import { IconType } from 'react-icons';
-import Link from 'next/link';
+import AuthBookingLink from '@/components/booking/AuthBookingLink';
 
 // Category icons mapping
 const categoryIcons: { [key: string]: IconType } = {
@@ -221,39 +18,9 @@ const categoryIcons: { [key: string]: IconType } = {
   "Disaster Management": FaTruck
 };
 
-// AI search simulation function
-const aiSearchEmergency = (query: string, category: string): Promise<typeof mockEmergencyServices> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      let results = [...mockEmergencyServices]
-      
-      if (category !== 'all') {
-        results = results.filter(service => 
-          service.category.toLowerCase().includes(category.toLowerCase()) ||
-          service.type.toLowerCase().includes(category.toLowerCase())
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(service => 
-          service.name.toLowerCase().includes(lowerQuery) ||
-          service.type.toLowerCase().includes(lowerQuery) ||
-          service.category.toLowerCase().includes(lowerQuery) ||
-          service.services.some(s => s.toLowerCase().includes(lowerQuery)) ||
-          service.location.toLowerCase().includes(lowerQuery) ||
-          service.bio.toLowerCase().includes(lowerQuery)
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
-}
-
 // Emergency Service Card Component
 interface ServiceProps {
-  service: typeof mockEmergencyServices[0]
+  service: any
 }
 
 const EmergencyCard = ({ service }: ServiceProps) => {
@@ -327,7 +94,7 @@ const EmergencyCard = ({ service }: ServiceProps) => {
         
         {/* Services */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {service.services.slice(0, 3).map((item, index) => (
+          {service.services.slice(0, 3).map((item: string, index: number) => (
             <span key={index} className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded-full">
               {item}
             </span>
@@ -358,7 +125,7 @@ const EmergencyCard = ({ service }: ServiceProps) => {
         
         {/* Vehicle Types */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {service.vehicleTypes.slice(0, 3).map((vehicle, index) => (
+          {service.vehicleTypes.slice(0, 3).map((vehicle: string, index: number) => (
             <span key={index} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded flex items-center gap-1">
               <FaTruck className="text-xs" />
               {vehicle}
@@ -373,13 +140,13 @@ const EmergencyCard = ({ service }: ServiceProps) => {
               <p className="text-xs opacity-90">Emergency Hotline</p>
               <p className="text-2xl font-bold">{service.phone}</p>
             </div>
-            <Link 
-              href="/patient/emergency/book/id"
+            <AuthBookingLink
+              type="emergency"
               className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center gap-2"
             >
               <FaPhone className="animate-pulse" />
               CALL NOW
-            </Link>
+            </AuthBookingLink>
           </div>
         </div>
         
@@ -450,8 +217,10 @@ export default function EmergencyPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(mockEmergencyServices)
+  const [allServices, setAllServices] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<any[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
     "Need ambulance now",
     "Fire emergency",
@@ -461,12 +230,77 @@ export default function EmergencyPage() {
     "Air ambulance"
   ])
 
+  const fetchServices = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const res = await fetch('/api/search/emergency')
+      if (!res.ok) throw new Error('Failed to fetch emergency services')
+      const data = await res.json()
+      const mapped = (data || []).map((s: any) => ({
+        id: s.id,
+        name: s.worker?.name || s.serviceName,
+        type: s.serviceType || 'Emergency Service',
+        category: s.serviceType || 'Medical Emergency',
+        responseTime: s.responseTime || 'N/A',
+        availability: s.available24h ? '24/7' : 'Limited Hours',
+        rating: 4.7,
+        reviews: Math.floor(Math.random() * 400) + 50,
+        location: s.coverageArea || 'Mauritius',
+        coverage: s.coverageArea || 'Local Area',
+        phone: s.contactNumber || '911',
+        alternatePhone: s.worker?.phone || '',
+        email: '',
+        services: s.specializations || [],
+        equipment: [],
+        certifications: s.worker?.certifications || [],
+        vehicleTypes: s.worker?.vehicleType ? [s.worker.vehicleType] : [],
+        languages: ['English', 'French', 'Creole'],
+        gpsTracking: true,
+        verified: s.worker?.verified || false,
+        governmentApproved: s.worker?.verified || false,
+        bio: s.description || '',
+        avatar: s.worker?.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(s.serviceName || 'ES')}&backgroundColor=ef4444`
+      }))
+      setAllServices(mapped)
+      setSearchResults(mapped)
+    } catch (err) {
+      console.error('Error fetching emergency services:', err)
+      setAllServices([])
+      setSearchResults([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchServices()
+  }, [fetchServices])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchEmergency(searchQuery, category)
-    
+
+    let results = [...allServices]
+
+    if (category !== 'all') {
+      results = results.filter(service =>
+        service.category.toLowerCase().includes(category.toLowerCase()) ||
+        service.type.toLowerCase().includes(category.toLowerCase())
+      )
+    }
+
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase()
+      results = results.filter(service =>
+        service.name.toLowerCase().includes(lowerQuery) ||
+        service.type.toLowerCase().includes(lowerQuery) ||
+        service.category.toLowerCase().includes(lowerQuery) ||
+        (service.services || []).some((s: string) => s.toLowerCase().includes(lowerQuery)) ||
+        service.location.toLowerCase().includes(lowerQuery) ||
+        service.bio.toLowerCase().includes(lowerQuery)
+      )
+    }
+
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -474,7 +308,7 @@ export default function EmergencyPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setCategory('all')
-    setSearchResults(mockEmergencyServices)
+    setSearchResults(allServices)
     setHasSearched(false)
   }
 
@@ -589,7 +423,7 @@ export default function EmergencyPage() {
         
         {/* Results Section */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

@@ -50,6 +50,7 @@ export interface SignupFormData {
   // Regional Administrator specific
   targetCountry?: string;
   targetRegion?: string;
+  countryCode?: string;
   businessPlan?: string;
   
   // Referral Partner specific

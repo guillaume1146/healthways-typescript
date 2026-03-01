@@ -2,74 +2,14 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
-import { doctorsData, type Doctor } from '@/lib/data'
-import { 
-  FaSearch, FaUserMd, FaStar, FaMapMarkerAlt, FaClock, 
-   FaShieldAlt, 
+import { useState, useEffect, useCallback } from 'react'
+import { type Doctor } from '@/lib/data'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import {
+  FaSearch, FaUserMd, FaStar, FaMapMarkerAlt, FaClock,
+   FaShieldAlt,
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
 } from 'react-icons/fa'
-
-// AI search simulation function using centralized data
-const aiSearchDoctors = (query: string, specialization: string) => {
-  return new Promise<Doctor[]>((resolve) => {
-    setTimeout(() => {
-      let results = [...doctorsData]
-      
-      if (specialization !== 'all') {
-        results = results.filter(doc => 
-          doc.specialty.some(s => s.toLowerCase().includes(specialization.toLowerCase()))
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(doc => {
-          // Search in basic fields
-          const matchesBasic = 
-            doc.firstName.toLowerCase().includes(lowerQuery) ||
-            doc.lastName.toLowerCase().includes(lowerQuery) ||
-            doc.specialty.some(s => s.toLowerCase().includes(lowerQuery)) ||
-            doc.location.toLowerCase().includes(lowerQuery) ||
-            doc.bio.toLowerCase().includes(lowerQuery)
-          
-          // Search in education (now objects)
-          const matchesEducation = doc.education.some(edu => 
-            edu.degree.toLowerCase().includes(lowerQuery) ||
-            edu.institution.toLowerCase().includes(lowerQuery)
-          )
-          
-          // Search in work history (if available)
-          const matchesWorkHistory = doc.workHistory && doc.workHistory.some(work => 
-            work.position.toLowerCase().includes(lowerQuery) ||
-            work.organization.toLowerCase().includes(lowerQuery)
-          )
-          
-          // Search in certifications (if available)
-          const matchesCertifications = doc.certifications && doc.certifications.some(cert => 
-            cert.name.toLowerCase().includes(lowerQuery) ||
-            cert.issuingBody.toLowerCase().includes(lowerQuery)
-          )
-          
-          // Search in languages
-          const matchesLanguages = doc.languages.some(lang => 
-            lang.toLowerCase().includes(lowerQuery)
-          )
-          
-          // Search in sub-specialties
-          const matchesSubSpecialties = doc.subSpecialties && doc.subSpecialties.some(sub => 
-            sub.toLowerCase().includes(lowerQuery)
-          )
-          
-          return matchesBasic || matchesEducation || matchesWorkHistory || 
-                 matchesCertifications || matchesLanguages || matchesSubSpecialties
-        })
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
-}
 
 interface DoctorProps {
   doctor: Doctor
@@ -216,11 +156,9 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
                 Details
               </button>
             </Link>
-            <Link href={`/booking/doctors/${doctor.id}`} className="flex-1">
-              <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                Book
-              </button>
-            </Link>
+            <AuthBookingLink type="doctor" providerId={doctor.id} className="flex-1 w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              Book
+            </AuthBookingLink>
           </div>
         </div>
       </div>
@@ -253,8 +191,10 @@ export default function DoctorsSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [specialization, setSpecialization] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(doctorsData)
+  const [searchResults, setSearchResults] = useState<Doctor[]>([])
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
     "Find a heart specialist near me",
     "I need a pediatrician for my baby",
@@ -264,12 +204,27 @@ export default function DoctorsSearchPage() {
     "Weekend availability doctor"
   ])
 
+  const fetchDoctors = useCallback(async (query = '', specialty = '') => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (specialty && specialty !== 'all') params.set('specialty', specialty)
+    const res = await fetch(`/api/search/doctors?${params.toString()}`)
+    const json = await res.json()
+    return json.success ? json.data : []
+  }, [])
+
+  useEffect(() => {
+    fetchDoctors().then((data) => {
+      setAllDoctors(data)
+      setSearchResults(data)
+      setIsLoading(false)
+    })
+  }, [fetchDoctors])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchDoctors(searchQuery, specialization)
-    
+    const results = await fetchDoctors(searchQuery, specialization)
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -277,7 +232,7 @@ export default function DoctorsSearchPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setSpecialization('all')
-    setSearchResults(doctorsData)
+    setSearchResults(allDoctors)
     setHasSearched(false)
   }
 
@@ -377,7 +332,7 @@ export default function DoctorsSearchPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
             <FaUserMd className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{doctorsData.length}+</p>
+            <p className="text-2xl font-bold text-gray-900">{allDoctors.length}+</p>
             <p className="text-sm text-gray-600">Verified Doctors</p>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
@@ -399,7 +354,7 @@ export default function DoctorsSearchPage() {
         
         {/* Results */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

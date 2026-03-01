@@ -6,75 +6,47 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useAppConfig } from '@/hooks/useAppConfig'
 
-// Corrected Mauritius Flag Component - Horizontal orientation
+// Corrected Mauritius Flag Component - Horizontal orientation (static)
 const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
   return (
-    <motion.div 
-      className={`inline-flex flex-col rounded-sm overflow-hidden ${className}`}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.5 }}
-    >
-      <motion.div 
-        className="h-1.5 w-6 bg-red-600"
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.7, duration: 0.3 }}
-      />
-      <motion.div 
-        className="h-1.5 w-6 bg-blue-600"
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.3 }}
-      />
-      <motion.div 
-        className="h-1.5 w-6 bg-yellow-400"
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.9, duration: 0.3 }}
-      />
-      <motion.div 
-        className="h-1.5 w-6 bg-green-600"
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.0, duration: 0.3 }}
-      />
-    </motion.div>
+    <div className={`inline-flex flex-col rounded-sm overflow-hidden ${className}`}>
+      <div className="h-1.5 w-6 bg-red-600" />
+      <div className="h-1.5 w-6 bg-blue-600" />
+      <div className="h-1.5 w-6 bg-yellow-400" />
+      <div className="h-1.5 w-6 bg-green-600" />
+    </div>
   )
 }
 
-// Type definition for a star's properties
-interface Star {
-  id: number;
-  left: string;
-  top: string;
-  duration: number;
-  delay: number;
+interface HeroSectionProps {
+  content?: {
+    mainTitle?: string
+    highlightWord?: string
+    subtitle?: string
+    platformBadge?: string
+    searchPlaceholder?: string
+    ctaButtons?: Array<{ icon: string; label: string; shortLabel: string }>
+  }
+  slides?: Array<{
+    id: string
+    title: string
+    subtitle?: string | null
+    imageUrl: string
+    sortOrder: number
+  }>
 }
 
-const HeroSection: React.FC = () => {
+const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { config } = useAppConfig()
-  const [stars, setStars] = useState<Star[]>([]);
-
-  useEffect(() => {
-    const generatedStars = [...Array(15)].map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      duration: 3 + Math.random() * 4,
-      delay: Math.random() * 5,
-    }));
-    setStars(generatedStars);
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Searching for:', searchQuery)
   }
 
-  const heroImages = [
+  const defaultHeroImages = [
     {
       src: "/images/hero/gemini-doctor-3-removebg-1.png",
       alt: "Specialist Medical Doctor",
@@ -117,6 +89,10 @@ const HeroSection: React.FC = () => {
     }
   ]
 
+  const heroImages = slides
+    ? slides.map((s) => ({ src: s.imageUrl, alt: s.subtitle || s.title, title: s.title }))
+    : defaultHeroImages
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length)
@@ -153,102 +129,32 @@ const HeroSection: React.FC = () => {
   const imageVariants = {
     enter: {
       opacity: 0,
-      scale: 1.1,
-      rotateY: 25,
-      clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
-      filter: "blur(8px) brightness(0.7)"
+      scale: 1.05,
     },
     center: {
       opacity: 1,
       scale: 1,
-      rotateY: 0,
-      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-      filter: "blur(0px) brightness(1)",
       transition: {
-        duration: 1.0,
+        duration: 0.8,
         ease: [0.25, 0.46, 0.45, 0.94] as const,
-        clipPath: {
-          duration: 1.2,
-          ease: "easeInOut" as const
-        },
-        filter: {
-          duration: 0.6
-        }
       }
     },
     exit: {
       opacity: 0,
-      scale: 0.9,
-      rotateY: -25,
-      clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)",
-      filter: "blur(5px) brightness(0.5)",
+      scale: 0.95,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: [0.55, 0.085, 0.68, 0.53] as const
       }
     }
   }
 
   return (
-    <section className="relative overflow-hidden text-white py-14 sm:py-14 lg:py-14" 
-      style={{ 
-        background: `
-          radial-gradient(ellipse at 0% 50%, rgba(0, 0, 180, 0.9) 0%, transparent 50%),
-          radial-gradient(circle at 40% 30%, rgba(0, 80, 200, 0.9) 0%, transparent 60%),
-          radial-gradient(circle at 95% 50%, rgba(21, 128, 61, 0.7) 0%, transparent 25%),
-          linear-gradient(90deg, 
-            rgba(0, 0, 180, 0.95) 0%, 
-            rgba(0, 80, 200, 0.9) 25%, 
-            rgba(0, 100, 220, 0.8) 50%, 
-            rgba(0, 120, 160, 0.7) 75%,
-            rgba(22, 101, 52, 0.7) 90%, 
-            rgba(21, 128, 61, 0.8) 97%, 
-            rgba(20, 83, 45, 0.7) 100%
-          )
-        `
+    <section className="relative overflow-hidden text-white py-6 sm:py-8 lg:py-14"
+      style={{
+        background: 'linear-gradient(135deg, rgba(18, 95, 249, 0.95) 0%, rgba(0, 143, 163, 0.9) 50%, rgba(0, 165, 66, 0.85) 100%)'
       }}
     >
-      {/* Enhanced Animated Background Elements - Space-like */}
-      <motion.div
-        className="absolute inset-0 opacity-40"
-        animate={{
-          background: [
-            "radial-gradient(circle at 15% 15%, rgba(0, 80, 200, 0.8) 0%, transparent 40%)",
-            "radial-gradient(circle at 85% 85%, rgba(21, 128, 61, 0.6) 0%, transparent 45%)",
-            "radial-gradient(circle at 50% 50%, rgba(0, 100, 220, 0.7) 0%, transparent 50%)",
-            "radial-gradient(circle at 25% 75%, rgba(16, 100, 120, 0.6) 0%, transparent 40%)",
-            "radial-gradient(circle at 15% 15%, rgba(0, 80, 200, 0.8) 0%, transparent 40%)"
-          ]
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-
-      {/* Floating Stars/Particles - Rendered from state */}
-      {stars.map((star) => (
-        <motion.div
-          key={star.id}
-          className="absolute w-1 h-1 bg-white/60 rounded-full"
-          style={{
-            left: star.left,
-            top: star.top,
-          }}
-          animate={{
-            opacity: [0.3, 1, 0.3],
-            scale: [0.5, 1.5, 0.5],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: star.delay,
-          }}
-        />
-      ))}
-
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8 items-center">
           <motion.div 
@@ -268,58 +174,31 @@ const HeroSection: React.FC = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.5 }}
               >
-                {config.platformDescription}
+                {content?.platformBadge || config.platformDescription}
               </motion.span>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               variants={itemVariants}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight text-white"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight text-white"
             >
-             
-                  {config.heroTitle.split(',').map((part, index) => (
-                      <motion.span
-                        key={index}
-                        className={index === 1 ? "text-yellow-400" : ""}
-                        initial={{ opacity: 0, y: 20, textShadow: "0 0 0px rgba(245, 158, 11, 0)" }}
-                        animate={{ 
-                          opacity: 1, 
-                          y: 0,
-                          textShadow: [
-                            "0 0 0px rgba(245, 158, 11, 0)",
-                            "0 0 20px rgba(245, 158, 11, 0.5)",
-                            "0 0 0px rgba(245, 158, 11, 0)"
-                          ]
-                        }}
-                        transition={{ 
-                          delay: 1.0, 
-                          duration: 0.6,
-                          textShadow: {
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }
-                        }}
-                      >
-                        {part.trim()}
-                        {index === 0 && ','}
-                        {index === 0 && <br />}
-                      </motion.span>
-                    ))}
-
-
-
+              {(content?.mainTitle || config.heroTitle).split(',').map((part, index) => (
+                <span
+                  key={index}
+                  className={index === 1 ? "text-yellow-400" : ""}
+                >
+                  {part.trim()}
+                  {index === 0 && ','}
+                  {index === 0 && <br />}
+                </span>
+              ))}
             </motion.h1>
 
-            
-            
-            <motion.p 
+            <motion.p
               variants={itemVariants}
-              className="text-base  text-left sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/150 leading-relaxed px-2 lg:px-0 max-w-xl sm:mx-auto lg:mx-0"
+              className="text-base text-left sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 leading-relaxed px-2 lg:px-0 max-w-xl sm:mx-auto lg:mx-0 line-clamp-3 sm:line-clamp-none"
             >
-              Connect with qualified doctors, get AI-powered health insights, 
-              and access medicines across Mauritius. Your trusted healthcare 
-              companion.
+              {content?.subtitle || 'Connect with qualified doctors, get AI-powered health insights, and access medicines across Mauritius. Your trusted healthcare companion.'}
             </motion.p>
             
             {/* Search Form - Responsive */}
@@ -332,36 +211,17 @@ const HeroSection: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search doctors, diseases..."
+                placeholder={content?.searchPlaceholder || "Search doctors, diseases..."}
                 className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 outline-none rounded-l-xl text-sm sm:text-base bg-white/90"
               />
-              <motion.button 
-                type="submit" 
-                className="btn-gradient px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2 rounded-r-xl relative overflow-hidden text-sm sm:text-base"
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ background: "linear-gradient(45deg, #3B82F6, #1D4ED8)" }}
-                animate={{
-                  background: [
-                    "linear-gradient(45deg, #3B82F6, #1D4ED8)",
-                    "linear-gradient(45deg, #1D4ED8, #3B82F6)",
-                    "linear-gradient(45deg, #3B82F6, #1D4ED8)"
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
+              <button
+                type="submit"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2 rounded-r-xl text-sm sm:text-base text-white font-medium transition-transform hover:scale-105 active:scale-95"
+                style={{ background: "linear-gradient(45deg, #3B82F6, #1D4ED8)" }}
               >
                 <FaSearch className="text-xs sm:text-sm" />
                 <span className="hidden sm:inline">Search</span>
-                <motion.div
-                  className="absolute inset-0 bg-white/20"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.6 }}
-                />
-              </motion.button>
+              </button>
             </motion.form>
 
             {/* Action Buttons - Responsive Grid */}
@@ -369,40 +229,19 @@ const HeroSection: React.FC = () => {
               variants={containerVariants}
               className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-lg mx-auto lg:mx-0"
             >
-              {[
-                { icon: "👨‍⚕️", text: "Find Doctors", shortText: "Doctors" },
-                { icon: "💊", text: "Buy Medicines", shortText: "Medicines" },
-                { icon: "🤖", text: "AI Health Assistant", shortText: "AI Health" }
-              ].map((button, index) => (
-                <motion.button 
-                  key={button.text}
+              {(content?.ctaButtons || [
+                { icon: "👨‍⚕️", label: "Find Doctors", shortLabel: "Doctors" },
+                { icon: "💊", label: "Buy Medicines", shortLabel: "Medicines" },
+                { icon: "🤖", label: "AI Health Assistant", shortLabel: "AI Health" }
+              ]).map((button) => (
+                <motion.button
+                  key={button.label}
                   variants={itemVariants}
-                  className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/20 transition flex items-center justify-center gap-2 relative overflow-hidden group text-sm sm:text-base"
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -2,
-                    boxShadow: "0 10px 25px rgba(255,255,255,0.1)"
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.5 + index * 0.1 }}
+                  className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <motion.span
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
-                    className="text-base sm:text-lg"
-                  >
-                    {button.icon}
-                  </motion.span>
-                  <span className="block sm:hidden">{button.shortText}</span>
-                  <span className="hidden sm:block">{button.text}</span>
-                  <motion.div
-                    className="absolute bottom-0 left-0 h-0.5 bg-yellow-400"
-                    initial={{ width: "0%" }}
-                    whileHover={{ width: "100%" }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  <span className="text-base sm:text-lg">{button.icon}</span>
+                  <span className="block sm:hidden">{button.shortLabel}</span>
+                  <span className="hidden sm:block">{button.label}</span>
                 </motion.button>
               ))}
             </motion.div>
@@ -410,45 +249,18 @@ const HeroSection: React.FC = () => {
 
           <motion.div
             className="w-full order-2 lg:order-2 lg:col-span-6"
-            initial={{ opacity: 0, x: 100, rotateY: 20 }}
-            animate={{ opacity: 1, x: 0, rotateY: 0 }}
-            transition={{ 
-              duration: 1.2, 
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{
+              duration: 1.0,
               delay: 0.3,
               type: "spring",
               stiffness: 50,
               damping: 15
             }}
           >
-            <div className="relative w-full aspect-[5/4] perspective-1000">
+            <div className="relative w-full aspect-[5/4]">
               
-              {/* Subtle Scanline Effect */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-10 opacity-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.5, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <motion.div
-                  className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-blue-800/40 to-transparent"
-                  style={{
-                    filter: "drop-shadow(0 0 4px rgba(30, 64, 175, 0.3))"
-                  }}
-                  animate={{ 
-                    y: ["-10%", "110%"],
-                    background: [
-                      "linear-gradient(90deg, transparent 0%, rgba(30, 64, 175, 0.4) 50%, transparent 100%)",
-                      "linear-gradient(90deg, transparent 0%, rgba(34, 197, 94, 0.3) 50%, transparent 100%)",
-                      "linear-gradient(90deg, transparent 0%, rgba(30, 64, 175, 0.4) 50%, transparent 100%)"
-                    ]
-                  }}
-                  transition={{ 
-                    y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-                    background: { duration: 8, repeat: Infinity, ease: "easeInOut" }
-                  }}
-                />
-              </motion.div>
-
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImageIndex}
@@ -456,10 +268,7 @@ const HeroSection: React.FC = () => {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="absolute inset-0 rounded-2xl overflow-hidden "
-                  style={{
-                    transformStyle: "preserve-3d"
-                  }}
+                  className="absolute inset-0 rounded-2xl overflow-hidden"
                 >
 
                   <div className="relative w-full h-full">
@@ -472,124 +281,41 @@ const HeroSection: React.FC = () => {
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
                     />
                     
-                    <motion.div 
+                    <div
                       className="absolute inset-0 opacity-15"
-                      animate={{
-                        background: [
-                          "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 60%)",
-                          "linear-gradient(225deg, rgba(59, 130, 246, 0.1) 0%, transparent 60%)",
-                          "linear-gradient(315deg, rgba(34, 197, 94, 0.1) 0%, transparent 60%)",
-                          "linear-gradient(45deg, rgba(0, 0, 0, 0.2) 0%, transparent 60%)",
-                          "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 60%)"
-                        ]
-                      }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ background: "linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 60%)" }}
                     />
                     
-                    {/* Image Title - Enhanced transparency */}
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white"
-                      initial={{ y: 50, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
-                    >
-                      <motion.div
-                        className="bg-slate-900/15 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/10"
-                        whileHover={{ 
-                          scale: 1.02,
-                          boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
-                        }}
-                      >
-                        <motion.h3 
-                          className="text-base sm:text-xl font-bold mb-1"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.0, duration: 0.4 }}
-                        >
+                    {/* Image Title */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
+                      <div className="bg-slate-900/15 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/10">
+                        <h3 className="text-base sm:text-xl font-bold mb-1">
                           {heroImages[currentImageIndex].title}
-                        </motion.h3>
-                        <motion.p 
-                          className="text-xs sm:text-sm text-white/80 line-clamp-2"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.2, duration: 0.4 }}
-                        >
+                        </h3>
+                        <p className="text-xs sm:text-sm text-white/80 line-clamp-2">
                           {heroImages[currentImageIndex].alt}
-                        </motion.p>
-                      </motion.div>
-                    </motion.div>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
               
-              {/* Enhanced Indicators */}
+              {/* Carousel Indicators */}
               <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 transform -translate-x-1/2 flex gap-2 sm:gap-3">
                 {heroImages.map((_, index) => (
-                  <motion.button
+                  <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`h-2 sm:h-3 rounded-full transition-all duration-500 relative overflow-hidden ${
-                      index === currentImageIndex 
-                        ? 'bg-yellow-400 w-8 sm:w-10 shadow-lg' 
+                    className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex
+                        ? 'bg-yellow-400 w-8 sm:w-10 shadow-lg scale-110'
                         : 'bg-white/30 hover:bg-white/50 w-2 sm:w-3'
                     }`}
-                    whileHover={{ scale: 1.3, y: -2 }}
-                    whileTap={{ scale: 0.9 }}
-                    animate={index === currentImageIndex ? {
-                      boxShadow: [
-                        "0 0 0px rgba(245, 158, 11, 0)",
-                        "0 0 15px rgba(245, 158, 11, 0.6)",
-                        "0 0 0px rgba(245, 158, 11, 0)"
-                      ]
-                    } : {}}
-                    transition={{ duration: 2, repeat: Infinity }}
                   />
                 ))}
               </div>
 
-              {[...Array(10)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full opacity-40"
-                  style={{
-                    left: `${10 + i * 8}%`,
-                    top: `${5 + i * 12}%`,
-                    background: i % 3 === 0 
-                      ? "rgba(25, 57, 138, 0.7)" 
-                      : i % 3 === 1
-                      ? "rgba(34, 197, 94, 0.6)"
-                      : "rgba(255, 255, 255, 0.4)"
-                  }}
-                  animate={{
-                    y: [-15, 15, -15],
-                    opacity: [0.2, 0.8, 0.2],
-                    scale: [0.6, 1.4, 0.6],
-                    background: i % 3 === 0 
-                      ? [
-                          "rgba(25, 57, 138, 0.7)",
-                          "rgba(30, 64, 175, 0.9)",
-                          "rgba(25, 57, 138, 0.7)"
-                        ]
-                      : i % 3 === 1
-                      ? [
-                          "rgba(34, 197, 94, 0.6)",
-                          "rgba(16, 185, 129, 0.8)",
-                          "rgba(34, 197, 94, 0.6)"
-                        ]
-                      : [
-                          "rgba(255, 255, 255, 0.4)",
-                          "rgba(255, 255, 255, 0.7)",
-                          "rgba(255, 255, 255, 0.4)"
-                        ]
-                  }}
-                  transition={{
-                    duration: 4 + i * 0.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: i * 0.3
-                  }}
-                />
-              ))}
             </div>
           </motion.div>
         </div>

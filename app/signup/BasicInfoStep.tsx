@@ -222,15 +222,38 @@ export default function BasicInfoStep({
             <>
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Target Country *</label>
-                <input
-                  type="text"
+                <select
                   name="targetCountry"
                   required
-                  placeholder="Country you want to manage"
                   className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-blue-600"
                   value={formData.targetCountry || ''}
-                  onChange={onFormChange}
-                />
+                  onChange={(e) => {
+                    onFormChange(e)
+                    const opt = e.target.selectedOptions[0]
+                    const code = opt?.getAttribute('data-code') || ''
+                    onFormChange({ target: { name: 'countryCode', value: code, type: 'text' } } as ChangeEvent<HTMLInputElement>)
+                  }}
+                >
+                  <option value="">Select Country</option>
+                  <option value="Madagascar" data-code="MG">Madagascar</option>
+                  <option value="Kenya" data-code="KE">Kenya</option>
+                  <option value="India" data-code="IN">India</option>
+                  <option value="France" data-code="FR">France</option>
+                  <option value="Germany" data-code="DE">Germany</option>
+                  <option value="United Kingdom" data-code="GB">United Kingdom</option>
+                  <option value="United States" data-code="US">United States</option>
+                  <option value="South Africa" data-code="ZA">South Africa</option>
+                  <option value="Mauritius" data-code="MU">Mauritius</option>
+                  <option value="Seychelles" data-code="SC">Seychelles</option>
+                  <option value="Tanzania" data-code="TZ">Tanzania</option>
+                  <option value="Uganda" data-code="UG">Uganda</option>
+                  <option value="Nigeria" data-code="NG">Nigeria</option>
+                  <option value="Ghana" data-code="GH">Ghana</option>
+                  <option value="Senegal" data-code="SN">Senegal</option>
+                  <option value="Morocco" data-code="MA">Morocco</option>
+                  <option value="Egypt" data-code="EG">Egypt</option>
+                  <option value="UAE" data-code="AE">UAE</option>
+                </select>
               </div>
 
               <div>

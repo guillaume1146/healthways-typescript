@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import ConditionalFooter from '@/components/layout/ConditionalFooter'
 import { CartProvider } from '@/app/search/medicines/contexts/CartContext'
+import ToastProvider from '@/components/shared/ToastProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             {children}
           </main>
           <ConditionalFooter />
+          <ToastProvider />
         </CartProvider>
       </body>
     </html>

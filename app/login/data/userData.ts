@@ -114,7 +114,7 @@ export const createAuthData = (): Record<string, BaseAuthenticatedUser> => {
   ];
 
   demoUsers.forEach(user => {
-    authUsers[user.email.toLowerCase()] = user as BaseAuthenticatedUser;
+    authUsers[user.email.toLowerCase()] = user as unknown as BaseAuthenticatedUser;
   });
 
   return authUsers;

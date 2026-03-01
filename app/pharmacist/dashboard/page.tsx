@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  FaClipboardList, FaDollarSign, FaReceipt, 
-  FaBell, FaTruck, FaEdit, FaClock, FaFileExport,
+import {
+  FaClipboardList, FaDollarSign, FaReceipt,
+  FaTruck, FaClock, FaFileExport,
   FaCheckCircle, FaBoxOpen , FaStar
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 // Type Definitions
 interface StatCardProps {
@@ -87,6 +88,12 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 
 export default function PharmacyDashboardPage() {
   const [pharmacyData] = useState<PharmacyDashboardData>(mockPharmacyData)
+  const [userId, setUserId] = useState<string>('')
+
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   const getStatusInfo = (status: 'pending' | 'prepared' | 'in-delivery' | 'completed') => {
     switch (status) {
@@ -98,37 +105,16 @@ export default function PharmacyDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={pharmacyData.avatar} alt={pharmacyData.name} className="w-14 h-14 rounded-full border-2 border-green-500" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{pharmacyData.name}</h1>
-                <p className="text-gray-600">{pharmacyData.location}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-green-600">
-                <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {pharmacyData.stats.pendingOrders}
-                </span>
-              </button>
-              <Link href="/pharmacy/settings" className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2">
-                <FaEdit />
-                Manage Pharmacy
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-8">
+          <WalletBalanceCard userId={userId} />
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard icon={FaDollarSign} title="Today's Revenue" value={`Rs ${pharmacyData.stats.dailyRevenue.toLocaleString()}`} color="bg-green-500" />
           <StatCard icon={FaClipboardList} title="Pending Orders" value={pharmacyData.stats.pendingOrders} color="bg-yellow-500" />
           <StatCard icon={FaReceipt} title="Monthly Revenue" value={`Rs ${pharmacyData.stats.monthlyRevenue.toLocaleString()}`} color="bg-blue-500" />
@@ -221,7 +207,6 @@ export default function PharmacyDashboardPage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }

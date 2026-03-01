@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { nursesData } from '@/lib/data'
-import { 
-  FaArrowLeft, FaStar, FaMapMarkerAlt, FaCalendarAlt, 
-  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
+import { type Nurse } from '@/lib/data'
+import {
+  FaArrowLeft, FaStar, FaMapMarkerAlt, FaCalendarAlt,
+  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle,
   FaCertificate, FaGraduationCap, FaBriefcase,
   FaUserNurse,  FaComments, FaHospital, FaShieldAlt,
 } from 'react-icons/fa'
@@ -17,9 +17,31 @@ export default function NurseDetailsPage() {
   const nurseId = params.id as string
 
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability'>('overview')
-  
-  const nurse = nursesData.find(n => n.id === nurseId)
-  
+  const [nurse, setNurse] = useState<Nurse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/search/nurses')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          const found = json.data.find((n: Nurse) => n.id === nurseId)
+          setNurse(found || null)
+        }
+        setIsLoading(false)
+      })
+      .catch(() => setIsLoading(false))
+  }, [nurseId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading nurse profile...</span>
+      </div>
+    )
+  }
+
   if (!nurse) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

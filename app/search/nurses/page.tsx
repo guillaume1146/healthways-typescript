@@ -2,41 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
-import { nursesData, type Nurse } from '@/lib/data'
-import { 
+import { useState, useEffect, useCallback } from 'react'
+import { type Nurse } from '@/lib/data'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import {
   FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock,  FaShieldAlt,
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
 } from 'react-icons/fa'
-
-// AI search simulation function using centralized data
-const aiSearchNurses = (query: string, specialization: string) => {
-  return new Promise<Nurse[]>((resolve) => {
-    setTimeout(() => {
-      let results = [...nursesData]
-      
-      if (specialization !== 'all') {
-        results = results.filter(nurse => 
-          nurse.specialization.some(s => s.toLowerCase().includes(specialization.toLowerCase()))
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(nurse => 
-          nurse.firstName.toLowerCase().includes(lowerQuery) ||
-          nurse.lastName.toLowerCase().includes(lowerQuery) ||
-          nurse.specialization.some(s => s.toLowerCase().includes(lowerQuery)) ||
-          nurse.location.toLowerCase().includes(lowerQuery) ||
-          nurse.bio.toLowerCase().includes(lowerQuery) ||
-          nurse.education.some(e => e.toLowerCase().includes(lowerQuery))
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
-}
 
 interface NurseProps {
   nurse: Nurse
@@ -181,11 +153,9 @@ const NurseCard = ({ nurse }: NurseProps) => {
                 Details
               </button>
             </Link>
-            <Link href={`/booking/nurses/${nurse.id}`} className="flex-1">
-              <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                Book
-              </button>
-            </Link>
+            <AuthBookingLink type="nurse" providerId={nurse.id} className="flex-1 w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              Book
+            </AuthBookingLink>
           </div>
         </div>
       </div>
@@ -218,8 +188,10 @@ export default function NursesSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [specialization, setSpecialization] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(nursesData)
+  const [searchResults, setSearchResults] = useState<Nurse[]>([])
+  const [allNurses, setAllNurses] = useState<Nurse[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
     "Find elderly care nurse near me",
     "I need post-surgery care nurse",
@@ -229,12 +201,27 @@ export default function NursesSearchPage() {
     "Home visit nurse available"
   ])
 
+  const fetchNurses = useCallback(async (query = '', spec = '') => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (spec && spec !== 'all') params.set('specialization', spec)
+    const res = await fetch(`/api/search/nurses?${params.toString()}`)
+    const json = await res.json()
+    return json.success ? json.data : []
+  }, [])
+
+  useEffect(() => {
+    fetchNurses().then((data) => {
+      setAllNurses(data)
+      setSearchResults(data)
+      setIsLoading(false)
+    })
+  }, [fetchNurses])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchNurses(searchQuery, specialization)
-    
+    const results = await fetchNurses(searchQuery, specialization)
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -242,7 +229,7 @@ export default function NursesSearchPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setSpecialization('all')
-    setSearchResults(nursesData)
+    setSearchResults(allNurses)
     setHasSearched(false)
   }
 
@@ -342,7 +329,7 @@ export default function NursesSearchPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
             <FaUserNurse className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{nursesData.length}+</p>
+            <p className="text-2xl font-bold text-gray-900">{allNurses.length}+</p>
             <p className="text-sm text-gray-600">Verified Nurses</p>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
@@ -364,7 +351,7 @@ export default function NursesSearchPage() {
         
         {/* Results */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

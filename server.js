@@ -9,171 +9,190 @@ const app = next({ dev })
 const handle = app.getRequestHandler()
 const port = process.env.PORT || 3000
 
-// Create a single Prisma instance with proper connection pool settings
 const prisma = new PrismaClient({
-  log: dev ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
+  log: dev ? ['error', 'warn'] : ['error'],
 })
 
-// Ensure Prisma connects on startup
 prisma.$connect().then(() => {
-  console.log('✅ Database connected')
+  console.log('Database connected')
 }).catch(err => {
-  console.error('❌ Database connection failed:', err)
+  console.error('Database connection failed:', err.message)
 })
+
+// ─── In-Memory State ───────────────────────────────────────────────────────────
 
 const rooms = new Map()
 const socketToRoom = new Map()
 const socketToUser = new Map()
 const socketHeartbeats = new Map()
 
-// Heartbeat configuration
-const HEARTBEAT_INTERVAL = 30000
-const HEARTBEAT_TIMEOUT = 60000
-const SESSION_CLEANUP_INTERVAL = 300000
-const SESSION_TIMEOUT = 3600000
+// ─── Configuration ─────────────────────────────────────────────────────────────
 
-// Flag to prevent database operations if not needed
-const USE_DATABASE_SESSIONS = false // Set to true when database is ready
+const HEARTBEAT_INTERVAL = 30000
+const HEARTBEAT_TIMEOUT = 90000
+const SESSION_CLEANUP_INTERVAL = 300000
+const ROOM_TIMEOUT = 7200000  // 2 hours (extended for long consultations)
+const RECONNECT_GRACE_PERIOD = 120000  // 2 minutes before cleaning up disconnected user
+
+// ─── Database Session Persistence ──────────────────────────────────────────────
+
+async function persistSession(roomId, participants) {
+  try {
+    // Find the video room by roomCode
+    const videoRoom = await prisma.videoRoom.findUnique({ where: { roomCode: roomId } })
+    if (!videoRoom) return null
+
+    // Upsert a session
+    const session = await prisma.videoCallSession.upsert({
+      where: { id: `session_${roomId}` },
+      update: { status: 'active', updatedAt: new Date() },
+      create: {
+        id: `session_${roomId}`,
+        roomId: videoRoom.id,
+        patientId: participants.find(p => p.userType === 'patient')?.userId || null,
+        doctorId: participants.find(p => p.userType === 'doctor')?.userId || null,
+        status: 'active',
+      },
+    })
+
+    // Upsert connections
+    for (const p of participants) {
+      await prisma.webRTCConnection.upsert({
+        where: { sessionId_userId: { sessionId: session.id, userId: p.userId } },
+        update: { socketId: p.socketId, connectionState: 'connected', lastSeen: new Date() },
+        create: {
+          sessionId: session.id,
+          userId: p.userId,
+          userType: p.userType,
+          userName: p.userName,
+          socketId: p.socketId,
+          connectionState: 'connecting',
+        },
+      })
+    }
+
+    return session
+  } catch (error) {
+    console.error('Session persist error:', error.message)
+    return null
+  }
+}
+
+async function endPersistedSession(roomId) {
+  try {
+    const sessionId = `session_${roomId}`
+    await prisma.videoCallSession.update({
+      where: { id: sessionId },
+      data: { status: 'ended', endedAt: new Date() },
+    }).catch(() => {})
+  } catch {
+    // Session may not exist
+  }
+}
+
+async function getPersistedSession(roomId) {
+  try {
+    const sessionId = `session_${roomId}`
+    const session = await prisma.videoCallSession.findUnique({
+      where: { id: sessionId },
+      include: { connections: true },
+    })
+    return session
+  } catch {
+    return null
+  }
+}
+
+// ─── Super Admin Bootstrap ───────────────────────────────────────────────────
+
+async function ensureSuperAdmin() {
+  const email = process.env.SUPER_ADMIN_EMAIL
+  const password = process.env.SUPER_ADMIN_PASSWORD
+  if (!email || !password) return
+
+  const existing = await prisma.user.findUnique({ where: { email } })
+  if (existing) return
+
+  const bcrypt = require('bcrypt')
+  const hashed = await bcrypt.hash(password, 12)
+  await prisma.user.create({
+    data: {
+      firstName: process.env.SUPER_ADMIN_FIRST_NAME || 'Admin',
+      lastName: process.env.SUPER_ADMIN_LAST_NAME || 'Healthwyz',
+      email,
+      password: hashed,
+      phone: '+230-0000-0000',
+      userType: 'REGIONAL_ADMIN',
+      accountStatus: 'active',
+      verified: true,
+      regionalAdminProfile: { create: { region: 'National', country: 'Mauritius' } },
+    },
+  })
+  console.log('Super admin created from .env:', email)
+}
+
+// ─── Server ────────────────────────────────────────────────────────────────────
 
 async function startServer() {
   if (!dev) {
     try {
       const { initializeServiceAccounts } = require('./lib/secrets')
       await initializeServiceAccounts()
-      console.log('✅ Service accounts loaded from Secret Manager')
+      console.log('Service accounts loaded')
     } catch (error) {
-      console.error('⚠️ Failed to load secrets, using default service account:', error)
+      console.error('Failed to load secrets:', error.message)
     }
   }
 
+  // Auto-create super admin from .env if not exists
+  try {
+    await ensureSuperAdmin()
+  } catch (error) {
+    console.error('Super admin bootstrap error:', error.message)
+  }
+
   await app.prepare()
-  
+
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true)
     handle(req, res, parsedUrl)
   })
 
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    process.env.NEXT_PUBLIC_APP_URL,
+  ].filter(Boolean)
+
   const io = new Server(server, {
     cors: {
       origin: function(origin, callback) {
-        if (!origin) return callback(null, true)
-        if (dev) return callback(null, true)
-        
-        const allowedOrigins = [
-          'http://localhost:3000',
-          'https://healthways-typescript.onrender.com',
-          'https://healthwyz-app-pylrovz4aq-uc.a.run.app'
-        ]
-        
+        if (!origin || dev) return callback(null, true)
         if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
           callback(null, true)
-        } else if (origin.startsWith('https://')) {
-          callback(null, true)
         } else {
-          console.log('CORS blocked origin:', origin)
+          console.warn('CORS blocked:', origin)
           callback(new Error('CORS policy violation'))
         }
       },
-      methods: ["GET", "POST"],
+      methods: ['GET', 'POST'],
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"]
     },
     transports: ['websocket', 'polling'],
     pingTimeout: 60000,
     pingInterval: 25000,
     upgradeTimeout: 30000,
     maxHttpBufferSize: 1e6,
-    allowEIO3: true
   })
+  global.__io = io
 
-  // Database session management functions (optional)
-  async function createOrUpdateSession(roomId, sessionId) {
-    if (!USE_DATABASE_SESSIONS) return { id: sessionId, roomId }
-    
-    try {
-      const session = await prisma.webRTCSession.upsert({
-        where: { roomId },
-        update: {
-          lastActivity: new Date(),
-          status: 'active'
-        },
-        create: {
-          roomId,
-          sessionId,
-          status: 'active',
-          participants: [],
-          metadata: {}
-        }
-      })
-      return session
-    } catch (error) {
-      console.error('Error creating/updating session:', error)
-      return null
-    }
-  }
+  // ─── Heartbeat Monitor ─────────────────────────────────────────────────────
 
-  async function addConnectionToSession(sessionId, connectionData) {
-    if (!USE_DATABASE_SESSIONS) return true
-    
-    try {
-      const connection = await prisma.webRTCConnection.upsert({
-        where: {
-          sessionId_userId: {
-            sessionId,
-            userId: connectionData.userId
-          }
-        },
-        update: {
-          socketId: connectionData.socketId,
-          connectionState: 'connecting',
-          lastSeen: new Date()
-        },
-        create: {
-          sessionId,
-          userId: connectionData.userId,
-          userType: connectionData.userType,
-          userName: connectionData.userName,
-          socketId: connectionData.socketId,
-          connectionState: 'connecting'
-        }
-      })
-      return connection
-    } catch (error) {
-      console.error('Error adding connection to session:', error)
-      return null
-    }
-  }
-
-  async function updateConnectionState(socketId, state, iceState = null) {
-    if (!USE_DATABASE_SESSIONS) return true
-    
-    try {
-      const connection = await prisma.webRTCConnection.updateMany({
-        where: { socketId },
-        data: {
-          connectionState: state,
-          lastSeen: new Date(),
-          ...(iceState && { iceState })
-        }
-      })
-      return connection
-    } catch (error) {
-      console.error('Error updating connection state:', error)
-      return null
-    }
-  }
-
-  // Clean up stale heartbeats periodically
   setInterval(() => {
     const now = Date.now()
     socketHeartbeats.forEach((lastHeartbeat, socketId) => {
       if (now - lastHeartbeat > HEARTBEAT_TIMEOUT) {
-        console.log(`⚠️ Socket ${socketId} timed out (no heartbeat)`)
+        console.log(`Heartbeat timeout: ${socketId}`)
         const socket = io.sockets.sockets.get(socketId)
         if (socket) {
           handleDisconnection(socket, 'heartbeat_timeout')
@@ -183,236 +202,218 @@ async function startServer() {
     })
   }, HEARTBEAT_INTERVAL)
 
-  // Handle disconnection logic
+  // ─── Disconnection Handler ──────────────────────────────────────────────────
+
   async function handleDisconnection(socket, reason = 'unknown') {
-    console.log(`🔌 Client disconnected: ${socket.id} (reason: ${reason})`)
-    
-    // Update database connection state if enabled
-    if (USE_DATABASE_SESSIONS) {
-      await updateConnectionState(socket.id, 'disconnected')
-    }
-    
     const roomId = socketToRoom.get(socket.id)
     const userInfo = socketToUser.get(socket.id)
-    
+
     if (roomId) {
       const room = rooms.get(roomId)
       if (room) {
-        room.participants = room.participants.filter(p => p.socketId !== socket.id)
-        
-        // Notify other participants
-        socket.to(roomId).emit('user-disconnected', { 
-          socketId: socket.id,
-          userId: userInfo?.userId,
-          reason: reason,
-          canReconnect: reason !== 'leave_room'
-        })
-        
-        // Clean up empty rooms
+        const isIntentionalLeave = reason === 'leave_room'
+
+        if (isIntentionalLeave) {
+          // Remove participant immediately
+          room.participants = room.participants.filter(p => p.socketId !== socket.id)
+          socket.to(roomId).emit('user-disconnected', {
+            socketId: socket.id,
+            userId: userInfo?.userId,
+            reason,
+            canReconnect: false,
+          })
+        } else {
+          // Mark as disconnected but keep in room for reconnection grace period
+          const participant = room.participants.find(p => p.socketId === socket.id)
+          if (participant) {
+            participant.connected = false
+            participant.disconnectedAt = Date.now()
+          }
+
+          socket.to(roomId).emit('user-disconnected', {
+            socketId: socket.id,
+            userId: userInfo?.userId,
+            reason,
+            canReconnect: true,
+            gracePeriod: RECONNECT_GRACE_PERIOD,
+          })
+
+          // Schedule cleanup after grace period
+          setTimeout(() => {
+            const currentRoom = rooms.get(roomId)
+            if (currentRoom) {
+              const stillDisconnected = currentRoom.participants.find(
+                p => p.userId === userInfo?.userId && p.connected === false
+              )
+              if (stillDisconnected) {
+                currentRoom.participants = currentRoom.participants.filter(
+                  p => p.userId !== userInfo?.userId
+                )
+                io.to(roomId).emit('user-left-permanently', {
+                  userId: userInfo?.userId,
+                  userName: userInfo?.userName,
+                })
+                if (currentRoom.participants.length === 0) {
+                  rooms.delete(roomId)
+                  endPersistedSession(roomId)
+                }
+              }
+            }
+          }, RECONNECT_GRACE_PERIOD)
+        }
+
         if (room.participants.length === 0) {
           rooms.delete(roomId)
-          console.log(`🗑️ Room ${roomId} deleted (empty)`)
-        } else {
-          console.log(`📊 Room ${roomId} now has ${room.participants.length} participants`)
+          endPersistedSession(roomId)
         }
       }
       socketToRoom.delete(socket.id)
     }
-    
+
     socketToUser.delete(socket.id)
     socketHeartbeats.delete(socket.id)
   }
 
+  // ─── Socket Event Handlers ──────────────────────────────────────────────────
+
   io.on('connection', (socket) => {
-    console.log('🔌 Client connected:', socket.id)
-    
-    // Initialize heartbeat
     socketHeartbeats.set(socket.id, Date.now())
-    
-    // Handle heartbeat
-    socket.on('heartbeat', ({ roomId, timestamp }) => {
+
+    // Heartbeat
+    socket.on('heartbeat', ({ roomId }) => {
       socketHeartbeats.set(socket.id, Date.now())
-      socket.emit('heartbeat-response', { 
-        timestamp: Date.now(),
-        serverTime: new Date().toISOString()
-      })
-    })
-    
-    // Enhanced join-room
-    socket.on('join-room', async ({ roomId, userId, userType, userName, sessionId }) => {
-      console.log(`👤 ${userName} (${userType}) joining room: ${roomId}`)
-      
-      // Store user info
-      socketToUser.set(socket.id, { userId, userName, userType })
-      
-      // Create or update database session if enabled
-      let dbSession = null
-      if (USE_DATABASE_SESSIONS) {
-        dbSession = await createOrUpdateSession(roomId, sessionId || roomId)
-        if (dbSession) {
-          await addConnectionToSession(dbSession.id, {
-            userId,
-            userType,
-            userName,
-            socketId: socket.id
-          })
-        }
+      socket.emit('heartbeat-response', { timestamp: Date.now() })
+
+      // Update room activity
+      if (roomId) {
+        const room = rooms.get(roomId)
+        if (room) room.lastActivity = Date.now()
       }
-      
-      // Leave current room if exists
+    })
+
+    // Join room
+    socket.on('join-room', async ({ roomId, userId, userType, userName, sessionId }) => {
+      socketToUser.set(socket.id, { userId, userName, userType })
+
+      // Leave current room if switching
       const currentRoom = socketToRoom.get(socket.id)
       if (currentRoom && currentRoom !== roomId) {
         socket.leave(currentRoom)
         const room = rooms.get(currentRoom)
         if (room) {
           room.participants = room.participants.filter(p => p.socketId !== socket.id)
-          socket.to(currentRoom).emit('user-left', { 
-            socketId: socket.id,
-            reason: 'room_change'
-          })
-          
-          if (room.participants.length === 0) {
-            rooms.delete(currentRoom)
-          }
+          socket.to(currentRoom).emit('user-left', { socketId: socket.id, reason: 'room_change' })
+          if (room.participants.length === 0) rooms.delete(currentRoom)
         }
       }
-      
-      // Join new room
+
       socket.join(roomId)
       socketToRoom.set(socket.id, roomId)
-      
-      // Create room if doesn't exist
+
       if (!rooms.has(roomId)) {
         rooms.set(roomId, {
           id: roomId,
-          sessionId: dbSession?.id || sessionId,
+          sessionId: sessionId,
           participants: [],
           createdAt: new Date(),
-          lastActivity: Date.now()
+          lastActivity: Date.now(),
         })
       }
-      
+
       const room = rooms.get(roomId)
       room.lastActivity = Date.now()
-      
-      // Check if user is reconnecting
-      const existingParticipantIndex = room.participants.findIndex(
-        p => p.userId === userId
-      )
-      
-      if (existingParticipantIndex !== -1) {
-        // Update existing participant (reconnection)
-        const oldSocketId = room.participants[existingParticipantIndex].socketId
-        room.participants[existingParticipantIndex] = {
+
+      // Check if reconnecting (same userId already in room)
+      const existingIndex = room.participants.findIndex(p => p.userId === userId)
+      if (existingIndex !== -1) {
+        const oldSocketId = room.participants[existingIndex].socketId
+        room.participants[existingIndex] = {
           socketId: socket.id,
           userId,
           userType,
           userName,
-          joinedAt: room.participants[existingParticipantIndex].joinedAt,
+          joinedAt: room.participants[existingIndex].joinedAt,
+          connected: true,
           reconnected: true,
-          reconnectedAt: new Date()
+          reconnectedAt: new Date(),
         }
-        
-        console.log(`🔄 User ${userName} reconnected to room ${roomId}`)
-        
-        // Notify others about reconnection
+
+        // Notify peers about reconnection
         socket.to(roomId).emit('user-reconnected', {
           oldSocketId,
           newSocketId: socket.id,
           userId,
           userName,
-          userType
+          userType,
         })
       } else {
-        // New participant
         const participant = {
           socketId: socket.id,
           userId,
           userType,
           userName,
-          joinedAt: new Date()
+          joinedAt: new Date(),
+          connected: true,
         }
         room.participants.push(participant)
-        
-        // Notify existing participants
         socket.to(roomId).emit('user-joined', participant)
       }
-      
-      // Send existing participants to the joining user
+
+      // Send existing participants to joining user
       const existingParticipants = room.participants.filter(
-        p => p.socketId !== socket.id
+        p => p.socketId !== socket.id && p.connected !== false
       )
       socket.emit('existing-participants', {
         participants: existingParticipants,
-        sessionId: dbSession?.id || sessionId
+        sessionId: sessionId,
       })
-      
-      console.log(`📊 Room ${roomId} now has ${room.participants.length} participants`)
+
+      // Persist to database
+      persistSession(roomId, room.participants)
     })
-    
-    // WebRTC signaling
+
+    // ─── WebRTC Signaling ─────────────────────────────────────────────────────
+
     socket.on('offer', ({ offer, to }) => {
-      console.log(`📤 Sending offer from ${socket.id} to ${to}`)
-      const targetSocket = io.sockets.sockets.get(to)
-      if (targetSocket) {
-        targetSocket.emit('offer', {
-          offer,
-          from: socket.id
-        })
+      const target = io.sockets.sockets.get(to)
+      if (target) {
+        target.emit('offer', { offer, from: socket.id })
       } else {
-        console.log(`⚠️ Target socket ${to} not found for offer`)
         socket.emit('peer-not-found', { targetId: to })
       }
     })
-    
+
     socket.on('answer', ({ answer, to }) => {
-      console.log(`📤 Sending answer from ${socket.id} to ${to}`)
-      const targetSocket = io.sockets.sockets.get(to)
-      if (targetSocket) {
-        targetSocket.emit('answer', {
-          answer,
-          from: socket.id
-        })
+      const target = io.sockets.sockets.get(to)
+      if (target) {
+        target.emit('answer', { answer, from: socket.id })
       } else {
-        console.log(`⚠️ Target socket ${to} not found for answer`)
         socket.emit('peer-not-found', { targetId: to })
       }
     })
-    
+
     socket.on('ice-candidate', ({ candidate, to }) => {
-      console.log(`🧊 Sending ICE candidate from ${socket.id} to ${to}`)
-      const targetSocket = io.sockets.sockets.get(to)
-      if (targetSocket) {
-        targetSocket.emit('ice-candidate', {
-          candidate,
-          from: socket.id
-        })
+      const target = io.sockets.sockets.get(to)
+      if (target) {
+        target.emit('ice-candidate', { candidate, from: socket.id })
       }
     })
-    
-    // Handle ICE restart
+
     socket.on('ice-restart', ({ to }) => {
-      console.log(`🔄 ICE restart requested from ${socket.id} to ${to}`)
-      const targetSocket = io.sockets.sockets.get(to)
-      if (targetSocket) {
-        targetSocket.emit('ice-restart-request', {
-          from: socket.id
-        })
+      const target = io.sockets.sockets.get(to)
+      if (target) {
+        target.emit('ice-restart-request', { from: socket.id })
       }
     })
-    
-    // Update ICE connection state
-    socket.on('ice-state-change', async ({ state }) => {
-      console.log(`🧊 ICE state change for ${socket.id}: ${state}`)
-      if (USE_DATABASE_SESSIONS) {
-        await updateConnectionState(socket.id, null, state)
-      }
+
+    socket.on('ice-state-change', ({ state }) => {
+      // Could persist to DB here if needed
     })
-    
-    // Request session recovery (simplified - no database)
-    socket.on('request-recovery', ({ roomId, userId }) => {
-      console.log(`🔄 Recovery requested for user ${userId} in room ${roomId}`)
-      
+
+    // ─── Session Recovery ─────────────────────────────────────────────────────
+
+    socket.on('request-recovery', async ({ roomId, userId }) => {
+      // First check in-memory
       const room = rooms.get(roomId)
       if (room) {
         socket.emit('recovery-info', {
@@ -420,133 +421,240 @@ async function startServer() {
           session: {
             id: room.sessionId,
             roomId: room.id,
-            participants: room.participants
-          }
+            participants: room.participants.filter(p => p.connected !== false),
+          },
+        })
+        return
+      }
+
+      // Fall back to database
+      const dbSession = await getPersistedSession(roomId)
+      if (dbSession && dbSession.status === 'active') {
+        socket.emit('recovery-info', {
+          canRecover: true,
+          session: {
+            id: dbSession.id,
+            roomId,
+            participants: dbSession.connections
+              .filter(c => c.connectionState !== 'ended')
+              .map(c => ({
+                socketId: null,
+                userId: c.userId,
+                userName: c.userName,
+                userType: c.userType,
+                connected: false,
+              })),
+          },
         })
       } else {
-        socket.emit('recovery-info', {
-          canRecover: false,
-          reason: 'Room not found'
-        })
+        socket.emit('recovery-info', { canRecover: false, reason: 'Session not found' })
       }
     })
-    
-    // Media control events
+
+    // ─── Media Controls ───────────────────────────────────────────────────────
+
     socket.on('toggle-video', ({ enabled, roomId }) => {
-      socket.to(roomId).emit('peer-toggle-video', {
-        socketId: socket.id,
-        enabled
-      })
+      socket.to(roomId).emit('peer-toggle-video', { socketId: socket.id, enabled })
     })
-    
+
     socket.on('toggle-audio', ({ enabled, roomId }) => {
-      socket.to(roomId).emit('peer-toggle-audio', {
-        socketId: socket.id,
-        enabled
-      })
+      socket.to(roomId).emit('peer-toggle-audio', { socketId: socket.id, enabled })
     })
-    
+
     socket.on('start-screen-share', ({ roomId }) => {
-      socket.to(roomId).emit('peer-started-screen-share', {
-        socketId: socket.id
-      })
+      socket.to(roomId).emit('peer-started-screen-share', { socketId: socket.id })
     })
-    
+
     socket.on('stop-screen-share', ({ roomId }) => {
-      socket.to(roomId).emit('peer-stopped-screen-share', {
-        socketId: socket.id
-      })
+      socket.to(roomId).emit('peer-stopped-screen-share', { socketId: socket.id })
     })
-    
-    // Chat
+
+    // ─── Video Chat (in-room ephemeral messages) ──────────────────────────────
+
     socket.on('chat-message', ({ roomId, message, userName, userType }) => {
       if (!message || message.trim().length === 0) return
-      
-      const timestamp = new Date().toISOString()
       io.to(roomId).emit('new-chat-message', {
         message: message.trim(),
         userName,
         userType,
-        timestamp,
-        socketId: socket.id
+        timestamp: new Date().toISOString(),
+        socketId: socket.id,
       })
     })
-    
-    // Leave room
-    socket.on('leave-room', async () => {
-      const roomId = socketToRoom.get(socket.id)
-      if (roomId) {
-        console.log(`👋 ${socket.id} leaving room: ${roomId}`)
-        if (USE_DATABASE_SESSIONS) {
-          await updateConnectionState(socket.id, 'ended')
+
+    // ─── Persistent Chat (messaging system) ─────────────────────────────────
+
+    socket.on('chat:join', ({ userId }) => {
+      if (userId) socket.join(`user:${userId}`)
+    })
+
+    socket.on('chat:join-conversation', ({ conversationId }) => {
+      if (conversationId) socket.join(`conversation:${conversationId}`)
+    })
+
+    socket.on('chat:leave-conversation', ({ conversationId }) => {
+      if (conversationId) socket.leave(`conversation:${conversationId}`)
+    })
+
+    socket.on('chat:send', async ({ conversationId, content, senderId, senderName, senderType }) => {
+      if (!content || !content.trim() || !conversationId || !senderId) return
+      try {
+        // Persist message to database
+        const message = await prisma.message.create({
+          data: {
+            conversationId,
+            senderId,
+            content: content.trim(),
+          },
+          select: {
+            id: true,
+            conversationId: true,
+            senderId: true,
+            content: true,
+            createdAt: true,
+          },
+        })
+
+        // Update conversation timestamp
+        await prisma.conversation.update({
+          where: { id: conversationId },
+          data: { updatedAt: new Date() },
+        })
+
+        // Get all participants to notify
+        const participants = await prisma.conversationParticipant.findMany({
+          where: { conversationId },
+          select: { userId: true },
+        })
+
+        const payload = {
+          id: message.id,
+          conversationId: message.conversationId,
+          senderId: message.senderId,
+          senderName: senderName || 'Unknown',
+          senderType: senderType || 'PATIENT',
+          content: message.content,
+          createdAt: message.createdAt.toISOString(),
         }
-        handleDisconnection(socket, 'leave_room')
+
+        // Emit to all participants' personal rooms
+        for (const p of participants) {
+          io.to(`user:${p.userId}`).emit('chat:message', payload)
+        }
+      } catch (error) {
+        console.error('Chat send error:', error.message)
       }
     })
-    
-    // Disconnect
-    socket.on('disconnect', async (reason) => {
+
+    socket.on('chat:typing', ({ conversationId, userId, userName }) => {
+      if (conversationId) {
+        socket.to(`conversation:${conversationId}`).emit('chat:typing', { conversationId, userId, userName })
+      }
+    })
+
+    socket.on('chat:stop-typing', ({ conversationId, userId }) => {
+      if (conversationId) {
+        socket.to(`conversation:${conversationId}`).emit('chat:stop-typing', { conversationId, userId })
+      }
+    })
+
+    socket.on('chat:mark-read', async ({ conversationId, userId }) => {
+      if (!conversationId || !userId) return
+      try {
+        await prisma.message.updateMany({
+          where: {
+            conversationId,
+            senderId: { not: userId },
+            readAt: null,
+          },
+          data: { readAt: new Date() },
+        })
+        // Notify other participants
+        socket.to(`conversation:${conversationId}`).emit('chat:read', { conversationId, userId })
+      } catch (error) {
+        console.error('Chat mark-read error:', error.message)
+      }
+    })
+
+    // ─── Leave & Disconnect ───────────────────────────────────────────────────
+
+    socket.on('leave-room', () => {
+      handleDisconnection(socket, 'leave_room')
+    })
+
+    socket.on('disconnect', (reason) => {
       handleDisconnection(socket, reason)
     })
-    
-    // Error
+
     socket.on('error', (error) => {
-      console.error(`Socket error for ${socket.id}:`, error)
+      console.error(`Socket error ${socket.id}:`, error.message)
     })
-    
-    // Get room info
-    socket.on('get-room-info', ({ roomId }) => {
+
+    // ─── Room Info ────────────────────────────────────────────────────────────
+
+    socket.on('get-room-info', async ({ roomId }) => {
       const room = rooms.get(roomId)
       if (room) {
         socket.emit('room-info', {
           ...room,
-          participantCount: room.participants.length,
+          participantCount: room.participants.filter(p => p.connected !== false).length,
           isActive: Date.now() - room.lastActivity < 300000,
-          canRecover: true
+          canRecover: true,
         })
       } else {
-        socket.emit('room-info', null)
+        // Check database
+        const dbSession = await getPersistedSession(roomId)
+        if (dbSession && dbSession.status === 'active') {
+          socket.emit('room-info', {
+            id: roomId,
+            participantCount: dbSession.connections.length,
+            isActive: false,
+            canRecover: true,
+          })
+        } else {
+          socket.emit('room-info', null)
+        }
       }
     })
   })
 
-  // Clean up inactive rooms periodically
+  // ─── Room Cleanup ───────────────────────────────────────────────────────────
+
   setInterval(() => {
     const now = Date.now()
-    const ROOM_TIMEOUT = 3600000 // 1 hour
-    
     rooms.forEach((room, roomId) => {
-      if (room.participants.length === 0 && now - room.lastActivity > ROOM_TIMEOUT) {
+      const activeParticipants = room.participants.filter(p => p.connected !== false)
+      if (activeParticipants.length === 0 && now - room.lastActivity > ROOM_TIMEOUT) {
         rooms.delete(roomId)
-        console.log(`🧹 Cleaned up inactive room: ${roomId}`)
+        endPersistedSession(roomId)
+        console.log(`Cleaned up room: ${roomId}`)
       }
     })
-  }, 300000) // Check every 5 minutes
+  }, SESSION_CLEANUP_INTERVAL)
+
+  // ─── Start ──────────────────────────────────────────────────────────────────
 
   const actualPort = process.env.PORT || port
   server.listen(actualPort, () => {
-    console.log(`> Ready on port ${actualPort}`)
-    console.log(`> Environment: ${dev ? 'development' : 'production'}`)
-    console.log('> WebRTC signaling server active')
-    console.log('> Database sessions:', USE_DATABASE_SESSIONS ? 'ENABLED' : 'DISABLED')
-    if (!dev) {
-      console.log('> Running in production mode')
-    }
+    console.log(`Server ready on port ${actualPort} (${dev ? 'development' : 'production'})`)
+    console.log('WebRTC signaling active | Database sessions enabled')
   })
 }
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, closing connections...')
-  await prisma.$disconnect()
-  process.exit(0)
-})
+// ─── Graceful Shutdown ────────────────────────────────────────────────────────
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, closing connections...')
+async function shutdown(signal) {
+  console.log(`${signal} received, shutting down...`)
+  // End all active sessions
+  for (const [roomId] of rooms) {
+    await endPersistedSession(roomId)
+  }
   await prisma.$disconnect()
   process.exit(0)
-})
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
 
 startServer().catch(err => {
   console.error('Failed to start server:', err)

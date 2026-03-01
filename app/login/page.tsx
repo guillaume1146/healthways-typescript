@@ -1,6 +1,6 @@
 'use client'
 import { useState, FormEvent, ChangeEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { userTypes } from './constants'
 import { UserType, LoginFormData } from './types'
 import UserTypeSelector from './UserTypeSelector'
@@ -19,6 +19,8 @@ const LoginForm: React.FC = () => {
   })
   
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -64,7 +66,10 @@ const LoginForm: React.FC = () => {
 
       setTimeout(() => {
         setIsSubmitting(false)
-        const redirectPath = AuthService.getUserTypeRedirectPath(selectedUserType.id)
+        // Redirect to returnUrl if present and valid (must start with /)
+        const redirectPath = returnUrl && returnUrl.startsWith('/')
+          ? returnUrl
+          : AuthService.getUserTypeRedirectPath(selectedUserType.id)
         console.log('Redirecting to:', redirectPath)
         window.location.href = redirectPath
       }, 500)

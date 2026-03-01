@@ -7,7 +7,7 @@ import RevenueAnalytics from './RevenueAnalytics'
 import PlatformHealth from './PlatformHealth'
 import ActivityHeatmap from './ActivityHeatMap'
 import {
-   FaExclamationTriangle, FaBell,
+  FaExclamationTriangle,
   FaCog, FaChartPie, FaUsersCog
 } from 'react-icons/fa'
 
@@ -61,54 +61,30 @@ export default function SuperAdminDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Global Platform Command Center
-              </h1>
-              <p className="text-gray-600 mt-1">Real-time monitoring and control across all regions</p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Time Range Selector */}
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-4 py-2 border rounded-lg bg-white"
-              >
-                <option value="1h">Last Hour</option>
-                <option value="24h">Last 24 Hours</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
-              </select>
-
-              {/* Region Selector */}
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="px-4 py-2 border rounded-lg bg-white"
-              >
-                {regions.map(region => (
-                  <option key={region.code} value={region.code}>
-                    {region.flag} {region.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Notifications */}
-              <button className="relative p-2 rounded-lg hover:bg-gray-100">
-                <FaBell className="text-xl text-gray-600" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {criticalAlerts.length}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Filters */}
+      <div className="flex justify-end gap-4 mb-6">
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className="px-4 py-2 border rounded-lg bg-white"
+        >
+          <option value="1h">Last Hour</option>
+          <option value="24h">Last 24 Hours</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+        </select>
+        <select
+          value={selectedRegion}
+          onChange={(e) => setSelectedRegion(e.target.value)}
+          className="px-4 py-2 border rounded-lg bg-white"
+        >
+          {regions.map(region => (
+            <option key={region.code} value={region.code}>
+              {region.flag} {region.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Critical Alerts Bar */}
@@ -133,20 +109,16 @@ export default function SuperAdminDashboard() {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        
-        <QuickActions />
+      <QuickActions />
 
-        <GlobalMetrics timeRange={timeRange} region={selectedRegion} />
-        
-        <RevenueAnalytics timeRange={timeRange} region={selectedRegion} />
-        
-        <PlatformHealth />
-        
-        {/* FIX: Removed the 'regions' prop as the component no longer accepts it */}
-        <ActivityHeatmap />
-        
-      </div>
-    </div>
+      <GlobalMetrics timeRange={timeRange} region={selectedRegion} />
+
+      <RevenueAnalytics timeRange={timeRange} region={selectedRegion} />
+
+      <PlatformHealth />
+
+      {/* FIX: Removed the 'regions' prop as the component no longer accepts it */}
+      <ActivityHeatmap />
+    </>
   )
 }

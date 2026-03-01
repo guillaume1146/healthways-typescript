@@ -54,14 +54,7 @@ export interface UTMSource {
   color: string
 }
 
-export interface StatCardProps {
-  icon: IconType
-  title: string
-  value: string | number
-  subtitle?: string
-  color: string
-  trend?: number
-}
+export type { DashboardStatCardProps as StatCardProps } from '@/components/shared/DashboardStatCard'
 
 // Settings related types
 export interface ReferralPartnerSettings {

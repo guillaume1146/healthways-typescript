@@ -2,44 +2,14 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
-import { nanniesData, type Nanny } from '@/lib/data'
-import { 
+import { useState, useEffect, useCallback } from 'react'
+import { type Nanny } from '@/lib/data'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import {
   FaSearch, FaBaby, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
    FaGraduationCap,
    FaShieldAlt,  FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
 } from 'react-icons/fa'
-
-// AI search simulation function using centralized data
-const aiSearchNannies = (query: string, specialization: string) => {
-  return new Promise<Nanny[]>((resolve) => {
-    setTimeout(() => {
-      let results = [...nanniesData]
-      
-      if (specialization !== 'all') {
-        results = results.filter(nanny => 
-          nanny.specialization.some(s => s.toLowerCase().includes(specialization.toLowerCase()))
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(nanny => 
-          nanny.firstName.toLowerCase().includes(lowerQuery) ||
-          nanny.lastName.toLowerCase().includes(lowerQuery) ||
-          nanny.specialization.some(s => s.toLowerCase().includes(lowerQuery)) ||
-          nanny.location.toLowerCase().includes(lowerQuery) ||
-          nanny.bio.toLowerCase().includes(lowerQuery) ||
-          nanny.education.some(e => e.toLowerCase().includes(lowerQuery)) ||
-          nanny.ageGroups.some(age => age.toLowerCase().includes(lowerQuery)) ||
-          nanny.services.some(service => service.toLowerCase().includes(lowerQuery))
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
-}
 
 interface NannyProps {
   nanny: Nanny
@@ -188,11 +158,9 @@ const NannyCard = ({ nanny }: NannyProps) => {
                 Details
               </button>
             </Link>
-            <Link href={`/booking/nannies/${nanny.id}`} className="flex-1">
-              <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">
-                Book
-              </button>
-            </Link>
+            <AuthBookingLink type="nanny" providerId={nanny.id} className="flex-1 w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+              Book
+            </AuthBookingLink>
           </div>
         </div>
       </div>
@@ -225,8 +193,10 @@ export default function NanniesSearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [specialization, setSpecialization] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(nanniesData)
+  const [searchResults, setSearchResults] = useState<Nanny[]>([])
+  const [allNannies, setAllNannies] = useState<Nanny[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
     "Find infant care specialist near me",
     "I need bilingual nanny for toddlers",
@@ -236,12 +206,27 @@ export default function NanniesSearchPage() {
     "Creative arts nanny available"
   ])
 
+  const fetchNannies = useCallback(async (query = '', spec = '') => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (spec && spec !== 'all') params.set('specialization', spec)
+    const res = await fetch(`/api/search/nannies?${params.toString()}`)
+    const json = await res.json()
+    return json.success ? json.data : []
+  }, [])
+
+  useEffect(() => {
+    fetchNannies().then((data) => {
+      setAllNannies(data)
+      setSearchResults(data)
+      setIsLoading(false)
+    })
+  }, [fetchNannies])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchNannies(searchQuery, specialization)
-    
+    const results = await fetchNannies(searchQuery, specialization)
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -249,7 +234,7 @@ export default function NanniesSearchPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setSpecialization('all')
-    setSearchResults(nanniesData)
+    setSearchResults(allNannies)
     setHasSearched(false)
   }
 
@@ -350,7 +335,7 @@ export default function NanniesSearchPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
             <FaBaby className="text-3xl text-purple-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{nanniesData.length}+</p>
+            <p className="text-2xl font-bold text-gray-900">{allNannies.length}+</p>
             <p className="text-sm text-gray-600">Verified Nannies</p>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center border border-yellow-100">
@@ -372,7 +357,7 @@ export default function NanniesSearchPage() {
         
         {/* Results */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

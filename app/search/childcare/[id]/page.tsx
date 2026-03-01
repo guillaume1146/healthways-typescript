@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { nanniesData, type Nanny } from '@/lib/data'
-import { 
-  FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt, 
-  FaPhone, FaEnvelope,  FaHome, FaLanguage, FaCheckCircle, 
+import { type Nanny } from '@/lib/data'
+import {
+  FaArrowLeft, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
+  FaPhone, FaEnvelope,  FaHome, FaLanguage, FaCheckCircle,
   FaCertificate, FaGraduationCap, FaBriefcase,  FaHeart,
   FaBaby, FaExclamationCircle, FaComments,
   FaUsers, FaShieldAlt
@@ -18,9 +18,31 @@ export default function NannyDetailsPage() {
   const nannyId = params.id as string
 
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability'>('overview')
-  
-  const nanny = nanniesData.find(n => n.id === nannyId)
-  
+  const [nanny, setNanny] = useState<Nanny | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/search/nannies')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          const found = json.data.find((n: Nanny) => n.id === nannyId)
+          setNanny(found || null)
+        }
+        setIsLoading(false)
+      })
+      .catch(() => setIsLoading(false))
+  }, [nannyId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <span className="ml-3 text-gray-600">Loading nanny profile...</span>
+      </div>
+    )
+  }
+
   if (!nanny) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { doctorsData, type Doctor } from '@/lib/data'
-import { 
-  FaArrowLeft, FaStar, FaMapMarkerAlt,  FaCalendarAlt, 
-  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle, 
-  FaCertificate, FaGraduationCap, FaBriefcase, 
+import { type Doctor } from '@/lib/data'
+import {
+  FaArrowLeft, FaStar, FaMapMarkerAlt,  FaCalendarAlt,
+  FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle,
+  FaCertificate, FaGraduationCap, FaBriefcase,
   FaUserMd,  FaExclamationCircle, FaComments,
-   FaHospital, FaShieldAlt, 
+   FaHospital, FaShieldAlt,
   FaChevronDown, FaChevronUp
 } from 'react-icons/fa'
 
@@ -20,9 +20,31 @@ export default function DoctorDetailsPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability'>('overview')
   const [activeAccordion, setActiveAccordion] = useState<string>('overview')
-  
-  const doctor = doctorsData.find(d => d.id === doctorId)
-  
+  const [doctor, setDoctor] = useState<Doctor | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/search/doctors')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          const found = json.data.find((d: Doctor) => d.id === doctorId)
+          setDoctor(found || null)
+        }
+        setIsLoading(false)
+      })
+      .catch(() => setIsLoading(false))
+  }, [doctorId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading doctor profile...</span>
+      </div>
+    )
+  }
+
   if (!doctor) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -574,7 +596,9 @@ function AvailabilityContent({ doctor, mobile = false }: { doctor: Doctor; mobil
       </div>
 
       {/* Weekly Schedule */}
-      {doctor.detailedAvailability && (
+      {doctor.detailedAvailability && (() => {
+        const avail = doctor.detailedAvailability!
+        return (
         <div>
           <h3 className={`${headingSize} font-semibold text-gray-900 mb-2 sm:mb-3`}>Weekly Schedule</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
@@ -587,7 +611,7 @@ function AvailabilityContent({ doctor, mobile = false }: { doctor: Doctor; mobil
               saturday: 'Sat',
               sunday: 'Sun'
             }).map(([key, day]) => {
-              const daySchedule = doctor.detailedAvailability[key as keyof typeof doctor.detailedAvailability]
+              const daySchedule = avail[key as keyof typeof avail]
               if (typeof daySchedule === 'object' && 'isAvailable' in daySchedule) {
                 return (
                   <div key={key} className={`p-2 sm:p-3 rounded-lg border text-center ${
@@ -608,7 +632,8 @@ function AvailabilityContent({ doctor, mobile = false }: { doctor: Doctor; mobil
             })}
           </div>
         </div>
-      )}
+        )
+      })()}
 
       <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h4 className={`font-medium text-blue-900 mb-2 ${textSize}`}>Quick Booking Tips</h4>

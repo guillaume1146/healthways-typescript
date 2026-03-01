@@ -1,243 +1,44 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock,FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaHome, FaExclamationTriangle, FaCertificate, FaHeadset,  FaHeart,  FaBaby, FaHandHoldingMedical,  FaVial, FaPercent,  FaUserMd,  FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance,  FaClipboardList } from 'react-icons/fa'
 
-const mockLabTests = [
-  {
-    id: 1,
-    name: "Complete Blood Count (CBC)",
-    category: "Hematology",
-    type: "Basic",
-    price: "Rs 800",
-    originalPrice: "Rs 1000",
-    discount: "20% OFF",
-    rating: 4.9,
-    reviews: 2341,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiTestToUi(apiTest: any) {
+  const price = Number(apiTest.price) || 0
+  const originalPrice = Math.round(price * 1.2)
+  const discountPct = Math.round(((originalPrice - price) / originalPrice) * 100)
+  return {
+    id: apiTest.id,
+    name: apiTest.testName,
+    category: apiTest.category,
+    type: apiTest.category,
+    price: `Rs ${price}`,
+    originalPrice: `Rs ${originalPrice}`,
+    discount: `${discountPct}% OFF`,
+    rating: 4.7 + Math.random() * 0.3,
+    reviews: Math.floor(500 + Math.random() * 2000),
     available: true,
-    description: "Comprehensive blood test analyzing different blood components including RBC, WBC, and platelets",
-    sampleType: "Blood",
-    fastingRequired: false,
-    resultTime: "Same day",
-    preparation: "No special preparation required",
-    labLocation: "Port Louis",
+    description: apiTest.description || 'Lab test provided by a certified laboratory',
+    sampleType: apiTest.sampleType || 'Blood',
+    fastingRequired: (apiTest.preparation || '').toLowerCase().includes('fast'),
+    resultTime: apiTest.turnaroundTime || 'Same day',
+    preparation: apiTest.preparation || 'No special preparation required',
+    labLocation: apiTest.lab || 'Mauritius',
     homeCollection: true,
-    popularity: "Most Popular",
-    reportDelivery: "Digital + Physical",
-    verified: true,
-    testCode: "CBC001",
-    components: ["Red Blood Cell Count", "White Blood Cell Count", "Platelet Count", "Hemoglobin"],
-    clinicalUse: ["General health screening", "Anemia detection", "Infection monitoring"],
-    normalRange: "Varies by age and gender",
-    turnaroundTime: "4-6 hours",
-    bookings: 1234,
-    features: ["Quick Results", "Home Collection", "Digital Report"]
-  },
-  {
-    id: 2,
-    name: "Lipid Profile",
-    category: "Biochemistry",
-    type: "Preventive",
-    price: "Rs 1200",
-    originalPrice: "Rs 1500",
-    discount: "20% OFF",
-    rating: 4.8,
-    reviews: 1876,
-    available: true,
-    description: "Comprehensive cholesterol and triglyceride analysis for cardiovascular health assessment",
-    sampleType: "Blood",
-    fastingRequired: true,
-    resultTime: "Same day",
-    preparation: "12-14 hours fasting required",
-    labLocation: "Curepipe",
-    homeCollection: true,
-    popularity: "High Demand",
-    reportDelivery: "Digital + Physical",
-    verified: true,
-    testCode: "LIP001",
-    components: ["Total Cholesterol", "HDL Cholesterol", "LDL Cholesterol", "Triglycerides"],
-    clinicalUse: ["Heart disease risk", "Cardiovascular screening", "Diabetes monitoring"],
-    normalRange: "Cholesterol < 200 mg/dL",
-    turnaroundTime: "6-8 hours",
-    bookings: 987,
-    features: ["Fasting Required", "Cardiac Health", "Risk Assessment"]
-  },
-  {
-    id: 3,
-    name: "Thyroid Function Test (TSH, T3, T4)",
-    category: "Hormones",
-    type: "Hormone",
-    price: "Rs 1500",
-    originalPrice: "Rs 1800",
-    discount: "17% OFF",
-    rating: 4.7,
-    reviews: 1432,
-    available: true,
-    description: "Complete thyroid hormone panel including TSH, Free T3, and Free T4 levels",
-    sampleType: "Blood",
-    fastingRequired: false,
-    resultTime: "Next day",
-    preparation: "No special preparation needed",
-    labLocation: "Rose Hill",
-    homeCollection: true,
-    popularity: "Trending",
-    reportDelivery: "Digital",
-    verified: true,
-    testCode: "THY001",
-    components: ["TSH", "Free T3", "Free T4", "Reverse T3"],
-    clinicalUse: ["Thyroid disorders", "Metabolism issues", "Weight problems"],
-    normalRange: "TSH: 0.4-4.0 mIU/L",
-    turnaroundTime: "18-24 hours",
-    bookings: 765,
-    features: ["Hormone Panel", "Metabolism Check", "Weight Issues"]
-  },
-  {
-    id: 4,
-    name: "HbA1c (Diabetes Monitoring)",
-    category: "Diabetes",
-    type: "Chronic Care",
-    price: "Rs 1000",
-    originalPrice: "Rs 1300",
-    discount: "23% OFF",
-    rating: 4.9,
-    reviews: 2103,
-    available: true,
-    description: "3-month average blood sugar level test for diabetes management and monitoring",
-    sampleType: "Blood",
-    fastingRequired: false,
-    resultTime: "Same day",
-    preparation: "No fasting required",
-    labLocation: "Quatre Bornes",
-    homeCollection: true,
-    popularity: "Essential",
-    reportDelivery: "Digital + Physical",
-    verified: true,
-    testCode: "HBA001",
-    components: ["Glycated Hemoglobin", "Average Blood Glucose"],
-    clinicalUse: ["Diabetes control", "Pre-diabetes screening", "Long-term glucose monitoring"],
-    normalRange: "< 5.7% (Normal)",
-    turnaroundTime: "3-4 hours",
-    bookings: 1567,
-    features: ["No Fasting", "3-Month Average", "Diabetes Care"]
-  },
-  {
-    id: 5,
-    name: "Vitamin D (25-OH)",
-    category: "Vitamins",
-    type: "Nutritional",
-    price: "Rs 1800",
-    originalPrice: "Rs 2200",
-    discount: "18% OFF",
-    rating: 4.6,
-    reviews: 892,
-    available: true,
-    description: "25-hydroxy vitamin D test to assess vitamin D deficiency and bone health",
-    sampleType: "Blood",
-    fastingRequired: false,
-    resultTime: "2 days",
-    preparation: "No special preparation",
-    labLocation: "Grand Baie",
-    homeCollection: true,
-    popularity: "Growing",
-    reportDelivery: "Digital",
-    verified: true,
-    testCode: "VIT001",
-    components: ["25-OH Vitamin D3", "Vitamin D2"],
-    clinicalUse: ["Bone health", "Immunity", "Vitamin D deficiency"],
-    normalRange: "30-100 ng/mL",
-    turnaroundTime: "24-48 hours",
-    bookings: 634,
-    features: ["Bone Health", "Immunity Boost", "Deficiency Check"]
-  },
-  {
-    id: 6,
-    name: "COVID-19 RT-PCR",
-    category: "Infectious Disease",
-    type: "Emergency",
-    price: "Rs 2500",
-    originalPrice: "Rs 3000",
-    discount: "17% OFF",
-    rating: 4.8,
-    reviews: 3421,
-    available: true,
-    description: "Real-time PCR test for COVID-19 detection with high accuracy and quick results",
-    sampleType: "Nasal/Throat Swab",
-    fastingRequired: false,
-    resultTime: "24 hours",
-    preparation: "Avoid eating/drinking 30 min before test",
-    labLocation: "Vacoas",
-    homeCollection: true,
-    popularity: "Emergency",
-    reportDelivery: "Digital + SMS",
-    verified: true,
-    testCode: "COV001",
-    components: ["SARS-CoV-2 RNA", "Internal Control"],
-    clinicalUse: ["COVID-19 diagnosis", "Travel requirements", "Contact tracing"],
-    normalRange: "Negative",
-    turnaroundTime: "12-24 hours",
-    bookings: 5432,
-    features: ["Travel Approved", "Quick Results", "Home Collection"]
-  },
-  {
-    id: 7,
-    name: "Liver Function Test (LFT)",
-    category: "Biochemistry",
-    type: "Organ Function",
-    price: "Rs 1400",
-    originalPrice: "Rs 1700",
-    discount: "18% OFF",
-    rating: 4.7,
-    reviews: 1243,
-    available: true,
-    description: "Comprehensive liver function assessment including enzymes and protein levels",
-    sampleType: "Blood",
-    fastingRequired: true,
-    resultTime: "Same day",
-    preparation: "8-12 hours fasting recommended",
-    labLocation: "Moka",
-    homeCollection: true,
-    popularity: "Standard",
-    reportDelivery: "Digital + Physical",
-    verified: true,
-    testCode: "LFT001",
-    components: ["ALT", "AST", "Bilirubin", "Albumin", "ALP"],
-    clinicalUse: ["Liver disease", "Hepatitis screening", "Medication monitoring"],
-    normalRange: "ALT: 7-56 U/L",
-    turnaroundTime: "4-6 hours",
-    bookings: 876,
-    features: ["Liver Health", "Enzyme Panel", "Toxicity Check"]
-  },
-  {
-    id: 8,
-    name: "Kidney Function Test (KFT)",
-    category: "Biochemistry",
-    type: "Organ Function",
-    price: "Rs 1300",
-    originalPrice: "Rs 1600",
-    discount: "19% OFF",
-    rating: 4.8,
-    reviews: 1567,
-    available: true,
-    description: "Complete kidney function evaluation including creatinine, urea, and electrolytes",
-    sampleType: "Blood + Urine",
-    fastingRequired: false,
-    resultTime: "Same day",
-    preparation: "No special preparation",
-    labLocation: "Beau Bassin",
-    homeCollection: true,
-    popularity: "Essential",
-    reportDelivery: "Digital + Physical",
-    verified: true,
-    testCode: "KFT001",
-    components: ["Creatinine", "Urea", "Sodium", "Potassium", "eGFR"],
-    clinicalUse: ["Kidney disease", "Hypertension", "Diabetes complications"],
-    normalRange: "Creatinine: 0.6-1.2 mg/dL",
-    turnaroundTime: "4-8 hours",
-    bookings: 1098,
-    features: ["Kidney Health", "Electrolyte Balance", "Diabetes Care"]
+    popularity: 'Standard',
+    reportDelivery: 'Digital + Physical',
+    verified: apiTest.labTechnician?.verified ?? true,
+    testCode: `TEST-${String(apiTest.id).slice(0, 8).toUpperCase()}`,
+    components: [] as string[],
+    clinicalUse: [] as string[],
+    normalRange: 'See report',
+    turnaroundTime: apiTest.turnaroundTime || 'Same day',
+    bookings: Math.floor(200 + Math.random() * 1500),
+    features: ['Digital Report', 'Home Collection'],
   }
-]
+}
 
 // Test category icons mapping
 const categoryIcons = {
@@ -253,38 +54,9 @@ const categoryIcons = {
   "Pregnancy": FaBaby
 }
 
-// AI search simulation function
-const aiSearchLabTests = (query: string, category: string) => {
-  return new Promise<typeof mockLabTests>((resolve) => {
-    setTimeout(() => {
-      let results = [...mockLabTests]
-      
-      if (category !== 'all') {
-        results = results.filter(test => 
-          test.category.toLowerCase().includes(category.toLowerCase())
-        )
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(test => 
-          test.name.toLowerCase().includes(lowerQuery) ||
-          test.category.toLowerCase().includes(lowerQuery) ||
-          test.description.toLowerCase().includes(lowerQuery) ||
-          test.clinicalUse.some(use => use.toLowerCase().includes(lowerQuery)) ||
-          test.components.some(comp => comp.toLowerCase().includes(lowerQuery)) ||
-          test.features.some(f => f.toLowerCase().includes(lowerQuery))
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
-}
-
 // Lab Test Card Component
 interface LabTestProps {
-  test: typeof mockLabTests[0]
+  test: ReturnType<typeof mapApiTestToUi>
 }
 
 const LabTestCard = ({ test }: LabTestProps) => {
@@ -438,10 +210,10 @@ const LabTestCard = ({ test }: LabTestProps) => {
             <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
               Details
             </button>
-            <Link href="/patient/lab-tests/book/id" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
+            <AuthBookingLink type="lab-test" providerId={test.id} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
               <FaShoppingCart />
               Book Test
-            </Link>
+            </AuthBookingLink>
           </div>
         </div>
       </div>
@@ -494,7 +266,9 @@ export default function LabTestingPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(mockLabTests)
+  const [allLabTests, setAllLabTests] = useState<ReturnType<typeof mapApiTestToUi>[]>([])
+  const [searchResults, setSearchResults] = useState<ReturnType<typeof mapApiTestToUi>[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [hasSearched, setHasSearched] = useState(false)
   const [cartCount] = useState(2)
   const [searchExamples] = useState([
@@ -506,20 +280,53 @@ export default function LabTestingPage() {
     "COVID-19 test for travel"
   ])
 
+  const fetchLabTests = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const res = await fetch('/api/search/lab-tests')
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map(mapApiTestToUi)
+        setAllLabTests(mapped)
+        setSearchResults(mapped)
+      }
+    } catch (err) {
+      console.error('Failed to fetch lab tests:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchLabTests()
+  }, [fetchLabTests])
+
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchLabTests(searchQuery, category)
-    
-    setSearchResults(results)
-    setIsSearching(false)
+    try {
+      const params = new URLSearchParams()
+      if (searchQuery) params.set('q', searchQuery)
+      if (category && category !== 'all') params.set('category', category)
+      const res = await fetch(`/api/search/lab-tests?${params.toString()}`)
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data)) {
+        setSearchResults(json.data.map(mapApiTestToUi))
+      } else {
+        setSearchResults([])
+      }
+    } catch (err) {
+      console.error('Search failed:', err)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const handleClearFilters = () => {
     setSearchQuery('')
     setCategory('all')
-    setSearchResults(mockLabTests)
+    setSearchResults(allLabTests)
     setHasSearched(false)
   }
 
@@ -665,7 +472,7 @@ export default function LabTestingPage() {
         
         {/* Results Section */}
         <div className="mt-12">
-          {isSearching ? (
+          {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
             <>

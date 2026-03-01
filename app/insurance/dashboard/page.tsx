@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  FaShieldAlt, FaClock, FaDollarSign, FaUsers, FaBell, FaEdit, 
+import {
+  FaShieldAlt, FaClock, FaDollarSign, FaUsers,
   FaExclamationTriangle, FaChartLine
 } from 'react-icons/fa'
 import { InsuranceDashboardData } from './types'
@@ -12,9 +12,16 @@ import StatCard from './StatCard'
 import ClaimsTable from './ClaimsTable'
 import PolicyHoldersTable from './PolicyHoldersTable'
 import EarningsSidebar from './EarningsSidebar'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 export default function InsuranceDashboardPage() {
   const [insuranceData] = useState<InsuranceDashboardData>(mockInsuranceData)
+  const [userId, setUserId] = useState<string>('')
+
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   const handleUpdateClaim = (claimId: string, status: string) => {
     console.log(`Updating claim ${claimId} to status: ${status}`)
@@ -42,45 +49,17 @@ export default function InsuranceDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img 
-                src={insuranceData.avatar} 
-                alt={insuranceData.name} 
-                className="w-14 h-14 rounded-full border-2 border-blue-500" 
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{insuranceData.name}</h1>
-                <p className="text-gray-600">{insuranceData.companyName} • {insuranceData.location}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-blue-600">
-                <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {insuranceData.stats.expiringPolicies}
-                </span>
-              </button>
-              <Link 
-                href="/insurance/settings" 
-                className="bg-gradient-to-r from-blue-600 to-purple-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2"
-              >
-                <FaEdit />
-                Settings
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-8">
+          <WalletBalanceCard userId={userId} />
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
             icon={FaShieldAlt} 
             title="Active Policies" 
             value={insuranceData.stats.activePolicies} 
@@ -192,7 +171,6 @@ export default function InsuranceDashboardPage() {
             </Link>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }

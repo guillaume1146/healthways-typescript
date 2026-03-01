@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { 
-    FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
+import {
+    FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash,
     FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import AvailabilitySettingsTab from '@/components/settings/tabs/AvailabilitySettingsTab'
 
 // --- TYPE DEFINITIONS ---
 type ActiveTab = 'profile' | 'availability' | 'payments' | 'documents'
@@ -18,14 +19,6 @@ interface TabButtonProps {
   tabName: ActiveTab
   activeTab: ActiveTab
   setActiveTab: (tab: ActiveTab) => void
-}
-
-interface Availability {
-  day: string
-  morning: boolean
-  afternoon: boolean
-  evening: boolean
-  night: boolean
 }
 
 interface Transaction {
@@ -89,16 +82,6 @@ const mockProfileData: NurseProfileSettings = {
     monthlyRate: 5500,
     emergencyAvailable: true,
 }
-
-const mockAvailabilityData: Availability[] = [
-  { day: 'Monday', morning: true, afternoon: true, evening: true, night: true },
-  { day: 'Tuesday', morning: true, afternoon: true, evening: true, night: true },
-  { day: 'Wednesday', morning: true, afternoon: false, evening: true, night: false },
-  { day: 'Thursday', morning: true, afternoon: true, evening: true, night: true },
-  { day: 'Friday', morning: true, afternoon: true, evening: false, night: false },
-  { day: 'Saturday', morning: true, afternoon: false, evening: false, night: false },
-  { day: 'Sunday', morning: false, afternoon: false, evening: false, night: false },
-]
 
 const mockTransactionData: Transaction[] = [
     { id: 't1', date: '2025-07-20', patientName: 'John Smith', amount: 180.00, commission: 18.00, payout: 162.00, status: 'Paid' },
@@ -188,19 +171,25 @@ export default function SettingsClient() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
+  const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<NurseProfileSettings>(mockProfileData)
-  const [availability, setAvailability] = useState<Availability[]>(mockAvailabilityData)
   const [documents, setDocuments] = useState<Document[]>(mockDocumentData)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
-  }
-
-  const handleAvailabilityChange = (dayIndex: number, period: keyof Omit<Availability, 'day'>) => {
-    const newAvailability = [...availability];
-    newAvailability[dayIndex][period] = !newAvailability[dayIndex][period];
-    setAvailability(newAvailability);
   }
 
   const handleDocumentToggle = (docId: string) => {
@@ -345,40 +334,7 @@ export default function SettingsClient() {
               
               {/* Availability Content */}
               {activeTab === 'availability' && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Manage Your Weekly Schedule</h2>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                       <thead className="bg-gray-50">
-                          <tr>
-                            <th className="p-3">Day</th>
-                            <th className="p-3 text-center">Morning (6AM-12PM)</th>
-                            <th className="p-3 text-center">Afternoon (12PM-6PM)</th>
-                            <th className="p-3 text-center">Evening (6PM-10PM)</th>
-                            <th className="p-3 text-center">Night (10PM-6AM)</th>
-                          </tr>
-                       </thead>
-                       <tbody>
-                          {availability.map((day, dayIndex) => (
-                              <tr key={day.day} className="border-b hover:bg-gray-50">
-                                 <td className="p-3 font-medium">{day.day}</td>
-                                 {(['morning', 'afternoon', 'evening', 'night'] as const).map(period => (
-                                     <td key={period} className="p-3 text-center">
-                                         <input type="checkbox" checked={day[period]} onChange={() => handleAvailabilityChange(dayIndex, period)} className="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer" />
-                                     </td>
-                                 ))}
-                              </tr>
-                          ))}
-                       </tbody>
-                    </table>
-                  </div>
-                   <div className="text-right mt-6">
-                      <button type="button" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transition-all duration-200 flex items-center gap-2 inline-flex">
-                        <FaSave />
-                        Save Schedule
-                      </button>
-                    </div>
-                </div>
+                userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div>
               )}
 
               {/* Payments Content */}

@@ -1,13 +1,15 @@
-import { FaUpload, FaCheck, FaFileAlt, FaTimes } from 'react-icons/fa'
+import { FaUpload, FaCheck, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa'
 import { Document } from './types'
+import type { DocumentVerificationStatus } from './hooks/useDocumentVerification'
 
 interface DocumentUploadStepProps {
   documents: Document[];
   onFileUpload: (documentId: string, file: File) => void;
   onRemoveFile: (documentId: string) => void;
+  verificationResults?: Record<string, DocumentVerificationStatus>;
 }
 
-export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFile }: DocumentUploadStepProps) {
+export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFile, verificationResults = {} }: DocumentUploadStepProps) {
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
@@ -45,20 +47,48 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
             </div>
 
             {doc.uploaded && doc.file ? (
-              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <FaFileAlt className="text-green-600" />
-                  <div>
-                    <p className="font-medium text-green-800">{doc.file.name}</p>
-                    <p className="text-green-600 text-sm">{(doc.file.size / 1024 / 1024).toFixed(2)} MB</p>
+              <div>
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <FaFileAlt className="text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-800">{doc.file.name}</p>
+                      <p className="text-green-600 text-sm">{(doc.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => onRemoveFile(doc.id)}
+                    className="text-red-600 hover:text-red-800 p-2"
+                  >
+                    <FaTimes />
+                  </button>
                 </div>
-                <button
-                  onClick={() => onRemoveFile(doc.id)}
-                  className="text-red-600 hover:text-red-800 p-2"
-                >
-                  <FaTimes />
-                </button>
+                {/* Document Verification Status */}
+                {verificationResults[doc.id] && (
+                  <div className={`mt-2 flex items-center gap-2 text-sm px-4 py-2 rounded-lg ${
+                    verificationResults[doc.id].status === 'verifying'
+                      ? 'bg-blue-50 text-blue-700'
+                      : verificationResults[doc.id].status === 'verified'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : verificationResults[doc.id].status === 'failed'
+                          ? 'bg-yellow-50 text-yellow-700'
+                          : 'bg-red-50 text-red-700'
+                  }`}>
+                    {verificationResults[doc.id].status === 'verifying' && (
+                      <FaSpinner className="animate-spin" />
+                    )}
+                    {verificationResults[doc.id].status === 'verified' && (
+                      <FaCheckCircle />
+                    )}
+                    {verificationResults[doc.id].status === 'failed' && (
+                      <FaExclamationTriangle />
+                    )}
+                    {verificationResults[doc.id].status === 'error' && (
+                      <FaTimes />
+                    )}
+                    <span>{verificationResults[doc.id].message}</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">

@@ -1,0 +1,26 @@
+[
+  {
+    "fullName": "Rajesh Kumar Doorgakant",
+    "dob": "1985-03-15",
+    "idNumber": "D150385100123",
+    "address": "12 Royal Road, Quatre Bornes, Mauritius",
+    "licenseNumber": "MED-2012-5678",
+    "profession": "Doctor"
+  },
+  {
+    "fullName": "Priya Devi Ramsewak",
+    "dob": "1990-07-22",
+    "idNumber": "R220790200456",
+    "address": "45 Desforges Street, Port Louis, Mauritius",
+    "licenseNumber": "NUR-2015-3456",
+    "profession": "Nurse"
+  },
+  {
+    "fullName": "Jean-Pierre Lafleur",
+    "dob": "1978-11-08",
+    "idNumber": "L081178300789",
+    "address": "8 Avenue des Flamboyants, Curepipe, Mauritius",
+    "licenseNumber": "PHA-2005-9012",
+    "profession": "Pharmacist"
+  }
+]

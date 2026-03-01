@@ -1,14 +1,23 @@
 import Link from 'next/link'
-import { FaCheck, FaInfoCircle } from 'react-icons/fa'
+import { FaCheck, FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaSpinner } from 'react-icons/fa'
 import { SignupFormData, UserType, Document } from './types'
+import type { DocumentVerificationStatus } from './hooks/useDocumentVerification'
 
 interface VerificationStepProps {
   formData: SignupFormData;
   selectedType: UserType | undefined;
   documents: Document[];
+  verificationResults?: Record<string, DocumentVerificationStatus>;
 }
 
-export default function VerificationStep({ formData, selectedType, documents }: VerificationStepProps) {
+export default function VerificationStep({ formData, selectedType, documents, verificationResults = {} }: VerificationStepProps) {
+  const verifiedCount = Object.values(verificationResults).filter(v => v.status === 'verified').length
+  const failedCount = Object.values(verificationResults).filter(v => v.status === 'failed').length
+  const errorCount = Object.values(verificationResults).filter(v => v.status === 'error').length
+  const verifyingCount = Object.values(verificationResults).filter(v => v.status === 'verifying').length
+  const allVerified = documents.filter(d => d.required && d.uploaded).length > 0 &&
+    documents.filter(d => d.required && d.uploaded).every(d => verificationResults[d.id]?.status === 'verified')
+  const requiresManualApproval = ['corporate', 'regional-admin'].includes(formData.userType)
   return (
     <div>
       <div className="text-center mb-8">
@@ -77,19 +86,56 @@ export default function VerificationStep({ formData, selectedType, documents }: 
           </div>
         )}
 
-        {/* Documents Summary */}
+        {/* Documents Summary with Verification */}
         <div className="bg-green-50 rounded-xl p-6">
-          <h3 className="font-bold text-lg text-gray-900 mb-4">Uploaded Documents</h3>
-          <div className="space-y-2">
-            {documents.filter(doc => doc.uploaded).map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between">
-                <span className="text-gray-700">{doc.name}</span>
-                <span className="text-green-600 font-medium flex items-center gap-1">
-                  <FaCheck className="text-sm" />
-                  Uploaded
-                </span>
-              </div>
-            ))}
+          <h3 className="font-bold text-lg text-gray-900 mb-4">Document Verification</h3>
+          {/* Overall status */}
+          {verifyingCount > 0 && (
+            <div className="flex items-center gap-2 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
+              <FaSpinner className="animate-spin" />
+              <span>Verifying {verifyingCount} document{verifyingCount > 1 ? 's' : ''}...</span>
+            </div>
+          )}
+          {allVerified && !requiresManualApproval && verifyingCount === 0 && (
+            <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-sm">
+              <FaCheckCircle />
+              <span>All required documents verified — your account will be activated immediately!</span>
+            </div>
+          )}
+          {(failedCount > 0 || errorCount > 0) && verifyingCount === 0 && (
+            <div className="flex items-center gap-2 text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm">
+              <FaExclamationTriangle />
+              <span>Some documents could not be verified automatically and will require manual review.</span>
+            </div>
+          )}
+          <div className="space-y-3">
+            {documents.filter(doc => doc.uploaded).map((doc) => {
+              const vr = verificationResults[doc.id]
+              return (
+                <div key={doc.id} className="flex items-center justify-between">
+                  <span className="text-gray-700">{doc.name}</span>
+                  <span className={`font-medium flex items-center gap-1 text-sm ${
+                    !vr ? 'text-green-600' :
+                    vr.status === 'verified' ? 'text-emerald-600' :
+                    vr.status === 'verifying' ? 'text-blue-600' :
+                    vr.status === 'failed' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {!vr && <><FaCheck className="text-sm" /> Uploaded</>}
+                    {vr?.status === 'verified' && <><FaCheckCircle className="text-sm" /> Verified ({vr.confidence}%)</>}
+                    {vr?.status === 'verifying' && <><FaSpinner className="text-sm animate-spin" /> Verifying...</>}
+                    {vr?.status === 'failed' && <><FaExclamationTriangle className="text-sm" /> Manual review</>}
+                    {vr?.status === 'error' && <><FaTimesCircle className="text-sm" /> Check failed</>}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          {/* Counts */}
+          <div className="mt-4 pt-4 border-t border-green-200 flex gap-4 text-xs text-gray-600">
+            <span>Verified: {verifiedCount}</span>
+            <span>Manual review: {failedCount + errorCount}</span>
+            <span>Total uploaded: {documents.filter(d => d.uploaded).length}</span>
           </div>
         </div>
 
@@ -127,13 +173,28 @@ export default function VerificationStep({ formData, selectedType, documents }: 
             <FaInfoCircle className="text-blue-600 mt-1" />
             <div>
               <h4 className="font-bold text-blue-800 mb-2">What happens next?</h4>
-              <ul className="text-blue-700 text-sm space-y-1">
-                <li>• Your documents will be reviewed by our verification team</li>
-                <li>• We may contact you for additional information if needed</li>
-                <li>• Verification typically takes 2-5 business days</li>
-                <li>• You will receive an email once your account is approved</li>
-                <li>• Professional credentials will be verified with relevant authorities</li>
-              </ul>
+              {allVerified && !requiresManualApproval ? (
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• All your documents have been verified automatically</li>
+                  <li>• Your account will be activated immediately upon submission</li>
+                  <li>• You will receive a confirmation email shortly</li>
+                  <li>• You can start using Healthwyz right away</li>
+                </ul>
+              ) : requiresManualApproval ? (
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• Your account type requires administrator approval</li>
+                  <li>• Your documents and application will be reviewed within 2-5 business days</li>
+                  <li>• You will receive an email once your account is approved</li>
+                  <li>• We may contact you for additional information if needed</li>
+                </ul>
+              ) : (
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• Some documents require manual verification by our team</li>
+                  <li>• Verification typically takes 2-5 business days</li>
+                  <li>• You will receive an email once your account is approved</li>
+                  <li>• Professional credentials will be verified with relevant authorities</li>
+                </ul>
+              )}
             </div>
           </div>
         </div>

@@ -1,8 +1,9 @@
 // app/api/video/room/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/db'
 
-// Generate a unique room ID
-function generateRoomId(): string {
+// Generate a unique room code
+function generateRoomCode(): string {
   const timestamp = Date.now().toString(36)
   const randomStr = Math.random().toString(36).substring(2, 8)
   return `room-${timestamp}-${randomStr}`
@@ -11,28 +12,37 @@ function generateRoomId(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { doctorId, patientId, doctorName, patientName } = body
+    const { creatorId } = body
 
-    // Generate unique room ID
-    const roomId = generateRoomId()
-
-    // Create room data
-    const roomData = {
-      roomId,
-      doctorId,
-      patientId,
-      doctorName,
-      patientName,
-      createdAt: new Date().toISOString(),
-      status: 'active'
+    if (!creatorId) {
+      return NextResponse.json(
+        { success: false, error: 'creatorId is required' },
+        { status: 400 }
+      )
     }
 
-    // In a real application, you would save this to a database
-    // For now, we'll store it in memory or return it directly
-    
+    // Generate unique room code
+    const roomCode = generateRoomCode()
+
+    // Create room in database
+    const room = await prisma.videoRoom.create({
+      data: {
+        roomCode,
+        creatorId,
+        status: 'active',
+        maxParticipants: 2,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      data: roomData
+      data: {
+        roomId: room.roomCode,
+        id: room.id,
+        creatorId: room.creatorId,
+        createdAt: room.createdAt.toISOString(),
+        status: room.status,
+      },
     })
   } catch (error) {
     console.error('Error creating video room:', error)
@@ -54,17 +64,37 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // In a real application, you would fetch room data from database
-  // For now, we'll return mock data
-  const roomData = {
-    roomId,
-    status: 'active',
-    participants: [],
-    createdAt: new Date().toISOString()
-  }
+  try {
+    const room = await prisma.videoRoom.findFirst({
+      where: { roomCode: roomId },
+      include: {
+        participants: true,
+      },
+    })
 
-  return NextResponse.json({
-    success: true,
-    data: roomData
-  })
+    if (!room) {
+      return NextResponse.json(
+        { success: false, error: 'Room not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        roomId: room.roomCode,
+        id: room.id,
+        status: room.status,
+        creatorId: room.creatorId,
+        participants: room.participants,
+        createdAt: room.createdAt.toISOString(),
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching video room:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch video room' },
+      { status: 500 }
+    )
+  }
 }

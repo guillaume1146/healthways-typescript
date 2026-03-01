@@ -12,6 +12,7 @@ import DocumentUploadStep from './DocumentUploadStep'
 import VerificationStep from './VerificationStep'
 import NavigationButtons from './NavigationButtons'
 import LegalModals from './LegalModals'
+import { useDocumentVerification } from './hooks/useDocumentVerification'
 
 export default function RegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -21,7 +22,7 @@ export default function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionSuccess, setSubmissionSuccess] = useState(false)
   const [documents, setDocuments] = useState<Document[]>(documentRequirements.patient)
-  
+
   // Modal states
   const [disclaimerOpen, setDisclaimerOpen] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
@@ -47,6 +48,9 @@ export default function RegistrationForm() {
     agreeToPrivacy: false,
     agreeToDisclaimer: false
   })
+
+  // Document OCR verification
+  const { verificationResults, verifyDocument: verifyDoc, resetVerification } = useDocumentVerification(formData.fullName)
 
   // Listen for custom events to open modals
   useEffect(() => {
@@ -88,19 +92,24 @@ export default function RegistrationForm() {
   }
 
   const handleFileUpload = (documentId: string, file: File) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
         ? { ...doc, file, uploaded: true }
         : doc
     ))
+    // Trigger OCR verification if user has entered their name
+    if (formData.fullName.trim().length >= 2) {
+      verifyDoc(documentId, file)
+    }
   }
 
   const removeFile = (documentId: string) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === documentId 
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
         ? { ...doc, file: undefined, uploaded: false }
         : doc
     ))
+    resetVerification(documentId)
   }
 
   const validateStep = (step: number): boolean => {
@@ -150,31 +159,41 @@ export default function RegistrationForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      // Simulate API call - replace with your actual API endpoint
-      console.log('Submitting registration:', { 
-        formData, 
-        documents: documents.filter(doc => doc.uploaded),
-        userType: selectedUserType
+      // Build document verification summary
+      const documentVerifications = Object.values(verificationResults).map(v => ({
+        documentId: v.documentId,
+        verified: v.status === 'verified',
+        confidence: v.confidence,
+      }))
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, documentVerifications }),
       })
 
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Registration failed')
+      }
 
       // Set success state
       setSubmissionSuccess(true)
-      
+
       // Wait a moment to show success, then redirect
       setTimeout(() => {
         router.push('/login?registration=success')
       }, 2000)
-      
+
     } catch (error) {
       console.error('Registration error:', error)
-      alert('Registration failed. Please try again later or contact support.')
+      const message = error instanceof Error ? error.message : 'Registration failed. Please try again later or contact support.'
+      alert(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -257,19 +276,21 @@ export default function RegistrationForm() {
 
                   {/* Step 3: Document Upload */}
                   {currentStep === 3 && (
-                    <DocumentUploadStep 
+                    <DocumentUploadStep
                       documents={documents}
                       onFileUpload={handleFileUpload}
                       onRemoveFile={removeFile}
+                      verificationResults={verificationResults}
                     />
                   )}
 
                   {/* Step 4: Verification */}
                   {currentStep === 4 && (
-                    <VerificationStep 
+                    <VerificationStep
                       formData={formData}
                       selectedType={selectedType}
                       documents={documents}
+                      verificationResults={verificationResults}
                     />
                   )}
 

@@ -1,0 +1,190 @@
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/db'
+
+type ProviderType = 'doctor' | 'nurse' | 'nanny' | 'lab-test'
+
+interface ResolvedProvider {
+  userId: string    // User.id — used for ProviderAvailability lookup
+  profileId: string // Profile table id — used for existing bookings lookup
+}
+
+/**
+ * Resolves a providerId (which may be either a User ID or a Profile ID)
+ * to both the userId and profileId needed by this endpoint.
+ *
+ * Search APIs return user.id, so booking pages typically pass User IDs.
+ * We try Profile ID first, then fall back to looking up by userId.
+ */
+async function resolveProvider(providerId: string, providerType: ProviderType): Promise<ResolvedProvider | null> {
+  switch (providerType) {
+    case 'doctor': {
+      // Try as profile ID
+      const byProfile = await prisma.doctorProfile.findUnique({ where: { id: providerId }, select: { id: true, userId: true } })
+      if (byProfile) return { userId: byProfile.userId, profileId: byProfile.id }
+      // Fall back: try as user ID
+      const byUser = await prisma.doctorProfile.findFirst({ where: { userId: providerId }, select: { id: true, userId: true } })
+      if (byUser) return { userId: byUser.userId, profileId: byUser.id }
+      return null
+    }
+    case 'nurse': {
+      const byProfile = await prisma.nurseProfile.findUnique({ where: { id: providerId }, select: { id: true, userId: true } })
+      if (byProfile) return { userId: byProfile.userId, profileId: byProfile.id }
+      const byUser = await prisma.nurseProfile.findFirst({ where: { userId: providerId }, select: { id: true, userId: true } })
+      if (byUser) return { userId: byUser.userId, profileId: byUser.id }
+      return null
+    }
+    case 'nanny': {
+      const byProfile = await prisma.nannyProfile.findUnique({ where: { id: providerId }, select: { id: true, userId: true } })
+      if (byProfile) return { userId: byProfile.userId, profileId: byProfile.id }
+      const byUser = await prisma.nannyProfile.findFirst({ where: { userId: providerId }, select: { id: true, userId: true } })
+      if (byUser) return { userId: byUser.userId, profileId: byUser.id }
+      return null
+    }
+    case 'lab-test': {
+      const byProfile = await prisma.labTechProfile.findUnique({ where: { id: providerId }, select: { id: true, userId: true } })
+      if (byProfile) return { userId: byProfile.userId, profileId: byProfile.id }
+      const byUser = await prisma.labTechProfile.findFirst({ where: { userId: providerId }, select: { id: true, userId: true } })
+      if (byUser) return { userId: byUser.userId, profileId: byUser.id }
+      return null
+    }
+  }
+}
+
+function generateSlots(startTime: string, endTime: string): string[] {
+  const [startHour, startMin] = startTime.split(':').map(Number)
+  const [endHour, endMin] = endTime.split(':').map(Number)
+
+  const startMinutes = startHour * 60 + startMin
+  const endMinutes = endHour * 60 + endMin
+
+  const slots: string[] = []
+  for (let m = startMinutes; m + 60 <= endMinutes; m += 60) {
+    const h = Math.floor(m / 60)
+    const min = m % 60
+    slots.push(`${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`)
+  }
+
+  return slots
+}
+
+async function getExistingBookings(providerId: string, providerType: ProviderType, dayStart: Date, dayEnd: Date) {
+  switch (providerType) {
+    case 'doctor':
+      return prisma.appointment.findMany({
+        where: {
+          doctorId: providerId,
+          scheduledAt: { gte: dayStart, lt: dayEnd },
+          status: { not: 'cancelled' },
+        },
+        select: { scheduledAt: true },
+      })
+    case 'nurse':
+      return prisma.nurseBooking.findMany({
+        where: {
+          nurseId: providerId,
+          scheduledAt: { gte: dayStart, lt: dayEnd },
+          status: { not: 'cancelled' },
+        },
+        select: { scheduledAt: true },
+      })
+    case 'nanny':
+      return prisma.childcareBooking.findMany({
+        where: {
+          nannyId: providerId,
+          scheduledAt: { gte: dayStart, lt: dayEnd },
+          status: { not: 'cancelled' },
+        },
+        select: { scheduledAt: true },
+      })
+    case 'lab-test':
+      return prisma.labTestBooking.findMany({
+        where: {
+          labTechId: providerId,
+          scheduledAt: { gte: dayStart, lt: dayEnd },
+          status: { not: 'cancelled' },
+        },
+        select: { scheduledAt: true },
+      })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = request.nextUrl
+    const providerId = searchParams.get('providerId')
+    const date = searchParams.get('date')
+    const providerType = searchParams.get('providerType') as ProviderType | null
+
+    if (!providerId || !date || !providerType) {
+      return NextResponse.json(
+        { error: 'Missing required query parameters: providerId, date, providerType' },
+        { status: 400 }
+      )
+    }
+
+    const validProviderTypes: ProviderType[] = ['doctor', 'nurse', 'nanny', 'lab-test']
+    if (!validProviderTypes.includes(providerType)) {
+      return NextResponse.json(
+        { error: 'Invalid providerType. Must be one of: doctor, nurse, nanny, lab-test' },
+        { status: 400 }
+      )
+    }
+
+    // Resolve the providerId to both userId and profileId
+    // (providerId may be either a User ID or a Profile ID depending on the caller)
+    const provider = await resolveProvider(providerId, providerType)
+    if (!provider) {
+      return NextResponse.json(
+        { error: 'Provider not found' },
+        { status: 404 }
+      )
+    }
+
+    // Calculate day of week from the date (0=Sunday, 6=Saturday)
+    const dayOfWeek = new Date(date + 'T00:00:00').getDay()
+
+    // Fetch availability for that userId and dayOfWeek where isActive=true
+    const availability = await prisma.providerAvailability.findMany({
+      where: {
+        userId: provider.userId,
+        dayOfWeek,
+        isActive: true,
+      },
+      orderBy: { startTime: 'asc' },
+    })
+
+    if (availability.length === 0) {
+      return NextResponse.json({ success: true, slots: [] })
+    }
+
+    // Generate 1-hour slot start times within each availability window
+    const allSlots: string[] = []
+    for (const window of availability) {
+      const slots = generateSlots(window.startTime, window.endTime)
+      allSlots.push(...slots)
+    }
+
+    // Fetch existing bookings using the profile ID (booking tables reference profile IDs)
+    const dayStart = new Date(date + 'T00:00:00')
+    const dayEnd = new Date(date + 'T23:59:59')
+
+    const bookings = await getExistingBookings(provider.profileId, providerType, dayStart, dayEnd)
+
+    // Extract booked hours from existing bookings
+    const bookedHours = bookings.map(b => {
+      const d = new Date(b.scheduledAt)
+      return `${d.getUTCHours().toString().padStart(2, '0')}:${d.getUTCMinutes().toString().padStart(2, '0')}`
+    })
+
+    // Filter out already-booked slots
+    const availableSlots = allSlots.filter(slot => !bookedHours.includes(slot))
+
+    return NextResponse.json({ success: true, slots: availableSlots })
+  } catch (error) {
+    console.error('Error fetching available slots:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

@@ -1,5 +1,3 @@
-import { IconType } from 'react-icons'
-
 export interface InsuranceDashboardData {
   name: string
   location: string
@@ -46,13 +44,7 @@ export interface PolicyHolder {
   coverageAmount: number
 }
 
-export interface StatCardProps {
-  icon: IconType
-  title: string
-  value: string | number
-  color: string
-  subtitle?: string
-}
+export type { DashboardStatCardProps as StatCardProps } from '@/components/shared/DashboardStatCard'
 
 export interface InsuranceProfileSettings {
   name: string

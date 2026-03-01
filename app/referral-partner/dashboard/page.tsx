@@ -1,13 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  FaDollarSign, 
-  FaUsers, 
-  FaChartLine, 
-  FaBell,
-  FaEdit,
+import {
+  FaDollarSign,
+  FaUsers,
+  FaChartLine,
   FaTrophy,
   FaRocket,
   FaGift
@@ -18,62 +16,28 @@ import StatCard from './StatCard'
 import UTMLinkGenerator from './UTMLinkGenerator'
 import LeadPerformance from './LeadPerformance'
 import RecentConversions from './RecentConversions'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 export default function ReferralPartnerDashboard() {
   const [partnerData] = useState<ReferralPartnerData>(mockReferralPartnerData)
+  const [userId, setUserId] = useState<string>('')
 
-  const getPartnerLevelColor = (level: string) => {
-    switch (level) {
-      case 'Bronze': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'Silver': return 'bg-gray-100 text-gray-800 border-gray-300';
-      case 'Gold': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'Diamond': return 'bg-purple-100 text-purple-800 border-purple-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  }
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img 
-                src={partnerData.avatar} 
-                alt={partnerData.name} 
-                className="w-14 h-14 rounded-full border-2 border-purple-500" 
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{partnerData.name}</h1>
-                <div className="flex items-center gap-3">
-                  <p className="text-gray-600">Referral Partner</p>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getPartnerLevelColor(partnerData.partnerLevel)}`}>
-                    <FaTrophy className="inline mr-1" />
-                    {partnerData.partnerLevel} Partner
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-purple-600">
-                <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              <Link href="/referral-partner/settings" className="bg-gradient-to-r from-purple-600 to-blue-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2">
-                <FaEdit />
-                Settings
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-8">
+          <WalletBalanceCard userId={userId} />
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard 
             icon={FaDollarSign} 
             title="Total Earnings" 
@@ -243,7 +207,6 @@ export default function ReferralPartnerDashboard() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }

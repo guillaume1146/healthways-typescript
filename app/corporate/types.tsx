@@ -1,12 +1,4 @@
-import { IconType } from 'react-icons'
-
-export interface StatCardProps {
-  icon: IconType
-  title: string
-  value: string | number
-  color: string
-  subtitle?: string
-}
+export type { DashboardStatCardProps as StatCardProps } from '@/components/shared/DashboardStatCard'
 
 export interface CorporateStats {
   totalEmployees: number

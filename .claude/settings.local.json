@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(xargs grep:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)",
+      "Bash(npx prisma:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(docker compose:*)",
+      "Bash(DATABASE_URL=\"postgresql://healthwyz:healthwyz_secret@localhost:5432/healthwyz\" npx prisma:*)",
+      "Bash(curl:*)",
+      "Bash(DATABASE_URL=\"postgresql://healthwyz:healthwyz_secret@localhost:5432/healthwyz\" npx ts-node:*)",
+      "Bash(node:*)",
+      "Bash(printf {\"\"email\"\":\"\"emma.johnson@healthwyz.mu\"\",\"\"password\"\":\"\"Patient123!\"\",\"\"userType\"\":\"\"patient\"\"}:*)",
+      "Bash(ls:*)",
+      "Bash(do echo:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm uninstall:*)"
+    ]
+  }
+}

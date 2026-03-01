@@ -629,7 +629,7 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
             </h2>
             <p className="opacity-90 text-xs sm:text-sm md:text-base">Track your income and manage payments</p>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-center">
             <div className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
               <p className="text-lg sm:text-xl md:text-2xl font-bold">Rs {(((earnings.today ?? 0) as number) / 1000).toFixed(1)}k</p>
               <p className="text-xs opacity-90">Today</p>

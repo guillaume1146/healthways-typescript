@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import {  FaDollarSign, FaClipboardList, FaEdit, FaClock, 
-   FaBroadcastTower, FaLocationArrow, FaUserInjured 
+import { FaDollarSign, FaClipboardList, FaClock,
+  FaBroadcastTower, FaLocationArrow, FaUserInjured
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 // Type Definitions
 interface StatCardProps {
@@ -68,6 +69,12 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 
 export default function ResponderDashboardPage() {
   const [responderData, setResponderData] = useState<ResponderDashboardData>(mockResponderData)
+  const [userId, setUserId] = useState<string>('')
+
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   const handleStatusChange = (newStatus: 'available' | 'en-route' | 'on-scene' | 'unavailable') => {
     setResponderData(prev => ({ ...prev, status: newStatus }));
@@ -82,34 +89,16 @@ export default function ResponderDashboardPage() {
     }
   }
 
-  const currentStatusInfo = getStatusInfo(responderData.status);
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{responderData.name}</h1>
-              <p className="text-gray-600">Unit: {responderData.unitNumber}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-full ${currentStatusInfo.color} ${currentStatusInfo.pulse ? 'animate-pulse' : ''}`}></div>
-                <span className="font-semibold">{currentStatusInfo.text}</span>
-              </div>
-              <Link href="/emt/settings" className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center gap-2 text-sm">
-                <FaEdit />
-                Settings
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-6">
+          <WalletBalanceCard userId={userId} />
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Quick Stats & Status Toggle */}
+      {/* Quick Stats & Status Toggle */}
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
             <div className="md:col-span-4 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard icon={FaDollarSign} title="Today's Revenue" value={`Rs ${responderData.stats.todaysRevenue.toLocaleString()}`} color="bg-green-500" />
@@ -158,7 +147,6 @@ export default function ResponderDashboardPage() {
                 ))}
             </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }

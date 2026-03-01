@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
- FaCalendarCheck, FaDollarSign, FaStar, 
-  FaBell,  FaEdit, FaClock, FaFileExport,
+import {
+ FaCalendarCheck, FaDollarSign, FaStar,
+  FaClock, FaFileExport,
  FaUserFriends
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
 // Type Definitions
 interface StatCardProps {
@@ -87,6 +88,12 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 
 export default function CaregiverDashboardPage() {
   const [caregiverData] = useState<CaregiverDashboardData>(mockCaregiverData)
+  const [userId, setUserId] = useState<string>('')
+
+  useEffect(() => {
+    const id = localStorage.getItem('healthwyz_user_id')
+    if (id) setUserId(id)
+  }, [])
 
   const getStatusBadge = (status: 'confirmed' | 'pending' | 'completed') => {
     switch (status) {
@@ -97,36 +104,15 @@ export default function CaregiverDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={caregiverData.avatar} alt={caregiverData.name} className="w-14 h-14 rounded-full border-2 border-purple-500" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Welcome, {caregiverData.name.split(' ')[0]}!</h1>
-                <p className="text-gray-600">{caregiverData.type}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-purple-600">
-                <FaBell className="text-xl" />
-                <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  1
-                </span>
-              </button>
-              <Link href="/nanny/settings" className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2">
-                <FaEdit />
-                Manage Profile
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* Wallet Balance */}
+      {userId && (
+        <div className="mb-8">
+          <WalletBalanceCard userId={userId} />
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
+      {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard icon={FaCalendarCheck} title="Upcoming Bookings" value={caregiverData.stats.upcomingBookings} color="bg-blue-500" />
           <StatCard icon={FaUserFriends} title="Families Helped" value={caregiverData.stats.familiesHelped} color="bg-green-500" />
@@ -215,7 +201,6 @@ export default function CaregiverDashboardPage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }

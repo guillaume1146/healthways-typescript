@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
-import { 
-  FaUserNurse, 
-  FaCalendarAlt, 
-  FaClock, 
-  FaHome, 
-  FaHospital, 
+import {
+  FaUserNurse,
+  FaCalendarAlt,
+  FaClock,
+  FaHome,
+  FaHospital,
   FaVideo,
   FaComments,
   FaStethoscope,
@@ -28,6 +29,7 @@ import {
   FaUserClock,
   FaMedkit,
   FaClipboardList,
+  FaExternalLinkAlt,
 } from 'react-icons/fa'
 
 interface Props {
@@ -315,6 +317,14 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
             <FaPlus />
             <span className="hidden sm:inline">Book Service</span>
           </button>
+
+          <Link
+            href="/search/nurses"
+            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg sm:rounded-xl hover:from-blue-600 hover:to-blue-700 transition flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <FaExternalLinkAlt />
+            <span className="hidden sm:inline">Find & Book a Nurse</span>
+          </Link>
 
           <button
             onClick={() => setShowFilters(!showFilters)}

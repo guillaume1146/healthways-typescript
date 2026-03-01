@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { 
-    FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
-    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, 
+import {
+    FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash,
+    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt,
     FaCar, FaUniversity, FaSync
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import AvailabilitySettingsTab from '@/components/settings/tabs/AvailabilitySettingsTab'
 
 // --- TYPE DEFINITIONS ---
 type ActiveTab = 'profile' | 'availability' | 'payments' | 'documents'
@@ -33,14 +34,6 @@ interface CaregiverProfileSettings {
     hourlyRate: number
     monthlyRate: number | string
     transportAvailable: boolean
-}
-
-interface Availability {
-  day: string
-  morning: boolean
-  afternoon: boolean
-  evening: boolean
-  night: boolean
 }
 
 interface Transaction {
@@ -85,16 +78,6 @@ const mockProfileData: CaregiverProfileSettings = {
     transportAvailable: true,
 }
 
-const mockAvailabilityData: Availability[] = [
-  { day: 'Monday', morning: true, afternoon: true, evening: true, night: false },
-  { day: 'Tuesday', morning: true, afternoon: true, evening: true, night: false },
-  { day: 'Wednesday', morning: true, afternoon: true, evening: true, night: false },
-  { day: 'Thursday', morning: true, afternoon: true, evening: true, night: false },
-  { day: 'Friday', morning: true, afternoon: true, evening: true, night: false },
-  { day: 'Saturday', morning: false, afternoon: false, evening: true, night: true },
-  { day: 'Sunday', morning: false, afternoon: false, evening: true, night: true },
-]
-
 const mockTransactionData: Transaction[] = [
     { id: 't1', date: '2025-08-01', familyName: 'The Smith Family', amount: 1200.00, fee: 150.00, payout: 1050.00, status: 'Paid' },
     { id: 't2', date: '2025-07-25', familyName: 'The Garcia Family', amount: 200.00, fee: 25.00, payout: 175.00, status: 'Paid' },
@@ -136,21 +119,27 @@ export default function SettingsClient() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
+  const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<CaregiverProfileSettings>(mockProfileData)
-  const [availability, setAvailability] = useState<Availability[]>(mockAvailabilityData)
   const [documents, setDocuments] = useState<Document[]>(mockDocumentData)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
   }
 
-  const handleAvailabilityChange = (dayIndex: number, period: keyof Omit<Availability, 'day'>) => {
-    const newAvailability = [...availability];
-    newAvailability[dayIndex][period] = !newAvailability[dayIndex][period];
-    setAvailability(newAvailability);
-  }
-  
   const handleDocumentToggle = (docId: string) => {
     setDocuments(docs => docs.map(doc => doc.id === docId ? { ...doc, showOnProfile: !doc.showOnProfile } : doc));
   }
@@ -214,41 +203,7 @@ export default function SettingsClient() {
                 </form>
               )}
               {activeTab === 'availability' && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Set Your Weekly Availability</h2>
-                  <p className="text-sm text-gray-500 mb-6">This sets your recurring weekly schedule. You can manage one-off exceptions on the main appointments calendar.</p>
-                  <div className="overflow-x-auto border rounded-lg">
-                    <table className="w-full text-sm text-left">
-                       <thead className="bg-gray-50">
-                          <tr>
-                            <th className="p-3 font-medium text-gray-600">Day</th>
-                            <th className="p-3 text-center font-medium text-gray-600">Morning (7am-12pm)</th>
-                            <th className="p-3 text-center font-medium text-gray-600">Afternoon (12pm-5pm)</th>
-                            <th className="p-3 text-center font-medium text-gray-600">Evening (5pm-9pm)</th>
-                            <th className="p-3 text-center font-medium text-gray-600">Overnight (9pm+)</th>
-                          </tr>
-                       </thead>
-                       <tbody>
-                          {availability.map((day, dayIndex) => (
-                              <tr key={day.day} className="border-b hover:bg-gray-50">
-                                 <td className="p-3 font-medium">{day.day}</td>
-                                 {(['morning', 'afternoon', 'evening', 'night'] as const).map(period => (
-                                     <td key={period} className="p-3 text-center">
-                                         <input type="checkbox" checked={day[period]} onChange={() => handleAvailabilityChange(dayIndex, period)} className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer" />
-                                     </td>
-                                 ))}
-                              </tr>
-                          ))}
-                       </tbody>
-                    </table>
-                  </div>
-                   <div className="text-right mt-6">
-                      <button type="button" className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 inline-flex">
-                        <FaSave />
-                        Save Schedule
-                      </button>
-                    </div>
-                </div>
+                userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div>
               )}
               {activeTab === 'payments' && (
                   <div>

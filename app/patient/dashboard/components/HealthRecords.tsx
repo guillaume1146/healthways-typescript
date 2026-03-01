@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
 import { 
   FaFileAlt, 
@@ -727,10 +728,10 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
         </div>
         <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Health Records</h3>
         <p className="text-gray-500 mb-6 text-sm sm:text-base">Your health records will appear here once they are added</p>
-        <button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto text-sm sm:text-base">
+        <Link href="/search/doctors" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto text-sm sm:text-base w-fit">
           <FaPlus />
           Request Medical Records
-        </button>
+        </Link>
       </div>
     )
   }

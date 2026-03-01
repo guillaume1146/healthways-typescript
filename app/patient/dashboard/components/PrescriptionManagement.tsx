@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Patient, Prescription } from '@/lib/data/patients'
 import { 
   FaPills, 
@@ -217,11 +218,11 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
           <p className="text-xs opacity-80 hidden sm:block">Home delivery</p>
         </button>
 
-        <button className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 text-center">
+        <Link href="/search/doctors" className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 text-center">
           <FaUserMd className="text-xl sm:text-2xl mx-auto mb-1 sm:mb-2" />
           <p className="font-semibold text-xs sm:text-sm md:text-base">Consult Doctor</p>
           <p className="text-xs opacity-80 hidden sm:block">Ask questions</p>
-        </button>
+        </Link>
 
         <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 text-center">
           <FaAllergies className="text-xl sm:text-2xl mx-auto mb-1 sm:mb-2" />

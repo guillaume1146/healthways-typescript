@@ -1,260 +1,209 @@
-// app/api/webrtc/session/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 
-// Create or retrieve a WebRTC session
+// POST - Create or update a video call session
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { roomId, userId, userName, userType } = body
 
-    // Generate session ID
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-    // Create or update session
-    const session = await prisma.webRTCSession.upsert({
-      where: { roomId },
-      update: {
-        lastActivity: new Date(),
-        status: 'active',
-        participants: {
-          push: {
-            userId,
-            userName,
-            userType,
-            joinedAt: new Date()
-          }
-        }
-      },
-      create: {
-        roomId,
-        sessionId,
-        status: 'active',
-        participants: [{
-          userId,
-          userName,
-          userType,
-          joinedAt: new Date()
-        }],
-        metadata: {
-          createdBy: userId,
-          createdAt: new Date()
-        }
-      }
-    })
-
-    // Create connection record
-    const connection = await prisma.webRTCConnection.upsert({
-      where: {
-        sessionId_userId: {
-          sessionId: session.id,
-          userId
-        }
-      },
-      update: {
-        connectionState: 'connecting',
-        lastSeen: new Date()
-      },
-      create: {
-        sessionId: session.id,
-        userId,
-        userType,
-        userName,
-        connectionState: 'connecting'
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        session,
-        connection
-      }
-    })
-  } catch (error) {
-    console.error('Error creating WebRTC session:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to create session' },
-      { status: 500 }
-    )
-  }
-}
-
-// Get session information
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const roomId = searchParams.get('roomId')
-  const sessionId = searchParams.get('sessionId')
-
-  if (!roomId && !sessionId) {
-    return NextResponse.json(
-      { success: false, error: 'Room ID or Session ID required' },
-      { status: 400 }
-    )
-  }
-
-  try {
-    const session = await prisma.webRTCSession.findUnique({
-      where: roomId ? { roomId } : { sessionId: sessionId! },
-      include: {
-        connections: true
-      }
-    })
-
-    if (!session) {
+    if (!roomId || !userId) {
       return NextResponse.json(
-        { success: false, error: 'Session not found' },
-        { status: 404 }
-      )
-    }
-
-    // Check if session is still active
-    const isActive = new Date().getTime() - session.lastActivity.getTime() < 3600000 // 1 hour
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...session,
-        isActive,
-        activeConnections: session.connections.filter(c => 
-          c.connectionState === 'connected' || c.connectionState === 'connecting'
-        ).length
-      }
-    })
-  } catch (error) {
-    console.error('Error fetching session:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch session' },
-      { status: 500 }
-    )
-  }
-}
-
-// Update session or connection state
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { sessionId, userId, connectionState, iceState, signalData } = body
-
-    if (!sessionId || !userId) {
-      return NextResponse.json(
-        { success: false, error: 'Session ID and User ID required' },
+        { error: 'roomId and userId are required' },
         { status: 400 }
       )
     }
 
-    // Update connection
-    const connection = await prisma.webRTCConnection.update({
-      where: {
-        sessionId_userId: {
-          sessionId,
-          userId
+    // Find the video room
+    const videoRoom = await prisma.videoRoom.findFirst({
+      where: { roomCode: roomId }
+    })
+
+    if (!videoRoom) {
+      // Create room on-the-fly if it doesn't exist
+      const newRoom = await prisma.videoRoom.create({
+        data: {
+          roomCode: roomId,
+          creatorId: userId,
+          status: 'active',
+          maxParticipants: 2
         }
-      },
-      data: {
-        ...(connectionState && { connectionState }),
-        ...(iceState && { iceState }),
-        ...(signalData && { signalData }),
-        lastSeen: new Date()
+      })
+
+      const session = await prisma.videoCallSession.create({
+        data: {
+          roomId: newRoom.id,
+          userId,
+          status: 'active',
+        }
+      })
+
+      return NextResponse.json({
+        data: {
+          session: {
+            id: session.id,
+            roomId,
+            status: session.status,
+            isActive: true
+          }
+        }
+      })
+    }
+
+    // Check for existing active session
+    const existingSession = await prisma.videoCallSession.findFirst({
+      where: {
+        roomId: videoRoom.id,
+        status: 'active'
       }
     })
 
-    // Update session activity
-    await prisma.webRTCSession.update({
-      where: { id: sessionId },
-      data: { lastActivity: new Date() }
+    if (existingSession) {
+      return NextResponse.json({
+        data: {
+          session: {
+            id: existingSession.id,
+            roomId,
+            status: existingSession.status,
+            isActive: true
+          }
+        }
+      })
+    }
+
+    const session = await prisma.videoCallSession.create({
+      data: {
+        roomId: videoRoom.id,
+        userId,
+        status: 'active',
+      }
     })
 
     return NextResponse.json({
-      success: true,
-      data: connection
+      data: {
+        session: {
+          id: session.id,
+          roomId,
+          status: session.status,
+          isActive: true
+        }
+      }
     })
   } catch (error) {
-    console.error('Error updating connection:', error)
+    console.error('Failed to create session:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to update connection' },
+      { error: 'Failed to create session' },
       { status: 500 }
     )
   }
 }
 
-// End session
-export async function DELETE(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const sessionId = searchParams.get('sessionId')
-  const userId = searchParams.get('userId')
-
-  if (!sessionId) {
-    return NextResponse.json(
-      { success: false, error: 'Session ID required' },
-      { status: 400 }
-    )
-  }
-
+// GET - Check for existing session
+export async function GET(request: NextRequest) {
   try {
-    if (userId) {
-      // Just update the connection state for this user
-      await prisma.webRTCConnection.update({
-        where: {
-          sessionId_userId: {
-            sessionId,
-            userId
-          }
-        },
-        data: {
-          connectionState: 'ended',
-          lastSeen: new Date()
-        }
-      })
+    const { searchParams } = new URL(request.url)
+    const roomId = searchParams.get('roomId')
 
-      // Check if all connections are ended
-      const activeConnections = await prisma.webRTCConnection.count({
-        where: {
-          sessionId,
-          connectionState: {
-            not: 'ended'
-          }
-        }
-      })
+    if (!roomId) {
+      return NextResponse.json(
+        { error: 'roomId is required' },
+        { status: 400 }
+      )
+    }
 
-      // If no active connections, end the session
-      if (activeConnections === 0) {
-        await prisma.webRTCSession.update({
-          where: { id: sessionId },
-          data: {
-            status: 'ended',
-            lastActivity: new Date()
-          }
-        })
+    const videoRoom = await prisma.videoRoom.findFirst({
+      where: { roomCode: roomId }
+    })
+
+    if (!videoRoom) {
+      return NextResponse.json({ data: null })
+    }
+
+    const session = await prisma.videoCallSession.findFirst({
+      where: {
+        roomId: videoRoom.id,
+        status: 'active'
       }
-    } else {
-      // End entire session
-      await prisma.webRTCSession.update({
-        where: { id: sessionId },
-        data: {
-          status: 'ended',
-          lastActivity: new Date()
-        }
-      })
+    })
 
-      // End all connections
-      await prisma.webRTCConnection.updateMany({
-        where: { sessionId },
-        data: {
-          connectionState: 'ended',
-          lastSeen: new Date()
-        }
-      })
+    if (!session) {
+      return NextResponse.json({ data: null })
     }
 
     return NextResponse.json({
-      success: true,
-      message: 'Session ended successfully'
+      data: {
+        id: session.id,
+        roomId,
+        status: session.status,
+        isActive: true,
+        startedAt: session.startedAt
+      }
     })
   } catch (error) {
-    console.error('Error ending session:', error)
+    console.error('Failed to check session:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to end session' },
+      { error: 'Failed to check session' },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH - Update session health
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { sessionId, connectionState } = body
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: 'sessionId is required' },
+        { status: 400 }
+      )
+    }
+
+    await prisma.videoCallSession.update({
+      where: { id: sessionId },
+      data: {
+        status: connectionState === 'failed' ? 'failed' : 'active'
+      }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to update session:', error)
+    return NextResponse.json(
+      { error: 'Failed to update session' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE - End session
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const sessionId = searchParams.get('sessionId')
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: 'sessionId is required' },
+        { status: 400 }
+      )
+    }
+
+    await prisma.videoCallSession.update({
+      where: { id: sessionId },
+      data: {
+        status: 'completed',
+        endedAt: new Date()
+      }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to end session:', error)
+    return NextResponse.json(
+      { error: 'Failed to end session' },
       { status: 500 }
     )
   }

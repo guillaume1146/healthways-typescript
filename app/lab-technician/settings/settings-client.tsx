@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import {  FaCreditCard, FaFileUpload, FaSave, FaTrash, FaTruck,
-    FaCheckCircle,  FaToggleOn, FaToggleOff,
+import {  FaCreditCard, FaFileUpload, FaSave, FaTrash,
+    FaCheckCircle,
     FaUniversity,  FaClock, FaStore, FaUserMd
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import AvailabilitySettingsTab from '@/components/settings/tabs/AvailabilitySettingsTab'
 
 // --- TYPE DEFINITIONS ---
 type ActiveTab = 'profile' | 'availability' | 'payments' | 'documents'
@@ -18,13 +19,6 @@ interface PharmacyProfileSettings {
     email: string
     address: string
     pharmacists: { id: string, name: string, registration: string }[]
-}
-
-interface AvailabilitySettings {
-    storeHours: {
-        [day: string]: { open: string, close: string, isClosed: boolean }
-    }
-    deliveryAvailable: boolean
 }
 
 // --- MOCK DATA ---
@@ -40,19 +34,6 @@ const mockProfileData: PharmacyProfileSettings = {
     ]
 }
 
-const mockAvailabilityData: AvailabilitySettings = {
-    storeHours: {
-        Monday: { open: "08:00", close: "20:00", isClosed: false },
-        Tuesday: { open: "08:00", close: "20:00", isClosed: false },
-        Wednesday: { open: "08:00", close: "20:00", isClosed: false },
-        Thursday: { open: "08:00", close: "20:00", isClosed: false },
-        Friday: { open: "08:00", close: "20:00", isClosed: false },
-        Saturday: { open: "09:00", close: "18:00", isClosed: false },
-        Sunday: { open: "09:00", close: "13:00", isClosed: true },
-    },
-    deliveryAvailable: true,
-}
-
 // Reusable components (omitted for brevity)
 const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: { icon: IconType, label: string, tabName: ActiveTab, activeTab: ActiveTab, setActiveTab: (tab: ActiveTab) => void }) => (
   <button onClick={() => setActiveTab(tabName)} className={`flex items-center w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === tabName ? 'bg-green-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}><Icon className="mr-3 text-lg" />{label}</button>
@@ -63,8 +44,20 @@ export default function SettingsClient() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') as ActiveTab | null;
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile');
+  const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<PharmacyProfileSettings>(mockProfileData);
-  const [availability, setAvailability] = useState<AvailabilitySettings>(mockAvailabilityData);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
@@ -92,16 +85,6 @@ export default function SettingsClient() {
         ...profile,
         pharmacists: profile.pharmacists.filter(p => p.id !== id)
     });
-  };
-
-  const handleStoreHoursChange = (day: string, field: 'open' | 'close' | 'isClosed', value: string | boolean) => {
-    setAvailability(prev => ({
-        ...prev,
-        storeHours: {
-            ...prev.storeHours,
-            [day]: { ...prev.storeHours[day], [field]: value }
-        }
-    }));
   };
 
   return (
@@ -149,27 +132,7 @@ export default function SettingsClient() {
                 </form>
               )}
               {activeTab === 'availability' && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Store & Delivery Hours</h2>
-                  <div className="mb-8 p-4 border rounded-lg bg-gray-50">
-                    <div className="flex items-center justify-between">
-                        <label className="font-medium text-gray-700 flex items-center gap-2"><FaTruck /> Delivery Service</label>
-                        <button type="button" onClick={() => setAvailability(p => ({...p, deliveryAvailable: !p.deliveryAvailable}))}>{availability.deliveryAvailable ? <FaToggleOn className="text-3xl text-green-500" /> : <FaToggleOff className="text-3xl text-gray-400" />}</button>
-                    </div>
-                  </div>
-                  <h3 className="font-bold text-gray-800 mb-4">Weekly Store Hours</h3>
-                  <div className="space-y-4">
-                      {Object.entries(availability.storeHours).map(([day, hours]) => (
-                          <div key={day} className={`grid grid-cols-4 items-center gap-4 p-3 rounded-lg ${hours.isClosed ? 'bg-gray-100' : ''}`}>
-                              <span className={`font-semibold ${hours.isClosed ? 'text-gray-400' : 'text-gray-800'}`}>{day}</span>
-                              <input type="time" value={hours.open} onChange={(e) => handleStoreHoursChange(day, 'open', e.target.value)} disabled={hours.isClosed} className="border-gray-300 rounded-md shadow-sm disabled:bg-gray-200" />
-                              <input type="time" value={hours.close} onChange={(e) => handleStoreHoursChange(day, 'close', e.target.value)} disabled={hours.isClosed} className="border-gray-300 rounded-md shadow-sm disabled:bg-gray-200" />
-                              <label className="flex items-center gap-2 justify-self-end"><input type="checkbox" checked={hours.isClosed} onChange={(e) => handleStoreHoursChange(day, 'isClosed', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500" /> Closed</label>
-                          </div>
-                      ))}
-                  </div>
-                  <div className="text-right mt-6"><button type="button" className="bg-gradient-to-r from-green-600 to-blue-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 inline-flex"><FaSave />Save Hours</button></div>
-                </div>
+                userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div>
               )}
               {activeTab === 'payments' && (
                 <div>

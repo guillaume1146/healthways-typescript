@@ -23,7 +23,8 @@ export function middleware(request: NextRequest) {
     '/admin': ['admin'],
     '/corporate': ['corporate'],
     '/insurance': ['insurance'],
-    '/referral-partner': ['referral-partner']
+    '/referral-partner': ['referral-partner'],
+    '/super-admin': ['super-admin']
   }
 
   const protectedRoute = Object.keys(protectedRoutes).find(route => 
@@ -64,7 +65,8 @@ function getUserTypeRedirectPath(userType: string): string {
     'admin': '/admin/dashboard',
     'corporate': '/corporate/dashboard',
     'insurance': '/insurance/dashboard',
-    'referral-partner': '/referral-partner/dashboard'
+    'referral-partner': '/referral-partner/dashboard',
+    'super-admin': '/super-admin/dashboard'
   }
   
   return redirectPaths[userType] || '/dashboard'
@@ -82,6 +84,7 @@ export const config = {
     '/admin/:path*',
     '/corporate/:path*',
     '/insurance/:path*',
-    '/referral-partner/:path*'
+    '/referral-partner/:path*',
+    '/super-admin/:path*'
   ]
 }

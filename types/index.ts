@@ -85,3 +85,21 @@ export interface StatCardProps extends Stat {}
 export interface SpecialtyItemProps extends Specialty {}
 
 export interface WhyChooseCardProps extends WhyChooseReason {}
+
+// CMS types
+export interface HeroContent {
+  mainTitle: string
+  highlightWord: string
+  subtitle: string
+  platformBadge: string
+  searchPlaceholder: string
+  ctaButtons: Array<{ icon: string; label: string; shortLabel: string }>
+}
+
+export interface HeroSlide {
+  id: string
+  title: string
+  subtitle?: string | null
+  imageUrl: string
+  sortOrder: number
+}
