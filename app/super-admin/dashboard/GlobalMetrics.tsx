@@ -19,66 +19,82 @@ export default function GlobalMetrics({ timeRange, region }: { timeRange: string
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate fetching real-time data
     const fetchMetrics = async () => {
       setLoading(true)
-      // API call would go here
-      setTimeout(() => {
+      try {
+        const res = await fetch('/api/admin/metrics')
+        if (!res.ok) throw new Error('Failed to fetch')
+        const json = await res.json()
+        if (!json.success) throw new Error(json.message)
+        const d = json.data
+
+        const providers = d.users.doctors + d.users.nurses + d.users.nannies +
+          d.users.pharmacists + d.users.labTechs + d.users.emergencyWorkers
+        const partners = d.users.insuranceReps + d.users.corporateAdmins + d.users.referralPartners
+
+        const revenueGrowth = d.revenue.lastMonth > 0
+          ? Math.round(((d.revenue.thisMonth - d.revenue.lastMonth) / d.revenue.lastMonth) * 100 * 10) / 10
+          : 0
+
         setMetrics([
           {
             title: 'Total Active Users',
-            value: '287,453',
-            change: 12.5,
-            trend: 'up',
+            value: d.users.active.toLocaleString(),
+            change: d.recentActivity.newUsersThisWeek,
+            trend: d.recentActivity.newUsersThisWeek > 0 ? 'up' : 'stable',
             icon: FaUsers,
             color: 'bg-blue-500',
             subMetrics: [
-              { label: 'Patients', value: '245,890' },
-              { label: 'Providers', value: '38,421' },
-              { label: 'Partners', value: '3,142' }
-            ]
+              { label: 'Patients', value: d.users.patients.toLocaleString() },
+              { label: 'Providers', value: providers.toLocaleString() },
+              { label: 'Partners', value: partners.toLocaleString() },
+            ],
           },
           {
             title: 'Healthcare Providers',
-            value: '38,421',
-            change: 8.3,
-            trend: 'up',
+            value: providers.toLocaleString(),
+            change: 0,
+            trend: 'stable',
             icon: FaUserMd,
             color: 'bg-green-500',
             subMetrics: [
-              { label: 'Doctors', value: '12,450' },
-              { label: 'Nurses', value: '18,230' },
-              { label: 'Specialists', value: '7,741' }
-            ]
+              { label: 'Doctors', value: d.users.doctors.toLocaleString() },
+              { label: 'Nurses', value: d.users.nurses.toLocaleString() },
+              { label: 'Others', value: (d.users.nannies + d.users.pharmacists + d.users.labTechs + d.users.emergencyWorkers).toLocaleString() },
+            ],
           },
           {
-            title: 'Corporate Partners',
-            value: '3,142',
-            change: 15.7,
-            trend: 'up',
+            title: 'Bookings Overview',
+            value: d.bookings.total.toLocaleString(),
+            change: d.recentActivity.bookingsThisWeek,
+            trend: d.recentActivity.bookingsThisWeek > 0 ? 'up' : 'stable',
             icon: FaHandshake,
             color: 'bg-purple-500',
             subMetrics: [
-              { label: 'Insurance', value: '892' },
-              { label: 'Corporates', value: '1,456' },
-              { label: 'Referral', value: '794' }
-            ]
+              { label: 'Pending', value: d.bookings.pending.toLocaleString() },
+              { label: 'Upcoming', value: d.bookings.upcoming.toLocaleString() },
+              { label: 'Completed', value: d.bookings.completed.toLocaleString() },
+            ],
           },
           {
-            title: 'Monthly Growth Rate',
-            value: '23.4%',
-            change: 5.2,
-            trend: 'up',
+            title: 'Revenue This Month',
+            value: `Rs ${d.revenue.thisMonth.toLocaleString()}`,
+            change: revenueGrowth,
+            trend: revenueGrowth > 0 ? 'up' : revenueGrowth < 0 ? 'down' : 'stable',
             icon: FaChartLine,
             color: 'bg-orange-500',
             subMetrics: [
-              { label: 'User Growth', value: '18.5%' },
-              { label: 'Revenue Growth', value: '28.3%' }
-            ]
-          }
+              { label: 'Total Revenue', value: `Rs ${d.revenue.total.toLocaleString()}` },
+              { label: 'Last Month', value: `Rs ${d.revenue.lastMonth.toLocaleString()}` },
+            ],
+          },
         ])
+      } catch {
+        // Fallback to empty state on error
+        setMetrics([])
+      } finally {
         setLoading(false)
-      }, 1000)
+      }
     }
 
     fetchMetrics()

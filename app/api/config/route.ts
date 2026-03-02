@@ -1,6 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
   const config = {
     appName: process.env.APP_NAME || "Healthwyz",
     appTagline: process.env.APP_TAGLINE || "Your trusted healthcare companion in Mauritius",
@@ -8,6 +11,5 @@ export async function GET() {
     platformDescription: process.env.PLATFORM_DESC || "Mauritius's Leading Healthcare Platform"
   }
   
-  await new Promise(resolve => setTimeout(resolve, 100))
   return NextResponse.json(config)
 }

@@ -16,8 +16,7 @@ interface HeroSlide {
 }
 
 interface HeroSlidesManagerProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  slides: any[]
+  slides: HeroSlide[]
   onRefresh: () => void
 }
 

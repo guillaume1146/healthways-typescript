@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { walletDebitSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -19,34 +24,14 @@ export async function POST(
 
   try {
     const body = await request.json()
-    const { amount, description, serviceType, referenceId } = body as {
-      amount: number
-      description: string
-      serviceType: string
-      referenceId?: string
-    }
-
-    // Validate required fields
-    if (!amount || typeof amount !== 'number' || amount <= 0) {
+    const parsed = walletDebitSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Amount must be a positive number' },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
-
-    if (!description || typeof description !== 'string' || description.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Description is required' },
-        { status: 400 }
-      )
-    }
-
-    if (!serviceType || typeof serviceType !== 'string' || serviceType.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Service type is required' },
-        { status: 400 }
-      )
-    }
+    const { amount, description, serviceType, referenceId } = parsed.data
 
     // Atomic debit within a transaction
     const result = await prisma.$transaction(async (tx) => {

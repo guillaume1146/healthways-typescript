@@ -4,8 +4,20 @@ import { useState, useEffect, useCallback } from 'react'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock,FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaHome, FaExclamationTriangle, FaCertificate, FaHeadset,  FaHeart,  FaBaby, FaHandHoldingMedical,  FaVial, FaPercent,  FaUserMd,  FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance,  FaClipboardList } from 'react-icons/fa'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapApiTestToUi(apiTest: any) {
+interface ApiLabTest {
+  id: string
+  testName?: string
+  category?: string
+  price?: number | string
+  description?: string
+  sampleType?: string
+  preparation?: string
+  turnaroundTime?: string
+  lab?: string
+  labTechnician?: { verified?: boolean }
+}
+
+function mapApiTestToUi(apiTest: ApiLabTest) {
   const price = Number(apiTest.price) || 0
   const originalPrice = Math.round(price * 1.2)
   const discountPct = Math.round(((originalPrice - price) / originalPrice) * 100)

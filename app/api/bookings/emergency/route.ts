@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
+import { createEmergencyBookingSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -11,42 +16,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { emergencyType, location, contactNumber, notes, priority } = body as {
-      emergencyType: string
-      location: string
-      contactNumber: string
-      notes?: string
-      priority?: string
-    }
-
-    // Validate required fields
-    if (!emergencyType || typeof emergencyType !== 'string' || emergencyType.trim().length === 0) {
+    const parsed = createEmergencyBookingSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Emergency type is required' },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
-
-    if (!location || typeof location !== 'string' || location.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Location is required' },
-        { status: 400 }
-      )
-    }
-
-    if (!contactNumber || typeof contactNumber !== 'string' || contactNumber.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Contact number is required' },
-        { status: 400 }
-      )
-    }
-
-    if (priority && !['low', 'medium', 'high', 'critical'].includes(priority)) {
-      return NextResponse.json(
-        { success: false, message: 'Priority must be low, medium, high, or critical' },
-        { status: 400 }
-      )
-    }
+    const { emergencyType, location, contactNumber, notes, priority } = parsed.data
 
     // Look up patient profile
     const patientProfile = await prisma.patientProfile.findUnique({

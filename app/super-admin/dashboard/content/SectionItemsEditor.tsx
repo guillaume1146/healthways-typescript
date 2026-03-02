@@ -10,20 +10,25 @@ interface FieldConfig {
   options?: string[]
 }
 
+interface SectionContent {
+  title?: string
+  sectionTitle?: string
+  subtitle?: string
+  sectionSubtitle?: string
+  items?: Record<string, string | number>[]
+}
+
 interface SectionItemsEditorProps {
   sectionType: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any
+  data: SectionContent
   fields: FieldConfig[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave: (content: any) => Promise<void>
+  onSave: (content: SectionContent) => Promise<void>
 }
 
 export default function SectionItemsEditor({ sectionType, data, fields, onSave }: SectionItemsEditorProps) {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<Record<string, string | number>[]>([])
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -34,8 +39,7 @@ export default function SectionItemsEditor({ sectionType, data, fields, onSave }
     }
   }, [data])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleItemChange = (index: number, key: string, value: any) => {
+  const handleItemChange = (index: number, key: string, value: string | number) => {
     setItems((prev) => {
       const updated = [...prev]
       updated[index] = { ...updated[index], [key]: value }
@@ -44,8 +48,7 @@ export default function SectionItemsEditor({ sectionType, data, fields, onSave }
   }
 
   const addItem = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newItem: any = {}
+    const newItem: Record<string, string | number> = {}
     fields.forEach((f) => {
       newItem[f.key] = f.type === 'number' ? 0 : ''
     })
@@ -70,8 +73,7 @@ export default function SectionItemsEditor({ sectionType, data, fields, onSave }
   const handleSave = async () => {
     setSaving(true)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const content: any = { items }
+      const content: SectionContent = { items }
       if (title) content.title = title
       if (subtitle) content.subtitle = subtitle
       await onSave(content)

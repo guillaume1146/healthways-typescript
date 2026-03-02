@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { emergencyServiceSchema } from '@/lib/validations/catalog'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
   const auth = validateRequest(request)
@@ -36,6 +37,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })

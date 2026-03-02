@@ -1,0 +1,196 @@
+import { z } from 'zod'
+
+// ─── Conversations ──────────────────────────────────────────────────────────
+
+export const createConversationSchema = z.object({
+  participantIds: z.array(z.string().uuid()).min(1, 'At least one participant is required'),
+})
+
+export const sendMessageSchema = z.object({
+  content: z.string().min(1, 'Message content is required').max(5000),
+})
+
+// ─── Video & WebRTC ─────────────────────────────────────────────────────────
+
+export const createVideoRoomSchema = z.object({
+  creatorId: z.string().uuid(),
+  participantIds: z.array(z.string().uuid()).optional(),
+  scheduledAt: z.string().datetime().optional(),
+  reason: z.string().max(500).optional(),
+})
+
+export const createWebRTCSessionSchema = z.object({
+  roomId: z.string().min(1),
+  userId: z.string().uuid(),
+  userName: z.string().min(1),
+  userType: z.string().min(1),
+})
+
+export const updateWebRTCSessionSchema = z.object({
+  sessionId: z.string().min(1),
+  connectionState: z.string().min(1).optional(),
+  iceConnectionState: z.string().min(1).optional(),
+})
+
+export const recoverWebRTCSessionSchema = z.object({
+  roomId: z.string().min(1),
+  userId: z.string().uuid(),
+})
+
+// ─── Bookings ───────────────────────────────────────────────────────────────
+
+const baseBookingSchema = z.object({
+  scheduledDate: z.string().min(1, 'Date is required'),
+  scheduledTime: z.string().min(1, 'Time is required'),
+  reason: z.string().max(500).optional(),
+  notes: z.string().max(1000).optional(),
+  duration: z.number().int().min(15).max(480).optional(),
+})
+
+export const createDoctorBookingSchema = baseBookingSchema.extend({
+  doctorId: z.string().uuid(),
+  consultationType: z.enum(['in_person', 'home_visit', 'video']),
+})
+
+export const createNurseBookingSchema = baseBookingSchema.extend({
+  nurseId: z.string().uuid(),
+  consultationType: z.enum(['in_person', 'home_visit', 'video']),
+})
+
+export const createNannyBookingSchema = baseBookingSchema.extend({
+  nannyId: z.string().uuid(),
+  consultationType: z.enum(['in_person', 'home_visit', 'video']),
+  children: z.array(z.string()).optional(),
+})
+
+export const createLabTestBookingSchema = z.object({
+  labTechId: z.string().uuid().optional(),
+  testName: z.string().min(1, 'Test name is required'),
+  scheduledDate: z.string().min(1),
+  scheduledTime: z.string().min(1),
+  sampleType: z.string().optional(),
+  notes: z.string().max(1000).optional(),
+  price: z.number().min(0).optional(),
+})
+
+export const createEmergencyBookingSchema = z.object({
+  emergencyType: z.string().min(1, 'Emergency type is required'),
+  location: z.string().min(1, 'Location is required'),
+  contactNumber: z.string().min(1, 'Contact number is required'),
+  notes: z.string().max(1000).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+})
+
+export const bookingActionSchema = z.object({
+  action: z.enum(['accept', 'deny', 'cancel']),
+  reason: z.string().max(500).optional(),
+})
+
+// ─── User Profile ───────────────────────────────────────────────────────────
+
+export const updateUserProfileSchema = z.object({
+  firstName: z.string().min(1).max(100).optional(),
+  lastName: z.string().min(1).max(100).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().min(1).max(30).optional(),
+  dateOfBirth: z.string().optional(),
+  gender: z.string().optional(),
+  address: z.string().max(500).optional(),
+  emergencyContact: z.object({
+    name: z.string().min(1),
+    relationship: z.string().min(1),
+    phone: z.string().min(1),
+  }).optional(),
+})
+
+// ─── Notifications ──────────────────────────────────────────────────────────
+
+export const markNotificationsReadSchema = z.object({
+  notificationIds: z.array(z.string().uuid()).optional(),
+})
+
+// ─── Prescriptions ──────────────────────────────────────────────────────────
+
+export const createPrescriptionSchema = z.object({
+  patientId: z.string().uuid(),
+  diagnosis: z.string().min(1, 'Diagnosis is required'),
+  notes: z.string().optional(),
+  nextRefill: z.string().optional(),
+  medicines: z.array(z.object({
+    medicineId: z.string().uuid(),
+    dosage: z.string().min(1),
+    frequency: z.string().min(1),
+    duration: z.string().min(1),
+    instructions: z.string().optional(),
+  })).min(1, 'At least one medicine is required'),
+})
+
+/** Doctor prescription route accepts medicine by name (upserts on create) */
+export const createDoctorPrescriptionSchema = z.object({
+  patientId: z.string().min(1, 'Patient ID is required'),
+  diagnosis: z.string().min(1, 'Diagnosis is required'),
+  notes: z.string().optional(),
+  nextRefill: z.string().optional(),
+  medicines: z.array(z.object({
+    name: z.string().min(1, 'Medicine name is required'),
+    dosage: z.string().min(1),
+    frequency: z.string().min(1),
+    duration: z.string().min(1),
+    instructions: z.string().optional(),
+  })).min(1, 'At least one medicine is required'),
+})
+
+// ─── Orders ─────────────────────────────────────────────────────────────────
+
+export const createOrderSchema = z.object({
+  items: z.array(z.object({
+    pharmacyMedicineId: z.string().uuid(),
+    quantity: z.number().int().min(1),
+  })).min(1, 'At least one item is required'),
+})
+
+export const updateOrderStatusSchema = z.object({
+  status: z.enum(['confirmed', 'shipped', 'delivered', 'cancelled']),
+})
+
+// ─── Posts ───────────────────────────────────────────────────────────────────
+
+export const createPostSchema = z.object({
+  content: z.string().min(1, 'Content is required').max(10000),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+})
+
+// ─── Wallet ─────────────────────────────────────────────────────────────────
+
+export const walletDebitSchema = z.object({
+  amount: z.number().positive('Amount must be positive'),
+  description: z.string().min(1, 'Description is required'),
+  serviceType: z.string().min(1, 'Service type is required'),
+  referenceId: z.string().optional(),
+})
+
+// ─── Availability ────────────────────────────────────────────────────────────
+
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+const availabilitySlotSchema = z.object({
+  dayOfWeek: z.number().int().min(0, 'dayOfWeek must be 0-6').max(6, 'dayOfWeek must be 0-6'),
+  startTime: z.string().regex(timeRegex, 'startTime must be HH:MM (24h)'),
+  endTime: z.string().regex(timeRegex, 'endTime must be HH:MM (24h)'),
+  isActive: z.boolean().optional(),
+})
+
+export const updateAvailabilitySchema = z.object({
+  slots: z.array(availabilitySlotSchema),
+}).refine(
+  (data) => data.slots.every((slot) => slot.startTime < slot.endTime),
+  { message: 'startTime must be before endTime' }
+)
+
+// ─── Admin ──────────────────────────────────────────────────────────────────
+
+export const adminAccountActionSchema = z.object({
+  userId: z.string().uuid(),
+  action: z.enum(['approve', 'reject', 'suspend']),
+})

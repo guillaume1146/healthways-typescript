@@ -10,8 +10,49 @@ interface UserProfileProps {
   settingsPath: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function renderTypeSpecificSection(userType: string, profile: any) {
+// Profile data from various user types
+interface UserProfileData {
+  // Patient
+  bloodType?: string
+  allergies?: string[]
+  chronicConditions?: string[]
+  healthScore?: number
+  emergencyContact?: { name: string; relationship: string; phone: string }
+  // Doctor
+  specialty?: string
+  licenseNumber?: string
+  clinicAffiliation?: string
+  consultationFee?: number
+  rating?: number
+  bio?: string
+  // Nurse
+  experience?: number
+  specializations?: string[]
+  // Nanny
+  certifications?: string[]
+  // Pharmacist
+  pharmacyName?: string
+  // Lab Technician
+  labName?: string
+  // Emergency Worker
+  vehicleType?: string
+  responseZone?: string
+  emtLevel?: string
+  // Insurance Rep
+  companyName?: string
+  coverageTypes?: string[]
+  // Corporate Admin
+  employeeCount?: number
+  // Referral Partner
+  businessType?: string
+  commissionRate?: number
+  referralCode?: string
+  // Regional Admin
+  region?: string
+  country?: string
+}
+
+function renderTypeSpecificSection(userType: string, profile: UserProfileData | null | undefined) {
   if (!profile) return null
 
   const sections: Record<string, { label: string; value: string | number | string[] | null | undefined }[]> = {
@@ -113,9 +154,23 @@ const USER_TYPE_LABELS: Record<string, string> = {
   REGIONAL_ADMIN: 'Regional Admin',
 }
 
+interface UserData {
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+  dateOfBirth?: string
+  gender?: string
+  address?: string
+  profileImage?: string
+  verified?: boolean
+  accountStatus?: string
+  createdAt?: string
+  profile?: UserProfileData | null
+}
+
 export default function UserProfile({ userId, userType, settingsPath }: UserProfileProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [userData, setUserData] = useState<any>(null)
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

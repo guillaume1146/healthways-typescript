@@ -27,8 +27,7 @@ interface VideoConsultationUser {
   firstName: string
   lastName: string
   userType?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  upcomingAppointments?: any[]
+  upcomingAppointments?: VideoAppointment[]
 }
 
 interface VideoConsultationProps {

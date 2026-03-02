@@ -6,20 +6,57 @@ import { FaSpinner } from 'react-icons/fa'
 import { useDoctorData } from '../context'
 import AppointmentScheduler from '../components/AppointmentScheduler'
 
+type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show'
+type AppointmentType = 'in-person' | 'video' | 'home-visit'
+
+interface MappedAppointment {
+  id: string
+  patientName: string
+  status: AppointmentStatus
+  type: AppointmentType
+  date: string
+  time: string
+  duration: number
+  reason: string
+  roomId?: string
+  location?: string
+  notes?: string
+}
+
+interface AppointmentsPageData {
+  upcomingAppointments: MappedAppointment[]
+  pastAppointments: MappedAppointment[]
+  todaySchedule: { slots: never[]; totalAppointments: number; availableSlots: number }
+  weeklySchedule: never[]
+  nextAvailable: string
+}
+
+interface ApiAppointment {
+  id: string
+  patient?: { user: { firstName: string; lastName: string } }
+  status: string
+  type?: string
+  scheduledAt: string
+  duration?: number
+  reason?: string
+  roomId?: string
+  location?: string
+  notes?: string
+}
+
 export default function AppointmentsPage() {
   const user = useDoctorData()
   const router = useRouter()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<AppointmentsPageData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const mapAppointment = (apt: any) => ({
+  const mapAppointment = (apt: ApiAppointment): MappedAppointment => ({
     id: apt.id,
     patientName: apt.patient
       ? `${apt.patient.user.firstName} ${apt.patient.user.lastName}`
       : 'Unknown',
-    status: apt.status === 'upcoming' ? 'scheduled' : apt.status,
-    type: (apt.type || '').replace(/_/g, '-'),
+    status: (apt.status === 'upcoming' ? 'scheduled' : apt.status) as AppointmentStatus,
+    type: ((apt.type || '').replace(/_/g, '-') || 'in-person') as AppointmentType,
     date: apt.scheduledAt,
     time: new Date(apt.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     duration: apt.duration || 30,

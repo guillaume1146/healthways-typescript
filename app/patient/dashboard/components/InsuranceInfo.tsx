@@ -42,9 +42,13 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
   
   useEffect(() => {
     if (!patientData) {
-      const userData = localStorage.getItem('healthwyz_user')
-      if (userData) {
-        setLocalPatientData(JSON.parse(userData))
+      try {
+        const userData = localStorage.getItem('healthwyz_user')
+        if (userData) {
+          setLocalPatientData(JSON.parse(userData))
+        }
+      } catch {
+        // Corrupted localStorage
       }
     }
   }, [patientData])

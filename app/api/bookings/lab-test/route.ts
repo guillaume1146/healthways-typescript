@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
+import { createLabTestBookingSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 const DEFAULT_LAB_TEST_PRICE = 500
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -13,30 +18,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { labTechId: rawLabTechId, testName, scheduledDate, scheduledTime, sampleType, notes, price } = body as {
-      labTechId?: string
-      testName: string
-      scheduledDate: string
-      scheduledTime: string
-      sampleType?: string
-      notes?: string
-      price?: number
-    }
-
-    // Validate required fields
-    if (!testName || typeof testName !== 'string' || testName.trim().length === 0) {
+    const parsed = createLabTestBookingSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Test name is required' },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
-
-    if (!scheduledDate || !scheduledTime) {
-      return NextResponse.json(
-        { success: false, message: 'Scheduled date and time are required' },
-        { status: 400 }
-      )
-    }
+    const { labTechId: rawLabTechId, testName, scheduledDate, scheduledTime, sampleType, notes, price } = parsed.data
 
     // Look up patient profile
     const patientProfile = await prisma.patientProfile.findUnique({

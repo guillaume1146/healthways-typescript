@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FaDollarSign, FaClipboardList, FaClock,
-  FaBroadcastTower, FaLocationArrow, FaUserInjured
+  FaBroadcastTower, FaLocationArrow, FaUserInjured, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-// Type Definitions
 interface StatCardProps {
   icon: IconType
   title: string
@@ -18,39 +17,13 @@ interface StatCardProps {
 
 interface EmergencyRequest {
   id: string
-  urgency: 'critical' | 'urgent'
+  urgency: string
   incident: string
   location: string
-  distance: string
   timestamp: string
-}
-
-interface ResponderDashboardData {
-  name: string
-  unitNumber: string
-  status: 'available' | 'en-route' | 'on-scene' | 'unavailable'
-  stats: {
-    todaysRevenue: number
-    completedServices: number
-    avgResponseTime: string
-  }
-  incomingRequests: EmergencyRequest[]
-}
-
-// Mock Data
-const mockResponderData: ResponderDashboardData = {
-  name: 'Jean-Michel Patel',
-  unitNumber: 'AMB-114-07',
-  status: 'available',
-  stats: {
-    todaysRevenue: 12500,
-    completedServices: 4,
-    avgResponseTime: "7.2min",
-  },
-  incomingRequests: [
-    { id: 'req1', urgency: 'critical', incident: 'Cardiac Arrest', location: '123 Royal St, Port Louis', distance: '2.1 km', timestamp: '2 min ago' },
-    { id: 'req2', urgency: 'urgent', incident: 'Trauma - Fall', location: 'Caudan Waterfront', distance: '3.5 km', timestamp: '5 min ago' },
-  ],
+  status: string
+  patientName: string
+  patientPhone: string
 }
 
 const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
@@ -68,85 +41,163 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function ResponderDashboardPage() {
-  const [responderData, setResponderData] = useState<ResponderDashboardData>(mockResponderData)
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [currentStatus, setCurrentStatus] = useState<string>('available')
+  const [stats, setStats] = useState({
+    completedServices: 0,
+    walletBalance: 0,
+  })
+  const [incomingRequests, setIncomingRequests] = useState<EmergencyRequest[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
 
-  const handleStatusChange = (newStatus: 'available' | 'en-route' | 'on-scene' | 'unavailable') => {
-    setResponderData(prev => ({ ...prev, status: newStatus }));
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`/api/responders/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setIncomingRequests(json.data.incomingRequests || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch responder dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [userId])
+
+  const handleStatusChange = async (newStatus: string) => {
+    setCurrentStatus(newStatus)
+    // Persist status to availability API
+    if (userId) {
+      try {
+        await fetch(`/api/users/${userId}/availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        })
+      } catch {
+        // Status will still update locally
+      }
+    }
   }
-  
-  const getStatusInfo = (status: 'available' | 'en-route' | 'on-scene' | 'unavailable') => {
-    switch (status) {
-      case 'available': return { text: 'Available for Dispatch', color: 'bg-green-500', pulse: true };
-      case 'en-route': return { text: 'En Route to Scene', color: 'bg-blue-500', pulse: true };
-      case 'on-scene': return { text: 'On Scene', color: 'bg-orange-500', pulse: false };
-      case 'unavailable': return { text: 'Unavailable / Off-Duty', color: 'bg-gray-500', pulse: false };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/bookings/emergency/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'accept' }),
+      })
+      if (res.ok) {
+        setIncomingRequests(prev => prev.filter(r => r.id !== requestId))
+        setCurrentStatus('en-route')
+      }
+    } catch (error) {
+      console.error('Failed to accept request:', error)
+    }
+  }
+
+  const handleDeclineRequest = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/bookings/emergency/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deny' }),
+      })
+      if (res.ok) {
+        setIncomingRequests(prev => prev.filter(r => r.id !== requestId))
+      }
+    } catch (error) {
+      console.error('Failed to decline request:', error)
     }
   }
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-6">
           <WalletBalanceCard userId={userId} />
         </div>
       )}
 
-      {/* Quick Stats & Status Toggle */}
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
-            <div className="md:col-span-4 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard icon={FaDollarSign} title="Today's Revenue" value={`Rs ${responderData.stats.todaysRevenue.toLocaleString()}`} color="bg-green-500" />
-                <StatCard icon={FaClipboardList} title="Completed Services (24h)" value={responderData.stats.completedServices} color="bg-blue-500" />
-                <StatCard icon={FaClock} title="Avg. Response Time" value={responderData.stats.avgResponseTime} color="bg-purple-500" />
-            </div>
-            <div className="lg:col-span-2 bg-white p-4 rounded-2xl shadow-lg flex flex-col justify-center">
-                 <label className="text-sm font-medium text-gray-600 mb-2 text-center">Update Live Status</label>
-                 <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => handleStatusChange('available')} className={`py-3 rounded-lg font-semibold transition-colors ${responderData.status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-100'}`}>Available</button>
-                    <button onClick={() => handleStatusChange('en-route')} className={`py-3 rounded-lg font-semibold transition-colors ${responderData.status === 'en-route' ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-blue-100'}`}>En Route</button>
-                    <button onClick={() => handleStatusChange('on-scene')} className={`py-3 rounded-lg font-semibold transition-colors ${responderData.status === 'on-scene' ? 'bg-orange-500 text-white' : 'bg-gray-100 hover:bg-orange-100'}`}>On Scene</button>
-                    <button onClick={() => handleStatusChange('unavailable')} className={`py-3 rounded-lg font-semibold transition-colors ${responderData.status === 'unavailable' ? 'bg-gray-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Unavailable</button>
-                 </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
+        <div className="md:col-span-4 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard icon={FaDollarSign} title="Wallet Balance" value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`} color="bg-green-500" />
+          <StatCard icon={FaClipboardList} title="Completed (Today)" value={loading ? '...' : stats.completedServices} color="bg-blue-500" />
+          <StatCard icon={FaClock} title="Active Requests" value={loading ? '...' : incomingRequests.length} color="bg-purple-500" />
         </div>
+        <div className="lg:col-span-2 bg-white p-4 rounded-2xl shadow-lg flex flex-col justify-center">
+          <label className="text-sm font-medium text-gray-600 mb-2 text-center">Update Live Status</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => handleStatusChange('available')} className={`py-3 rounded-lg font-semibold transition-colors ${currentStatus === 'available' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-100'}`}>Available</button>
+            <button onClick={() => handleStatusChange('en-route')} className={`py-3 rounded-lg font-semibold transition-colors ${currentStatus === 'en-route' ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-blue-100'}`}>En Route</button>
+            <button onClick={() => handleStatusChange('on-scene')} className={`py-3 rounded-lg font-semibold transition-colors ${currentStatus === 'on-scene' ? 'bg-orange-500 text-white' : 'bg-gray-100 hover:bg-orange-100'}`}>On Scene</button>
+            <button onClick={() => handleStatusChange('unavailable')} className={`py-3 rounded-lg font-semibold transition-colors ${currentStatus === 'unavailable' ? 'bg-gray-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Unavailable</button>
+          </div>
+        </div>
+      </div>
 
-        {/* Appointments & Requests */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><FaBroadcastTower className="text-red-500 animate-pulse" /> Incoming Emergency Requests</h2>
-                <Link href="/emergency-responder/requests" className="text-red-600 hover:underline font-medium">View All</Link>
-            </div>
-            <div className="space-y-4">
-                {responderData.incomingRequests.map((req) => (
-                    <div key={req.id} className={`p-4 rounded-lg border-2 ${req.urgency === 'critical' ? 'border-red-500 bg-red-50' : 'border-orange-400 bg-orange-50'}`}>
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${req.urgency === 'critical' ? 'bg-red-600 text-white' : 'bg-orange-500 text-white'}`}>
-                                        {req.urgency.toUpperCase()}
-                                    </span>
-                                    <div className="font-semibold text-lg text-gray-800 flex items-center gap-2"><FaUserInjured /> {req.incident}</div>
-                                </div>
-                                <div className="text-gray-600 text-sm flex items-center gap-6">
-                                    <span className="flex items-center gap-2"><FaLocationArrow /> {req.location} ({req.distance})</span>
-                                    <span className="flex items-center gap-2"><FaClock /> {req.timestamp}</span>
-                                </div>
-                            </div>
-                            <div className="flex gap-3 w-full md:w-auto">
-                                <button className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-bold hover:bg-gray-300 transition-colors">Decline</button>
-                                <button className="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 transition-colors">Accept</button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><FaBroadcastTower className="text-red-500 animate-pulse" /> Incoming Emergency Requests</h2>
+          <Link href="/responder/dashboard/requests" className="text-red-600 hover:underline font-medium">View All</Link>
         </div>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <FaSpinner className="animate-spin text-2xl text-red-500" />
+          </div>
+        ) : incomingRequests.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">No active emergency requests</p>
+        ) : (
+          <div className="space-y-4">
+            {incomingRequests.map((req) => (
+              <div key={req.id} className={`p-4 rounded-lg border-2 ${req.urgency === 'critical' ? 'border-red-500 bg-red-50' : 'border-orange-400 bg-orange-50'}`}>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-bold ${req.urgency === 'critical' ? 'bg-red-600 text-white' : 'bg-orange-500 text-white'}`}>
+                        {req.urgency.toUpperCase()}
+                      </span>
+                      <div className="font-semibold text-lg text-gray-800 flex items-center gap-2"><FaUserInjured /> {req.incident}</div>
+                    </div>
+                    <div className="text-gray-600 text-sm flex items-center gap-6">
+                      <span className="flex items-center gap-2"><FaLocationArrow /> {req.location}</span>
+                      <span className="flex items-center gap-2"><FaClock /> {new Date(req.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    {req.patientName && (
+                      <p className="text-sm text-gray-500 mt-1">Patient: {req.patientName} {req.patientPhone ? `(${req.patientPhone})` : ''}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-3 w-full md:w-auto">
+                    <button onClick={() => handleDeclineRequest(req.id)} className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-bold hover:bg-gray-300 transition-colors">Decline</button>
+                    <button onClick={() => handleAcceptRequest(req.id)} className="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 transition-colors">Accept</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </>
   )
 }

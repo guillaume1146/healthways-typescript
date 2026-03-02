@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
+import { createNurseBookingSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -11,17 +16,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { nurseId, consultationType, scheduledDate, scheduledTime, reason, notes, duration } = body as {
-      nurseId: string
-      consultationType: 'in_person' | 'home_visit' | 'video'
-      scheduledDate: string
-      scheduledTime: string
-      reason: string
-      notes?: string
-      duration?: number
+    const parsed = createNurseBookingSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, message: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
+    const { nurseId, consultationType, scheduledDate, scheduledTime, reason, notes, duration } = parsed.data
 
-    // Validate required fields
+    // Validate nurse exists (keeping existing check below)
     if (!nurseId || typeof nurseId !== 'string') {
       return NextResponse.json(
         { success: false, message: 'Nurse ID is required' },

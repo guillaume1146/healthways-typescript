@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { createConversationSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 /**
  * GET /api/conversations
@@ -64,21 +66,18 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     })
 
-    // Count unread messages per conversation
-    const unreadCounts = await Promise.all(
-      conversationIds.map(async (conversationId) => {
-        const count = await prisma.message.count({
-          where: {
-            conversationId,
-            senderId: { not: userId },
-            readAt: null,
-          },
-        })
-        return { conversationId, count }
-      })
-    )
+    // Count unread messages per conversation in a single batch query
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['conversationId'],
+      where: {
+        conversationId: { in: conversationIds },
+        senderId: { not: userId },
+        readAt: null,
+      },
+      _count: { id: true },
+    })
 
-    const unreadMap = new Map(unreadCounts.map((u) => [u.conversationId, u.count]))
+    const unreadMap = new Map(unreadCounts.map((u) => [u.conversationId, u._count.id]))
 
     const data = conversations.map((conv) => ({
       id: conv.id,
@@ -113,6 +112,9 @@ export async function GET(request: NextRequest) {
  * Body: { participantIds: string[] }
  */
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -122,14 +124,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { participantIds } = body as { participantIds?: string[] }
-
-    if (!participantIds || !Array.isArray(participantIds) || participantIds.length === 0) {
+    const parsed = createConversationSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'participantIds is required and must be a non-empty array' },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+    const { participantIds } = parsed.data
 
     // Ensure the current user is included in the participant list
     const allParticipantIds = Array.from(new Set([userId, ...participantIds]))

@@ -4,7 +4,15 @@ import { useDoctorData } from '../context'
 import DoctorProfile from '../components/DoctorProfile'
 
 export default function ProfilePage() {
-  const doctorData = useDoctorData()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <DoctorProfile doctorData={doctorData as any} setDoctorData={() => {}} />
+  const user = useDoctorData()
+  return (
+    <DoctorProfile
+      doctorData={{
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      }}
+      setDoctorData={() => {}}
+    />
+  )
 }

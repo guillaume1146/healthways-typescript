@@ -138,21 +138,26 @@ export default function DoctorVideoCall() {
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({ id: '', name: '', type: 'doctor' })
 
   useEffect(() => {
-    const userData = localStorage.getItem('healthwyz_user') || localStorage.getItem('userData')
-    if (userData) {
-      const user = JSON.parse(userData) as { userType?: UserType; id?: string; firstName?: string; lastName?: string }
-      if (user.userType === 'doctor' && user.id) {
-        setDoctorInfo({ id: user.id, name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(), type: 'doctor' })
+    try {
+      const userData = localStorage.getItem('healthwyz_user') || localStorage.getItem('userData')
+      if (userData) {
+        const user = JSON.parse(userData) as { userType?: UserType; id?: string; firstName?: string; lastName?: string }
+        if (user.userType === 'doctor' && user.id) {
+          setDoctorInfo({ id: user.id, name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(), type: 'doctor' })
+        } else {
+          alert('Please login as a doctor to start consultations')
+          router.push('/login')
+        }
       } else {
-        alert('Please login as a doctor to start consultations')
+        alert('Please login to start the consultation')
         router.push('/login')
       }
-    } else {
-      alert('Please login to start the consultation')
+      const storedConsultation = localStorage.getItem(`consultation_${roomId}`)
+      if (storedConsultation) setConsultationData(JSON.parse(storedConsultation) as ConsultationData)
+    } catch {
+      // Corrupted localStorage
       router.push('/login')
     }
-    const storedConsultation = localStorage.getItem(`consultation_${roomId}`)
-    if (storedConsultation) setConsultationData(JSON.parse(storedConsultation) as ConsultationData)
   }, [roomId, router])
 
   const {
@@ -270,9 +275,14 @@ export default function DoctorVideoCall() {
         duration: callDuration,
         timestamp: new Date().toISOString()
       }
-      const consultationHistory = JSON.parse(localStorage.getItem('consultationHistory') || '[]') as unknown[]
-      consultationHistory.push(notesData)
-      localStorage.setItem('consultationHistory', JSON.stringify(consultationHistory))
+      try {
+        const consultationHistory = JSON.parse(localStorage.getItem('consultationHistory') || '[]') as unknown[]
+        consultationHistory.push(notesData)
+        localStorage.setItem('consultationHistory', JSON.stringify(consultationHistory))
+      } catch {
+        // Corrupted localStorage — start fresh
+        localStorage.setItem('consultationHistory', JSON.stringify([notesData]))
+      }
     }
 
     cleanupMediaStream()

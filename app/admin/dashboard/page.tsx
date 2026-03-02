@@ -3,19 +3,24 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FaUsers, FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
+  FaUsers, FaUserMd,
   FaCheckCircle, FaChartBar, FaDollarSign, FaChartLine, FaPercentage,
-  FaNewspaper, FaCog, FaHome, FaFileAlt, FaUsersCog
+  FaNewspaper, FaCog, FaHome, FaFileAlt, FaUsersCog, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-interface StatCard {
-  title: string
-  value: string | number
-  icon: IconType
-  trend?: number
-  color: string
+interface CategoryStat {
+  category: string
+  count: number
+  active: number
+  pending: number
+}
+
+interface ActivityItem {
+  type: string
+  message: string
+  time: string
 }
 
 interface QuickAction {
@@ -23,37 +28,60 @@ interface QuickAction {
   icon: IconType
   href: string
   color: string
-  count?: number
 }
 
 const AdminDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    pendingValidations: 0,
+    monthlyRevenue: 0,
+    activeSessions: 0,
+  })
+  const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([])
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
 
-  const stats: StatCard[] = [
-    { title: 'Total Users', value: '12,847', icon: FaUsers, trend: 12, color: 'bg-blue-500' },
-    { title: 'Pending Validations', value: 28, icon: FaCheckCircle, color: 'bg-orange-500' },
-    { title: 'Monthly Revenue', value: '$124,500', icon: FaDollarSign, trend: 8, color: 'bg-green-500' },
-    { title: 'Active Sessions', value: 1847, icon: FaChartLine, trend: 23, color: 'bg-purple-500' }
-  ]
+  useEffect(() => {
+    if (!userId) return
 
-  const categoryStats = [
-    { category: 'Doctors', count: 2341, active: 1892, pending: 12 },
-    { category: 'Nurses', count: 3456, active: 3102, pending: 8 },
-    { category: 'Child Care', count: 892, active: 756, pending: 5 },
-    { category: 'Emergency', count: 456, active: 402, pending: 3 },
-    { category: 'Pharmacy', count: 678, active: 621, pending: 4 },
-    { category: 'Lab Tech', count: 234, active: 198, pending: 6 }
-  ]
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch('/api/admin/dashboard')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setCategoryStats(json.data.categoryStats || [])
+            setRecentActivity(json.data.recentActivity || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [userId])
 
   const quickActions: QuickAction[] = [
-    { title: 'Profile Management', icon: FaUsersCog, href: '/admin/profiles', color: 'bg-blue-500', count: 7057 },
-    { title: 'Account Validation', icon: FaCheckCircle, href: '/admin/validation', color: 'bg-orange-500', count: 28 },
+    { title: 'Profile Management', icon: FaUsersCog, href: '/admin/profiles', color: 'bg-blue-500' },
+    { title: 'Account Validation', icon: FaCheckCircle, href: '/admin/validation', color: 'bg-orange-500' },
     { title: 'Financial Reports', icon: FaChartBar, href: '/admin/financial', color: 'bg-green-500' },
     { title: 'User Statistics', icon: FaChartLine, href: '/admin/statistics', color: 'bg-purple-500' },
     { title: 'Commission Setup', icon: FaPercentage, href: '/admin/commissions', color: 'bg-indigo-500' },
@@ -85,17 +113,17 @@ const AdminDashboard = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, idx) => (
+          {([
+            { title: 'Total Users', value: loading ? '...' : stats.totalUsers.toLocaleString(), icon: FaUsers, color: 'bg-blue-500' },
+            { title: 'Pending Validations', value: loading ? '...' : stats.pendingValidations, icon: FaCheckCircle, color: 'bg-orange-500' },
+            { title: 'Monthly Revenue', value: loading ? '...' : `Rs ${stats.monthlyRevenue.toLocaleString()}`, icon: FaDollarSign, color: 'bg-green-500' },
+            { title: 'Active Sessions', value: loading ? '...' : stats.activeSessions, icon: FaChartLine, color: 'bg-purple-500' },
+          ] as const).map((stat, idx) => (
             <div key={idx} className="bg-white rounded-xl p-6 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                  {stat.trend && (
-                    <p className="text-sm text-green-600 mt-1">
-                      +{stat.trend}% from last {selectedPeriod}
-                    </p>
-                  )}
                 </div>
                 <div className={`p-3 rounded-full ${stat.color}`}>
                   <stat.icon className="text-white text-xl" />
@@ -112,8 +140,8 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {quickActions.map((action, idx) => (
-                  <Link 
-                    key={idx} 
+                  <Link
+                    key={idx}
                     href={action.href}
                     className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition group"
                   >
@@ -123,11 +151,6 @@ const AdminDashboard = () => {
                     <p className="font-semibold text-gray-900 group-hover:text-blue-600">
                       {action.title}
                     </p>
-                    {action.count && (
-                      <p className="text-gray-600 text-sm mt-1">
-                        {action.count.toLocaleString()} items
-                      </p>
-                    )}
                   </Link>
                 ))}
               </div>
@@ -136,6 +159,11 @@ const AdminDashboard = () => {
             {/* Category Statistics */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Provider Categories</h2>
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <FaSpinner className="animate-spin text-2xl text-blue-500" />
+                </div>
+              ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
@@ -161,7 +189,7 @@ const AdminDashboard = () => {
                           </span>
                         </td>
                         <td className="p-3 text-center">
-                          <Link 
+                          <Link
                             href={`/admin/profiles?category=${cat.category.toLowerCase()}`}
                             className="text-blue-600 hover:underline text-sm"
                           >
@@ -173,6 +201,7 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
           </div>
 
@@ -181,38 +210,27 @@ const AdminDashboard = () => {
             {/* Recent Activities */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activities</h3>
+              {loading ? (
+                <div className="flex justify-center py-4">
+                  <FaSpinner className="animate-spin text-xl text-blue-500" />
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No recent activity</p>
+              ) : (
               <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-100 rounded-full">
-                    <FaUserMd className="text-blue-600 text-sm" />
+                {recentActivity.map((activity, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="p-2 bg-blue-100 rounded-full">
+                      <FaUserMd className="text-blue-600 text-sm" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">{activity.message}</p>
+                      <p className="text-xs text-gray-500">{new Date(activity.time).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">New doctor registration</p>
-                    <p className="text-xs text-gray-500">Dr. Smith - 5 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <FaCheckCircle className="text-green-600 text-sm" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">Profile approved</p>
-                    <p className="text-xs text-gray-500">Nurse Johnson - 1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-purple-100 rounded-full">
-                    <FaChartBar className="text-purple-600 text-sm" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">Monthly report generated</p>
-                    <p className="text-xs text-gray-500">System - 2 hours ago</p>
-                  </div>
-                </div>
+                ))}
               </div>
-              <button className="text-blue-600 text-sm hover:underline mt-4">
-                View All Activities
-              </button>
+              )}
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-lg">

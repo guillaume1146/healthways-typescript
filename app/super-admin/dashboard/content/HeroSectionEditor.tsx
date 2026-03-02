@@ -19,10 +19,8 @@ interface HeroContent {
 }
 
 interface HeroSectionEditorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave: (content: any) => Promise<void>
+  data: Partial<HeroContent>
+  onSave: (content: HeroContent) => Promise<void>
 }
 
 export default function HeroSectionEditor({ data, onSave }: HeroSectionEditorProps) {

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { rateLimitSearch } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimitSearch(request)
+  if (limited) return limited
+
   try {
     const { searchParams } = request.nextUrl
     const query = searchParams.get('q') || ''

@@ -1,26 +1,82 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { mockCorporateStats, mockRecentEmployees, mockRecentClaims } from '../constants'
+import { CorporateStats, Employee, ClaimsData } from '../types'
 import DashboardOverview from './DashboardOverview'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+const emptyStats: CorporateStats = {
+  totalEmployees: 0,
+  activePolicyHolders: 0,
+  pendingVerifications: 0,
+  approvedClaims: 0,
+  pendingClaims: 0,
+  rejectedClaims: 0,
+  monthlyContribution: 0,
+  totalClaims: 0,
+}
+
 export default function CorporateDashboard() {
-  const [corporateData] = useState({
-    stats: mockCorporateStats,
-    employees: mockRecentEmployees,
-    claims: mockRecentClaims,
+  const [corporateData, setCorporateData] = useState({
+    stats: emptyStats,
+    employees: [] as Employee[],
+    claims: [] as ClaimsData[],
   })
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
+
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/corporate/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            const apiData = json.data
+            setCorporateData(prev => ({
+              ...prev,
+              stats: {
+                ...prev.stats,
+                totalEmployees: apiData.stats.totalEmployees || 0,
+              },
+            }))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch corporate dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [userId])
+
+  if (loading && !userId) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      </div>
+    )
+  }
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />

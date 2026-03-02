@@ -18,9 +18,36 @@ const categoryIcons: { [key: string]: IconType } = {
   "Disaster Management": FaTruck
 };
 
+// Emergency Service interface (mapped from API response)
+interface EmergencyService {
+  id: string
+  name: string
+  type: string
+  category: string
+  responseTime: string
+  availability: string
+  rating: number
+  reviews: number
+  location: string
+  coverage: string
+  phone: string
+  alternatePhone: string
+  email: string
+  services: string[]
+  equipment: string[]
+  certifications: string[]
+  vehicleTypes: string[]
+  languages: string[]
+  gpsTracking: boolean
+  verified: boolean
+  governmentApproved: boolean
+  bio: string
+  avatar: string
+}
+
 // Emergency Service Card Component
 interface ServiceProps {
-  service: any
+  service: EmergencyService
 }
 
 const EmergencyCard = ({ service }: ServiceProps) => {
@@ -217,8 +244,8 @@ export default function EmergencyPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [allServices, setAllServices] = useState<any[]>([])
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [allServices, setAllServices] = useState<EmergencyService[]>([])
+  const [searchResults, setSearchResults] = useState<EmergencyService[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
@@ -236,7 +263,19 @@ export default function EmergencyPage() {
       const res = await fetch('/api/search/emergency')
       if (!res.ok) throw new Error('Failed to fetch emergency services')
       const data = await res.json()
-      const mapped = (data || []).map((s: any) => ({
+      interface ApiEmergencyService {
+        id: string
+        worker?: { name?: string; phone?: string; certifications?: string[]; vehicleType?: string; verified?: boolean; profileImage?: string }
+        serviceName?: string
+        serviceType?: string
+        responseTime?: string
+        available24h?: boolean
+        coverageArea?: string
+        contactNumber?: string
+        specializations?: string[]
+        description?: string
+      }
+      const mapped = (data || []).map((s: ApiEmergencyService) => ({
         id: s.id,
         name: s.worker?.name || s.serviceName,
         type: s.serviceType || 'Emergency Service',

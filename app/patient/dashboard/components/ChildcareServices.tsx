@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
 import {
@@ -68,52 +68,42 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [availableNannies, setAvailableNannies] = useState<{
+    id: string
+    name: string
+    experience: string
+    certifications: string[]
+    specialties?: string[]
+    rating?: number
+    hourlyRate?: string
+    languages?: string[]
+    availability?: string
+    description?: string
+    specialSkills?: string[]
+    ageGroups?: string[]
+  }[]>([])
 
-  // Sample nanny data for booking
-  const availableNannies = [
-    {
-      id: 'NAN001',
-      name: 'Sophie Chen',
-      specialties: ['Newborn Care', 'Educational Activities', 'Multilingual'],
-      experience: '6 years',
-      rating: 4.9,
-      hourlyRate: 'Rs 350/hour',
-      languages: ['English', 'French', 'Mandarin'],
-      certifications: ['CPR Certified', 'Early Childhood Education', 'First Aid'],
-      availability: 'Available this week',
-      description: 'Experienced childcare professional with expertise in early childhood development and educational activities.',
-      specialSkills: ['Music', 'Art & Crafts', 'Educational Games', 'Language Development'],
-      ageGroups: ['0-2 years', '3-5 years', '6-12 years']
-    },
-    {
-      id: 'NAN002',
-      name: 'Rachel Brown',
-      specialties: ['Special Needs Care', 'Behavioral Support', 'Homework Help'],
-      experience: '8 years',
-      rating: 4.8,
-      hourlyRate: 'Rs 400/hour',
-      languages: ['English', 'Hindi'],
-      certifications: ['Special Needs Certified', 'Behavioral Therapy', 'CPR & First Aid'],
-      availability: 'Available weekends',
-      description: 'Specialized in caring for children with special needs and providing educational support.',
-      specialSkills: ['Homework Assistance', 'Behavioral Management', 'Therapeutic Activities'],
-      ageGroups: ['3-5 years', '6-12 years', '13+ years']
-    },
-    {
-      id: 'NAN003',
-      name: 'Maria Santos',
-      specialties: ['Overnight Care', 'Infant Care', 'Meal Preparation'],
-      experience: '10 years',
-      rating: 4.9,
-      hourlyRate: 'Rs 300/hour',
-      languages: ['English', 'Spanish', 'Portuguese'],
-      certifications: ['Infant Care Specialist', 'Nutrition Certified', 'Sleep Training'],
-      availability: 'Available nights',
-      description: 'Expert in overnight care and infant development with focus on healthy routines.',
-      specialSkills: ['Sleep Training', 'Meal Planning', 'Potty Training', 'Infant Massage'],
-      ageGroups: ['0-2 years', '3-5 years']
+  useEffect(() => {
+    const fetchNannies = async () => {
+      try {
+        const res = await fetch('/api/nannies/available')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setAvailableNannies(json.data.map((n: { id: string; name: string; experience: string; certifications: string[] }) => ({
+              ...n,
+              specialties: n.certifications,
+              hourlyRate: 'Contact for rates',
+              availability: 'Available',
+            })))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch available nannies:', error)
+      }
     }
-  ]
+    fetchNannies()
+  }, [])
 
   const childcareActivities = [
     { icon: FaBook, name: 'Reading & Storytelling', description: 'Age-appropriate books and interactive stories' },
@@ -235,7 +225,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                           <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1">Specialties:</p>
                             <div className="flex flex-wrap gap-1">
-                              {nanny.specialties.map((specialty, index) => (
+                              {(nanny.specialties || []).map((specialty, index) => (
                                 <span key={index} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 text-purple-700 rounded text-xs">
                                   {specialty}
                                 </span>
@@ -246,7 +236,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                           <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1">Languages:</p>
                             <div className="flex flex-wrap gap-1">
-                              {nanny.languages.map((lang, index) => (
+                              {(nanny.languages || []).map((lang, index) => (
                                 <span key={index} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded text-xs">
                                   {lang}
                                 </span>
@@ -269,7 +259,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                           <div>
                             <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1">Age Groups:</p>
                             <div className="flex flex-wrap gap-1">
-                              {nanny.ageGroups.map((age, index) => (
+                              {(nanny.ageGroups || []).map((age, index) => (
                                 <span key={index} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
                                   {age}
                                 </span>
@@ -447,7 +437,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <div>
                     <p className="text-xs font-medium text-gray-700 mb-1">Specialties:</p>
                     <div className="flex flex-wrap gap-1">
-                      {nanny.specialties.slice(0, 2).map((specialty, index) => (
+                      {(nanny.specialties || []).slice(0, 2).map((specialty, index) => (
                         <span key={index} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 text-purple-700 rounded text-xs">
                           {specialty}
                         </span>

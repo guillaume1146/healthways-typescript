@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { adminAccountActionSchema } from '@/lib/validations/api'
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,11 +45,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, action } = body
-
-    if (!userId || !['approve', 'reject', 'suspend'].includes(action)) {
-      return NextResponse.json({ success: false, message: 'Invalid request' }, { status: 400 })
+    const parsed = adminAccountActionSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, message: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
+    const { userId, action } = parsed.data
 
     const newStatus = action === 'approve' ? 'active' : action === 'suspend' ? 'suspended' : 'suspended'
 

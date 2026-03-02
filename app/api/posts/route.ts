@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // GET /api/posts — Public feed, paginated, filterable by category
 export async function GET(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const { searchParams } = new URL(request.url)
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10')))

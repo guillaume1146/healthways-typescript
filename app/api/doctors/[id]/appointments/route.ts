@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { parsePagination } from '@/lib/api-utils'
 
 export async function GET(
   request: NextRequest,
@@ -16,8 +17,7 @@ export async function GET(
 
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const limit = parseInt(searchParams.get('limit') || '20')
-  const offset = parseInt(searchParams.get('offset') || '0')
+  const { limit, offset } = parsePagination(searchParams)
 
   try {
     // id is User.id — resolve DoctorProfile.id for the appointment query

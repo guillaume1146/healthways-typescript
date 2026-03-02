@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FaFlask, FaClipboardCheck, FaDollarSign, FaChartLine,
+  FaDollarSign, FaChartLine,
   FaClock, FaFileExport, FaStar, FaFileUpload,
-  FaCheckCircle, FaSpinner, FaMicroscope, FaUserFriends
+  FaCheckCircle, FaSpinner, FaClipboardCheck
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-// Type Definitions
 interface StatCardProps {
   icon: IconType
   title: string
@@ -18,55 +17,14 @@ interface StatCardProps {
   color: string
 }
 
-interface LabAppointment {
+interface LabBookingItem {
   id: string
   appointmentId: string
   patientName: string
   testName: string
   total: number
-  status: 'sample-collected' | 'in-progress' | 'result-ready' | 'completed'
-}
-
-interface LabDashboardData {
-  name: string
-  location: string
-  avatar: string
-  stats: {
-    dailyRevenue: number
-    pendingResults: number
-    monthlyRevenue: number
-    rating: number
-  }
-  recentAppointments: LabAppointment[]
-  earnings: {
-    totalRevenue: number
-    platformFee: number
-    netPayout: number
-  }
-}
-
-// Mock Data
-const mockLabData: LabDashboardData = {
-  name: 'Precision Diagnostics Lab',
-  location: 'Rose Hill',
-  avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=PDL&backgroundColor=8b5cf6',
-  stats: {
-    dailyRevenue: 22500,
-    pendingResults: 12,
-    monthlyRevenue: 480000,
-    rating: 4.9,
-  },
-  recentAppointments: [
-    { id: 'apt1', appointmentId: '#LAB-1121', patientName: 'John Smith', testName: 'Complete Blood Count', total: 800, status: 'result-ready' },
-    { id: 'apt2', appointmentId: '#LAB-1120', patientName: 'Maria Garcia', testName: 'Lipid Profile', total: 1200, status: 'in-progress' },
-    { id: 'apt3', appointmentId: '#LAB-1119', patientName: 'David Chen', testName: 'Thyroid Function Test', total: 1500, status: 'sample-collected' },
-    { id: 'apt4', appointmentId: '#LAB-1118', patientName: 'Emma Wilson', testName: 'HbA1c', total: 1000, status: 'completed' },
-  ],
-  earnings: {
-    totalRevenue: 22500,
-    platformFee: 1125, // Assuming 5%
-    netPayout: 21375,
-  },
+  status: string
+  scheduledAt: string
 }
 
 const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
@@ -84,54 +42,118 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function LabDashboardPage() {
-  const [labData] = useState<LabDashboardData>(mockLabData)
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    dailyRevenue: 0,
+    pendingResults: 0,
+    monthlyRevenue: 0,
+    walletBalance: 0,
+  })
+  const [recentBookings, setRecentBookings] = useState<LabBookingItem[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
 
-  const getStatusInfo = (status: 'sample-collected' | 'in-progress' | 'result-ready' | 'completed') => {
-    switch (status) {
-      case 'sample-collected': return { text: 'Sample Collected', color: 'bg-yellow-100 text-yellow-800', icon: FaClock };
-      case 'in-progress': return { text: 'In Progress', color: 'bg-blue-100 text-blue-800', icon: FaSpinner };
-      case 'result-ready': return { text: 'Result Ready', color: 'bg-purple-100 text-purple-800', icon: FaClipboardCheck };
-      case 'completed': return { text: 'Completed', color: 'bg-green-100 text-green-800', icon: FaCheckCircle };
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`/api/lab-techs/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setRecentBookings(json.data.recentBookings || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch lab dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  };
+
+    fetchDashboard()
+  }, [userId])
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'pending': case 'sample-collected': return { text: 'Sample Collected', color: 'bg-yellow-100 text-yellow-800', icon: FaClock }
+      case 'upcoming': case 'in-progress': return { text: 'In Progress', color: 'bg-blue-100 text-blue-800', icon: FaSpinner }
+      case 'result-ready': return { text: 'Result Ready', color: 'bg-purple-100 text-purple-800', icon: FaClipboardCheck }
+      case 'completed': return { text: 'Completed', color: 'bg-green-100 text-green-800', icon: FaCheckCircle }
+      default: return { text: status, color: 'bg-gray-100 text-gray-800', icon: FaClock }
+    }
+  }
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    try {
+      const res = await fetch(`/api/bookings/lab-test/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        if (action === 'accept') {
+          setRecentBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'in-progress' } : b))
+        } else {
+          setRecentBookings(prev => prev.filter(b => b.id !== bookingId))
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} booking:`, error)
+    }
+  }
+
+  const platformFeeRate = 0.05
+  const platformFee = Math.round(stats.dailyRevenue * platformFeeRate)
+  const netPayout = stats.dailyRevenue - platformFee
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />
         </div>
       )}
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard icon={FaDollarSign} title="Today's Revenue" value={`Rs ${labData.stats.dailyRevenue.toLocaleString()}`} color="bg-green-500" />
-          <StatCard icon={FaSpinner} title="Pending Results" value={labData.stats.pendingResults} color="bg-yellow-500" />
-          <StatCard icon={FaChartLine} title="Monthly Revenue" value={`Rs ${labData.stats.monthlyRevenue.toLocaleString()}`} color="bg-blue-500" />
-          <StatCard icon={FaStar} title="Patient Rating" value={labData.stats.rating} color="bg-purple-500" />
-        </div>
+        <StatCard icon={FaDollarSign} title="Today's Revenue" value={loading ? '...' : `Rs ${stats.dailyRevenue.toLocaleString()}`} color="bg-green-500" />
+        <StatCard icon={FaSpinner} title="Pending Results" value={loading ? '...' : stats.pendingResults} color="bg-yellow-500" />
+        <StatCard icon={FaChartLine} title="Monthly Revenue" value={loading ? '...' : `Rs ${stats.monthlyRevenue.toLocaleString()}`} color="bg-blue-500" />
+        <StatCard icon={FaStar} title="Wallet Balance" value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`} color="bg-purple-500" />
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Appointment Management */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
-                <Link href="/laboratory/appointments" className="text-purple-600 hover:underline font-medium">View All</Link>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
+              <Link href="/lab-technician/dashboard/appointments" className="text-purple-600 hover:underline font-medium">View All</Link>
+            </div>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <FaSpinner className="animate-spin text-2xl text-purple-500" />
               </div>
+            ) : recentBookings.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No appointments yet</p>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="p-3 font-medium text-gray-600">Appointment ID</th>
+                      <th className="p-3 font-medium text-gray-600">ID</th>
                       <th className="p-3 font-medium text-gray-600">Patient</th>
                       <th className="p-3 font-medium text-gray-600">Test</th>
                       <th className="p-3 font-medium text-gray-600">Status</th>
@@ -139,8 +161,8 @@ export default function LabDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {labData.recentAppointments.map((apt) => {
-                      const statusInfo = getStatusInfo(apt.status);
+                    {recentBookings.map((apt) => {
+                      const statusInfo = getStatusInfo(apt.status)
                       return (
                         <tr key={apt.id} className="border-b hover:bg-gray-50">
                           <td className="p-3 font-mono text-xs">{apt.appointmentId}</td>
@@ -152,15 +174,21 @@ export default function LabDashboardPage() {
                             </span>
                           </td>
                           <td className="p-3">
-                            {apt.status === 'result-ready' && (
-                              <button className="bg-purple-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-1">
-                                <FaFileUpload /> Send Result
-                              </button>
+                            {apt.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <button onClick={() => handleBookingAction(apt.id, 'accept')} className="bg-green-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors">Accept</button>
+                                <button onClick={() => handleBookingAction(apt.id, 'deny')} className="bg-gray-200 text-gray-800 text-xs font-bold py-2 px-3 rounded-lg hover:bg-gray-300 transition-colors">Decline</button>
+                              </div>
                             )}
-                            {apt.status === 'in-progress' && (
-                               <button className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors">
-                                 View Details
-                               </button>
+                            {apt.status === 'result-ready' && (
+                              <Link href={`/lab-technician/dashboard/results?send=${apt.id}`} className="bg-purple-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-purple-600 transition-colors inline-flex items-center gap-1">
+                                <FaFileUpload /> Send Result
+                              </Link>
+                            )}
+                            {(apt.status === 'upcoming' || apt.status === 'in-progress') && (
+                              <Link href={`/lab-technician/dashboard/appointments?view=${apt.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
+                                View Details
+                              </Link>
                             )}
                           </td>
                         </tr>
@@ -169,36 +197,35 @@ export default function LabDashboardPage() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Today&apos;s Payout</h3>
+              <button className="text-purple-600 text-sm hover:underline"><FaFileExport /></button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm"><span className="text-gray-600">Total Revenue</span><span className="font-medium">Rs {stats.dailyRevenue.toLocaleString()}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-600">Platform Fee (5%)</span><span className="font-medium text-red-500">-Rs {platformFee.toLocaleString()}</span></div>
+              <div className="border-t pt-3 mt-3 flex justify-between">
+                <span className="font-bold">Net Payout</span>
+                <span className="font-bold text-xl text-green-600">Rs {netPayout.toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Earnings Dashboard */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900">Today&apos;s Payout</h3>
-                    <button className="text-purple-600 text-sm hover:underline"><FaFileExport /></button>
-                </div>
-                <div className="space-y-3">
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Total Revenue</span><span className="font-medium">Rs {labData.earnings.totalRevenue.toLocaleString()}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Platform Fee (5%)</span><span className="font-medium text-red-500">-Rs {labData.earnings.platformFee.toLocaleString()}</span></div>
-                    <div className="border-t pt-3 mt-3 flex justify-between">
-                        <span className="font-bold">Net Payout</span>
-                        <span className="font-bold text-xl text-green-600">Rs {labData.earnings.netPayout.toLocaleString()}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-600 to-blue-500 text-white rounded-2xl p-6">
-              <h3 className="text-lg font-bold mb-2">Manage Your Lab Profile</h3>
-              <p className="text-white/90 text-sm mb-4">Keep your lab certifications and equipment list updated to attract more patients.</p>
-              <Link href="/lab-technician/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
-                Update Certifications
-              </Link>
-            </div>
+          <div className="bg-gradient-to-br from-purple-600 to-blue-500 text-white rounded-2xl p-6">
+            <h3 className="text-lg font-bold mb-2">Manage Your Lab Profile</h3>
+            <p className="text-white/90 text-sm mb-4">Keep your lab certifications and equipment list updated to attract more patients.</p>
+            <Link href="/lab-technician/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+              Update Certifications
+            </Link>
           </div>
         </div>
+      </div>
     </>
   )
 }

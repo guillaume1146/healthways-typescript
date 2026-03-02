@@ -7,10 +7,14 @@ export default function VideoPage() {
   const [user, setUser] = useState<{ id: string; firstName: string; lastName: string; userType: string } | null>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem('healthwyz_user')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setUser({ id: parsed.id, firstName: parsed.firstName, lastName: parsed.lastName, userType: parsed.userType })
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUser({ id: parsed.id, firstName: parsed.firstName, lastName: parsed.lastName, userType: parsed.userType })
+      }
+    } catch {
+      // Corrupted localStorage
     }
   }, [])
 

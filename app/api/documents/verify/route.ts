@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyDocument } from '@/lib/ocr/verify-document'
+import { rateLimitHeavy } from '@/lib/rate-limit'
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitHeavy(request)
+  if (limited) return limited
+
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null

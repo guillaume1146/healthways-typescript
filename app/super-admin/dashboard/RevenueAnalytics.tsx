@@ -29,15 +29,6 @@ interface RevenueStream {
   trend: number;
 }
 
-// Mock Data can be moved outside the component
-const MOCK_REVENUE_STREAMS: RevenueStream[] = [
-  { source: 'Subscriptions', amount: 458750, percentage: 42, trend: 15.3 },
-  { source: 'Transaction Fees', amount: 312400, percentage: 28, trend: 22.7 },
-  { source: 'Premium Services', amount: 189300, percentage: 17, trend: 8.5 },
-  { source: 'Corporate Partnerships', amount: 145200, percentage: 13, trend: 31.2 }
-];
-const MOCK_TOTAL_REVENUE = 1105650;
-
 const CURRENCIES = [
   { code: 'USD', symbol: '$', rate: 1 },
   { code: 'EUR', symbol: '€', rate: 0.92 },
@@ -45,18 +36,6 @@ const CURRENCIES = [
   { code: 'KES', symbol: 'KSh', rate: 153.5 },
   { code: 'ZAR', symbol: 'R', rate: 18.9 }
 ];
-
-const REVENUE_CHART_DATA = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-  datasets: [{
-    label: 'Revenue',
-    data: [780000, 820000, 890000, 920000, 980000, 1050000, 1105650, 1150000, 1200000, 1280000, 1350000, 1420000],
-    fill: true,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderColor: 'rgb(59, 130, 246)',
-    tension: 0.4
-  }]
-};
 
 // Chart options
 const chartOptions = {
@@ -72,15 +51,37 @@ const chartOptions = {
 export default function RevenueAnalytics({ timeRange, region }: { timeRange: string; region: string }) {
   const [revenueStreams, setRevenueStreams] = useState<RevenueStream[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  
+  const [selectedCurrency, setSelectedCurrency] = useState('MUR');
+
   const currentCurrency = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
 
   useEffect(() => {
-    // Simulate fetching data based on props
-    console.log(`Fetching data for timeRange: ${timeRange}, region: ${region}`);
-    setRevenueStreams(MOCK_REVENUE_STREAMS);
-    setTotalRevenue(MOCK_TOTAL_REVENUE);
+    const fetchRevenue = async () => {
+      try {
+        const res = await fetch('/api/admin/metrics')
+        if (!res.ok) return
+        const json = await res.json()
+        if (!json.success) return
+        const revenue = json.data.revenue
+
+        setTotalRevenue(revenue.total)
+
+        // Build streams from byServiceType
+        const total = revenue.total || 1
+        const streams: RevenueStream[] = (revenue.byServiceType || []).map(
+          (s: { serviceType: string; total: number }) => ({
+            source: s.serviceType.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            amount: s.total,
+            percentage: Math.round((s.total / total) * 100),
+            trend: 0,
+          })
+        )
+        setRevenueStreams(streams.length > 0 ? streams : [{ source: 'No data', amount: 0, percentage: 0, trend: 0 }])
+      } catch {
+        // Keep empty state
+      }
+    }
+    fetchRevenue()
   }, [timeRange, region]);
 
   const streamDistribution = {
@@ -161,8 +162,18 @@ export default function RevenueAnalytics({ timeRange, region }: { timeRange: str
         <div className="bg-white rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold mb-4">Revenue Trend</h3>
           {/* ---- FIX: Added relative positioning and defined height ---- */}
-          <div className="relative h-64"> 
-            <Line data={REVENUE_CHART_DATA} options={chartOptions} />
+          <div className="relative h-64">
+            <Line data={{
+              labels: revenueStreams.map(s => s.source),
+              datasets: [{
+                label: 'Revenue by Service',
+                data: revenueStreams.map(s => s.amount),
+                fill: true,
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: 'rgb(59, 130, 246)',
+                tension: 0.4,
+              }],
+            }} options={chartOptions} />
           </div>
         </div>
         

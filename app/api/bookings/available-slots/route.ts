@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { rateLimitSearch } from '@/lib/rate-limit'
 
 type ProviderType = 'doctor' | 'nurse' | 'nanny' | 'lab-test'
 
@@ -109,6 +110,9 @@ async function getExistingBookings(providerId: string, providerType: ProviderTyp
 }
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimitSearch(request)
+  if (limited) return limited
+
   try {
     const { searchParams } = request.nextUrl
     const providerId = searchParams.get('providerId')

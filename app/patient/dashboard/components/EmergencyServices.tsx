@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Patient } from '@/lib/data/patients'
 import { 
   FaAmbulance, 
@@ -59,53 +59,27 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
   const hasEmergencyContacts = patientData.emergencyServiceContacts && patientData.emergencyServiceContacts.length > 0
   const hasEmergencyChat = patientData.chatHistory?.emergencyServices && patientData.chatHistory.emergencyServices.length > 0
 
-  // Mock emergency services data
-  const emergencyServices: EmergencyContact[] = [
-    {
-      id: 'EMRG001',
-      name: 'National Emergency Response',
-      service: 'General Emergency',
-      phone: '999',
-      available24h: true,
-      responseTime: '8-12 min',
-      specialization: ['Medical Emergency', 'Accident', 'Fire', 'Crime'],
-      location: 'Central Station',
-      distance: '2.5 km'
-    },
-    {
-      id: 'EMRG002',
-      name: 'MediCare Ambulance Service',
-      service: 'Medical Emergency',
-      phone: '+230 212-3456',
-      available24h: true,
-      responseTime: '10-15 min',
-      specialization: ['Medical Emergency', 'Cardiac Care', 'Trauma'],
-      location: 'Apollo Bramwell Hospital',
-      distance: '3.2 km'
-    },
-    {
-      id: 'EMRG003',
-      name: 'Private Medical Response',
-      service: 'Premium Emergency',
-      phone: '+230 567-8900',
-      available24h: true,
-      responseTime: '5-8 min',
-      specialization: ['Medical Emergency', 'Critical Care', 'Air Ambulance'],
-      location: 'Fortis Clinic',
-      distance: '1.8 km'
-    },
-    {
-      id: 'EMRG004',
-      name: 'Mental Health Crisis Line',
-      service: 'Mental Health Support',
-      phone: '+230 800-HELP',
-      available24h: true,
-      responseTime: 'Immediate',
-      specialization: ['Mental Health', 'Crisis Intervention', 'Counseling'],
-      location: 'Multiple Locations',
-      distance: 'Remote'
+  const [emergencyServices, setEmergencyServices] = useState<EmergencyContact[]>([])
+
+  useEffect(() => {
+    const fetchResponders = async () => {
+      try {
+        const res = await fetch('/api/responders/available')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setEmergencyServices(json.data.map((r: { id: string; name: string; service: string; phone: string; available24h: boolean; responseTime: string; specialization: string[]; location: string }) => ({
+              ...r,
+              distance: 'N/A',
+            })))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch emergency services:', error)
+      }
     }
-  ]
+    fetchResponders()
+  }, [])
 
   const initiateEmergencyCall = (service: EmergencyContact) => {
     setIsEmergencyCall(true)

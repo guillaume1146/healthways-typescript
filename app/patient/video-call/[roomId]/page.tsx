@@ -135,21 +135,26 @@ export default function PatientVideoCall() {
   const [patientInfo, setPatientInfo] = useState<PatientInfo>({ id: '', name: '', type: 'patient' })
 
   useEffect(() => {
-    const userData = localStorage.getItem('healthwyz_user') || localStorage.getItem('userData')
-    if (userData) {
-      const user = JSON.parse(userData) as { userType?: UserType; id?: string; firstName?: string; lastName?: string }
-      if (user.userType === 'patient' && user.id) {
-        setPatientInfo({ id: user.id, name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(), type: 'patient' })
+    try {
+      const userData = localStorage.getItem('healthwyz_user') || localStorage.getItem('userData')
+      if (userData) {
+        const user = JSON.parse(userData) as { userType?: UserType; id?: string; firstName?: string; lastName?: string }
+        if (user.userType === 'patient' && user.id) {
+          setPatientInfo({ id: user.id, name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(), type: 'patient' })
+        } else {
+          alert('Please login as a patient to join this consultation')
+          router.push('/login')
+        }
       } else {
-        alert('Please login as a patient to join this consultation')
+        alert('Please login to join the consultation')
         router.push('/login')
       }
-    } else {
-      alert('Please login to join the consultation')
+      const storedAppointment = localStorage.getItem(`appointment_${roomId}`)
+      if (storedAppointment) setAppointmentData(JSON.parse(storedAppointment) as AppointmentData)
+    } catch {
+      // Corrupted localStorage
       router.push('/login')
     }
-    const storedAppointment = localStorage.getItem(`appointment_${roomId}`)
-    if (storedAppointment) setAppointmentData(JSON.parse(storedAppointment) as AppointmentData)
   }, [roomId, router])
 
   const {
@@ -268,9 +273,14 @@ export default function PatientVideoCall() {
       timestamp: new Date().toISOString(),
       appointmentId: appointmentData?.id
     }
-    const callHistory = JSON.parse(localStorage.getItem('videoCallHistory') || '[]') as unknown[]
-    callHistory.push(callData)
-    localStorage.setItem('videoCallHistory', JSON.stringify(callHistory))
+    try {
+      const callHistory = JSON.parse(localStorage.getItem('videoCallHistory') || '[]') as unknown[]
+      callHistory.push(callData)
+      localStorage.setItem('videoCallHistory', JSON.stringify(callHistory))
+    } catch {
+      // Corrupted localStorage — start fresh
+      localStorage.setItem('videoCallHistory', JSON.stringify([callData]))
+    }
 
     if (socket) socket.emit('leave-room')
     setTimeout(() => { router.push('/patient/dashboard') }, 100)

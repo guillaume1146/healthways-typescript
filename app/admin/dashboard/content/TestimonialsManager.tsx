@@ -17,8 +17,7 @@ interface Testimonial {
 }
 
 interface TestimonialsManagerProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testimonials: any[]
+  testimonials: Testimonial[]
   countryCode: string
   onRefresh: () => void
 }

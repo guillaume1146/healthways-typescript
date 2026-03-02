@@ -6,11 +6,53 @@ import { FaSpinner } from 'react-icons/fa'
 import { useDoctorData } from '../context'
 import PatientManagement from '../components/PatientManagement'
 
+interface PatientRecord {
+  id: string
+  userId?: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  status: 'active' | 'inactive'
+  bloodType?: string
+  chronicConditions?: string[]
+  allergies?: string[]
+  totalVisits?: number
+  lastVisit?: string
+  gender?: string
+  dateOfBirth?: string
+}
+
+interface ApiPatient {
+  id: string
+  userId?: string
+  firstName: string
+  lastName: string
+  email?: string
+  phone?: string
+  bloodType?: string
+  chronicConditions?: string[]
+  allergies?: string[]
+  appointmentCount?: number
+  lastVisit?: string
+  gender?: string
+  dateOfBirth?: string
+}
+
+interface PatientsPageData {
+  statistics: {
+    totalPatients: number
+    activePatients: number
+    newPatientsThisMonth: number
+  }
+  patients: { current: PatientRecord[]; past: PatientRecord[] }
+}
+
 export default function PatientsPage() {
   const user = useDoctorData()
   const router = useRouter()
-  const [data, setData] = useState<{ statistics: Record<string, number>; patients: { current: any[]; past: any[] } }>({
-    statistics: {},
+  const [data, setData] = useState<PatientsPageData>({
+    statistics: { totalPatients: 0, activePatients: 0, newPatientsThisMonth: 0 },
     patients: { current: [], past: [] },
   })
   const [loading, setLoading] = useState(true)
@@ -20,7 +62,7 @@ export default function PatientsPage() {
       const res = await fetch(`/api/doctors/${user.id}/patients`)
       const json = await res.json()
       if (json.success) {
-        const patients = json.data.map((p: any) => ({
+        const patients: PatientRecord[] = json.data.map((p: ApiPatient) => ({
           id: p.id,
           userId: p.userId,
           firstName: p.firstName,
@@ -104,7 +146,7 @@ export default function PatientsPage() {
 
   return (
     <PatientManagement
-      doctorData={data as any}
+      doctorData={data}
       onVideoCall={handleVideoCall}
       onPrescribe={handlePrescribe}
       onMessage={handleMessage}

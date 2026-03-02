@@ -5,12 +5,11 @@ import Link from 'next/link'
 import {
   FaClipboardList, FaDollarSign, FaReceipt,
   FaTruck, FaClock, FaFileExport,
-  FaCheckCircle, FaBoxOpen , FaStar
+  FaCheckCircle, FaBoxOpen, FaStar, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-// Type Definitions
 interface StatCardProps {
   icon: IconType
   title: string
@@ -18,58 +17,14 @@ interface StatCardProps {
   color: string
 }
 
-interface Order {
+interface OrderItem {
   id: string
   orderNumber: string
   customerName: string
   itemCount: number
   total: number
-  status: 'pending' | 'prepared' | 'in-delivery' | 'completed'
-  type: 'Prescription' | 'OTC Product'
-}
-
-interface PharmacyDashboardData {
-  name: string
-  location: string
-  avatar: string
-  stats: {
-    dailyRevenue: number
-    pendingOrders: number
-    monthlyRevenue: number
-    rating: number
-  }
-  recentOrders: Order[]
-  earnings: {
-    totalRevenue: number
-    platformFee: number
-    netPayout: number
-  }
-  profileCompletion: number
-}
-
-// Mock Data
-const mockPharmacyData: PharmacyDashboardData = {
-  name: 'HealthFirst Pharmacy',
-  location: 'Port Louis',
-  avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=HF&backgroundColor=059669',
-  stats: {
-    dailyRevenue: 15200,
-    pendingOrders: 8,
-    monthlyRevenue: 315000,
-    rating: 4.8,
-  },
-  recentOrders: [
-    { id: 'ord1', orderNumber: '#HF-8345', customerName: 'John Smith', itemCount: 3, total: 1250, status: 'pending', type: 'Prescription' },
-    { id: 'ord2', orderNumber: '#HF-8344', customerName: 'Maria Garcia', itemCount: 1, total: 350, status: 'prepared', type: 'OTC Product' },
-    { id: 'ord3', orderNumber: '#HF-8342', customerName: 'David Chen', itemCount: 5, total: 2800, status: 'in-delivery', type: 'Prescription' },
-    { id: 'ord4', orderNumber: '#HF-8341', customerName: 'Emma Wilson', itemCount: 2, total: 600, status: 'completed', type: 'OTC Product' },
-  ],
-  earnings: {
-    totalRevenue: 15200,
-    platformFee: 760, // Assuming 5%
-    netPayout: 14440,
-  },
-  profileCompletion: 95,
+  status: string
+  orderedAt: string
 }
 
 const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
@@ -87,49 +42,109 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function PharmacyDashboardPage() {
-  const [pharmacyData] = useState<PharmacyDashboardData>(mockPharmacyData)
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    dailyRevenue: 0,
+    pendingOrders: 0,
+    monthlyRevenue: 0,
+    walletBalance: 0,
+  })
+  const [recentOrders, setRecentOrders] = useState<OrderItem[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
 
-  const getStatusInfo = (status: 'pending' | 'prepared' | 'in-delivery' | 'completed') => {
-    switch (status) {
-      case 'pending': return { text: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: FaClock };
-      case 'prepared': return { text: 'Prepared', color: 'bg-blue-100 text-blue-800', icon: FaBoxOpen };
-      case 'in-delivery': return { text: 'In Delivery', color: 'bg-purple-100 text-purple-800', icon: FaTruck };
-      case 'completed': return { text: 'Completed', color: 'bg-green-100 text-green-800', icon: FaCheckCircle };
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`/api/pharmacists/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setRecentOrders(json.data.recentOrders || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch pharmacist dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  };
+
+    fetchDashboard()
+  }, [userId])
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'pending': return { text: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: FaClock }
+      case 'confirmed': case 'prepared': return { text: 'Prepared', color: 'bg-blue-100 text-blue-800', icon: FaBoxOpen }
+      case 'shipped': case 'in-delivery': return { text: 'In Delivery', color: 'bg-purple-100 text-purple-800', icon: FaTruck }
+      case 'delivered': case 'completed': return { text: 'Completed', color: 'bg-green-100 text-green-800', icon: FaCheckCircle }
+      default: return { text: status, color: 'bg-gray-100 text-gray-800', icon: FaClock }
+    }
+  }
+
+  const handleMarkDelivery = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/bookings/pharmacy/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'in-delivery' }),
+      })
+      if (res.ok) {
+        setRecentOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'in-delivery' } : o))
+      }
+    } catch (error) {
+      console.error('Failed to update order:', error)
+    }
+  }
+
+  const platformFeeRate = 0.05
+  const platformFee = Math.round(stats.dailyRevenue * platformFeeRate)
+  const netPayout = stats.dailyRevenue - platformFee
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />
         </div>
       )}
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard icon={FaDollarSign} title="Today's Revenue" value={`Rs ${pharmacyData.stats.dailyRevenue.toLocaleString()}`} color="bg-green-500" />
-          <StatCard icon={FaClipboardList} title="Pending Orders" value={pharmacyData.stats.pendingOrders} color="bg-yellow-500" />
-          <StatCard icon={FaReceipt} title="Monthly Revenue" value={`Rs ${pharmacyData.stats.monthlyRevenue.toLocaleString()}`} color="bg-blue-500" />
-          <StatCard icon={FaStar} title="Customer Rating" value={pharmacyData.stats.rating} color="bg-purple-500" />
-        </div>
+        <StatCard icon={FaDollarSign} title="Today's Revenue" value={loading ? '...' : `Rs ${stats.dailyRevenue.toLocaleString()}`} color="bg-green-500" />
+        <StatCard icon={FaClipboardList} title="Pending Orders" value={loading ? '...' : stats.pendingOrders} color="bg-yellow-500" />
+        <StatCard icon={FaReceipt} title="Monthly Revenue" value={loading ? '...' : `Rs ${stats.monthlyRevenue.toLocaleString()}`} color="bg-blue-500" />
+        <StatCard icon={FaStar} title="Wallet Balance" value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`} color="bg-purple-500" />
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Order Management */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-                <Link href="/pharmacy/orders" className="text-green-600 hover:underline font-medium">View All Orders</Link>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
+              <Link href="/pharmacist/dashboard/orders" className="text-green-600 hover:underline font-medium">View All Orders</Link>
+            </div>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <FaSpinner className="animate-spin text-2xl text-green-500" />
               </div>
+            ) : recentOrders.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No orders yet</p>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50">
@@ -142,8 +157,8 @@ export default function PharmacyDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pharmacyData.recentOrders.map((order) => {
-                      const statusInfo = getStatusInfo(order.status);
+                    {recentOrders.map((order) => {
+                      const statusInfo = getStatusInfo(order.status)
                       return (
                         <tr key={order.id} className="border-b hover:bg-gray-50">
                           <td className="p-3 font-mono text-xs">{order.orderNumber}</td>
@@ -155,15 +170,15 @@ export default function PharmacyDashboardPage() {
                             </span>
                           </td>
                           <td className="p-3">
-                            {order.status === 'prepared' && (
-                              <button className="bg-green-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1">
+                            {(order.status === 'confirmed' || order.status === 'prepared') && (
+                              <button onClick={() => handleMarkDelivery(order.id)} className="bg-green-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1">
                                 <FaTruck /> Start Delivery
                               </button>
                             )}
                             {order.status === 'pending' && (
-                               <button className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors">
-                                 View Order
-                               </button>
+                              <Link href={`/pharmacist/dashboard/orders?view=${order.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
+                                View Order
+                              </Link>
                             )}
                           </td>
                         </tr>
@@ -172,41 +187,35 @@ export default function PharmacyDashboardPage() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Today&apos;s Payout</h3>
+              <button className="text-green-600 text-sm hover:underline"><FaFileExport /></button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm"><span className="text-gray-600">Total Revenue</span><span className="font-medium">Rs {stats.dailyRevenue.toLocaleString()}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-600">Platform Fee (5%)</span><span className="font-medium text-red-500">-Rs {platformFee.toLocaleString()}</span></div>
+              <div className="border-t pt-3 mt-3 flex justify-between">
+                <span className="font-bold">Net Payout</span>
+                <span className="font-bold text-xl text-green-600">Rs {netPayout.toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Earnings Dashboard */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900">Today&apos;s Payout</h3>
-                    <button className="text-green-600 text-sm hover:underline"><FaFileExport /></button>
-                </div>
-                <div className="space-y-3">
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Total Revenue</span><span className="font-medium">Rs {pharmacyData.earnings.totalRevenue.toLocaleString()}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Platform Fee (5%)</span><span className="font-medium text-red-500">-Rs {pharmacyData.earnings.platformFee.toLocaleString()}</span></div>
-                    <div className="border-t pt-3 mt-3 flex justify-between">
-                        <span className="font-bold">Net Payout</span>
-                        <span className="font-bold text-xl text-green-600">Rs {pharmacyData.earnings.netPayout.toLocaleString()}</span>
-                    </div>
-                </div>
-            </div>
-            
-            {/* Profile Completion */}
-            <div className="bg-gradient-to-br from-green-600 to-blue-500 text-white rounded-2xl p-6">
-              <h3 className="text-lg font-bold mb-2">Complete Your Pharmacy Profile</h3>
-              <p className="text-white/90 text-sm mb-4">Add pharmacist details and certifications to build trust.</p>
-              <div className="bg-white/20 rounded-full h-2.5 mb-2">
-                <div className="bg-white rounded-full h-2.5" style={{ width: `${pharmacyData.profileCompletion}%` }}></div>
-              </div>
-              <p className="text-sm mb-4 font-medium">{pharmacyData.profileCompletion}% Complete</p>
-              <Link href="/pharmacy/settings?tab=documents" className="bg-white text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
-                Upload License
-              </Link>
-            </div>
+          <div className="bg-gradient-to-br from-green-600 to-blue-500 text-white rounded-2xl p-6">
+            <h3 className="text-lg font-bold mb-2">Complete Your Pharmacy Profile</h3>
+            <p className="text-white/90 text-sm mb-4">Add pharmacist details and certifications to build trust.</p>
+            <Link href="/pharmacist/settings?tab=documents" className="bg-white text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+              Upload License
+            </Link>
           </div>
         </div>
+      </div>
     </>
   )
 }

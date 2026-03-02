@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { validateRequest } from '@/lib/auth/validate'
 
 // POST - Create or update a video call session
 export async function POST(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const body = await request.json()
     const { roomId, userId, userName, userType } = body
@@ -100,6 +104,9 @@ export async function POST(request: NextRequest) {
 
 // GET - Check for existing session
 export async function GET(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { searchParams } = new URL(request.url)
     const roomId = searchParams.get('roomId')
@@ -150,6 +157,9 @@ export async function GET(request: NextRequest) {
 
 // PATCH - Update session health
 export async function PATCH(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const body = await request.json()
     const { sessionId, connectionState } = body
@@ -180,6 +190,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - End session
 export async function DELETE(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get('sessionId')

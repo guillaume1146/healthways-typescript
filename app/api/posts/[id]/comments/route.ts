@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // GET /api/posts/[id]/comments — Paginated comments for a post
 export async function GET(
@@ -69,6 +70,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 

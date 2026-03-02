@@ -3,8 +3,13 @@ import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
 import { randomUUID } from 'crypto'
+import { createDoctorBookingSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -12,44 +17,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { doctorId, consultationType, scheduledDate, scheduledTime, reason, notes, duration } = body as {
-      doctorId: string
-      consultationType: 'in_person' | 'home_visit' | 'video'
-      scheduledDate: string
-      scheduledTime: string
-      reason: string
-      notes?: string
-      duration?: number
-    }
-
-    // Validate required fields
-    if (!doctorId || typeof doctorId !== 'string') {
+    const parsed = createDoctorBookingSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Doctor ID is required' },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
-
-    if (!consultationType || !['in_person', 'home_visit', 'video'].includes(consultationType)) {
-      return NextResponse.json(
-        { success: false, message: 'Consultation type must be in_person, home_visit, or video' },
-        { status: 400 }
-      )
-    }
-
-    if (!scheduledDate || !scheduledTime) {
-      return NextResponse.json(
-        { success: false, message: 'Scheduled date and time are required' },
-        { status: 400 }
-      )
-    }
-
-    if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Reason is required' },
-        { status: 400 }
-      )
-    }
+    const { doctorId, consultationType, scheduledDate, scheduledTime, reason, notes, duration } = parsed.data
 
     // Look up patient profile
     const patientProfile = await prisma.patientProfile.findUnique({
@@ -105,7 +80,7 @@ export async function POST(request: NextRequest) {
         type: consultationType,
         status: 'pending',
         specialty: doctorProfile.specialty[0] || 'General',
-        reason: reason.trim(),
+        reason: reason?.trim() || '',
         duration: duration || 30,
         location,
         roomId,

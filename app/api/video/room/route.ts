@@ -1,6 +1,9 @@
 // app/api/video/room/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { validateRequest } from '@/lib/auth/validate'
+import { createVideoRoomSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // Generate a unique room code
 function generateRoomCode(): string {
@@ -10,14 +13,27 @@ function generateRoomCode(): string {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
   try {
     const body = await request.json()
-    const { creatorId } = body
-
-    if (!creatorId) {
+    const parsed = createVideoRoomSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'creatorId is required' },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
+      )
+    }
+    const { creatorId } = parsed.data
+
+    if (creatorId !== auth.sub) {
+      return NextResponse.json(
+        { success: false, error: 'creatorId must match authenticated user' },
+        { status: 403 }
       )
     }
 

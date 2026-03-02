@@ -115,9 +115,44 @@ const FloatingCart = () => {
   )
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Medicine UI interface (mapped from API response)
+interface MedicineUi {
+  id: number
+  name: string
+  brand: string
+  genericName: string
+  category: string
+  type: string
+  price: number
+  originalPrice: number
+  discount: string
+  rating: number
+  reviews: number
+  inStock: boolean
+  quantity: number
+  stockQuantity: number
+  description: string
+  image: string
+  manufacturer: string
+  expiryDate: string
+  prescriptionRequired: boolean
+  activeIngredient: string
+  sideEffects: string[]
+  dosage: string
+  maxDailyDose: string
+  contraindications: string[]
+  storage: string
+  deliveryTime: string
+  fastDelivery: boolean
+  verified: boolean
+  pharmacyLocation: string
+  features: string[]
+  stockStatus: string
+  [key: string]: unknown // Allow passing to MedicineInput which requires index signature
+}
+
 interface MedicineProps {
-  medicine: any
+  medicine: MedicineUi
 }
 
 const MedicineCard = ({ medicine }: MedicineProps) => {
@@ -291,8 +326,27 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
   )
 }
 
+// API response shape for medicines
+interface ApiMedicine {
+  id: number
+  name: string
+  pharmacy?: string
+  genericName?: string
+  category: string
+  requiresPrescription?: boolean
+  price: number | string
+  inStock?: boolean
+  quantity?: number
+  description?: string
+  imageUrl?: string
+  sideEffects?: string[]
+  strength?: string
+  dosageForm?: string
+  pharmacist?: { verified?: boolean }
+}
+
 // Map API response items to the shape the UI expects
-const mapApiMedicine = (item: any) => ({
+const mapApiMedicine = (item: ApiMedicine): MedicineUi => ({
   id: item.id,
   name: item.name,
   brand: item.pharmacy || 'Unknown Pharmacy',
@@ -306,7 +360,7 @@ const mapApiMedicine = (item: any) => ({
   discount: '20% OFF',
   rating: 4.5,
   reviews: 0,
-  inStock: item.inStock && (item.quantity ?? 0) > 0,
+  inStock: (item.inStock ?? false) && (item.quantity ?? 0) > 0,
   quantity: item.quantity ?? 0,
   stockQuantity: item.quantity ?? 0,
   description: item.description || '',
@@ -324,7 +378,7 @@ const mapApiMedicine = (item: any) => ({
   fastDelivery: true,
   verified: item.pharmacist?.verified ?? false,
   pharmacyLocation: item.pharmacy || 'Mauritius',
-  features: [item.dosageForm, item.strength, item.category].filter(Boolean),
+  features: [item.dosageForm, item.strength, item.category].filter((v): v is string => Boolean(v)),
   stockStatus: (item.quantity ?? 0) > 10 ? 'In Stock' : (item.quantity ?? 0) > 0 ? `Only ${item.quantity} left` : 'Out of Stock',
 })
 
@@ -391,9 +445,9 @@ export default function MedicinesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [allMedicines, setAllMedicines] = useState<any[]>([])
+  const [allMedicines, setAllMedicines] = useState<MedicineUi[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<MedicineUi[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [searchExamples] = useState([
     "Paracetamol for fever",

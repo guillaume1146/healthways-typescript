@@ -21,10 +21,8 @@ interface DetailedServicesContent {
 }
 
 interface DetailedServicesEditorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave: (content: any) => Promise<void>
+  data: Partial<DetailedServicesContent>
+  onSave: (content: DetailedServicesContent) => Promise<void>
 }
 
 export default function DetailedServicesEditor({ data, onSave }: DetailedServicesEditorProps) {

@@ -1,13 +1,45 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Socket } from 'socket.io-client'
 
-let SimplePeer: any = null
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+let SimplePeer: (new (opts: Record<string, unknown>) => SimplePeerInstance) | null = null
 if (typeof window !== 'undefined') {
   SimplePeer = require('simple-peer')
 }
 
+interface SimplePeerInstance {
+  _pc: RTCPeerConnection
+  destroyed: boolean
+  signal: (data: SignalData) => void
+  destroy: () => void
+  removeAllListeners: (event: string) => void
+  on: (event: string, handler: (...args: never[]) => void) => void
+}
+
+interface SignalData {
+  type?: string
+  sdp?: string
+  candidate?: RTCIceCandidateInit
+}
+
+interface RoomParticipant {
+  socketId: string
+  userId: string
+  userName: string
+  userType: string
+  connected?: boolean
+}
+
+interface RoomState {
+  roomId: string
+  userId: string
+  userName: string
+  userType: string
+  sessionId: string
+}
+
 interface PeerConnection {
-  peer: any
+  peer: SimplePeerInstance
   socketId: string
   userId: string
   userName: string
@@ -27,7 +59,7 @@ interface UseWebRTCProps {
   userName: string
   userType: string
   localStream: MediaStream | null
-  saveRoomState?: (state: any) => void
+  saveRoomState?: (state: RoomState) => void
   clearRoomState?: () => void
 }
 
@@ -67,7 +99,7 @@ export function useWebRTC({
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map())
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [isScreenSharing, setIsScreenSharing] = useState(false)
-  const [roomParticipants, setRoomParticipants] = useState<any[]>([])
+  const [roomParticipants, setRoomParticipants] = useState<RoomParticipant[]>([])
   const [connectionStatus, setConnectionStatus] = useState<string>('connecting')
   const [isReconnecting, setIsReconnecting] = useState(false)
   const [sessionId, setSessionId] = useState<string>('')
@@ -246,7 +278,7 @@ export function useWebRTC({
         isDestroyed: false,
       }
 
-      peer.on('signal', (signal: any) => {
+      peer.on('signal', (signal: SignalData) => {
         if (!socket.connected || peerConnection.isDestroyed) return
         if (signal.type === 'offer') {
           peerConnection.makingOffer = true
@@ -389,21 +421,21 @@ export function useWebRTC({
     const joinTimeout = setTimeout(() => joinRoom(), 100)
 
     // Socket event handlers
-    const handleExistingParticipants = ({ participants, sessionId: serverSessionId }: any) => {
+    const handleExistingParticipants = ({ participants, sessionId: serverSessionId }: { participants: RoomParticipant[]; sessionId?: string }) => {
       setRoomParticipants(participants)
       if (serverSessionId) {
         setSessionId(serverSessionId)
         sessionIdRef.current = serverSessionId
         sessionStorage.setItem(`webrtc_session_${roomId}`, serverSessionId)
       }
-      participants.forEach((p: any, i: number) => {
+      participants.forEach((p: RoomParticipant, i: number) => {
         if (p.socketId !== socket.id) {
           setTimeout(() => createPeer(p.socketId, p.userId, p.userName, p.userType, true), i * 100)
         }
       })
     }
 
-    const handleUserJoined = (participant: any) => {
+    const handleUserJoined = (participant: RoomParticipant) => {
       if (participant.socketId === socket.id) return
       setRoomParticipants(prev => {
         if (prev.some(p => p.socketId === participant.socketId)) return prev
@@ -411,13 +443,13 @@ export function useWebRTC({
       })
     }
 
-    const handleUserReconnected = ({ oldSocketId, newSocketId, userId: reconnUserId, userName: reconnName, userType: reconnType }: any) => {
+    const handleUserReconnected = ({ oldSocketId, newSocketId, userId: reconnUserId, userName: reconnName, userType: reconnType }: { oldSocketId: string; newSocketId: string; userId: string; userName: string; userType: string }) => {
       removePeer(oldSocketId, true)
       setRoomParticipants(prev => prev.map(p => p.userId === reconnUserId ? { ...p, socketId: newSocketId, connected: true } : p))
       setTimeout(() => createPeer(newSocketId, reconnUserId, reconnName, reconnType, true), 500)
     }
 
-    const handleUserDisconnected = ({ socketId: discSocketId, userId: discUserId, reason, canReconnect }: any) => {
+    const handleUserDisconnected = ({ socketId: discSocketId, reason, canReconnect }: { socketId: string; userId: string; reason: string; canReconnect: boolean }) => {
       if (canReconnect) {
         setRoomParticipants(prev => prev.map(p => p.socketId === discSocketId ? { ...p, connected: false } : p))
         // Don't remove peer yet — give them time to reconnect
@@ -427,7 +459,7 @@ export function useWebRTC({
       }
     }
 
-    const handleUserLeftPermanently = ({ userId: leftUserId }: any) => {
+    const handleUserLeftPermanently = ({ userId: leftUserId }: { userId: string }) => {
       // Find and remove the peer for this user
       peersRef.current.forEach((pc, sid) => {
         if (pc.userId === leftUserId) removePeer(sid, true)
@@ -435,7 +467,7 @@ export function useWebRTC({
       setRoomParticipants(prev => prev.filter(p => p.userId !== leftUserId))
     }
 
-    const handleOffer = async ({ offer, from }: any) => {
+    const handleOffer = async ({ offer, from }: { offer: SignalData; from: string }) => {
       let pc = peersRef.current.get(from)
 
       if (!pc || pc.isDestroyed) {
@@ -461,30 +493,30 @@ export function useWebRTC({
       }
     }
 
-    const handleAnswer = ({ answer, from }: any) => {
+    const handleAnswer = ({ answer, from }: { answer: SignalData; from: string }) => {
       const pc = peersRef.current.get(from)
       if (pc?.peer && !pc.peer.destroyed && !pc.isDestroyed) {
         try { pc.peer.signal(answer) } catch {}
       }
     }
 
-    const handleIceCandidate = ({ candidate, from }: any) => {
+    const handleIceCandidate = ({ candidate, from }: { candidate: SignalData; from: string }) => {
       const pc = peersRef.current.get(from)
       if (pc?.peer && !pc.peer.destroyed && !pc.isDestroyed && !pc.ignoreOffer) {
         try { pc.peer.signal(candidate) } catch {}
       }
     }
 
-    const handleIceRestartRequest = ({ from }: any) => {
+    const handleIceRestartRequest = ({ from }: { from: string }) => {
       const pc = peersRef.current.get(from)
       if (pc && !pc.isDestroyed) performIceRestart(pc)
     }
 
-    const handleRecoveryInfo = ({ canRecover, session }: any) => {
+    const handleRecoveryInfo = ({ canRecover, session }: { canRecover: boolean; session?: { id: string; participants: RoomParticipant[] } }) => {
       if (canRecover && session?.participants?.length) {
         setSessionId(session.id)
         sessionIdRef.current = session.id
-        session.participants.forEach((conn: any, i: number) => {
+        session.participants.forEach((conn: RoomParticipant, i: number) => {
           if (conn.userId !== userId && conn.socketId) {
             setTimeout(() => createPeer(conn.socketId, conn.userId, conn.userName, conn.userType, true), i * 100)
           }

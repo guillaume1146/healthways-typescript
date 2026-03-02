@@ -48,9 +48,16 @@ const PatientProfileTab: React.FC = () => {
         return
       }
 
-      const localUser = JSON.parse(stored)
+      let localUser: { id?: string; firstName?: string; lastName?: string; email?: string }
+      try {
+        localUser = JSON.parse(stored)
+      } catch {
+        // Corrupted localStorage
+        setLoading(false)
+        return
+      }
       const id = localUser.id
-      setUserId(id)
+      setUserId(id ?? null)
 
       // Pre-populate with what we have from localStorage immediately
       setProfile((prev) => ({
@@ -137,13 +144,17 @@ const PatientProfileTab: React.FC = () => {
       }
 
       // Update localStorage with the new name/email so other components stay in sync
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const localUser = JSON.parse(stored)
-        localUser.firstName = profile.firstName
-        localUser.lastName = profile.lastName
-        localUser.email = profile.email
-        localStorage.setItem('healthwyz_user', JSON.stringify(localUser))
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (stored) {
+          const localUser = JSON.parse(stored)
+          localUser.firstName = profile.firstName
+          localUser.lastName = profile.lastName
+          localUser.email = profile.email
+          localStorage.setItem('healthwyz_user', JSON.stringify(localUser))
+        }
+      } catch {
+        // Corrupted localStorage — skip sync
       }
 
       setSaveStatus({ type: 'success', message: 'Profile updated successfully.' })

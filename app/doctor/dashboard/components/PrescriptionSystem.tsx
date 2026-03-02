@@ -418,8 +418,8 @@ const PrescriptionSystem: React.FC<Props> = ({ doctorData, onCreatePrescription,
             notes: '',
           })
           setTimeout(() => setSubmitSuccess(''), 3000)
-        } catch (err: any) {
-          setSubmitError(err.message || 'Failed to create prescription')
+        } catch (error: unknown) {
+          setSubmitError(error instanceof Error ? error.message : 'Failed to create prescription')
         } finally {
           setSubmitting(false)
         }

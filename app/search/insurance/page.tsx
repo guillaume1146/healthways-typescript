@@ -13,9 +13,43 @@ const typeIcons = {
   "Group": FaHandHoldingMedical
 }
 
+// Insurance Plan interface (mapped from API response)
+interface InsurancePlan {
+  id: string
+  name: string
+  provider: string
+  type: string
+  coverage: string
+  monthlyPremium: string
+  annualPremium: string
+  originalPrice: string
+  discount: string
+  rating: number
+  reviews: number
+  available: boolean
+  description: string
+  maxCoverage: string
+  deductible: string
+  copay: string
+  networkHospitals: number
+  waitingPeriod: string
+  claimSettlement: string
+  renewalBonus: string
+  location: string
+  features: string[]
+  benefits: { name: string; coverage: string }[]
+  exclusions: string[]
+  ageLimit: string
+  familyDiscount: string
+  verified: boolean
+  fastProcessing: boolean
+  onlineQuote: boolean
+  customerService: string
+}
+
 // Insurance Plan Card Component
 interface InsurancePlanProps {
-  plan: any
+  plan: InsurancePlan
 }
 
 const InsurancePlanCard = ({ plan }: InsurancePlanProps) => {
@@ -229,8 +263,8 @@ export default function InsurancePage() {
   const [insuranceType, setInsuranceType] = useState('all')
   const [budget, setBudget] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [allPlans, setAllPlans] = useState<any[]>([])
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [allPlans, setAllPlans] = useState<InsurancePlan[]>([])
+  const [searchResults, setSearchResults] = useState<InsurancePlan[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [searchExamples] = useState([
@@ -252,7 +286,32 @@ export default function InsurancePage() {
       const res = await fetch('/api/search/insurance')
       if (!res.ok) throw new Error('Failed to fetch insurance plans')
       const data = await res.json()
-      const mapped = (data || []).map((p: any) => {
+      interface ApiInsurancePlan {
+        id: string
+        planName?: string
+        company?: string
+        planType?: string
+        monthlyPremium?: number
+        annualPremium?: number
+        coverageAmount?: number
+        deductible?: number
+        description?: string
+        coverageDetails?: {
+          type?: string
+          copay?: number
+          networkHospitals?: number
+          waitingPeriod?: string
+          claimSettlement?: string
+          renewalBonus?: string
+          features?: string[]
+          benefits?: { name: string; coverage: string }[]
+          exclusions?: string[]
+          familyDiscount?: string
+        }
+        eligibility?: { ageLimit?: string }
+        representative?: { verified?: boolean }
+      }
+      const mapped = (data || []).map((p: ApiInsurancePlan) => {
         const monthly = p.monthlyPremium || 0
         const annual = p.annualPremium || (monthly * 12)
         const originalPrice = Math.round(annual * 1.2)
@@ -335,7 +394,7 @@ export default function InsurancePage() {
         plan.provider.toLowerCase().includes(lowerQuery) ||
         plan.description.toLowerCase().includes(lowerQuery) ||
         (plan.features || []).some((f: string) => f.toLowerCase().includes(lowerQuery)) ||
-        (plan.benefits || []).some((b: any) => (b.name || '').toLowerCase().includes(lowerQuery)) ||
+        (plan.benefits || []).some((b: { name: string; coverage: string }) => (b.name || '').toLowerCase().includes(lowerQuery)) ||
         plan.coverage.toLowerCase().includes(lowerQuery)
       )
     }

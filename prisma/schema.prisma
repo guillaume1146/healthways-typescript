@@ -429,6 +429,8 @@ model Appointment {
   @@index([doctorId])
   @@index([scheduledAt])
   @@index([status])
+  @@index([doctorId, patientId])
+  @@index([doctorId, scheduledAt])
 }
 
 model ScheduleSlot {
@@ -601,6 +603,7 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([conversationId, senderId, readAt])
 }
 
 // ─── Supporting Models ──────────────────────────────────────────────────────
@@ -750,6 +753,7 @@ model Notification {
   @@index([userId])
   @@index([readAt])
   @@index([createdAt])
+  @@index([userId, readAt])
 }
 
 // ─── Doctor Supporting Models ───────────────────────────────────────────────

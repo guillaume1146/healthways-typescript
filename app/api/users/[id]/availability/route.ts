@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { updateAvailabilitySchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(
   request: NextRequest,
@@ -55,6 +57,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const { id } = await params
 
   const auth = validateRequest(request)
@@ -68,42 +73,14 @@ export async function PUT(
 
   try {
     const body = await request.json()
-    const { slots } = body as {
-      slots: Array<{ dayOfWeek: number; startTime: string; endTime: string; isActive?: boolean }>
+    const parsed = updateAvailabilitySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
-
-    if (!Array.isArray(slots)) {
-      return NextResponse.json({ success: false, error: 'slots must be an array' }, { status: 400 })
-    }
-
-    // Validate each slot
-    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-    for (const slot of slots) {
-      if (typeof slot.dayOfWeek !== 'number' || slot.dayOfWeek < 0 || slot.dayOfWeek > 6) {
-        return NextResponse.json(
-          { success: false, error: `Invalid dayOfWeek: ${slot.dayOfWeek}. Must be 0-6.` },
-          { status: 400 }
-        )
-      }
-      if (!timeRegex.test(slot.startTime)) {
-        return NextResponse.json(
-          { success: false, error: `Invalid startTime format: ${slot.startTime}. Use HH:MM (24h).` },
-          { status: 400 }
-        )
-      }
-      if (!timeRegex.test(slot.endTime)) {
-        return NextResponse.json(
-          { success: false, error: `Invalid endTime format: ${slot.endTime}. Use HH:MM (24h).` },
-          { status: 400 }
-        )
-      }
-      if (slot.startTime >= slot.endTime) {
-        return NextResponse.json(
-          { success: false, error: `startTime (${slot.startTime}) must be before endTime (${slot.endTime}).` },
-          { status: 400 }
-        )
-      }
-    }
+    const { slots } = parsed.data
 
     // Transaction: delete all existing, create all new
     const newSlots = await prisma.$transaction(async (tx) => {

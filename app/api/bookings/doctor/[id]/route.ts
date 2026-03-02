@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
-import { acceptBooking, denyBooking } from '@/lib/booking-actions'
+import { acceptBooking, denyBooking, cancelBooking } from '@/lib/booking-actions'
+import { bookingActionSchema } from '@/lib/validations/api'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,15 +11,19 @@ export async function PATCH(
   if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const { action } = await request.json() as { action: string }
-
-  if (!['accept', 'deny'].includes(action)) {
-    return NextResponse.json({ success: false, message: 'Action must be accept or deny' }, { status: 400 })
+  const body = await request.json()
+  const parsed = bookingActionSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ success: false, message: parsed.error.issues[0].message }, { status: 400 })
   }
+  const { action, reason } = parsed.data
 
   try {
     if (action === 'accept') {
       const result = await acceptBooking(id, 'doctor', auth.sub)
+      return NextResponse.json({ success: true, ...result })
+    } else if (action === 'cancel') {
+      const result = await cancelBooking(id, 'doctor', auth.sub, reason)
       return NextResponse.json({ success: true, ...result })
     } else {
       await denyBooking(id, 'doctor', auth.sub)
@@ -28,6 +33,7 @@ export async function PATCH(
     if (error instanceof Error) {
       if (error.message === 'NOT_FOUND') return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
       if (error.message === 'NOT_PENDING') return NextResponse.json({ success: false, message: 'Booking is not pending' }, { status: 400 })
+      if (error.message === 'NOT_CANCELLABLE') return NextResponse.json({ success: false, message: 'Booking cannot be cancelled in its current state' }, { status: 400 })
       if (error.message === 'INSUFFICIENT_BALANCE') return NextResponse.json({ success: false, message: 'Patient has insufficient wallet balance' }, { status: 400 })
       if (error.message === 'WALLET_NOT_FOUND') return NextResponse.json({ success: false, message: 'Patient wallet not found' }, { status: 404 })
     }

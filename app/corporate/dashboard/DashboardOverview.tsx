@@ -1,30 +1,29 @@
 import Link from 'next/link'
-import { 
-  FaUsers, 
-  FaShieldAlt, 
-  FaClock, 
-  FaCheckCircle, 
+import {
+  FaUsers,
+  FaShieldAlt,
+  FaClock,
+  FaCheckCircle,
   FaFileAlt,
   FaTimes,
   FaDollarSign,
   FaChartLine
 } from 'react-icons/fa'
-import { mockCorporateStats, mockRecentEmployees, mockRecentClaims } from '../constants'
-import { Employee, ClaimsData } from '../types'
+import { CorporateStats, Employee, ClaimsData } from '../types'
 import StatCard from './StatCard'
 
 interface DashboardOverviewProps {
-  stats: typeof mockCorporateStats
+  stats: CorporateStats
   recentEmployees: Employee[]
   recentClaims: ClaimsData[]
 }
 
-export default function DashboardOverview({ 
-  stats = mockCorporateStats, 
-  recentEmployees = mockRecentEmployees, 
-  recentClaims = mockRecentClaims 
+export default function DashboardOverview({
+  stats,
+  recentEmployees,
+  recentClaims
 }: DashboardOverviewProps) {
-  
+
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'approved': return { text: 'Approved', color: 'bg-green-100 text-green-800', icon: FaCheckCircle };
@@ -40,31 +39,31 @@ export default function DashboardOverview({
     <>
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          icon={FaUsers} 
-          title="Total Employees" 
-          value={stats.totalEmployees} 
+        <StatCard
+          icon={FaUsers}
+          title="Total Employees"
+          value={stats.totalEmployees}
           color="bg-blue-500"
           subtitle={`${stats.activePolicyHolders} with active policies`}
         />
-        <StatCard 
-          icon={FaShieldAlt} 
-          title="Policy Holders" 
-          value={stats.activePolicyHolders} 
+        <StatCard
+          icon={FaShieldAlt}
+          title="Policy Holders"
+          value={stats.activePolicyHolders}
           color="bg-green-500"
           subtitle={`${stats.pendingVerifications} pending verification`}
         />
-        <StatCard 
-          icon={FaFileAlt} 
-          title="Total Claims" 
-          value={stats.totalClaims} 
+        <StatCard
+          icon={FaFileAlt}
+          title="Total Claims"
+          value={stats.totalClaims}
           color="bg-purple-500"
           subtitle={`${stats.pendingClaims} pending review`}
         />
-        <StatCard 
-          icon={FaDollarSign} 
-          title="Monthly Premium" 
-          value={`Rs ${stats.monthlyContribution.toLocaleString()}`} 
+        <StatCard
+          icon={FaDollarSign}
+          title="Monthly Premium"
+          value={`Rs ${stats.monthlyContribution.toLocaleString()}`}
           color="bg-orange-500"
           subtitle="Current billing cycle"
         />
@@ -77,10 +76,13 @@ export default function DashboardOverview({
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Employee Additions</h2>
-              <Link href="/corporate/employees" className="text-blue-600 hover:underline font-medium">
+              <Link href="/corporate/dashboard/employees" className="text-blue-600 hover:underline font-medium">
                 Manage All Employees
               </Link>
             </div>
+            {recentEmployees.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No employees added yet</p>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50">
@@ -117,16 +119,20 @@ export default function DashboardOverview({
                 </tbody>
               </table>
             </div>
+            )}
           </div>
 
           {/* Claims Overview */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Claims Activity</h2>
-              <Link href="/corporate/claims" className="text-blue-600 hover:underline font-medium">
+              <Link href="/corporate/dashboard/claims" className="text-blue-600 hover:underline font-medium">
                 View All Claims
               </Link>
             </div>
+            {recentClaims.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No claims submitted yet</p>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50">
@@ -158,6 +164,7 @@ export default function DashboardOverview({
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
 
@@ -190,17 +197,17 @@ export default function DashboardOverview({
           <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <Link 
-                href="/corporate/employees/add" 
+              <Link
+                href="/corporate/dashboard/employees"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <FaUsers className="text-lg" />
-                  <span className="font-medium">Add New Employee</span>
+                  <span className="font-medium">Manage Employees</span>
                 </div>
               </Link>
-              <Link 
-                href="/corporate/billing" 
+              <Link
+                href="/corporate/dashboard/billing"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">
@@ -208,8 +215,8 @@ export default function DashboardOverview({
                   <span className="font-medium">View Billing</span>
                 </div>
               </Link>
-              <Link 
-                href="/corporate/analytics" 
+              <Link
+                href="/corporate/dashboard/analytics"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">

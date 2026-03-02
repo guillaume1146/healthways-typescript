@@ -21,14 +21,25 @@ import {
 import { useDoctorData } from './context'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+interface OverviewAppointment {
+  id: string
+  patientName: string
+  date: string
+  time: string
+  type: string
+  status: string
+  reason: string
+  roomId?: string
+}
+
 interface OverviewData {
   specialty: string[]
   clinicAffiliation: string
   rating: number
   reviewCount: number
   totalPatients: number
-  upcomingAppointments: any[]
-  pastAppointments: any[]
+  upcomingAppointments: OverviewAppointment[]
+  pastAppointments: OverviewAppointment[]
   activePrescriptions: number
 }
 
@@ -58,7 +69,15 @@ export default function DoctorOverviewPage() {
 
         const doctorProfile = profile.data?.doctorProfile || profile.data?.profile || {}
 
-        const mapApt = (apt: any) => ({
+        const mapApt = (apt: {
+          id: string
+          patient?: { user: { firstName: string; lastName: string } }
+          scheduledAt: string
+          type?: string
+          status: string
+          reason?: string
+          roomId?: string
+        }): OverviewAppointment => ({
           id: apt.id,
           patientName: apt.patient
             ? `${apt.patient.user.firstName} ${apt.patient.user.lastName}`
@@ -80,7 +99,7 @@ export default function DoctorOverviewPage() {
           upcomingAppointments: (upcoming.data || []).map(mapApt),
           pastAppointments: (past.data || []).map(mapApt),
           activePrescriptions: prescriptions.success
-            ? (prescriptions.data || []).filter((p: any) => p.isActive).length
+            ? (prescriptions.data || []).filter((p: { isActive: boolean }) => p.isActive).length
             : 0,
         })
       } catch (error) {

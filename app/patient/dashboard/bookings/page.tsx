@@ -33,7 +33,15 @@ export default function PatientBookingsPage() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('healthwyz_user') || '{}')
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let user: { id?: string }
+        try {
+          user = JSON.parse(stored)
+        } catch {
+          // Corrupted localStorage
+          return
+        }
         if (!user.id) return
 
         const res = await fetch(`/api/patients/${user.id}/bookings`)

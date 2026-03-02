@@ -5,10 +5,52 @@ import { FaSpinner } from 'react-icons/fa'
 import { useDoctorData } from '../context'
 import BillingEarnings from '../components/BillingEarnings'
 
+interface WalletTransaction {
+  id: string
+  description?: string
+  createdAt: string
+  amount: number
+  type: string
+  serviceType?: string
+  status?: string
+}
+
+type TransactionType = 'consultation' | 'video_consultation' | 'procedure' | 'emergency'
+type TransactionStatus = 'completed' | 'pending' | 'failed' | 'refunded'
+type PaymentMethod = 'cash' | 'card' | 'insurance' | 'mcb_juice'
+
+interface BillingTransaction {
+  id: string
+  patientName: string
+  date: string
+  time: string
+  amount: number
+  type: TransactionType
+  paymentMethod: PaymentMethod
+  status: TransactionStatus
+}
+
+interface BillingPageData {
+  billing: {
+    earnings: {
+      today?: number
+      thisWeek?: number
+      thisMonth?: number
+      thisYear?: number
+      totalEarnings?: number
+      pendingPayouts?: number
+      averageConsultationFee?: number
+    }
+    transactions: BillingTransaction[]
+    receiveMethods: never[]
+    bankAccounts: never[]
+  }
+  [key: string]: unknown
+}
+
 export default function BillingPage() {
   const user = useDoctorData()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [billingData, setBillingData] = useState<any>(null)
+  const [billingData, setBillingData] = useState<BillingPageData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchBilling = useCallback(async () => {
@@ -17,18 +59,18 @@ export default function BillingPage() {
       const json = await res.json()
 
       if (json.success && json.data) {
-        const txs = json.data.transactions || []
+        const txs: WalletTransaction[] = json.data.transactions || []
 
         // Transform wallet transactions to billing format
-        const transactions = txs.map((tx: any) => ({
+        const transactions: BillingTransaction[] = txs.map((tx) => ({
           id: tx.id,
           patientName: tx.description || 'Transaction',
           date: tx.createdAt,
           time: new Date(tx.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           amount: tx.amount,
-          type: tx.serviceType || 'consultation',
-          paymentMethod: 'wallet',
-          status: tx.status || 'completed',
+          type: (tx.serviceType || 'consultation') as TransactionType,
+          paymentMethod: 'cash' as PaymentMethod,
+          status: (tx.status || 'completed') as TransactionStatus,
         }))
 
         // Calculate earnings from credit transactions
@@ -39,11 +81,11 @@ export default function BillingPage() {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
         const yearStart = new Date(now.getFullYear(), 0, 1)
 
-        const credits = txs.filter((tx: any) => tx.type === 'credit')
+        const credits = txs.filter((tx) => tx.type === 'credit')
         const sumAfter = (date: Date) =>
           credits
-            .filter((tx: any) => new Date(tx.createdAt) >= date)
-            .reduce((s: number, tx: any) => s + tx.amount, 0)
+            .filter((tx) => new Date(tx.createdAt) >= date)
+            .reduce((s: number, tx) => s + tx.amount, 0)
 
         setBillingData({
           billing: {
@@ -52,10 +94,10 @@ export default function BillingPage() {
               thisWeek: sumAfter(weekStart),
               thisMonth: sumAfter(monthStart),
               thisYear: sumAfter(yearStart),
-              totalEarnings: credits.reduce((s: number, tx: any) => s + tx.amount, 0),
+              totalEarnings: credits.reduce((s: number, tx) => s + tx.amount, 0),
               pendingPayouts: 0,
               averageConsultationFee: credits.length > 0
-                ? Math.round(credits.reduce((s: number, tx: any) => s + tx.amount, 0) / credits.length)
+                ? Math.round(credits.reduce((s: number, tx) => s + tx.amount, 0) / credits.length)
                 : 0,
             },
             transactions,
@@ -64,11 +106,11 @@ export default function BillingPage() {
           },
         })
       } else {
-        setBillingData({ billing: { earnings: {}, transactions: [] } })
+        setBillingData({ billing: { earnings: {}, transactions: [], receiveMethods: [], bankAccounts: [] } })
       }
     } catch (error) {
       console.error('Failed to fetch billing:', error)
-      setBillingData({ billing: { earnings: {}, transactions: [] } })
+      setBillingData({ billing: { earnings: {}, transactions: [], receiveMethods: [], bankAccounts: [] } })
     } finally {
       setLoading(false)
     }
@@ -86,5 +128,5 @@ export default function BillingPage() {
     )
   }
 
-  return <BillingEarnings doctorData={billingData as any} />
+  return <BillingEarnings doctorData={billingData} />
 }

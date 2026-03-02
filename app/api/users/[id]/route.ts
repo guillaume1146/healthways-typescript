@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { validateRequest } from '@/lib/auth/validate'
+import { updateUserProfileSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 const PROFILE_INCLUDES: Record<string, string> = {
   PATIENT: 'patientProfile',
@@ -16,11 +19,15 @@ const PROFILE_INCLUDES: Record<string, string> = {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { id } = await params
+    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -72,9 +79,24 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
     const { id } = await params
+    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
     const body = await request.json()
+    const parsed = updateUserProfileSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
 
     const {
       firstName,
@@ -85,20 +107,7 @@ export async function PATCH(
       gender,
       address,
       emergencyContact,
-    } = body as {
-      firstName?: string
-      lastName?: string
-      email?: string
-      phone?: string
-      dateOfBirth?: string
-      gender?: string
-      address?: string
-      emergencyContact?: {
-        name?: string
-        phone?: string
-        relationship?: string
-      }
-    }
+    } = parsed.data
 
     // Build the User update data (only include fields that were provided)
     const userData: Record<string, unknown> = {}

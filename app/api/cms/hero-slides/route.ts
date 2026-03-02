@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { heroSlideCreateSchema } from '@/lib/validations/cms'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   try {
     const includeInactive = request.nextUrl.searchParams.get('includeInactive') === 'true'
     const countryCode = request.nextUrl.searchParams.get('countryCode') || null

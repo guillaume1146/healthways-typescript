@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { createDoctorPrescriptionSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(
   request: NextRequest,
@@ -81,6 +83,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
@@ -91,11 +96,14 @@ export async function POST(
 
   try {
     const body = await request.json()
-    const { patientId, diagnosis, notes, nextRefill, medicines } = body
-
-    if (!patientId || !diagnosis || !medicines || medicines.length === 0) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 })
+    const parsed = createDoctorPrescriptionSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
+    const { patientId, diagnosis, notes, nextRefill, medicines } = parsed.data
 
     const doctorProfile = await prisma.doctorProfile.findUnique({
       where: { userId: id },
@@ -117,7 +125,7 @@ export async function POST(
     // Upsert medicines and create prescription in a transaction
     const prescription = await prisma.$transaction(async (tx) => {
       const medicineRecords = await Promise.all(
-        medicines.map(async (med: { name: string; dosage: string; frequency: string; duration: string; instructions?: string }) => {
+        medicines.map(async (med) => {
           const dbMedicine = await tx.medicine.upsert({
             where: { name: med.name },
             create: { name: med.name, category: 'General', description: '' },

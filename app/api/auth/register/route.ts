@@ -3,6 +3,7 @@ import prisma from '@/lib/db'
 import bcrypt from 'bcrypt'
 import { UserType } from '@prisma/client'
 import { registerSchema } from '@/lib/auth/schemas'
+import { rateLimitAuth } from '@/lib/rate-limit'
 
 /**
  * Maps signup-form user-type strings to Prisma UserType enum values.
@@ -25,6 +26,9 @@ const signupTypeToPrisma: Record<string, UserType> = {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimitAuth(request)
+  if (limited) return limited
+
   try {
     const body = await request.json()
     const parsed = registerSchema.safeParse(body)

@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { cmsSectionUpdateSchema } from '@/lib/validations/cms'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   try {
     const { type } = await params
     const countryCode = request.nextUrl.searchParams.get('countryCode') || null

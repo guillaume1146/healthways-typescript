@@ -16,7 +16,16 @@ import {
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import { ActiveTab, CorporateProfile, PaymentMethod, NotificationSettings, BillingHistory } from './types'
-import { mockCorporateProfile, mockPaymentMethods, mockNotificationSettings, mockBillingHistory } from './constants'
+
+const emptyProfile: CorporateProfile = {
+  companyName: '', adminName: '', email: '', phone: '', companyAddress: '',
+  taxId: '', sector: '', logo: '', description: '', website: '', employeeCount: 0,
+}
+
+const emptyNotifications: NotificationSettings = {
+  newClaims: true, employeeAdditions: true, billingUpdates: true,
+  policyRenewals: true, employeeNotifications: true, customAlerts: false,
+}
 
 interface TabButtonProps {
   icon: IconType
@@ -49,10 +58,10 @@ export default function SettingsTabs({ initialTab }: SettingsTabsProps) {
   const searchParams = useSearchParams()
   const urlTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(urlTab || initialTab || 'profile')
-  const [profile, setProfile] = useState<CorporateProfile>(mockCorporateProfile)
-  const [paymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods)
-  const [notifications, setNotifications] = useState<NotificationSettings>(mockNotificationSettings)
-  const [billingHistory] = useState<BillingHistory[]>(mockBillingHistory)
+  const [profile, setProfile] = useState<CorporateProfile>(emptyProfile)
+  const [paymentMethods] = useState<PaymentMethod[]>([])
+  const [notifications, setNotifications] = useState<NotificationSettings>(emptyNotifications)
+  const [billingHistory] = useState<BillingHistory[]>([])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target

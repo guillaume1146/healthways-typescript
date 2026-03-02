@@ -76,6 +76,8 @@ interface Statistics {
   totalPrescriptions: number
   patientDemographics: Partial<Demographics>
   topConditionsTreated: ConditionCount[]
+  peakHour: string
+  busiestDay: string
 }
 
 interface PerformanceMetrics {
@@ -135,7 +137,9 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
     totalRevenue: doctorData?.statistics?.totalRevenue ?? 0,
     totalPrescriptions: doctorData?.statistics?.totalPrescriptions ?? 0,
     patientDemographics: doctorData?.statistics?.patientDemographics ?? {},
-    topConditionsTreated: doctorData?.statistics?.topConditionsTreated ?? []
+    topConditionsTreated: doctorData?.statistics?.topConditionsTreated ?? [],
+    peakHour: doctorData?.statistics?.peakHour ?? 'N/A',
+    busiestDay: doctorData?.statistics?.busiestDay ?? 'N/A',
   }
 
   const performanceMetrics: PerformanceMetrics = {
@@ -660,11 +664,11 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div className="bg-white/50 rounded-lg p-2">
                 <p className="text-xs text-gray-600">Peak Hour</p>
-                <p className="text-sm font-bold">10:00 AM</p>
+                <p className="text-sm font-bold">{stats.peakHour}</p>
               </div>
               <div className="bg-white/50 rounded-lg p-2">
                 <p className="text-xs text-gray-600">Busiest Day</p>
-                <p className="text-sm font-bold">Monday</p>
+                <p className="text-sm font-bold">{stats.busiestDay}</p>
               </div>
             </div>
           </div>

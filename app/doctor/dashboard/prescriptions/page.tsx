@@ -13,14 +13,37 @@ interface NewPrescriptionData {
   notes: string
 }
 
+interface PrescriptionRecord {
+  id: string
+  patientId: string
+  patientName: string
+  diagnosis: string
+  medicines: { name: string; dosage: string; frequency: string; duration: string; instructions: string; quantity: number }[]
+  date: string
+  isActive: boolean
+  nextRefill?: string
+  notes?: string
+  signatureUrl?: string
+}
+
+interface PatientOption {
+  id: string
+  firstName: string
+  lastName: string
+}
+
+interface ApiPatientEntry {
+  id: string
+  firstName: string
+  lastName: string
+}
+
 export default function PrescriptionsPage() {
   const user = useDoctorData()
   const searchParams = useSearchParams()
   const preselectedPatientId = searchParams.get('patientId') || ''
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [prescriptions, setPrescriptions] = useState<any[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [patients, setPatients] = useState<any[]>([])
+  const [prescriptions, setPrescriptions] = useState<PrescriptionRecord[]>([])
+  const [patients, setPatients] = useState<PatientOption[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
@@ -34,7 +57,7 @@ export default function PrescriptionsPage() {
       if (prescJson.success) setPrescriptions(prescJson.data)
       if (patientJson.success) {
         setPatients(
-          patientJson.data.map((p: any) => ({
+          patientJson.data.map((p: ApiPatientEntry) => ({
             id: p.id,
             firstName: p.firstName,
             lastName: p.lastName,

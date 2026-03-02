@@ -3,73 +3,28 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
- FaCalendarCheck, FaDollarSign, FaStar,
-  FaClock, FaFileExport,
- FaUserFriends
+  FaCalendarCheck, FaDollarSign, FaStar,
+  FaClock, FaFileExport, FaSpinner,
+  FaUserFriends
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-// Type Definitions
 interface StatCardProps {
   icon: IconType
   title: string
   value: string | number
-  change?: string
   color: string
 }
 
-interface Appointment {
+interface BookingItem {
   id: string
   familyName: string
   familyAvatar: string
-  date: string
-  time: string
+  scheduledAt: string
+  duration: number
   serviceType: string
-  status: 'confirmed' | 'pending' | 'completed'
-}
-
-interface CaregiverDashboardData {
-  name: string
-  type: string
-  avatar: string
-  stats: {
-    upcomingBookings: number
-    familiesHelped: number
-    monthlyEarnings: number
-    rating: number
-  }
-  upcomingAppointments: Appointment[]
-  earnings: {
-    totalRevenue: number
-    commission: number
-    netPayout: number
-  }
-  profileCompletion: number
-}
-
-// Mock Data
-const mockCaregiverData: CaregiverDashboardData = {
-  name: 'Emma Williams',
-  type: 'Professional Nanny',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=fef3c7',
-  stats: {
-    upcomingBookings: 3,
-    familiesHelped: 42,
-    monthlyEarnings: 2800,
-    rating: 4.9,
-  },
-  upcomingAppointments: [
-    { id: 'apt1', familyName: 'The Smith Family', familyAvatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Smith', date: 'Today', time: '09:00 AM - 5:00 PM', serviceType: 'Full-day Care', status: 'confirmed' },
-    { id: 'apt2', familyName: 'The Garcia Family', familyAvatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Garcia', date: 'Tomorrow', time: '08:00 AM - 1:00 PM', serviceType: 'Toddler Care', status: 'confirmed' },
-    { id: 'apt3', familyName: 'The Chen Family', familyAvatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Chen', date: 'Aug 27, 2025', time: '6:00 PM - 10:00 PM', serviceType: 'Evening Babysitting', status: 'pending' },
-  ],
-  earnings: {
-    totalRevenue: 2800,
-    commission: 350, // Assuming 12.5%
-    netPayout: 2450,
-  },
-  profileCompletion: 85,
+  status: string
 }
 
 const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
@@ -87,120 +42,178 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function CaregiverDashboardPage() {
-  const [caregiverData] = useState<CaregiverDashboardData>(mockCaregiverData)
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    upcomingBookings: 0,
+    familiesHelped: 0,
+    monthlyCompletedBookings: 0,
+    walletBalance: 0,
+  })
+  const [recentBookings, setRecentBookings] = useState<BookingItem[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
 
-  const getStatusBadge = (status: 'confirmed' | 'pending' | 'completed') => {
-    switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`/api/nannies/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setRecentBookings(json.data.recentBookings || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch nanny dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  };
+
+    fetchDashboard()
+  }, [userId])
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    try {
+      const res = await fetch(`/api/bookings/nanny/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        if (action === 'accept') {
+          setRecentBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'upcoming' } : b))
+        } else {
+          setRecentBookings(prev => prev.filter(b => b.id !== bookingId))
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} booking:`, error)
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'confirmed': case 'upcoming': return 'bg-green-100 text-green-800'
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'completed': return 'bg-blue-100 text-blue-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />
         </div>
       )}
 
-      {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard icon={FaCalendarCheck} title="Upcoming Bookings" value={caregiverData.stats.upcomingBookings} color="bg-blue-500" />
-          <StatCard icon={FaUserFriends} title="Families Helped" value={caregiverData.stats.familiesHelped} color="bg-green-500" />
-          <StatCard icon={FaDollarSign} title="This Month's Earnings" value={`$${caregiverData.stats.monthlyEarnings.toLocaleString()}`} color="bg-purple-500" />
-          <StatCard icon={FaStar} title="Parent Rating" value={caregiverData.stats.rating} color="bg-yellow-500" />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard icon={FaCalendarCheck} title="Upcoming Bookings" value={loading ? '...' : stats.upcomingBookings} color="bg-blue-500" />
+        <StatCard icon={FaUserFriends} title="Families Helped" value={loading ? '...' : stats.familiesHelped} color="bg-green-500" />
+        <StatCard icon={FaDollarSign} title="Wallet Balance" value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`} color="bg-purple-500" />
+        <StatCard icon={FaStar} title="This Month Completed" value={loading ? '...' : stats.monthlyCompletedBookings} color="bg-yellow-500" />
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Appointments Management */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Upcoming Appointments</h2>
-                <Link href="/childcare-provider/appointments" className="text-purple-600 hover:underline font-medium">View All</Link>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
+              <Link href="/nanny/dashboard/bookings" className="text-purple-600 hover:underline font-medium">View All</Link>
+            </div>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <FaSpinner className="animate-spin text-2xl text-purple-500" />
               </div>
+            ) : recentBookings.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No bookings yet</p>
+            ) : (
               <div className="space-y-4">
-                {caregiverData.upcomingAppointments.map((apt) => (
+                {recentBookings.map((apt) => (
                   <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-4">
                       <img src={apt.familyAvatar} alt={apt.familyName} className="w-12 h-12 rounded-full" />
                       <div>
                         <h3 className="font-semibold text-gray-900">{apt.familyName}</h3>
-                        <p className="text-gray-600 text-sm">{apt.date} at {apt.time}</p>
+                        <p className="text-gray-600 text-sm">
+                          {new Date(apt.scheduledAt).toLocaleDateString()} at {new Date(apt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {apt.duration ? ` (${apt.duration}min)` : ''}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                       <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusBadge(apt.status)}`}>
-                         {apt.status}
-                       </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusBadge(apt.status)}`}>
+                        {apt.status}
+                      </span>
+                      {apt.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleBookingAction(apt.id, 'accept')} className="bg-green-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-green-600 transition-colors">Accept</button>
+                          <button onClick={() => handleBookingAction(apt.id, 'deny')} className="bg-gray-200 text-gray-800 text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-gray-300 transition-colors">Decline</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Earnings Dashboard */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Earnings Summary (This Month)</h2>
-                    <button className="bg-purple-100 text-purple-700 font-semibold px-4 py-2 rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-2 text-sm">
-                        <FaFileExport />
-                        Export Report
-                    </button>
-                </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <p className="text-gray-500 text-sm">Total Bookings</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">${caregiverData.earnings.totalRevenue.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm">Platform Fees (12.5%)</p>
-                  <p className="text-3xl font-bold text-pink-500 mt-1">-${caregiverData.earnings.commission.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm">Your Payout</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">${caregiverData.earnings.netPayout.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Availability Management */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Your Availability</h3>
-              <p className="text-sm text-gray-600 mb-4">Your schedule is visible to parents. Keep it updated to receive booking requests.</p>
-              <Link href="/nanny/settings?tab=availability" className="w-full bg-purple-100 text-purple-800 text-center py-2.5 rounded-lg font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center gap-2">
-                <FaClock />
-                Manage Calendar
-              </Link>
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Earnings Summary</h2>
             </div>
-            
-            {/* Profile Completion */}
-            <div className="bg-gradient-to-br from-purple-600 to-pink-500 text-white rounded-2xl p-6">
-              <h3 className="text-lg font-bold mb-2">Enhance Your Profile</h3>
-              <p className="text-white/90 text-sm mb-4">Caregivers with complete profiles get 3x more bookings.</p>
-              <div className="bg-white/20 rounded-full h-2.5 mb-2">
-                <div className="bg-white rounded-full h-2.5" style={{ width: `${caregiverData.profileCompletion}%` }}></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div>
+                <p className="text-gray-500 text-sm">Wallet Balance</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">Rs {stats.walletBalance.toLocaleString()}</p>
               </div>
-              <p className="text-sm mb-4 font-medium">{caregiverData.profileCompletion}% Complete</p>
-              <Link href="/nanny/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
-                Upload Certifications
-              </Link>
+              <div>
+                <p className="text-gray-500 text-sm">Families Helped</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{stats.familiesHelped}</p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">This Month</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats.monthlyCompletedBookings} completed</p>
+              </div>
             </div>
           </div>
         </div>
+
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Your Availability</h3>
+            <p className="text-sm text-gray-600 mb-4">Your schedule is visible to parents. Keep it updated to receive booking requests.</p>
+            <Link href="/nanny/settings?tab=availability" className="w-full bg-purple-100 text-purple-800 text-center py-2.5 rounded-lg font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center gap-2">
+              <FaClock />
+              Manage Calendar
+            </Link>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-600 to-pink-500 text-white rounded-2xl p-6">
+            <h3 className="text-lg font-bold mb-2">Enhance Your Profile</h3>
+            <p className="text-white/90 text-sm mb-4">Caregivers with complete profiles get 3x more bookings.</p>
+            <Link href="/nanny/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+              Upload Certifications
+            </Link>
+          </div>
+        </div>
+      </div>
     </>
   )
 }

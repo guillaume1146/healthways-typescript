@@ -51,12 +51,30 @@ const WHY_CHOOSE_FIELDS = [
 
 export default function ContentManagementPage() {
   const [activeTab, setActiveTab] = useState<TabId>('hero')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [sections, setSections] = useState<Record<string, any>>({})
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [heroSlides, setHeroSlides] = useState<any[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [testimonials, setTestimonials] = useState<any[]>([])
+  interface CmsSection {
+    sectionType: string
+    content: Record<string, unknown>
+  }
+  interface CmsHeroSlide {
+    id: string
+    title: string
+    subtitle: string
+    imageUrl: string
+    sortOrder: number
+    isActive: boolean
+  }
+  interface CmsTestimonial {
+    id: string
+    name: string
+    role: string
+    content: string
+    rating: number
+    imageUrl: string
+    isActive: boolean
+  }
+  const [sections, setSections] = useState<Record<string, CmsSection>>({})
+  const [heroSlides, setHeroSlides] = useState<CmsHeroSlide[]>([])
+  const [testimonials, setTestimonials] = useState<CmsTestimonial[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -77,12 +95,10 @@ export default function ContentManagementPage() {
 
       if (sectionsRes.ok) {
         const sectionsData = await sectionsRes.json()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const indexed: Record<string, any> = {}
+        const indexed: Record<string, CmsSection> = {}
         const items = sectionsData.data || sectionsData
         if (Array.isArray(items)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          items.forEach((s: any) => {
+          items.forEach((s: CmsSection) => {
             indexed[s.sectionType] = s
           })
         }
@@ -110,8 +126,7 @@ export default function ContentManagementPage() {
     fetchAllData()
   }, [fetchAllData])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSaveSection = useCallback(async (sectionType: string, content: any) => {
+  const handleSaveSection = useCallback(async (sectionType: string, content: object) => {
     setSaving(true)
     try {
       const res = await fetch(`/api/cms/sections/${sectionType}`, {

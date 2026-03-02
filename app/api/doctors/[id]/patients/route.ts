@@ -25,74 +25,62 @@ export async function GET(
       return NextResponse.json({ message: 'Doctor profile not found' }, { status: 404 })
     }
 
-    // Get unique patients who have appointments with this doctor
-    const appointments = await prisma.appointment.findMany({
+    // Get appointment stats per patient in a single query (avoids N+1)
+    const appointmentStats = await prisma.appointment.groupBy({
+      by: ['patientId'],
       where: { doctorId: doctorProfile.id },
-      select: {
-        patient: {
-          select: {
-            id: true,
-            userId: true,
-            chronicConditions: true,
-            bloodType: true,
-            allergies: true,
-            user: {
-              select: {
-                firstName: true, lastName: true, profileImage: true,
-                phone: true, gender: true, dateOfBirth: true, email: true,
-              },
-            },
-          },
-        },
-        status: true,
-        scheduledAt: true,
-      },
-      orderBy: { scheduledAt: 'desc' },
+      _count: { id: true },
+      _max: { scheduledAt: true },
     })
 
-    // Deduplicate patients — flatten user fields for convenience
-    const patientMap = new Map<string, {
-      id: string
-      userId: string
-      firstName: string
-      lastName: string
-      email: string
-      profileImage: string | null
-      phone: string
-      gender: string | null
-      dateOfBirth: Date | null
-      bloodType: string | null
-      allergies: string[]
-      chronicConditions: string[]
-      lastVisit: Date
-      appointmentCount: number
-    }>()
-
-    for (const apt of appointments) {
-      const existing = patientMap.get(apt.patient.id)
-      if (!existing) {
-        patientMap.set(apt.patient.id, {
-          id: apt.patient.id,
-          userId: apt.patient.userId,
-          firstName: apt.patient.user.firstName,
-          lastName: apt.patient.user.lastName,
-          email: apt.patient.user.email,
-          profileImage: apt.patient.user.profileImage,
-          phone: apt.patient.user.phone,
-          gender: apt.patient.user.gender,
-          dateOfBirth: apt.patient.user.dateOfBirth,
-          bloodType: apt.patient.bloodType,
-          allergies: apt.patient.allergies,
-          chronicConditions: apt.patient.chronicConditions,
-          lastVisit: apt.scheduledAt,
-          appointmentCount: 1,
-        })
-      } else {
-        existing.appointmentCount++
-      }
+    if (appointmentStats.length === 0) {
+      return NextResponse.json({ success: true, data: [] })
     }
 
-    return NextResponse.json({ success: true, data: Array.from(patientMap.values()) })
+    const patientIds = appointmentStats.map(s => s.patientId)
+
+    // Single query for all patient details
+    const patients = await prisma.patientProfile.findMany({
+      where: { id: { in: patientIds } },
+      select: {
+        id: true,
+        userId: true,
+        bloodType: true,
+        allergies: true,
+        chronicConditions: true,
+        user: {
+          select: {
+            firstName: true, lastName: true, profileImage: true,
+            phone: true, gender: true, dateOfBirth: true, email: true,
+          },
+        },
+      },
+    })
+
+    // Build stats lookup
+    const statsMap = new Map(appointmentStats.map(s => [s.patientId, s]))
+
+    const data = patients.map(p => {
+      const stats = statsMap.get(p.id)
+      return {
+        id: p.id,
+        userId: p.userId,
+        firstName: p.user.firstName,
+        lastName: p.user.lastName,
+        email: p.user.email,
+        profileImage: p.user.profileImage,
+        phone: p.user.phone,
+        gender: p.user.gender,
+        dateOfBirth: p.user.dateOfBirth,
+        bloodType: p.bloodType,
+        allergies: p.allergies,
+        chronicConditions: p.chronicConditions,
+        lastVisit: stats?._max.scheduledAt,
+        appointmentCount: stats?._count.id || 0,
+      }
+    })
+
+    return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Doctor patients fetch error:', error)
     return NextResponse.json({ message: 'Server error' }, { status: 500 })

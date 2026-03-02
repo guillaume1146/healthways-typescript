@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FaUserNurse, FaCalendarCheck, FaDollarSign, FaStar, FaChartLine,
-  FaClipboardList, FaClock, FaUniversity, FaBan,
+  FaCalendarCheck, FaDollarSign, FaStar, FaChartLine,
+  FaClipboardList, FaClock, FaUniversity,
   FaFileInvoiceDollar, FaCheckCircle, FaSpinner, FaTimesCircle
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
-// Type Definitions
 interface StatCardProps {
   icon: IconType
   title: string
@@ -19,60 +18,13 @@ interface StatCardProps {
   color: string
 }
 
-interface EarningSummary {
-  totalRevenue: number
-  commission: number
-  netPayout: number
-  period: 'monthly' | 'weekly'
-}
-
-interface Appointment {
+interface BookingItem {
   id: string
   patientName: string
   patientAvatar: string
-  time: string
+  scheduledAt: string
   serviceType: string
-  status: 'upcoming' | 'completed' | 'cancelled'
-}
-
-interface NurseDashboardData {
-  name: string
-  specialization: string
-  avatar: string
-  stats: {
-    todayAppointments: number
-    completedServices: number
-    monthlyEarnings: number
-    rating: number
-  }
-  upcomingAppointments: Appointment[]
-  earnings: EarningSummary
-  profileCompletion: number
-}
-
-// Mock Data
-const mockNurseDashboardData: NurseDashboardData = {
-  name: 'Maria Thompson',
-  specialization: 'Elderly Care Specialist',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&backgroundColor=e0f2fe',
-  stats: {
-    todayAppointments: 4,
-    completedServices: 1250,
-    monthlyEarnings: 5500,
-    rating: 4.9,
-  },
-  upcomingAppointments: [
-    { id: 'apt1', patientName: 'George Miller', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George', time: '10:00 AM', serviceType: 'Wound Care', status: 'upcoming' },
-    { id: 'apt2', patientName: 'Susan Webb', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Susan', time: '02:30 PM', serviceType: 'Medication Management', status: 'upcoming' },
-    { id: 'apt3', patientName: 'Robert Chen', patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert', time: '09:00 AM (Yesterday)', serviceType: 'Diabetes Management', status: 'completed' },
-  ],
-  earnings: {
-    totalRevenue: 5500,
-    commission: 550, // Assuming 10%
-    netPayout: 4950,
-    period: 'monthly',
-  },
-  profileCompletion: 90,
+  status: string
 }
 
 const StatCard = ({ icon: Icon, title, value, change, color }: StatCardProps) => (
@@ -94,122 +46,190 @@ const StatCard = ({ icon: Icon, title, value, change, color }: StatCardProps) =>
   </div>
 )
 
-const AppointmentStatusIcon = ({ status }: { status: 'upcoming' | 'completed' | 'cancelled' }) => {
+const AppointmentStatusIcon = ({ status }: { status: string }) => {
   if (status === 'completed') return <FaCheckCircle className="text-green-500" />
-  if (status === 'upcoming') return <FaSpinner className="text-blue-500 animate-spin" />
+  if (status === 'upcoming' || status === 'pending') return <FaSpinner className="text-blue-500 animate-spin" />
   if (status === 'cancelled') return <FaTimesCircle className="text-red-500" />
   return null
 }
 
 export default function NurseDashboardPage() {
-  const [nurseData] = useState<NurseDashboardData>(mockNurseDashboardData)
   const [userId, setUserId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    todayAppointments: 0,
+    completedServices: 0,
+    monthlyCompletedServices: 0,
+    walletBalance: 0,
+  })
+  const [recentBookings, setRecentBookings] = useState<BookingItem[]>([])
 
   useEffect(() => {
-    const id = localStorage.getItem('healthwyz_user_id')
-    if (id) setUserId(id)
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUserId(parsed.id)
+      }
+    } catch {
+      // Corrupted localStorage
+    }
   }, [])
+
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch(`/api/nurses/${userId}/dashboard`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setStats(json.data.stats)
+            setRecentBookings(json.data.recentBookings || [])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch nurse dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [userId])
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    try {
+      const res = await fetch(`/api/bookings/nurse/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        if (action === 'accept') {
+          setRecentBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'upcoming' } : b))
+        } else {
+          setRecentBookings(prev => prev.filter(b => b.id !== bookingId))
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} booking:`, error)
+    }
+  }
+
+  const platformFeeRate = 0.10
+  const monthlyEarnings = stats.monthlyCompletedServices * 500 // estimate per service
+  const commission = Math.round(monthlyEarnings * platformFeeRate)
+  const netPayout = monthlyEarnings - commission
 
   return (
     <>
-      {/* Wallet Balance */}
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />
         </div>
       )}
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           icon={FaCalendarCheck}
           title="Today's Appointments"
-          value={nurseData.stats.todayAppointments}
+          value={loading ? '...' : stats.todayAppointments}
           color="bg-blue-500"
         />
         <StatCard
           icon={FaClipboardList}
           title="Total Services Completed"
-          value={nurseData.stats.completedServices}
+          value={loading ? '...' : stats.completedServices}
           color="bg-green-500"
         />
         <StatCard
           icon={FaDollarSign}
-          title="This Month's Earnings"
-          value={`$${nurseData.stats.monthlyEarnings.toLocaleString()}`}
-          change="+15%"
+          title="Wallet Balance"
+          value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`}
           color="bg-purple-500"
         />
         <StatCard
           icon={FaStar}
-          title="Patient Rating"
-          value={nurseData.stats.rating}
+          title="This Month Completed"
+          value={loading ? '...' : stats.monthlyCompletedServices}
           color="bg-yellow-500"
         />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Appointments Management */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Upcoming Appointments</h2>
-              <Link href="/nurse/appointments" className="text-teal-600 hover:underline font-medium">
+              <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
+              <Link href="/nurse/dashboard/appointments" className="text-teal-600 hover:underline font-medium">
                 View All
               </Link>
             </div>
-            <div className="space-y-4">
-              {nurseData.upcomingAppointments.map((apt) => (
-                <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <img src={apt.patientAvatar} alt={apt.patientName} className="w-12 h-12 rounded-full" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{apt.patientName}</h3>
-                      <p className="text-gray-600 text-sm">{apt.time} • {apt.serviceType}</p>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <FaSpinner className="animate-spin text-2xl text-teal-500" />
+              </div>
+            ) : recentBookings.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No appointments yet</p>
+            ) : (
+              <div className="space-y-4">
+                {recentBookings.map((apt) => (
+                  <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <img src={apt.patientAvatar} alt={apt.patientName} className="w-12 h-12 rounded-full" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{apt.patientName}</h3>
+                        <p className="text-gray-600 text-sm">
+                          {new Date(apt.scheduledAt).toLocaleDateString()} at {new Date(apt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} &bull; {apt.serviceType}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                        apt.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        apt.status === 'upcoming' || apt.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {apt.status}
+                      </span>
+                      {apt.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleBookingAction(apt.id, 'accept')} className="bg-green-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-green-600 transition-colors">Accept</button>
+                          <button onClick={() => handleBookingAction(apt.id, 'deny')} className="bg-gray-200 text-gray-800 text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-gray-300 transition-colors">Decline</button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                     <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                       apt.status === 'completed' ? 'bg-green-100 text-green-800' :
-                       apt.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
-                       'bg-red-100 text-red-800'
-                     }`}>
-                       {apt.status}
-                     </span>
-                    <button className="text-gray-400 hover:text-gray-600">...</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Earnings Dashboard */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Earnings Summary (Monthly)</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
-                <p className="text-gray-500 text-sm">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">${nurseData.earnings.totalRevenue.toLocaleString()}</p>
+                <p className="text-gray-500 text-sm">Wallet Balance</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">Rs {stats.walletBalance.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-sm">Platform Commission (10%)</p>
-                <p className="text-3xl font-bold text-red-500 mt-1">-${nurseData.earnings.commission.toLocaleString()}</p>
+                <p className="text-gray-500 text-sm">This Month Services</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{stats.monthlyCompletedServices}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-sm">Your Net Payout</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">${nurseData.earnings.netPayout.toLocaleString()}</p>
+                <p className="text-gray-500 text-sm">Total Completed</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats.completedServices}</p>
               </div>
             </div>
             <div className="mt-6 pt-6 border-t">
-              <p className="text-sm text-center text-gray-600">Next payout is scheduled for the 1st of next month.</p>
+              <p className="text-sm text-center text-gray-600">Earnings are updated in real-time from your wallet balance.</p>
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-8">
-          {/* Availability Management */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Your Availability</h3>
             <p className="text-sm text-gray-600 mb-4">
@@ -225,14 +245,13 @@ export default function NurseDashboardPage() {
             </Link>
           </div>
 
-          {/* Payment Configuration */}
-           <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
-             <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <FaUniversity className="text-green-600 text-xl" />
               <div>
                 <p className="text-sm font-semibold text-green-800">Bank Account Verified</p>
-                <p className="text-xs text-gray-600">Payouts are sent to **** **** 1234</p>
+                <p className="text-xs text-gray-600">Payouts are sent to your wallet</p>
               </div>
             </div>
             <Link href="/nurse/settings?tab=payments" className="w-full bg-gray-100 text-gray-800 text-center mt-4 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
@@ -241,16 +260,11 @@ export default function NurseDashboardPage() {
             </Link>
           </div>
 
-          {/* Profile Completion */}
           <div className="bg-gradient-to-br from-teal-600 to-blue-600 text-white rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-2">Complete Your Profile</h3>
             <p className="text-white/90 text-sm mb-4">
               A complete profile helps you get chosen by more patients.
             </p>
-            <div className="bg-white/20 rounded-full h-2.5 mb-2">
-              <div className="bg-white rounded-full h-2.5" style={{ width: `${nurseData.profileCompletion}%` }}></div>
-            </div>
-            <p className="text-sm mb-4 font-medium">{nurseData.profileCompletion}% Complete</p>
             <Link href="/nurse/settings?tab=documents" className="bg-white text-teal-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
               Upload Documents
             </Link>

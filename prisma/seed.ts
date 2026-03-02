@@ -17,6 +17,7 @@ import { seedCatalogData } from './seeds/15-catalog-data.seed'
 import { seedWallets } from './seeds/16-wallets.seed'
 import { seedDoctorPosts } from './seeds/17-doctor-posts.seed'
 import { seedProviderAvailability } from './seeds/18-provider-availability.seed'
+import { seedDocumentsAndEnrichment } from './seeds/19-documents-enrichment.seed'
 
 const prisma = new PrismaClient()
 
@@ -123,6 +124,7 @@ async function main() {
   await seedWallets(prisma)
   await seedDoctorPosts(prisma)
   await seedProviderAvailability(prisma)
+  await seedDocumentsAndEnrichment(prisma)
 
   console.log('Database seeded successfully!')
 }

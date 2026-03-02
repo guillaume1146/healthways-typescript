@@ -11,10 +11,8 @@ interface CtaBannerContent {
 }
 
 interface CtaBannerEditorProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave: (content: any) => Promise<void>
+  data: Partial<CtaBannerContent>
+  onSave: (content: CtaBannerContent) => Promise<void>
 }
 
 export default function CtaBannerEditor({ data, onSave }: CtaBannerEditorProps) {

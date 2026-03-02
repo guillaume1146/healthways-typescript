@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent, ChangeEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   FaUser, 
@@ -188,7 +189,13 @@ export default function EnhancedRegistrationForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const [agreeToTerms, setAgreeToTerms] = useState(false)
+  const [agreeToPrivacy, setAgreeToPrivacy] = useState(false)
+  const [agreeToDisclaimer, setAgreeToDisclaimer] = useState(false)
   const [documents, setDocuments] = useState<Document[]>(documentRequirements.patient)
+  const router = useRouter()
 
   const [formData, setFormData] = useState<SignupFormData>({
     fullName: '',
@@ -271,14 +278,62 @@ export default function EnhancedRegistrationForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+    setSubmitError(null)
+    setSubmitSuccess(null)
+
     try {
-      // Simulate registration process
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      console.log('Registration:', { formData, documents })
-      // Handle successful registration
+      // Build document verification results from uploaded documents
+      const documentVerifications = documents
+        .filter(doc => doc.uploaded && doc.file)
+        .map(doc => ({
+          documentId: doc.id,
+          verified: true,
+          confidence: 85,
+        }))
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+          phone: formData.phone,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+          address: formData.address,
+          userType: formData.userType,
+          licenseNumber: formData.licenseNumber || undefined,
+          specialization: formData.specialization || undefined,
+          institution: formData.institution || undefined,
+          experience: formData.experience || undefined,
+          emergencyContactName: formData.emergencyContactName || undefined,
+          emergencyContactPhone: formData.emergencyContactPhone || undefined,
+          emergencyContactRelation: formData.emergencyContactRelation || undefined,
+          agreeToTerms,
+          agreeToPrivacy,
+          agreeToDisclaimer,
+          documentVerifications,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        setSubmitError(data.message || 'Registration failed. Please try again.')
+        return
+      }
+
+      setSubmitSuccess(data.message || 'Registration successful!')
+
+      // Redirect to login page after a short delay so the user can see the success message
+      setTimeout(() => {
+        router.push('/login')
+      }, 2500)
     } catch (error) {
       console.error('Registration error:', error)
+      setSubmitError('A network error occurred. Please check your connection and try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -839,22 +894,40 @@ export default function EnhancedRegistrationForm() {
                     <h3 className="font-bold text-lg text-gray-900 mb-4">Terms and Conditions</h3>
                     <div className="space-y-4 text-sm text-gray-700">
                       <div className="flex items-start gap-3">
-                        <input type="checkbox" id="terms" className="mt-1" required />
+                        <input
+                          type="checkbox"
+                          id="terms"
+                          className="mt-1"
+                          checked={agreeToTerms}
+                          onChange={(e) => setAgreeToTerms(e.target.checked)}
+                        />
                         <label htmlFor="terms" className="flex-1">
-                          I agree to the <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and 
+                          I agree to the <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and
                           <Link href="/privacy" className="text-blue-600 hover:underline ml-1">Privacy Policy</Link>
                         </label>
                       </div>
-                      
+
                       <div className="flex items-start gap-3">
-                        <input type="checkbox" id="verify" className="mt-1" required />
+                        <input
+                          type="checkbox"
+                          id="verify"
+                          className="mt-1"
+                          checked={agreeToPrivacy}
+                          onChange={(e) => setAgreeToPrivacy(e.target.checked)}
+                        />
                         <label htmlFor="verify" className="flex-1">
                           I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
                         </label>
                       </div>
-                      
+
                       <div className="flex items-start gap-3">
-                        <input type="checkbox" id="consent" className="mt-1" required />
+                        <input
+                          type="checkbox"
+                          id="consent"
+                          className="mt-1"
+                          checked={agreeToDisclaimer}
+                          onChange={(e) => setAgreeToDisclaimer(e.target.checked)}
+                        />
                         <label htmlFor="consent" className="flex-1">
                           I consent to the verification of my documents and credentials by Healthwyz and relevant regulatory bodies.
                         </label>
@@ -882,6 +955,20 @@ export default function EnhancedRegistrationForm() {
               </div>
             )}
 
+            {/* Success / Error Messages */}
+            {submitError && (
+              <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 flex items-start gap-3">
+                <FaTimes className="mt-0.5 flex-shrink-0" />
+                <p>{submitError}</p>
+              </div>
+            )}
+            {submitSuccess && (
+              <div className="mt-6 bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 flex items-start gap-3">
+                <FaCheck className="mt-0.5 flex-shrink-0" />
+                <p>{submitSuccess} Redirecting to login...</p>
+              </div>
+            )}
+
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-8 pt-6 border-t">
               {currentStep > 1 && (
@@ -906,7 +993,7 @@ export default function EnhancedRegistrationForm() {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !validateStep(currentStep)}
+                  disabled={isSubmitting || !validateStep(currentStep) || !agreeToTerms || !agreeToPrivacy || !agreeToDisclaimer || !!submitSuccess}
                   className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
                 >
                   {isSubmitting ? (
