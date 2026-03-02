@@ -8,9 +8,10 @@ interface VerificationStepProps {
   selectedType: UserType | undefined;
   documents: Document[];
   verificationResults?: Record<string, DocumentVerificationStatus>;
+  onFormChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function VerificationStep({ formData, selectedType, documents, verificationResults = {} }: VerificationStepProps) {
+export default function VerificationStep({ formData, selectedType, documents, verificationResults = {}, onFormChange }: VerificationStepProps) {
   const verifiedCount = Object.values(verificationResults).filter(v => v.status === 'verified').length
   const failedCount = Object.values(verificationResults).filter(v => v.status === 'failed').length
   const errorCount = Object.values(verificationResults).filter(v => v.status === 'error').length
@@ -144,23 +145,23 @@ export default function VerificationStep({ formData, selectedType, documents, ve
           <h3 className="font-bold text-lg text-gray-900 mb-4">Terms and Conditions</h3>
           <div className="space-y-4 text-sm text-gray-700">
             <div className="flex items-start gap-3">
-              <input type="checkbox" id="terms" className="mt-1" required />
-              <label htmlFor="terms" className="flex-1">
-                I agree to the <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and 
+              <input type="checkbox" id="agreeToTerms" name="agreeToTerms" className="mt-1" checked={formData.agreeToTerms} onChange={onFormChange} required />
+              <label htmlFor="agreeToTerms" className="flex-1">
+                I agree to the <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and
                 <Link href="/privacy" className="text-blue-600 hover:underline ml-1">Privacy Policy</Link>
               </label>
             </div>
-            
+
             <div className="flex items-start gap-3">
-              <input type="checkbox" id="verify" className="mt-1" required />
-              <label htmlFor="verify" className="flex-1">
+              <input type="checkbox" id="agreeToPrivacy" name="agreeToPrivacy" className="mt-1" checked={formData.agreeToPrivacy} onChange={onFormChange} required />
+              <label htmlFor="agreeToPrivacy" className="flex-1">
                 I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
               </label>
             </div>
-            
+
             <div className="flex items-start gap-3">
-              <input type="checkbox" id="consent" className="mt-1" required />
-              <label htmlFor="consent" className="flex-1">
+              <input type="checkbox" id="agreeToDisclaimer" name="agreeToDisclaimer" className="mt-1" checked={formData.agreeToDisclaimer} onChange={onFormChange} required />
+              <label htmlFor="agreeToDisclaimer" className="flex-1">
                 I consent to the verification of my documents and credentials by Healthwyz and relevant regulatory bodies.
               </label>
             </div>

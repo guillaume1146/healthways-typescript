@@ -1441,14 +1441,15 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-all ${
-                  activeTab === tab.id 
-                    ? `${tab.color} border-b-2 border-current bg-blue-50` 
+                className={`flex-shrink-0 px-3 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-1.5 md:gap-2 ${
+                  activeTab === tab.id
+                    ? `${tab.color} border-b-2 border-current bg-blue-50`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
+                title={tab.label}
               >
-                <tab.icon className="inline mr-2" />
-                <span className="whitespace-nowrap">{tab.label}</span>
+                <tab.icon className="text-base" />
+                <span className="hidden md:inline whitespace-nowrap">{tab.label}</span>
               </button>
             ))}
           </div>

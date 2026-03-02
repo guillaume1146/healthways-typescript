@@ -37,13 +37,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         className={`
           fixed inset-y-0 left-0 z-40
           ${isOpen ? 'w-full sm:w-72 md:w-80 lg:w-80 xl:w-96' : 'w-0 md:w-64 lg:w-72 xl:w-80'}
-          md:static md:h-full
           bg-white shadow-2xl md:shadow-lg
           transform transition-all duration-300 ease-in-out
           overflow-hidden
         `}
       >
-        <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-5 lg:p-6 pt-16 md:pt-4">
+        <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-5 lg:p-6 pt-16 md:pt-20 lg:pt-24">
           {/* Mobile close button */}
           <button
             onClick={onClose}

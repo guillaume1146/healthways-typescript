@@ -94,7 +94,7 @@ const mockDocumentData: Document[] = [
 
 // --- REUSABLE COMPONENTS ---
 const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: { icon: IconType, label: string, tabName: ActiveTab, activeTab: ActiveTab, setActiveTab: (tab: ActiveTab) => void }) => (
-  <button onClick={() => setActiveTab(tabName)} className={`flex items-center w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === tabName ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}><Icon className="mr-3 text-lg" />{label}</button>
+  <button onClick={() => setActiveTab(tabName)} className={`flex items-center justify-center md:justify-start w-full text-left px-3 md:px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === tabName ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`} title={label}><Icon className="md:mr-3 text-lg" /><span className="hidden md:inline">{label}</span></button>
 );
 
 const TagInput = ({ label, tags, onChange }: { label: string, tags: string[], onChange: (newTags: string[]) => void }) => {

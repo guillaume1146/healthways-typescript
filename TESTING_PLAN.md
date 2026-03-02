@@ -51,53 +51,203 @@ npm run dev
 
 ### Test Data Files
 
-Test documents are in `Test-Data/generated/`. Run `node Test-Data/generate-test-docs.js` first if the folder is empty.
+Test documents are in `Test-Data/generated/`. Run `node Test-Data/generate-test-docs.js` first if the folder is empty. This generates **57 PDFs** — one per document type per persona, covering all 11 user types.
 
-Three test personas are available for OCR-verified registration:
+**File naming:** `{document-id}-{slugified-name}.pdf` — the document ID matches the upload slot in the UI.
 
-#### Persona 1: Doctor Registration
-- **Full Name on form:** `Rajesh Kumar Doorgakant`
-- **Email:** any new email (e.g., `rajesh.test@email.com`)
-- **Password:** any (e.g., `Test1234!`)
-- **User Type:** Doctor
-- **National ID upload:** `Test-Data/generated/national-id-rajesh-kumar-doorgakant.pdf`
-- **Proof of Residence upload:** `Test-Data/generated/proof-of-residence-rajesh-kumar-doorgakant.pdf`
-- **Professional License upload:** `Test-Data/generated/professional-license-rajesh-kumar-doorgakant.pdf`
-- **Expected result:** OCR reads "Rajesh Kumar Doorgakant" from PDFs, matches the name on the form. Green "Verified" badge on documents.
+---
 
-#### Persona 2: Nurse Registration
-- **Full Name on form:** `Priya Devi Ramsewak`
-- **Email:** any new email (e.g., `priya.test@email.com`)
-- **Password:** any (e.g., `Test1234!`)
-- **User Type:** Nurse
-- **National ID upload:** `Test-Data/generated/national-id-priya-devi-ramsewak.pdf`
-- **Proof of Residence upload:** `Test-Data/generated/proof-of-residence-priya-devi-ramsewak.pdf`
-- **Professional License upload:** `Test-Data/generated/professional-license-priya-devi-ramsewak.pdf`
-- **Expected result:** Name matches, verified status
+#### Persona 1: Patient Registration
+- **Full Name:** `Aisha Fatima Doobur`
+- **Email:** `aisha.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Patient (2 required, 2 optional)
 
-#### Persona 3: Pharmacist Registration
-- **Full Name on form:** `Jean-Pierre Lafleur`
-- **Email:** any new email (e.g., `jeanpierre.test@email.com`)
-- **Password:** any (e.g., `Test1234!`)
-- **User Type:** Pharmacist
-- **National ID upload:** `Test-Data/generated/national-id-jean-pierre-lafleur.pdf`
-- **Proof of Residence upload:** `Test-Data/generated/proof-of-residence-jean-pierre-lafleur.pdf`
-- **Professional License upload:** `Test-Data/generated/professional-license-jean-pierre-lafleur.pdf`
-- **Expected result:** Name matches, verified status
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-aisha-fatima-doobur.pdf` | Yes |
+| Health Insurance Card | `insurance-card-aisha-fatima-doobur.pdf` | No |
+| Proof of Address | `proof-address-aisha-fatima-doobur.pdf` | Yes |
+| Medical History Document | `medical-history-aisha-fatima-doobur.pdf` | No |
+
+---
+
+#### Persona 2: Doctor Registration
+- **Full Name:** `Rajesh Kumar Doorgakant`
+- **Email:** `rajesh.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Doctor (4 required, 1 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-rajesh-kumar-doorgakant.pdf` | Yes |
+| Medical Degree | `medical-degree-rajesh-kumar-doorgakant.pdf` | Yes |
+| Professional License | `medical-license-rajesh-kumar-doorgakant.pdf` | Yes |
+| Registration Certificate | `registration-cert-rajesh-kumar-doorgakant.pdf` | Yes |
+| Work Certificate | `work-certificate-rajesh-kumar-doorgakant.pdf` | No |
+
+---
+
+#### Persona 3: Nurse Registration
+- **Full Name:** `Priya Devi Ramsewak`
+- **Email:** `priya.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Nurse (5 required)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-priya-devi-ramsewak.pdf` | Yes |
+| Nursing Degree/Diploma | `nursing-degree-priya-devi-ramsewak.pdf` | Yes |
+| Professional License | `nursing-license-priya-devi-ramsewak.pdf` | Yes |
+| Registration Certificate | `registration-cert-priya-devi-ramsewak.pdf` | Yes |
+| Work Certificate | `work-certificate-priya-devi-ramsewak.pdf` | Yes |
+
+---
+
+#### Persona 4: Nanny Registration
+- **Full Name:** `Marie-Claire Montagne`
+- **Email:** `marie.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Nanny (2 required, 2 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-marie-claire-montagne.pdf` | Yes |
+| Police Clearance Certificate | `police-clearance-marie-claire-montagne.pdf` | Yes |
+| Childcare Training Certificate | `childcare-cert-marie-claire-montagne.pdf` | No |
+| Employment References | `employment-refs-marie-claire-montagne.pdf` | No |
+
+---
+
+#### Persona 5: Pharmacist Registration
+- **Full Name:** `Jean-Pierre Lafleur`
+- **Email:** `jeanpierre.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Pharmacist (5 required)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-jean-pierre-lafleur.pdf` | Yes |
+| Pharmacy Degree | `pharmacy-degree-jean-pierre-lafleur.pdf` | Yes |
+| Professional License | `pharmacy-license-jean-pierre-lafleur.pdf` | Yes |
+| Registration Certificate | `registration-cert-jean-pierre-lafleur.pdf` | Yes |
+| Pharmacy Affiliation Proof | `pharmacy-affiliation-jean-pierre-lafleur.pdf` | Yes |
+
+---
+
+#### Persona 6: Lab Technician Registration
+- **Full Name:** `David Sooben Ahkee`
+- **Email:** `david.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Lab Technician (5 required)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-david-sooben-ahkee.pdf` | Yes |
+| Laboratory Science Degree | `lab-degree-david-sooben-ahkee.pdf` | Yes |
+| Professional License | `lab-license-david-sooben-ahkee.pdf` | Yes |
+| Laboratory Accreditation | `lab-accreditation-david-sooben-ahkee.pdf` | Yes |
+| Proof of Employment | `employment-proof-david-sooben-ahkee.pdf` | Yes |
+
+---
+
+#### Persona 7: Emergency Worker Registration
+- **Full Name:** `Jean-Marc Lavoix`
+- **Email:** `jeanmarc.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Emergency Worker (4 required, 1 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-jean-marc-lavoix.pdf` | Yes |
+| EMT/Paramedic Certification | `emt-cert-jean-marc-lavoix.pdf` | Yes |
+| Professional License | `professional-license-jean-marc-lavoix.pdf` | No |
+| First Aid/ALS Certification | `first-aid-cert-jean-marc-lavoix.pdf` | Yes |
+| Proof of Employment | `employment-proof-jean-marc-lavoix.pdf` | Yes |
+
+---
+
+#### Persona 8: Insurance Rep Registration
+- **Full Name:** `Vikram Kumar Doorgakant`
+- **Email:** `vikram.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Insurance Rep (3 required, 2 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-vikram-kumar-doorgakant.pdf` | Yes |
+| Proof of Employment | `employment-proof-vikram-kumar-doorgakant.pdf` | Yes |
+| Company Registration Certificate | `company-registration-vikram-kumar-doorgakant.pdf` | Yes |
+| Regulatory Authorization | `regulatory-auth-vikram-kumar-doorgakant.pdf` | No |
+| Professional Accreditation | `professional-accred-vikram-kumar-doorgakant.pdf` | No |
+
+---
+
+#### Persona 9: Corporate Administrator Registration
+- **Full Name:** `Anil Kumar Doobur`
+- **Email:** `anil.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Corporate Administrator (5 required, 1 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-anil-kumar-doobur.pdf` | Yes |
+| Company Registration Certificate | `company-registration-anil-kumar-doobur.pdf` | Yes |
+| Business Operating License | `business-permit-anil-kumar-doobur.pdf` | Yes |
+| Employment Verification Letter | `employment-verification-anil-kumar-doobur.pdf` | Yes |
+| Company Authorization Letter | `authorization-letter-anil-kumar-doobur.pdf` | Yes |
+| Corporate Profile/Brochure | `corporate-profile-anil-kumar-doobur.pdf` | No |
+
+---
+
+#### Persona 10: Referral Partner Registration
+- **Full Name:** `Sophie Anne Leclerc`
+- **Email:** `sophie.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Referral Partner (3 required, 3 optional)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-sophie-anne-leclerc.pdf` | Yes |
+| Proof of Address | `proof-address-sophie-anne-leclerc.pdf` | Yes |
+| Business Registration | `business-registration-sophie-anne-leclerc.pdf` | No |
+| Marketing Portfolio/Experience | `marketing-portfolio-sophie-anne-leclerc.pdf` | No |
+| Bank Account Details | `bank-details-sophie-anne-leclerc.pdf` | Yes |
+| Tax Registration Certificate | `tax-certificate-sophie-anne-leclerc.pdf` | No |
+
+---
+
+#### Persona 11: Regional Administrator Registration
+- **Full Name:** `Hassan Fareed Doorgakant`
+- **Email:** `hassan.test@email.com` | **Password:** `Test1234!`
+- **User Type:** Regional Administrator (7 required)
+
+| Upload Slot | File | Required |
+|-------------|------|----------|
+| National ID/Passport | `national-id-hassan-fareed-doorgakant.pdf` | Yes |
+| Business Plan Document | `business-plan-hassan-fareed-doorgakant.pdf` | Yes |
+| Financial Statements | `financial-statements-hassan-fareed-doorgakant.pdf` | Yes |
+| Healthcare/Business Experience | `experience-credentials-hassan-fareed-doorgakant.pdf` | Yes |
+| Market Research Report | `regional-research-hassan-fareed-doorgakant.pdf` | Yes |
+| Legal Clearance Certificate | `legal-clearance-hassan-fareed-doorgakant.pdf` | Yes |
+| Professional Reference Letters | `reference-letters-hassan-fareed-doorgakant.pdf` | Yes |
+
+---
 
 #### OCR Failure Test
 - **Full Name on form:** `John Smith` (a name that does NOT appear in any test document)
-- **Upload any of the test PDFs above** (they contain "Rajesh Kumar Doorgakant", etc.)
-- **Expected result:** OCR reads a different name, shows Yellow "Manual review" badge
+- **Upload any test PDF** (e.g., `national-id-rajesh-kumar-doorgakant.pdf`)
+- **Expected result:** Yellow "Manual review" badge (name mismatch)
+
+**All file paths are relative to project root.** Prefix with `Test-Data/generated/` when browsing files.
 
 | # | Test | Steps | Expected |
 |---|------|-------|----------|
-| A1 | Doctor registration | /signup > Select Doctor > Full Name: `Rajesh Kumar Doorgakant` > Email: `rajesh.test@email.com` > Password: `Test1234!` > Upload the 3 PDFs listed above > Submit | Success message, documents show "Verified" badge, redirect to /login |
-| A2 | Nurse registration | /signup > Select Nurse > Full Name: `Priya Devi Ramsewak` > Upload the 3 corresponding PDFs > Submit | Success, "Verified" on documents |
-| A3 | OCR failure test | /signup > Select Doctor > Full Name: `John Smith` > Upload `national-id-rajesh-kumar-doorgakant.pdf` | Yellow "Manual review" badge (name mismatch) |
-| A4 | Trial wallet created | After registration, login with the new account | Wallet card shows Rs 4,500 balance |
-| A5 | Duplicate email | Try registering with `emma.johnson@healthwyz.mu` (already exists) | Error: "An account with this email already exists" |
-| A6 | Password mismatch | Enter different passwords in password and confirm fields | Form validation prevents proceeding |
+| A1 | Patient registration | /signup > Patient > Full Name: `Aisha Fatima Doobur` > Upload 2 required PDFs > Submit | "Verified" badges, redirect to /login |
+| A2 | Doctor registration | /signup > Doctor > Full Name: `Rajesh Kumar Doorgakant` > Upload 4 required PDFs > Submit | "Verified" badges |
+| A3 | Nurse registration | /signup > Nurse > Full Name: `Priya Devi Ramsewak` > Upload 5 required PDFs > Submit | "Verified" badges |
+| A4 | Nanny registration | /signup > Nanny > Full Name: `Marie-Claire Montagne` > Upload 2 required PDFs > Submit | "Verified" badges |
+| A5 | Pharmacist registration | /signup > Pharmacist > Full Name: `Jean-Pierre Lafleur` > Upload 5 required PDFs > Submit | "Verified" badges |
+| A6 | Lab Technician registration | /signup > Lab Technician > Full Name: `David Sooben Ahkee` > Upload 5 required PDFs > Submit | "Verified" badges |
+| A7 | Emergency Worker registration | /signup > Emergency Worker > Full Name: `Jean-Marc Lavoix` > Upload 4 required PDFs > Submit | "Verified" badges |
+| A8 | Insurance Rep registration | /signup > Insurance Rep > Full Name: `Vikram Kumar Doorgakant` > Upload 3 required PDFs > Submit | "Verified" badges |
+| A9 | Corporate Admin registration | /signup > Corporate Administrator > Full Name: `Anil Kumar Doobur` > Upload 5 required PDFs > Submit | "Verified" badges |
+| A10 | Referral Partner registration | /signup > Referral Partner > Full Name: `Sophie Anne Leclerc` > Upload 3 required PDFs > Submit | "Verified" badges |
+| A11 | Regional Admin registration | /signup > Regional Administrator > Full Name: `Hassan Fareed Doorgakant` > Upload 7 required PDFs > Submit | "Verified" badges |
+| A12 | OCR failure test | /signup > Doctor > Full Name: `John Smith` > Upload `national-id-rajesh-kumar-doorgakant.pdf` | Yellow "Manual review" badge |
+| A13 | Trial wallet created | After registration, login with the new account | Wallet card shows Rs 4,500 balance |
+| A14 | Duplicate email | Try registering with `emma.johnson@healthwyz.mu` (already exists) | Error: "An account with this email already exists" |
+| A15 | Password mismatch | Enter different passwords in password and confirm fields | Form validation prevents proceeding |
 
 ## B. Login & Auth
 
@@ -319,13 +469,21 @@ npm run dev
 2. Click "Booking Requests" > Accept the booking
 3. Login as patient > Click bell icon > See "Booking Accepted" notification
 
-### Round 4: Registration with OCR
+### Round 4: Registration with OCR (Doctor)
 1. Go to /signup > Select Doctor
 2. Full Name: `Rajesh Kumar Doorgakant`
-3. Upload: `Test-Data/generated/national-id-rajesh-kumar-doorgakant.pdf`
-4. Upload: `Test-Data/generated/proof-of-residence-rajesh-kumar-doorgakant.pdf`
-5. Upload: `Test-Data/generated/professional-license-rajesh-kumar-doorgakant.pdf`
-6. Verify: Green "Verified" badges on documents
+3. Upload to "National ID/Passport": `Test-Data/generated/national-id-rajesh-kumar-doorgakant.pdf`
+4. Upload to "Medical Degree": `Test-Data/generated/medical-degree-rajesh-kumar-doorgakant.pdf`
+5. Upload to "Professional License": `Test-Data/generated/medical-license-rajesh-kumar-doorgakant.pdf`
+6. Upload to "Registration Certificate": `Test-Data/generated/registration-cert-rajesh-kumar-doorgakant.pdf`
+7. Verify: Green "Verified" badges on all 4 required documents
+
+### Round 4b: Registration with OCR (Patient)
+1. Go to /signup > Select Patient
+2. Full Name: `Aisha Fatima Doobur`
+3. Upload to "National ID/Passport": `Test-Data/generated/national-id-aisha-fatima-doobur.pdf`
+4. Upload to "Proof of Address": `Test-Data/generated/proof-address-aisha-fatima-doobur.pdf`
+5. Verify: Green "Verified" badges on both required documents
 
 ### Round 5: Community
 1. Login as doctor > My Posts > Create a post

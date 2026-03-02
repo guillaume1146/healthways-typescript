@@ -29,6 +29,7 @@ type PatientStatus = 'active' | 'inactive'
 
 interface Patient {
   id: string
+  userId?: string
   firstName: string
   lastName: string
   email: string
@@ -64,6 +65,9 @@ interface DoctorData {
 
 interface Props {
   doctorData: DoctorData
+  onVideoCall?: (patientId: string, userId: string) => void
+  onPrescribe?: (patientId: string) => void
+  onMessage?: (userId: string) => void
 }
 
 interface FilterOptions {
@@ -72,7 +76,7 @@ interface FilterOptions {
   lastVisit: 'all' | 'week' | 'month' | 'year'
 }
 
-const PatientManagement: React.FC<Props> = ({ doctorData }) => {
+const PatientManagement: React.FC<Props> = ({ doctorData, onVideoCall, onPrescribe, onMessage }) => {
   const [activeTab, setActiveTab] = useState<'current' | 'past' | 'add'>('current')
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterOptions>({
@@ -209,12 +213,18 @@ const PatientManagement: React.FC<Props> = ({ doctorData }) => {
               <span className="hidden sm:inline">{expandedPatient === patient.id ? 'Less' : 'Details'}</span>
             </button>
 
-            <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-600 rounded-lg hover:from-green-100 hover:to-emerald-100 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+            <button
+              onClick={() => onVideoCall?.(patient.id, patient.userId || '')}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-600 rounded-lg hover:from-green-100 hover:to-emerald-100 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+            >
               <FaVideo />
               <span className="hidden sm:inline">Call</span>
             </button>
 
-            <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-600 rounded-lg hover:from-purple-100 hover:to-pink-100 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+            <button
+              onClick={() => onPrescribe?.(patient.id)}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-600 rounded-lg hover:from-purple-100 hover:to-pink-100 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+            >
               <FaPrescriptionBottle />
               <span className="hidden sm:inline">Prescribe</span>
             </button>
@@ -279,7 +289,10 @@ const PatientManagement: React.FC<Props> = ({ doctorData }) => {
                 <FaCalendarAlt />
                 Schedule
               </button>
-              <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+              <button
+                onClick={() => onMessage?.(patient.userId || '')}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+              >
                 <FaComments />
                 Message
               </button>
@@ -444,14 +457,15 @@ const PatientManagement: React.FC<Props> = ({ doctorData }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-2 ${
+                className={`flex-shrink-0 px-3 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-1.5 md:gap-2 ${
                   activeTab === tab.id
                     ? `text-${tab.color}-600 border-b-2 border-current bg-gradient-to-b from-${tab.color}-50 to-transparent`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
+                title={tab.label}
               >
-                <tab.icon className="text-sm md:text-base" />
-                <span className="whitespace-nowrap text-sm md:text-base">{tab.label}</span>
+                <tab.icon className="text-base md:text-base" />
+                <span className="hidden md:inline whitespace-nowrap text-sm md:text-base">{tab.label}</span>
                 {'count' in tab && tab.count! > 0 && (
                   <span className="bg-gray-500 text-white text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
                 )}

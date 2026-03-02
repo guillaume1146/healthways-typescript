@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   FaCalendarAlt,
@@ -15,17 +16,100 @@ import {
   FaNotesMedical,
   FaDollarSign,
   FaUserMd,
+  FaSpinner,
 } from 'react-icons/fa'
 import { useDoctorData } from './context'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+interface OverviewData {
+  specialty: string[]
+  clinicAffiliation: string
+  rating: number
+  reviewCount: number
+  totalPatients: number
+  upcomingAppointments: any[]
+  pastAppointments: any[]
+  activePrescriptions: number
+}
+
 export default function DoctorOverviewPage() {
-  const doctorData = useDoctorData()
+  const user = useDoctorData()
+  const [data, setData] = useState<OverviewData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const getTotalUnreadMessages = (): number =>
-    doctorData.patientChats?.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0) || 0
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const [profileRes, upcomingRes, pastRes, patientsRes, prescRes] = await Promise.all([
+          fetch(`/api/users/${user.id}`),
+          fetch(`/api/doctors/${user.id}/appointments?status=upcoming&limit=5`),
+          fetch(`/api/doctors/${user.id}/appointments?status=completed&limit=5`),
+          fetch(`/api/doctors/${user.id}/patients`),
+          fetch(`/api/doctors/${user.id}/prescriptions`),
+        ])
 
-  const getTodayAppointments = (): number => doctorData.todaySchedule?.totalAppointments || 0
+        const [profile, upcoming, past, patients, prescriptions] = await Promise.all([
+          profileRes.json(),
+          upcomingRes.json(),
+          pastRes.json(),
+          patientsRes.json(),
+          prescRes.json(),
+        ])
+
+        const doctorProfile = profile.data?.doctorProfile || profile.data?.profile || {}
+
+        const mapApt = (apt: any) => ({
+          id: apt.id,
+          patientName: apt.patient
+            ? `${apt.patient.user.firstName} ${apt.patient.user.lastName}`
+            : 'Patient',
+          date: apt.scheduledAt,
+          time: new Date(apt.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          type: (apt.type || '').replace(/_/g, '-'),
+          status: apt.status,
+          reason: apt.reason || '',
+          roomId: apt.roomId,
+        })
+
+        setData({
+          specialty: doctorProfile.specialty || [],
+          clinicAffiliation: doctorProfile.clinicAffiliation || '',
+          rating: doctorProfile.rating || 0,
+          reviewCount: doctorProfile.reviewCount || 0,
+          totalPatients: patients.data?.length || 0,
+          upcomingAppointments: (upcoming.data || []).map(mapApt),
+          pastAppointments: (past.data || []).map(mapApt),
+          activePrescriptions: prescriptions.success
+            ? (prescriptions.data || []).filter((p: any) => p.isActive).length
+            : 0,
+        })
+      } catch (error) {
+        console.error('Failed to fetch overview:', error)
+        setData({
+          specialty: [],
+          clinicAffiliation: '',
+          rating: 0,
+          reviewCount: 0,
+          totalPatients: 0,
+          upcomingAppointments: [],
+          pastAppointments: [],
+          activePrescriptions: 0,
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOverview()
+  }, [user.id])
+
+  if (loading || !data) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6">
@@ -34,27 +118,29 @@ export default function DoctorOverviewPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">
-              Welcome back, Dr. {doctorData.firstName}!
+              Welcome back, Dr. {user.firstName}!
             </h2>
             <p className="opacity-90 text-xs sm:text-sm md:text-base lg:text-lg">
-              {doctorData.specialty?.join(', ')} &bull; {doctorData.clinicAffiliation}
+              {data.specialty.length > 0 ? data.specialty.join(', ') : 'Doctor'} {data.clinicAffiliation ? `\u2022 ${data.clinicAffiliation}` : ''}
             </p>
           </div>
-          <div className="hidden lg:flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs opacity-80">Performance Rating</p>
-              <div className="flex items-center gap-1">
-                <FaStar className="text-yellow-300" />
-                <span className="text-xl font-bold">{doctorData.rating}</span>
-                <span className="text-sm opacity-80">({doctorData.reviews} reviews)</span>
+          {data.rating > 0 && (
+            <div className="hidden lg:flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-xs opacity-80">Performance Rating</p>
+                <div className="flex items-center gap-1">
+                  <FaStar className="text-yellow-300" />
+                  <span className="text-xl font-bold">{data.rating}</span>
+                  <span className="text-sm opacity-80">({data.reviewCount} reviews)</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       {/* Wallet Balance */}
-      <WalletBalanceCard userId={doctorData.id} />
+      <WalletBalanceCard userId={user.id} />
 
       {/* Today's Schedule Overview */}
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-green-100">
@@ -67,21 +153,25 @@ export default function DoctorOverviewPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <div>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">
-              {doctorData.todaySchedule?.totalAppointments || 0}
+              {data.upcomingAppointments.filter((a) => {
+                const aptDate = new Date(a.date)
+                const today = new Date()
+                return aptDate.toDateString() === today.toDateString()
+              }).length}
             </p>
-            <p className="text-xs sm:text-sm text-gray-600">Total Appointments</p>
+            <p className="text-xs sm:text-sm text-gray-600">Today&rsquo;s Appointments</p>
           </div>
           <div>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600">
-              {doctorData.todaySchedule?.availableSlots || 0}
+              {data.upcomingAppointments.length}
             </p>
-            <p className="text-xs sm:text-sm text-gray-600">Available Slots</p>
+            <p className="text-xs sm:text-sm text-gray-600">Total Upcoming</p>
           </div>
           <div>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-600">
-              {doctorData.nextAvailable || 'N/A'}
+              {data.totalPatients}
             </p>
-            <p className="text-xs sm:text-sm text-gray-600">Next Available</p>
+            <p className="text-xs sm:text-sm text-gray-600">Total Patients</p>
           </div>
         </div>
       </div>
@@ -93,10 +183,7 @@ export default function DoctorOverviewPage() {
             <div className="flex-1">
               <p className="text-gray-700 text-xs md:text-sm font-medium">Active Patients</p>
               <p className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 mt-1">
-                {doctorData.statistics?.activePatients || 0}
-              </p>
-              <p className="text-xs md:text-sm text-gray-600 mt-1">
-                +{doctorData.statistics?.newPatientsThisMonth || 0} this month
+                {data.totalPatients}
               </p>
             </div>
             <div className="p-2 md:p-3 bg-blue-100 rounded-lg">
@@ -108,13 +195,11 @@ export default function DoctorOverviewPage() {
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 md:p-5 lg:p-6 shadow-lg border border-green-100">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-gray-700 text-xs md:text-sm font-medium">Today&rsquo;s Earnings</p>
+              <p className="text-gray-700 text-xs md:text-sm font-medium">Upcoming</p>
               <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600 mt-1">
-                Rs {doctorData.billing?.earnings?.today?.toLocaleString() || 0}
+                {data.upcomingAppointments.length}
               </p>
-              <p className="text-xs md:text-sm text-green-600 mt-1">
-                This month: Rs {doctorData.billing?.earnings?.thisMonth?.toLocaleString() || 0}
-              </p>
+              <p className="text-xs md:text-sm text-green-600 mt-1">Appointments</p>
             </div>
             <div className="p-2 md:p-3 bg-green-100 rounded-lg">
               <FaDollarSign className="text-green-600 text-base md:text-xl lg:text-2xl" />
@@ -127,9 +212,9 @@ export default function DoctorOverviewPage() {
             <div className="flex-1">
               <p className="text-gray-700 text-xs md:text-sm font-medium">Consultations</p>
               <p className="text-xl md:text-2xl lg:text-3xl font-bold text-purple-600 mt-1">
-                {doctorData.statistics?.consultationsThisMonth || 0}
+                {data.pastAppointments.length}
               </p>
-              <p className="text-xs md:text-sm text-purple-600 mt-1">This month</p>
+              <p className="text-xs md:text-sm text-purple-600 mt-1">Completed</p>
             </div>
             <div className="p-2 md:p-3 bg-purple-100 rounded-lg">
               <FaStethoscope className="text-purple-600 text-base md:text-xl lg:text-2xl" />
@@ -142,7 +227,7 @@ export default function DoctorOverviewPage() {
             <div className="flex-1">
               <p className="text-gray-700 text-xs md:text-sm font-medium">Prescriptions</p>
               <p className="text-xl md:text-2xl lg:text-3xl font-bold text-orange-600 mt-1">
-                {doctorData.prescriptions?.length || 0}
+                {data.activePrescriptions}
               </p>
               <p className="text-xs md:text-sm text-orange-600 mt-1">Active prescriptions</p>
             </div>
@@ -154,13 +239,13 @@ export default function DoctorOverviewPage() {
       </div>
 
       {/* Upcoming Appointments */}
-      {doctorData.upcomingAppointments && doctorData.upcomingAppointments.length > 0 && (
+      {data.upcomingAppointments.length > 0 && (
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-indigo-100">
           <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
             Upcoming Appointments
           </h3>
           <div className="space-y-2 sm:space-y-3">
-            {doctorData.upcomingAppointments.slice(0, 3).map((appointment) => (
+            {data.upcomingAppointments.slice(0, 3).map((appointment) => (
               <div
                 key={appointment.id}
                 className="flex items-center gap-3 md:gap-4 p-3 md:p-4 lg:p-5 bg-white bg-opacity-70 rounded-lg sm:rounded-xl hover:bg-opacity-90 transition"
@@ -176,9 +261,9 @@ export default function DoctorOverviewPage() {
                     {new Date(appointment.date).toLocaleDateString()} at {appointment.time} &bull; {appointment.type}
                   </p>
                 </div>
-                {appointment.type === 'video' && (
+                {appointment.type === 'video' && appointment.roomId && (
                   <Link
-                    href="/doctor/dashboard/video"
+                    href={`/doctor/dashboard/video?roomId=${appointment.roomId}`}
                     className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition text-xs sm:text-sm flex-shrink-0"
                   >
                     <FaVideo className="inline mr-1" />
@@ -210,7 +295,7 @@ export default function DoctorOverviewPage() {
             className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all transform hover:scale-105 bg-gradient-to-br from-purple-50 to-pink-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
           >
             <FaUserPlus className="text-purple-600 text-xl md:text-2xl lg:text-3xl" />
-            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">Add Patient</p>
+            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">My Patients</p>
           </Link>
 
           <Link
@@ -223,54 +308,51 @@ export default function DoctorOverviewPage() {
 
           <Link
             href="/doctor/dashboard/messages"
-            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-pink-400 hover:bg-pink-50 transition-all transform hover:scale-105 bg-gradient-to-br from-pink-50 to-purple-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2 relative"
+            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-pink-400 hover:bg-pink-50 transition-all transform hover:scale-105 bg-gradient-to-br from-pink-50 to-purple-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
           >
             <FaComments className="text-pink-600 text-xl md:text-2xl lg:text-3xl" />
             <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">Messages</p>
-            {getTotalUnreadMessages() > 0 && (
-              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {getTotalUnreadMessages()}
-              </span>
-            )}
           </Link>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-cyan-100">
-        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
-          Recent Activity
-        </h3>
-        <div className="space-y-2 sm:space-y-3">
-          {doctorData.pastAppointments?.slice(0, 3).map((appointment) => (
-            <div
-              key={appointment.id}
-              className="flex items-center gap-3 md:gap-4 p-3 md:p-4 lg:p-5 bg-white bg-opacity-70 rounded-lg sm:rounded-xl hover:bg-opacity-90 transition"
-            >
-              <div className="p-1.5 sm:p-2 bg-cyan-100 rounded-lg">
-                <FaHistory className="text-cyan-600 text-sm sm:text-base md:text-lg" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg truncate">
-                  Consultation with {appointment.patientName}
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 truncate">
-                  {new Date(appointment.date).toLocaleDateString()} &bull; {appointment.reason}
-                </p>
-              </div>
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  appointment.status === 'completed'
-                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
-                    : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
-                }`}
+      {data.pastAppointments.length > 0 && (
+        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-cyan-100">
+          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
+            Recent Activity
+          </h3>
+          <div className="space-y-2 sm:space-y-3">
+            {data.pastAppointments.slice(0, 3).map((appointment) => (
+              <div
+                key={appointment.id}
+                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 lg:p-5 bg-white bg-opacity-70 rounded-lg sm:rounded-xl hover:bg-opacity-90 transition"
               >
-                {appointment.status}
-              </span>
-            </div>
-          ))}
+                <div className="p-1.5 sm:p-2 bg-cyan-100 rounded-lg">
+                  <FaHistory className="text-cyan-600 text-sm sm:text-base md:text-lg" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg truncate">
+                    Consultation with {appointment.patientName}
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                    {new Date(appointment.date).toLocaleDateString()} &bull; {appointment.reason}
+                  </p>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    appointment.status === 'completed'
+                      ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
+                      : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
+                  }`}
+                >
+                  {appointment.status}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

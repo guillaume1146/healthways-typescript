@@ -291,6 +291,7 @@ export default function RegistrationForm() {
                       selectedType={selectedType}
                       documents={documents}
                       verificationResults={verificationResults}
+                      onFormChange={handleChange}
                     />
                   )}
 

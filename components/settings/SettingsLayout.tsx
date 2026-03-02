@@ -41,14 +41,15 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex-shrink-0 flex items-center text-left px-4 py-3 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                      className={`flex-shrink-0 flex items-center justify-center md:justify-start text-left px-3 md:px-4 py-3 rounded-lg font-medium transition-colors whitespace-nowrap ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
+                      title={tab.label}
                     >
-                      <Icon className="mr-3 text-lg" />
-                      {tab.label}
+                      <Icon className="md:mr-3 text-lg" />
+                      <span className="hidden md:inline">{tab.label}</span>
                     </button>
                   )
                 })}

@@ -73,6 +73,8 @@ interface DoctorData {
 
 interface Props {
   doctorData: DoctorData
+  onCreatePrescription?: (data: NewPrescription) => Promise<void>
+  preselectedPatientId?: string
 }
 
 interface FilterOptions {
@@ -90,8 +92,10 @@ interface NewPrescription {
 
 /* ---------------- Component ---------------- */
 
-const PrescriptionSystem: React.FC<Props> = ({ doctorData }) => {
-  const [activeTab, setActiveTab] = useState<'active' | 'new' | 'templates' | 'history'>('active')
+const PrescriptionSystem: React.FC<Props> = ({ doctorData, onCreatePrescription, preselectedPatientId }) => {
+  const [activeTab, setActiveTab] = useState<'active' | 'new' | 'templates' | 'history'>(
+    preselectedPatientId ? 'new' : 'active'
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterOptions>({
     status: 'all',
@@ -100,11 +104,14 @@ const PrescriptionSystem: React.FC<Props> = ({ doctorData }) => {
   })
   const [expandedPrescription, setExpandedPrescription] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [expandedSection, setExpandedSection] = useState<string>('active')
+  const [expandedSection, setExpandedSection] = useState<string>(preselectedPatientId ? 'new' : 'active')
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitSuccess, setSubmitSuccess] = useState('')
 
   const [newPrescription, setNewPrescription] = useState<NewPrescription>({
-    patientId: '',
+    patientId: preselectedPatientId || '',
     diagnosis: '',
     medicines: [
       {
@@ -391,7 +398,38 @@ const PrescriptionSystem: React.FC<Props> = ({ doctorData }) => {
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-blue-200">
       <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6">Create New Prescription</h3>
 
-      <form className="space-y-4 sm:space-y-6">
+      <form className="space-y-4 sm:space-y-6" onSubmit={async (e) => {
+        e.preventDefault()
+        if (!onCreatePrescription) return
+        if (!newPrescription.patientId || !newPrescription.diagnosis || newPrescription.medicines.every(m => !m.name)) {
+          setSubmitError('Please fill in patient, diagnosis, and at least one medicine name.')
+          return
+        }
+        setSubmitting(true)
+        setSubmitError('')
+        setSubmitSuccess('')
+        try {
+          await onCreatePrescription(newPrescription)
+          setSubmitSuccess('Prescription created successfully!')
+          setNewPrescription({
+            patientId: '',
+            diagnosis: '',
+            medicines: [{ name: '', dosage: '', frequency: '', duration: '', instructions: '', quantity: 0 }],
+            notes: '',
+          })
+          setTimeout(() => setSubmitSuccess(''), 3000)
+        } catch (err: any) {
+          setSubmitError(err.message || 'Failed to create prescription')
+        } finally {
+          setSubmitting(false)
+        }
+      }}>
+        {submitError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{submitError}</div>
+        )}
+        {submitSuccess && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{submitSuccess}</div>
+        )}
         {/* Patient Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div>
@@ -536,9 +574,10 @@ const PrescriptionSystem: React.FC<Props> = ({ doctorData }) => {
 
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition text-sm sm:text-base"
+          disabled={submitting}
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition text-sm sm:text-base disabled:opacity-50"
         >
-          Create Prescription
+          {submitting ? 'Creating...' : 'Create Prescription'}
         </button>
       </form>
     </div>
@@ -690,14 +729,15 @@ const PrescriptionSystem: React.FC<Props> = ({ doctorData }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-2 ${
+                className={`flex-shrink-0 px-3 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-1.5 md:gap-2 ${
                   activeTab === tab.id
                     ? `text-${tab.color}-600 border-b-2 border-current bg-gradient-to-b from-${tab.color}-50 to-transparent`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
+                title={tab.label}
               >
-                <tab.icon className="text-sm md:text-base" />
-                <span className="whitespace-nowrap text-sm md:text-base">{tab.label}</span>
+                <tab.icon className="text-base md:text-base" />
+                <span className="hidden md:inline whitespace-nowrap text-sm md:text-base">{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
                   <span className="bg-gray-500 text-white text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
                 )}

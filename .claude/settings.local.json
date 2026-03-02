@@ -18,7 +18,8 @@
       "Bash(ls:*)",
       "Bash(do echo:*)",
       "Bash(taskkill:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(tasklist:*)"
     ]
   }
 }

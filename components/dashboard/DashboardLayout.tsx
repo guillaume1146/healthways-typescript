@@ -109,23 +109,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         userId={userId}
       />
 
-      {/* Main container with top padding for the fixed header */}
-      <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 flex flex-1">
-        {/* Sidebar */}
-        <DashboardSidebar
-          items={sidebarItems}
-          activeItemId={activeSectionId}
-          isOpen={sidebarOpen}
-          isMobile={isMobile}
-          onClose={handleCloseSidebar}
-          footer={sidebarFooter}
-        />
+      {/* Sidebar (fixed) */}
+      <DashboardSidebar
+        items={sidebarItems}
+        activeItemId={activeSectionId}
+        isOpen={sidebarOpen}
+        isMobile={isMobile}
+        onClose={handleCloseSidebar}
+        footer={sidebarFooter}
+      />
 
-        {/* Main content area */}
-        <main className="flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
-          {children}
-        </main>
-      </div>
+      {/* Main content area — offset for fixed header + fixed sidebar */}
+      <main className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
+        {children}
+      </main>
     </div>
   )
 }

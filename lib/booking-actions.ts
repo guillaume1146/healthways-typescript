@@ -138,11 +138,64 @@ export async function acceptBooking(
         },
       })
 
+      // Credit provider wallet
+      const providerWallet = await tx.userWallet.findUnique({
+        where: { userId: providerUserId },
+        select: { id: true, balance: true },
+      })
+      if (providerWallet) {
+        await tx.userWallet.update({
+          where: { id: providerWallet.id },
+          data: { balance: providerWallet.balance + amount },
+        })
+        await tx.walletTransaction.create({
+          data: {
+            walletId: providerWallet.id,
+            type: 'credit',
+            amount,
+            description: `Payment received - ${description}`,
+            serviceType,
+            referenceId: bookingId,
+            balanceBefore: providerWallet.balance,
+            balanceAfter: providerWallet.balance + amount,
+            status: 'completed',
+          },
+        })
+      }
+
       return { newBalance: wallet.balance - amount }
     }
 
     return { newBalance: undefined }
   })
+
+  // Auto-create conversation between provider and patient
+  try {
+    const existingConversation = await prisma.conversation.findFirst({
+      where: {
+        type: 'direct',
+        AND: [
+          { participants: { some: { userId: providerUserId } } },
+          { participants: { some: { userId: patientUserId } } },
+        ],
+      },
+    })
+    if (!existingConversation) {
+      await prisma.conversation.create({
+        data: {
+          type: 'direct',
+          participants: {
+            create: [
+              { userId: providerUserId },
+              { userId: patientUserId },
+            ],
+          },
+        },
+      })
+    }
+  } catch (err) {
+    console.error('Failed to auto-create conversation:', err)
+  }
 
   // Create notification for patient
   await createNotification({

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { FaSpinner } from 'react-icons/fa'
+import { FaSpinner, FaHome, FaChartBar, FaCogs, FaListUl, FaStar, FaCheckCircle, FaBullhorn, FaImages, FaQuoteRight } from 'react-icons/fa'
+import type { IconType } from 'react-icons'
 import HeroSectionEditor from './HeroSectionEditor'
 import SectionItemsEditor from './SectionItemsEditor'
 import DetailedServicesEditor from './DetailedServicesEditor'
@@ -10,15 +11,15 @@ import HeroSlidesManager from './HeroSlidesManager'
 import TestimonialsManager from './TestimonialsManager'
 
 const TABS = [
-  { id: 'hero', label: 'Hero' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'services', label: 'Services' },
-  { id: 'detailed_services', label: 'Detailed Services' },
-  { id: 'specialties', label: 'Specialties' },
-  { id: 'why_choose', label: 'Why Choose' },
-  { id: 'cta_banner', label: 'CTA Banner' },
-  { id: 'hero_slides', label: 'Hero Slides' },
-  { id: 'testimonials', label: 'Testimonials' },
+  { id: 'hero', label: 'Hero', icon: FaHome as IconType },
+  { id: 'stats', label: 'Stats', icon: FaChartBar as IconType },
+  { id: 'services', label: 'Services', icon: FaCogs as IconType },
+  { id: 'detailed_services', label: 'Detailed Services', icon: FaListUl as IconType },
+  { id: 'specialties', label: 'Specialties', icon: FaStar as IconType },
+  { id: 'why_choose', label: 'Why Choose', icon: FaCheckCircle as IconType },
+  { id: 'cta_banner', label: 'CTA Banner', icon: FaBullhorn as IconType },
+  { id: 'hero_slides', label: 'Hero Slides', icon: FaImages as IconType },
+  { id: 'testimonials', label: 'Testimonials', icon: FaQuoteRight as IconType },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -263,19 +264,24 @@ export default function ContentManagementPage() {
       {/* Tab Navigation */}
       <div className="bg-white rounded-xl p-1.5 shadow mb-6">
         <div className="flex gap-1 overflow-x-auto">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-lg font-medium text-sm whitespace-nowrap transition ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {TABS.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-2 sm:px-4 py-2.5 rounded-lg font-medium text-sm whitespace-nowrap transition flex items-center justify-center gap-1.5 ${
+                  activeTab === tab.id
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title={tab.label}
+              >
+                <Icon className="text-sm" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

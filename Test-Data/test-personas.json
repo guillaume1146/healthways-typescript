@@ -3,24 +3,121 @@
     "fullName": "Rajesh Kumar Doorgakant",
     "dob": "1985-03-15",
     "idNumber": "D150385100123",
-    "address": "12 Royal Road, Quatre Bornes, Mauritius",
+    "address": "12 Royal Road, Curepipe, Mauritius",
+    "userType": "doctor",
+    "profession": "Doctor",
     "licenseNumber": "MED-2012-5678",
-    "profession": "Doctor"
+    "degreeTitle": "Doctor of Medicine (MD)",
+    "companyName": null
   },
   {
     "fullName": "Priya Devi Ramsewak",
     "dob": "1990-07-22",
     "idNumber": "R220790200456",
-    "address": "45 Desforges Street, Port Louis, Mauritius",
+    "address": "45 Sir Virgil Naz Street, Rose Hill, Mauritius",
+    "userType": "nurse",
+    "profession": "Nurse",
     "licenseNumber": "NUR-2015-3456",
-    "profession": "Nurse"
+    "degreeTitle": "Bachelor of Science in Nursing (BSc Nursing)",
+    "companyName": null
   },
   {
     "fullName": "Jean-Pierre Lafleur",
     "dob": "1978-11-08",
     "idNumber": "L081178300789",
-    "address": "8 Avenue des Flamboyants, Curepipe, Mauritius",
+    "address": "8 Rue de la Paix, Port Louis, Mauritius",
+    "userType": "pharmacist",
+    "profession": "Pharmacist",
     "licenseNumber": "PHA-2005-9012",
-    "profession": "Pharmacist"
+    "degreeTitle": "Doctor of Pharmacy (PharmD)",
+    "companyName": "Pharmacie Lafleur"
+  },
+  {
+    "fullName": "Aisha Fatima Doobur",
+    "dob": "1995-01-10",
+    "idNumber": "D100195400321",
+    "address": "23 Moka Road, Quatre Bornes, Mauritius",
+    "userType": "patient",
+    "profession": "Patient",
+    "licenseNumber": null,
+    "degreeTitle": null,
+    "companyName": null
+  },
+  {
+    "fullName": "Marie-Claire Montagne",
+    "dob": "1988-05-30",
+    "idNumber": "M300588500654",
+    "address": "17 Avenue des Cocotiers, Flic en Flac, Mauritius",
+    "userType": "nanny",
+    "profession": "Nanny",
+    "licenseNumber": null,
+    "degreeTitle": null,
+    "companyName": null
+  },
+  {
+    "fullName": "David Sooben Ahkee",
+    "dob": "1982-09-14",
+    "idNumber": "A140982600987",
+    "address": "56 Labourdonnais Street, Vacoas, Mauritius",
+    "userType": "lab",
+    "profession": "Lab Technician",
+    "licenseNumber": "LAB-2010-7890",
+    "degreeTitle": "Bachelor of Medical Laboratory Science",
+    "companyName": "BioLab Mauritius"
+  },
+  {
+    "fullName": "Jean-Marc Lavoix",
+    "dob": "1991-12-03",
+    "idNumber": "L031291700111",
+    "address": "9 Emergency Lane, Beau Bassin, Mauritius",
+    "userType": "emergency",
+    "profession": "Emergency Worker",
+    "licenseNumber": "EMT-2018-2345",
+    "degreeTitle": null,
+    "companyName": "SAMU Mauritius"
+  },
+  {
+    "fullName": "Vikram Kumar Doorgakant",
+    "dob": "1980-04-25",
+    "idNumber": "D250480800222",
+    "address": "34 Insurance Avenue, Ebene, Mauritius",
+    "userType": "insurance",
+    "profession": "Insurance Representative",
+    "licenseNumber": null,
+    "degreeTitle": null,
+    "companyName": "Swan Insurance Co. Ltd"
+  },
+  {
+    "fullName": "Anil Kumar Doobur",
+    "dob": "1975-08-19",
+    "idNumber": "D190875900333",
+    "address": "78 Cybercity Tower, Ebene, Mauritius",
+    "userType": "corporate",
+    "profession": "Corporate Administrator",
+    "licenseNumber": null,
+    "degreeTitle": null,
+    "companyName": "HealthCorp Mauritius Ltd"
+  },
+  {
+    "fullName": "Sophie Anne Leclerc",
+    "dob": "1993-06-12",
+    "idNumber": "L120693100444",
+    "address": "15 Grand Baie Road, Pereybere, Mauritius",
+    "userType": "referral-partner",
+    "profession": "Referral Partner",
+    "licenseNumber": null,
+    "degreeTitle": null,
+    "companyName": "Digital Health Marketing"
+  },
+  {
+    "fullName": "Hassan Fareed Doorgakant",
+    "dob": "1970-02-28",
+    "idNumber": "D280270200555",
+    "address": "1 Government House, Port Louis, Mauritius",
+    "userType": "regional-admin",
+    "profession": "Regional Administrator",
+    "licenseNumber": null,
+    "degreeTitle": "MBA in Healthcare Management",
+    "companyName": "Healthwyz Indian Ocean Ltd"
   }
 ]

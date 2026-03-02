@@ -347,14 +347,15 @@ export default function InsuranceVerificationPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium ${
+                  className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-3 md:py-4 font-medium ${
                     activeTab === tab.key
                       ? "text-primary-blue border-b-2 border-primary-blue"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
+                  title={tab.label}
                 >
-                  <tab.icon />
-                  {tab.label}
+                  <tab.icon className="text-base" />
+                  <span className="hidden md:inline">{tab.label}</span>
                 </button>
               ))}
             </nav>

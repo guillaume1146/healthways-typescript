@@ -29,14 +29,15 @@ interface TabButtonProps {
 const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: TabButtonProps) => (
   <button
     onClick={() => setActiveTab(tabName)}
-    className={`flex items-center w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${
+    className={`flex items-center justify-center md:justify-start w-full text-left px-3 md:px-4 py-3 rounded-lg font-medium transition-colors ${
       activeTab === tabName
         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
         : 'text-gray-600 hover:bg-gray-100'
     }`}
+    title={label}
   >
-    <Icon className="mr-3 text-lg" />
-    {label}
+    <Icon className="md:mr-3 text-lg" />
+    <span className="hidden md:inline">{label}</span>
   </button>
 )
 

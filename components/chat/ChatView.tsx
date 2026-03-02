@@ -19,6 +19,7 @@ interface ChatViewProps {
     lastName: string
     userType: string
   }
+  initialConversationId?: string | null
 }
 
 interface Participant {
@@ -268,7 +269,7 @@ function DateSeparator({ dateStr }: { dateStr: string }) {
 // ChatView (main component)
 // ---------------------------------------------------------------------------
 
-export default function ChatView({ currentUser }: ChatViewProps) {
+export default function ChatView({ currentUser, initialConversationId }: ChatViewProps) {
   // ---- State ----
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -322,6 +323,17 @@ export default function ChatView({ currentUser }: ChatViewProps) {
     fetchConversations()
     return () => { cancelled = true }
   }, [])
+
+  // ---- Auto-select initial conversation if provided ----
+  useEffect(() => {
+    if (initialConversationId && conversations.length > 0 && !selectedId) {
+      const match = conversations.find((c) => c.id === initialConversationId)
+      if (match) {
+        setSelectedId(match.id)
+        setMobileShowMessages(true)
+      }
+    }
+  }, [initialConversationId, conversations, selectedId])
 
   // ---- Fetch messages when selected conversation changes ----
   useEffect(() => {

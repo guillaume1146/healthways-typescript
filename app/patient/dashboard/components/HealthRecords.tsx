@@ -836,14 +836,15 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-4 text-center font-medium transition-all ${
-                  activeTab === tab.id 
-                    ? `text-${tab.color}-600 border-b-2 border-current bg-gradient-to-b from-${tab.color}-50 to-transparent` 
+                className={`flex-shrink-0 px-3 md:px-6 py-3 md:py-4 text-center font-medium transition-all flex items-center gap-1.5 md:gap-2 ${
+                  activeTab === tab.id
+                    ? `text-${tab.color}-600 border-b-2 border-current bg-gradient-to-b from-${tab.color}-50 to-transparent`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
+                title={tab.label}
               >
-                <tab.icon className="inline mr-2 text-sm md:text-base" />
-                <span className="whitespace-nowrap text-sm md:text-base">{tab.label}</span>
+                <tab.icon className="text-base md:text-base" />
+                <span className="hidden md:inline whitespace-nowrap text-sm md:text-base">{tab.label}</span>
               </button>
             ))}
           </div>

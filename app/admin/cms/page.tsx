@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { 
-  FaNewspaper, FaImage, FaStar,  FaEdit, FaTrash, FaPlus, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown
+import {
+  FaNewspaper, FaImage, FaStar, FaEdit, FaTrash, FaPlus, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown, FaChartBar
 } from 'react-icons/fa'
+import type { IconType } from 'react-icons'
 
 interface Slider {
   id: string
@@ -124,17 +125,24 @@ export default function CMSManagement() {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl p-1 shadow mb-6">
           <div className="flex gap-1">
-            {(['slider', 'news', 'testimonials', 'statistics'] as Array<'slider' | 'news' | 'testimonials' | 'statistics'>).map(tab => (
+            {([
+              { id: 'slider' as const, label: 'Slider', icon: FaImage as IconType },
+              { id: 'news' as const, label: 'News', icon: FaNewspaper as IconType },
+              { id: 'testimonials' as const, label: 'Testimonials', icon: FaStar as IconType },
+              { id: 'statistics' as const, label: 'Statistics', icon: FaChartBar as IconType },
+            ]).map(tab => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
-                  activeTab === tab 
-                    ? 'bg-blue-600 text-white' 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 px-2 sm:px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                  activeTab === tab.id
+                    ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                title={tab.label}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                <tab.icon className="text-base" />
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>

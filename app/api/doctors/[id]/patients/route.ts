@@ -32,11 +32,14 @@ export async function GET(
         patient: {
           select: {
             id: true,
+            userId: true,
             chronicConditions: true,
+            bloodType: true,
+            allergies: true,
             user: {
               select: {
                 firstName: true, lastName: true, profileImage: true,
-                phone: true, gender: true, dateOfBirth: true,
+                phone: true, gender: true, dateOfBirth: true, email: true,
               },
             },
           },
@@ -50,12 +53,16 @@ export async function GET(
     // Deduplicate patients — flatten user fields for convenience
     const patientMap = new Map<string, {
       id: string
+      userId: string
       firstName: string
       lastName: string
+      email: string
       profileImage: string | null
       phone: string
       gender: string | null
       dateOfBirth: Date | null
+      bloodType: string | null
+      allergies: string[]
       chronicConditions: string[]
       lastVisit: Date
       appointmentCount: number
@@ -66,12 +73,16 @@ export async function GET(
       if (!existing) {
         patientMap.set(apt.patient.id, {
           id: apt.patient.id,
+          userId: apt.patient.userId,
           firstName: apt.patient.user.firstName,
           lastName: apt.patient.user.lastName,
+          email: apt.patient.user.email,
           profileImage: apt.patient.user.profileImage,
           phone: apt.patient.user.phone,
           gender: apt.patient.user.gender,
           dateOfBirth: apt.patient.user.dateOfBirth,
+          bloodType: apt.patient.bloodType,
+          allergies: apt.patient.allergies,
           chronicConditions: apt.patient.chronicConditions,
           lastVisit: apt.scheduledAt,
           appointmentCount: 1,

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { FaPenFancy } from 'react-icons/fa'
+import { FaPenFancy, FaGlobeAmericas, FaHeartbeat, FaBookOpen, FaNewspaper, FaSpa, FaMicroscope } from 'react-icons/fa'
+import type { IconType } from 'react-icons'
 import PostCard from './PostCard'
 import CommentSection from './CommentSection'
 import CreatePostForm from './CreatePostForm'
@@ -31,13 +32,13 @@ interface PostFeedProps {
   showCreateButton?: boolean
 }
 
-const CATEGORY_TABS = [
-  { value: '', label: 'All' },
-  { value: 'health_tips', label: 'Health Tips' },
-  { value: 'article', label: 'Articles' },
-  { value: 'news', label: 'News' },
-  { value: 'wellness', label: 'Wellness' },
-  { value: 'case_study', label: 'Case Studies' },
+const CATEGORY_TABS: { value: string; label: string; icon: IconType }[] = [
+  { value: '', label: 'All', icon: FaGlobeAmericas },
+  { value: 'health_tips', label: 'Health Tips', icon: FaHeartbeat },
+  { value: 'article', label: 'Articles', icon: FaBookOpen },
+  { value: 'news', label: 'News', icon: FaNewspaper },
+  { value: 'wellness', label: 'Wellness', icon: FaSpa },
+  { value: 'case_study', label: 'Case Studies', icon: FaMicroscope },
 ]
 
 export default function PostFeed({
@@ -191,20 +192,25 @@ export default function PostFeed({
 
       {/* Category filter tabs */}
       <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex gap-2 min-w-max">
-          {CATEGORY_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveCategory(tab.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === tab.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex gap-1.5 sm:gap-2 min-w-max">
+          {CATEGORY_TABS.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setActiveCategory(tab.value)}
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                  activeCategory === tab.value
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title={tab.label}
+              >
+                <Icon className="text-sm" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

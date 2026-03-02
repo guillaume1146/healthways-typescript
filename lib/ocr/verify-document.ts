@@ -180,7 +180,8 @@ export async function extractText(
         return { text, method: 'pdf-text' }
       }
       // PDF has no extractable text (scanned document) — fall through to OCR
-    } catch {
+    } catch (err) {
+      console.error('PDF text extraction failed:', err)
       // PDF extraction failed — fall through to OCR
     }
   }

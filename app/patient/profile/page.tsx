@@ -240,12 +240,13 @@ const PatientProfile = () => {
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-3 px-6 py-4 text-left hover:bg-gray-50 ${
+                    className={`flex items-center justify-center md:justify-start gap-0 md:gap-3 px-3 md:px-6 py-4 text-left hover:bg-gray-50 ${
                       activeTab === tab.key ? 'bg-blue-50 text-primary-blue border-r-4 border-primary-blue' : 'text-gray-700'
                     }`}
+                    title={tab.label}
                   >
-                    <tab.icon />
-                    {tab.label}
+                    <tab.icon className="text-lg" />
+                    <span className="hidden md:inline">{tab.label}</span>
                   </button>
                 ))}
               </nav>

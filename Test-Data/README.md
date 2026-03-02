@@ -4,7 +4,7 @@ This folder contains test personas and a script to generate PDF documents used f
 
 ## Purpose
 
-The Healthwyz platform verifies uploaded documents (national IDs, proof of residence, professional licenses) by extracting text via OCR and matching it against the user's registration details. These test documents provide known-good PDFs for validating that pipeline.
+The Healthwyz platform verifies uploaded documents by extracting text via pdfjs-dist (for PDFs) or Tesseract OCR (for images) and matching it against the user's full name. These test documents provide known-good PDFs for validating that pipeline across all 11 user types.
 
 ## How to Generate
 
@@ -12,21 +12,29 @@ The Healthwyz platform verifies uploaded documents (national IDs, proof of resid
 node Test-Data/generate-test-docs.js
 ```
 
-This creates 9 PDFs in `Test-Data/generated/`:
-- 3 National ID cards (A5 landscape)
-- 3 Proof of Residence / electricity bills (A4 portrait)
-- 3 Professional Licenses (A4 portrait)
+This creates **57 PDFs** in `Test-Data/generated/` — one per document type per persona.
 
 ## How to Use
 
-1. Register with a persona's name (e.g., first name "Rajesh Kumar", last name "Doorgakant").
-2. Upload the corresponding PDF as the verification document.
-3. The OCR system extracts text from the PDF and matches it against the user's name and details.
+1. Go to `/signup` and select a user type.
+2. Enter the corresponding persona's full name (e.g., `Rajesh Kumar Doorgakant`).
+3. Upload the matching PDFs to each document slot (file names match the document IDs in the UI).
+4. The OCR system extracts text and verifies the name appears in each document.
 
-## Available Personas
+**File naming convention:** `{document-id}-{slugified-name}.pdf`
 
-| Full Name                 | Profession  | License Number   |
-|---------------------------|-------------|------------------|
-| Rajesh Kumar Doorgakant   | Doctor      | MED-2012-5678    |
-| Priya Devi Ramsewak       | Nurse       | NUR-2015-3456    |
-| Jean-Pierre Lafleur       | Pharmacist  | PHA-2005-9012    |
+## Available Personas (11)
+
+| # | Full Name | User Type | Documents |
+|---|-----------|-----------|-----------|
+| 1 | Rajesh Kumar Doorgakant | Doctor | 5 PDFs |
+| 2 | Priya Devi Ramsewak | Nurse | 5 PDFs |
+| 3 | Jean-Pierre Lafleur | Pharmacist | 5 PDFs |
+| 4 | Aisha Fatima Doobur | Patient | 4 PDFs |
+| 5 | Marie-Claire Montagne | Nanny | 4 PDFs |
+| 6 | David Sooben Ahkee | Lab Technician | 5 PDFs |
+| 7 | Jean-Marc Lavoix | Emergency Worker | 5 PDFs |
+| 8 | Vikram Kumar Doorgakant | Insurance Rep | 5 PDFs |
+| 9 | Anil Kumar Doobur | Corporate Admin | 6 PDFs |
+| 10 | Sophie Anne Leclerc | Referral Partner | 6 PDFs |
+| 11 | Hassan Fareed Doorgakant | Regional Admin | 7 PDFs |
