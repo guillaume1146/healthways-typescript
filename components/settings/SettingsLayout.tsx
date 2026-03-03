@@ -33,7 +33,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
           {/* Sidebar Navigation */}
           <aside className="w-full md:w-1/4">
             <div className="bg-white rounded-xl shadow-lg p-4">
-              <div className="flex md:flex-col gap-1 md:gap-2 overflow-x-auto md:overflow-visible">
+              <div className="flex md:flex-col gap-1 md:gap-2 overflow-x-auto md:overflow-visible" role="tablist">
                 {tabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -41,6 +41,10 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
+                      role="tab"
+                      aria-selected={isActive}
+                      id={`tab-${tab.id}`}
+                      aria-controls={`tabpanel-${tab.id}`}
                       className={`flex-shrink-0 flex items-center justify-center md:justify-start text-left px-3 md:px-4 py-3 rounded-lg font-medium transition-colors whitespace-nowrap ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
@@ -59,7 +63,12 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
 
           {/* Content Area */}
           <main className="w-full md:w-3/4">
-            <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <div
+              role="tabpanel"
+              id={`tabpanel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+              className="bg-white rounded-xl shadow-lg p-6 sm:p-8"
+            >
               {activeComponent}
             </div>
           </main>

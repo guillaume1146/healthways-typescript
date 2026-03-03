@@ -307,6 +307,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
+                    aria-label={`Go to slide ${index + 1}`}
                     className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${
                       index === currentImageIndex
                         ? 'bg-yellow-400 w-8 sm:w-10 shadow-lg scale-110'

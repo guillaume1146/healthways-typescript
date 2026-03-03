@@ -87,7 +87,7 @@ const userTypes: UserType[] = [
     label: 'Emergency Responder',
     icon: FaAmbulance,
     description: 'Emergency services coordination',
-    redirectPath: '/emt/dashboard',
+    redirectPath: '/responder/dashboard',
     demoEmail: 'ambulance@Healthwyz.mu'
   },
   {
@@ -104,16 +104,18 @@ const LoginForm: React.FC = () => {
   const [selectedUserType, setSelectedUserType] = useState<UserType>(userTypes[0]) // Default to patient
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
   })
   const SelectedIcon = selectedUserType.icon;
-  
+
   const router = useRouter()
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+    setError('')
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -123,27 +125,38 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+    setError('')
+
     try {
-      // Simulate authentication for static prototype
-      setTimeout(() => {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          userType: selectedUserType.id,
+        }),
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setError(data.message || 'Invalid credentials')
         setIsSubmitting(false)
-        // Redirect based on user type
-        router.push(selectedUserType.redirectPath)
-      }, 1500)
-      
-    } catch (error) {
-      console.error('Login error:', error)
+        return
+      }
+
+      // Store user data in localStorage for client-side access
+      localStorage.setItem('healthwyz_user', JSON.stringify(data.user))
+      router.push(selectedUserType.redirectPath)
+    } catch {
+      setError('Network error. Please try again.')
       setIsSubmitting(false)
     }
   }
 
   const handleGoogleLogin = () => {
-    setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
-      router.push(selectedUserType.redirectPath)
-    }, 1000)
+    // Google OAuth not yet implemented — show message
+    setError('Google sign-in coming soon. Please use email/password.')
   }
 
 
@@ -213,6 +226,13 @@ const LoginForm: React.FC = () => {
         </div>
       </div>
       
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+          {error}
+        </div>
+      )}
+
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

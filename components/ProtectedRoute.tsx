@@ -15,7 +15,6 @@ export default function ProtectedRoute({
   fallbackPath = '/login' 
 }: ProtectedRouteProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-  const [, setUserType] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export default function ProtectedRoute({
       }
 
       setIsAuthenticated(true)
-      setUserType(user.userType)
     }
 
     checkAuth()

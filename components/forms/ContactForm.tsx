@@ -11,9 +11,11 @@ const ContactForm: React.FC = () => {
   })
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
+    setStatus(null)
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -23,14 +25,24 @@ const ContactForm: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+    setStatus(null)
+
     try {
-      // Add your API call here
-      
-      // Reset form
-      setFormData({ name: '', email: '', message: '' })
-    } catch (error) {
-      console.error('Error submitting form:', error)
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' })
+        setFormData({ name: '', email: '', message: '' })
+      } else {
+        setStatus({ type: 'error', message: data.message || 'Failed to send message. Please try again.' })
+      }
+    } catch {
+      setStatus({ type: 'error', message: 'Network error. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -39,6 +51,13 @@ const ContactForm: React.FC = () => {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <h3 className="text-2xl font-bold mb-6">Send us a message</h3>
+      {status && (
+        <div className={`mb-4 p-3 rounded-lg text-sm ${
+          status.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
+          {status.message}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="name" className="block text-gray-700 mb-2">

@@ -168,6 +168,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 onClick={handleBellClick}
                 className="relative p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
                 aria-label="Notifications"
+                aria-expanded={showDropdown}
               >
                 <FaBell className="text-base sm:text-lg md:text-xl lg:text-2xl" />
                 {unreadCount > 0 && (
@@ -178,7 +179,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </button>
 
               {showDropdown && (
-                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[70vh] overflow-hidden">
+                <div role="menu" className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[70vh] overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
                     <h3 className="font-semibold text-gray-900 text-sm">Notifications</h3>
                     {notifications.some(n => !n.readAt) && (
