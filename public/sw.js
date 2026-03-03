@@ -1,0 +1,131 @@
+// Healthwyz Service Worker
+const CACHE_NAME = 'healthwyz-v1'
+const STATIC_CACHE = 'healthwyz-static-v1'
+const API_CACHE = 'healthwyz-api-v1'
+
+// Static assets to pre-cache on install
+const PRECACHE_URLS = [
+  '/',
+  '/manifest.json',
+  '/favicon.ico',
+]
+
+// Install event — pre-cache static assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(PRECACHE_URLS).catch((err) => {
+        console.log('Precache partial failure (non-critical):', err)
+      })
+    })
+  )
+  // Activate immediately
+  self.skipWaiting()
+})
+
+// Activate event — clean up old caches
+self.addEventListener('activate', (event) => {
+  const currentCaches = [CACHE_NAME, STATIC_CACHE, API_CACHE]
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!currentCaches.includes(cacheName)) {
+            return caches.delete(cacheName)
+          }
+        })
+      )
+    })
+  )
+  // Take control of all clients immediately
+  self.clients.claim()
+})
+
+// Fetch event — network-first for API, cache-first for static assets
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return
+
+  // Skip WebSocket and Socket.IO requests
+  if (url.pathname.startsWith('/socket.io')) return
+
+  // Skip chrome-extension and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) return
+
+  // API requests: network-first with cache fallback
+  if (url.pathname.startsWith('/api/')) {
+    // Don't cache auth endpoints
+    if (url.pathname.startsWith('/api/auth/')) return
+
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Only cache successful responses
+          if (response.ok) {
+            const responseClone = response.clone()
+            caches.open(API_CACHE).then((cache) => {
+              cache.put(request, responseClone)
+            })
+          }
+          return response
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            return cached || new Response(
+              JSON.stringify({ success: false, message: 'Offline' }),
+              {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            )
+          })
+        })
+    )
+    return
+  }
+
+  // Static assets: cache-first with network fallback
+  if (
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot)$/) ||
+    url.pathname.startsWith('/_next/static/')
+  ) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached
+
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone()
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone)
+            })
+          }
+          return response
+        })
+      })
+    )
+    return
+  }
+
+  // HTML pages: network-first with cache fallback
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const responseClone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone)
+          })
+        }
+        return response
+      })
+      .catch(() => {
+        return caches.match(request).then((cached) => {
+          return cached || caches.match('/')
+        })
+      })
+  )
+})

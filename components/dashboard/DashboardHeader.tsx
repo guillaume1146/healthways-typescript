@@ -10,6 +10,7 @@ import {
   FaSignOutAlt,
   FaCheckDouble,
 } from 'react-icons/fa'
+import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
 
 interface NotificationItem {
   id: string
@@ -248,6 +249,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Language switcher */}
+            <LanguageSwitcher variant="header" />
 
             {/* Settings link */}
             <Link

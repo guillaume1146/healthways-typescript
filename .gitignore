@@ -42,3 +42,7 @@ storage-sa.json
 vertex-sa.json
 /lib/generated/prisma
 .env.production
+
+# uploaded files (keep .gitkeep)
+public/uploads/*
+!public/uploads/.gitkeep

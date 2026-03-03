@@ -21,6 +21,7 @@ import {
 
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
+import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
 
 const serviceCategories = {
   'Healthcare Services': [
@@ -129,22 +130,25 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Search and Auth - Responsive */}
+          {/* Search, Language and Auth - Responsive */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Search - Hidden on smaller screens, shown on medium+ */}
             <div className="hidden lg:block w-48 xl:w-64">
               <SearchAutocomplete variant="navbar" placeholder="Search doctors, medicines..." />
             </div>
-            
+
+            {/* Language Switcher */}
+            <LanguageSwitcher variant="navbar" />
+
             {/* Auth Buttons with Blue-Green Gradient */}
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="px-4 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full hover:bg-blue-50 transition-all duration-200 font-medium text-sm"
             >
               Sign In
             </Link>
-            <Link 
-              href="/signup" 
+            <Link
+              href="/signup"
               className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full hover:from-blue-700 hover:to-green-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
             >
               Sign Up
@@ -234,6 +238,11 @@ const Navbar: React.FC = () => {
                 </Link>
               </div>
               
+              {/* Mobile Language Switcher */}
+              <div className="px-2 mt-3">
+                <LanguageSwitcher variant="navbar" />
+              </div>
+
               {/* Mobile Auth Buttons */}
               <div className="pt-4 px-2 space-y-3 border-t border-gray-200 mt-4">
                 <Link 

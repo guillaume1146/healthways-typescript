@@ -1,36 +1,42 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { STATS } from '@/lib/constants'
 import StatCard from '@/components/shared/StatCard'
-import { Stat } from '@/types'
 
-interface StatsSectionProps {
-  items?: Stat[]
+interface StatItem {
+  number: string | number
+  label: string
+  color?: string
 }
 
-const StatsSection: React.FC<StatsSectionProps> = ({ items }) => {
-  const [stats, setStats] = useState<Stat[]>(items || STATS)
+const LOADING_STATS: StatItem[] = [
+  { number: 0, label: 'Qualified Doctors', color: 'text-blue-500' },
+  { number: 0, label: 'Happy Patients', color: 'text-green-500' },
+  { number: 0, label: 'Consultations', color: 'text-purple-500' },
+  { number: 0, label: 'Cities Covered', color: 'text-orange-500' },
+]
+
+const StatsSection: React.FC = () => {
+  const [stats, setStats] = useState<StatItem[]>(LOADING_STATS)
 
   useEffect(() => {
-    if (items) return // Use CMS data if provided
     const fetchStats = async () => {
       try {
         const res = await fetch('/api/stats')
         const data = await res.json()
         if (data.success && data.data) {
           setStats(data.data.map((s: { number: number; label: string; color: string }) => ({
-            number: String(s.number) + '+',
+            number: s.number,
             label: s.label,
             color: s.color,
           })))
         }
       } catch {
-        // Keep fallback STATS
+        // Keep loading state
       }
     }
     fetchStats()
-  }, [items])
+  }, [])
 
   return (
     <section className="bg-white py-12">

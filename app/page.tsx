@@ -52,7 +52,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection content={heroContent} slides={slides.length > 0 ? slides : undefined} />
-      <StatsSection items={statsContent?.items} />
+      <StatsSection />
       <ServicesSection
         title={servicesContent?.title}
         subtitle={servicesContent?.subtitle}

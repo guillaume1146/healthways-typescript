@@ -22,6 +22,7 @@ import {
   FaSpinner,
 } from 'react-icons/fa'
 import Link from 'next/link'
+import PdfViewer from '@/components/shared/PdfViewer'
 
 /* ─── Interfaces ─────────────────────────────────────────────────────────── */
 
@@ -267,6 +268,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
   const [uploadType, setUploadType] = useState<string>('other')
   const [uploadUrl, setUploadUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [viewingDoc, setViewingDoc] = useState<DocumentData | null>(null)
   const [docError, setDocError] = useState('')
 
   // Info editing state
@@ -651,15 +653,13 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setViewingDoc(doc)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm"
                     title="View document"
                   >
                     View
-                  </a>
+                  </button>
                   <button
                     onClick={() => handleDeleteDoc(doc.id)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -999,6 +999,15 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
           {activeTab === 'info' && renderInfo()}
         </div>
       </div>
+
+      {/* PDF Viewer overlay */}
+      {viewingDoc && (
+        <PdfViewer
+          url={viewingDoc.url}
+          title={viewingDoc.name}
+          onClose={() => setViewingDoc(null)}
+        />
+      )}
     </div>
   )
 }

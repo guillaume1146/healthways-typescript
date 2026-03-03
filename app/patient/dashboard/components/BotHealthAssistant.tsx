@@ -1,371 +1,453 @@
-import React, { useState, useRef, useEffect } from 'react'
+'use client'
+
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
-import { 
-  FaRobot, 
-  FaUtensils, 
-  FaDumbbell, 
-  FaPills, 
-  FaHeart, 
-  FaTint, 
-  FaPaperPlane, 
-  FaCamera,
-  FaUpload,
-  FaLeaf,
-  FaAppleAlt,
-  FaRunning,
-  FaClipboardList,
-  FaCalendarDay,
+import {
+  FaRobot,
+  FaUtensils,
+  FaDumbbell,
+  FaPaperPlane,
   FaChartLine,
   FaUser,
-  FaImage,
-  FaBrain,
-  FaStethoscope,
-  FaNutritionix
+  FaPlus,
+  FaTrash,
+  FaComments,
+  FaBars,
+  FaTimes,
+  FaExclamationTriangle,
 } from 'react-icons/fa'
 
 interface Props {
   patientData: Patient
 }
 
-type ChatMessage =
-  | {
-      id: string
-      sender: 'user' | 'bot'
-      message: string
-      timestamp: Date
-      type: 'text'
-      data?: undefined
-    }
-  | {
-      id: string
-      sender: 'user' | 'bot'
-      message: string
-      timestamp: Date
-      type: 'image'
-      data?: undefined
-    }
-  | {
-      id: string
-      sender: 'user' | 'bot'
-      message: string
-      timestamp: Date
-      type: 'nutrition_analysis'
-      data: NutritionAnalysis
-    }
-  | {
-      id: string
-      sender: 'user' | 'bot'
-      message: string
-      timestamp: Date
-      type: 'recommendation'
-      data: RecommendationData
-    }
-
-interface NutritionAnalysis {
-  foodName: string
-  calories: number
-  carbs: number
-  protein: number
-  fat: number
-  vitamins: string[]
-  healthScore: number
-  suggestions: string[]
+interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  createdAt: string
 }
 
-interface RecommendationData {
-  currentScore?: number
-  bodyAge?: number
-  recommendations: string[]
-  improvements?: string[]
-  reason?: string
+interface ChatSession {
+  id: string
+  title: string
+  createdAt: string
+  updatedAt: string
+  _count: { messages: number }
 }
 
 const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  }, [])
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, scrollToBottom])
 
+  // Load sessions on mount
   useEffect(() => {
-    // Initialize with welcome message
-    const welcomeMessage: ChatMessage = {
-      id: 'welcome',
-      sender: 'bot',
-      message: `Hello ${patientData.firstName}! I'm your AI Health Assistant. I can help you with nutrition analysis, meal planning, exercise suggestions, and health recommendations. How can I assist you today?`,
-      timestamp: new Date(),
-      type: 'text'
-    }
-    setMessages([welcomeMessage])
-  }, [patientData.firstName])
+    loadSessions()
+  }, [])
 
-  const botResponses = {
-    nutrition: [
-      "I'd be happy to analyze your food! You can upload a photo of your meal or tell me what you're eating.",
-      "Let me analyze the nutritional content of your meal and provide personalized recommendations.",
-      "Based on your health profile, I'll suggest the best foods for your goals."
-    ],
-    exercise: [
-      "Based on your health score and goals, here are some exercise recommendations tailored for you.",
-      "Let's create a workout plan that fits your lifestyle and health conditions.",
-      "I can suggest exercises that align with your current fitness level and medical history."
-    ],
-    health: [
-      "Let me review your health metrics and provide personalized insights.",
-      "Based on your recent health data, I have some recommendations for you.",
-      "I'll analyze your health trends and suggest areas for improvement."
-    ],
-    general: [
-      "I'm here to help with all your health questions! What would you like to know?",
-      "How can I assist you with your health journey today?",
-      "Let me know what aspect of your health you'd like to focus on."
-    ]
+  const loadSessions = async () => {
+    setIsLoadingSessions(true)
+    try {
+      const res = await fetch('/api/ai/chat')
+      const data = await res.json()
+      if (data.success) {
+        setSessions(data.data)
+      }
+    } catch {
+      console.error('Failed to load sessions')
+    } finally {
+      setIsLoadingSessions(false)
+    }
   }
 
-  const analyzeNutrition = (foodDescription: string): NutritionAnalysis => {
-    // Mock nutrition analysis - in real app this would call an AI service
-    const mockAnalysis: NutritionAnalysis = {
-      foodName: foodDescription,
-      calories: Math.floor(Math.random() * 500) + 200,
-      carbs: Math.floor(Math.random() * 50) + 20,
-      protein: Math.floor(Math.random() * 30) + 10,
-      fat: Math.floor(Math.random() * 20) + 5,
-      vitamins: ['Vitamin C', 'Vitamin A', 'Iron', 'Calcium'],
-      healthScore: Math.floor(Math.random() * 40) + 60,
-      suggestions: [
-        'Add more vegetables for fiber',
-        'Consider whole grain alternatives',
-        'Include healthy fats like avocado',
-        'Stay hydrated with water'
-      ]
+  const loadSessionMessages = async (sessionId: string) => {
+    try {
+      const res = await fetch(`/api/ai/chat/${sessionId}`)
+      const data = await res.json()
+      if (data.success) {
+        setMessages(data.data.messages)
+        setActiveSessionId(sessionId)
+        setError(null)
+      }
+    } catch {
+      console.error('Failed to load messages')
     }
-    return mockAnalysis
+    setIsSidebarOpen(false)
   }
 
-  const generateBotResponse = (userMessage: string): ChatMessage => {
-    const message = userMessage.toLowerCase()
+  const startNewChat = () => {
+    setActiveSessionId(null)
+    setMessages([])
+    setError(null)
+    setIsSidebarOpen(false)
+  }
 
-    if (message.includes('food') || message.includes('eat') || message.includes('nutrition') || message.includes('meal')) {
-      // If they mention specific food, analyze it
-      if (message.includes('chicken') || message.includes('salad') || message.includes('rice') || message.includes('banana')) {
-        const analysis = analyzeNutrition(userMessage)
-        return {
-          id: Date.now().toString(),
-          sender: 'bot',
-          message: 'Great choice! Let me analyze that for you.',
-          timestamp: new Date(),
-          type: 'nutrition_analysis',
-          data: analysis
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      const res = await fetch(`/api/ai/chat/${sessionId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setSessions(prev => prev.filter(s => s.id !== sessionId))
+        if (activeSessionId === sessionId) {
+          startNewChat()
         }
       }
-      return {
-        id: Date.now().toString(),
-        sender: 'bot',
-        message: botResponses.nutrition[Math.floor(Math.random() * botResponses.nutrition.length)],
-        timestamp: new Date(),
-        type: 'text'
-      }
-    }
-
-    if (message.includes('exercise') || message.includes('workout') || message.includes('fitness')) {
-      return {
-        id: Date.now().toString(),
-        sender: 'bot',
-        message: botResponses.exercise[Math.floor(Math.random() * botResponses.exercise.length)],
-        timestamp: new Date(),
-        type: 'recommendation',
-        data: {
-          recommendations: [
-            '30 minutes daily walking',
-            'Strength training 2-3 times per week',
-            'Flexibility and stretching exercises',
-            'Low-impact activities like swimming'
-          ],
-          reason: 'Based on your health profile and current fitness level'
-        }
-      }
-    }
-
-    if (message.includes('health') || message.includes('score') || message.includes('condition')) {
-      return {
-        id: Date.now().toString(),
-        sender: 'bot',
-        message: `Your current health score is ${patientData.healthScore}%. Here are some insights based on your profile.`,
-        timestamp: new Date(),
-        type: 'recommendation',
-        data: {
-          currentScore: patientData.healthScore,
-          bodyAge: patientData.bodyAge,
-          recommendations: [
-            'Maintain regular checkups',
-            'Continue current medication regimen',
-            'Focus on stress management',
-            'Ensure adequate sleep'
-          ],
-          improvements: [
-            'Increase water intake',
-            'Add more fiber to diet',
-            'Regular physical activity',
-            'Mindfulness practice'
-          ]
-        }
-      }
-    }
-
-    return {
-      id: Date.now().toString(),
-      sender: 'bot',
-      message: botResponses.general[Math.floor(Math.random() * botResponses.general.length)],
-      timestamp: new Date(),
-      type: 'text'
+    } catch {
+      console.error('Failed to delete session')
     }
   }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() && !selectedImage) return
+    const trimmed = newMessage.trim()
+    if (!trimmed || isLoading) return
 
-    // Add user message
-    const userMessage: ChatMessage =
-      selectedImage
-        ? {
-            id: Date.now().toString(),
-            sender: 'user',
-            message: 'Uploaded an image',
-            timestamp: new Date(),
-            type: 'image'
-          }
-        : {
-            id: Date.now().toString(),
-            sender: 'user',
-            message: newMessage,
-            timestamp: new Date(),
-            type: 'text'
-          }
-
-    setMessages(prev => [...prev, userMessage])
+    // Add user message optimistically
+    const tempUserMsg: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, tempUserMsg])
     setNewMessage('')
-    setSelectedImage(null)
-    setIsTyping(true)
+    setIsLoading(true)
+    setError(null)
 
-    // Simulate bot typing delay
-    setTimeout(() => {
-      const botResponse = generateBotResponse(userMessage.message)
-      setMessages(prev => [...prev, botResponse])
-      setIsTyping(false)
-    }, 1500)
-  }
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+    }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedImage(file)
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: trimmed,
+          sessionId: activeSessionId || undefined,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        const assistantMsg: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: data.data.response,
+          createdAt: new Date().toISOString(),
+        }
+        setMessages(prev => [...prev, assistantMsg])
+
+        // Update session info
+        if (!activeSessionId) {
+          setActiveSessionId(data.data.sessionId)
+        }
+
+        // Refresh sessions list
+        loadSessions()
+      } else {
+        setError(data.message || 'Failed to get response')
+        // Remove optimistic user message on error
+        setMessages(prev => prev.filter(m => m.id !== tempUserMsg.id))
+      }
+    } catch {
+      setError('Network error. Please check your connection and try again.')
+      setMessages(prev => prev.filter(m => m.id !== tempUserMsg.id))
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const formatTime = (date: Date): string => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value)
+    // Auto-resize textarea
+    const textarea = e.target
+    textarea.style.height = 'auto'
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'
+  }
+
+  const handleQuickAction = (text: string) => {
+    setNewMessage(text)
+    textareaRef.current?.focus()
+  }
+
+  const formatTime = (dateStr: string): string => {
+    const date = new Date(dateStr)
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays} days ago`
+    return date.toLocaleDateString()
+  }
+
+  /**
+   * Render markdown-like formatting in assistant messages.
+   * Supports: **bold**, *italic*, bullet lists, numbered lists, headers, code blocks.
+   */
+  const renderMarkdown = (text: string) => {
+    const lines = text.split('\n')
+    const elements: React.ReactNode[] = []
+    let inCodeBlock = false
+    let codeBlockContent: string[] = []
+    let listItems: React.ReactNode[] = []
+    let listType: 'ul' | 'ol' | null = null
+
+    const flushList = () => {
+      if (listItems.length > 0 && listType) {
+        const ListTag = listType === 'ul' ? 'ul' : 'ol'
+        elements.push(
+          <ListTag
+            key={`list-${elements.length}`}
+            className={`${listType === 'ul' ? 'list-disc' : 'list-decimal'} ml-4 my-2 space-y-1`}
+          >
+            {listItems}
+          </ListTag>
+        )
+        listItems = []
+        listType = null
+      }
+    }
+
+    const formatInline = (text: string): React.ReactNode => {
+      // Process bold and italic
+      const parts: React.ReactNode[] = []
+      let remaining = text
+      let keyIdx = 0
+
+      while (remaining.length > 0) {
+        // Bold: **text**
+        const boldMatch = remaining.match(/\*\*(.+?)\*\*/)
+        // Italic: *text*
+        const italicMatch = remaining.match(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/)
+
+        let firstMatch: RegExpMatchArray | null = null
+        let matchType: 'bold' | 'italic' | null = null
+
+        if (boldMatch && italicMatch) {
+          if ((boldMatch.index ?? Infinity) <= (italicMatch.index ?? Infinity)) {
+            firstMatch = boldMatch
+            matchType = 'bold'
+          } else {
+            firstMatch = italicMatch
+            matchType = 'italic'
+          }
+        } else if (boldMatch) {
+          firstMatch = boldMatch
+          matchType = 'bold'
+        } else if (italicMatch) {
+          firstMatch = italicMatch
+          matchType = 'italic'
+        }
+
+        if (firstMatch && firstMatch.index !== undefined && matchType) {
+          if (firstMatch.index > 0) {
+            parts.push(remaining.substring(0, firstMatch.index))
+          }
+          if (matchType === 'bold') {
+            parts.push(<strong key={`b-${keyIdx++}`}>{firstMatch[1]}</strong>)
+          } else {
+            parts.push(<em key={`i-${keyIdx++}`}>{firstMatch[1]}</em>)
+          }
+          remaining = remaining.substring(firstMatch.index + firstMatch[0].length)
+        } else {
+          parts.push(remaining)
+          break
+        }
+      }
+
+      return parts.length === 1 ? parts[0] : <>{parts}</>
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      // Code block
+      if (line.trim().startsWith('```')) {
+        if (inCodeBlock) {
+          elements.push(
+            <pre
+              key={`code-${elements.length}`}
+              className="bg-gray-800 text-green-300 rounded-lg p-3 my-2 overflow-x-auto text-xs font-mono"
+            >
+              <code>{codeBlockContent.join('\n')}</code>
+            </pre>
+          )
+          codeBlockContent = []
+          inCodeBlock = false
+        } else {
+          flushList()
+          inCodeBlock = true
+        }
+        continue
+      }
+
+      if (inCodeBlock) {
+        codeBlockContent.push(line)
+        continue
+      }
+
+      // Headers
+      if (line.startsWith('### ')) {
+        flushList()
+        elements.push(
+          <h4 key={`h3-${i}`} className="font-semibold text-sm mt-3 mb-1">
+            {formatInline(line.substring(4))}
+          </h4>
+        )
+        continue
+      }
+      if (line.startsWith('## ')) {
+        flushList()
+        elements.push(
+          <h3 key={`h2-${i}`} className="font-bold text-sm mt-3 mb-1">
+            {formatInline(line.substring(3))}
+          </h3>
+        )
+        continue
+      }
+      if (line.startsWith('# ')) {
+        flushList()
+        elements.push(
+          <h2 key={`h1-${i}`} className="font-bold text-base mt-3 mb-1">
+            {formatInline(line.substring(2))}
+          </h2>
+        )
+        continue
+      }
+
+      // Bullet lists
+      const bulletMatch = line.match(/^[\s]*[-*]\s+(.+)/)
+      if (bulletMatch) {
+        if (listType !== 'ul') {
+          flushList()
+          listType = 'ul'
+        }
+        listItems.push(
+          <li key={`li-${i}`} className="text-sm">
+            {formatInline(bulletMatch[1])}
+          </li>
+        )
+        continue
+      }
+
+      // Numbered lists
+      const numberedMatch = line.match(/^[\s]*\d+\.\s+(.+)/)
+      if (numberedMatch) {
+        if (listType !== 'ol') {
+          flushList()
+          listType = 'ol'
+        }
+        listItems.push(
+          <li key={`li-${i}`} className="text-sm">
+            {formatInline(numberedMatch[1])}
+          </li>
+        )
+        continue
+      }
+
+      // Empty line
+      if (line.trim() === '') {
+        flushList()
+        elements.push(<div key={`br-${i}`} className="h-2" />)
+        continue
+      }
+
+      // Regular paragraph
+      flushList()
+      elements.push(
+        <p key={`p-${i}`} className="text-sm my-1">
+          {formatInline(line)}
+        </p>
+      )
+    }
+
+    // Flush remaining list
+    flushList()
+
+    return <div className="space-y-0">{elements}</div>
+  }
+
   const renderMessage = (message: ChatMessage) => {
+    const isUser = message.role === 'user'
+
     return (
-      <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
-        <div className={`flex items-start max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div
+        key={message.id}
+        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
+      >
+        <div
+          className={`flex items-start max-w-[85%] md:max-w-[75%] ${
+            isUser ? 'flex-row-reverse' : 'flex-row'
+          }`}
+        >
           {/* Avatar */}
-          <div className={`flex-shrink-0 ${message.sender === 'user' ? 'ml-3' : 'mr-3'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              message.sender === 'user' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-            }`}>
-              {message.sender === 'user' ? <FaUser className="text-sm" /> : <FaRobot className="text-sm" />}
+          <div className={`flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                isUser
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+              }`}
+            >
+              {isUser ? (
+                <FaUser className="text-sm" />
+              ) : (
+                <FaRobot className="text-sm" />
+              )}
             </div>
           </div>
 
           {/* Message Content */}
-          <div className={`rounded-2xl px-4 py-3 ${
-            message.sender === 'user' 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-white border border-gray-200 text-gray-800'
-          }`}>
-            {message.type === 'text' && (
-              <p className="text-sm">{message.message}</p>
+          <div
+            className={`rounded-2xl px-4 py-3 ${
+              isUser
+                ? 'bg-blue-500 text-white'
+                : 'bg-white border border-gray-200 text-gray-800'
+            }`}
+          >
+            {isUser ? (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              renderMarkdown(message.content)
             )}
-
-            {message.type === 'nutrition_analysis' && (
-              <div className="space-y-3">
-                <p className="text-sm">{message.message}</p>
-                <div className="bg-green-50 rounded-lg p-3 text-gray-800">
-                  <h4 className="font-semibold text-green-800 mb-2 flex items-center">
-                    <FaNutritionix className="mr-2" />
-                    Nutrition Analysis: {message.data.foodName}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>Calories: <strong>{message.data.calories}</strong></div>
-                    <div>Protein: <strong>{message.data.protein}g</strong></div>
-                    <div>Carbs: <strong>{message.data.carbs}g</strong></div>
-                    <div>Fat: <strong>{message.data.fat}g</strong></div>
-                  </div>
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span>Health Score</span>
-                      <span className="font-semibold">{message.data.healthScore}/100</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full" 
-                        style={{ width: `${message.data.healthScore}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs font-medium text-green-700">Suggestions:</p>
-                    <ul className="text-xs text-green-600 ml-2">
-                      {message.data.suggestions.map((suggestion: string, index: number) => (
-                        <li key={index}>• {suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {message.type === 'recommendation' && (
-              <div className="space-y-3">
-                <p className="text-sm">{message.message}</p>
-                <div className="bg-blue-50 rounded-lg p-3 text-gray-800">
-                  <h4 className="font-semibold text-blue-800 mb-2 flex items-center">
-                    <FaBrain className="mr-2" />
-                    Personalized Recommendations
-                  </h4>
-                  {message.data.currentScore !== undefined && (
-                    <div className="mb-2 text-xs">
-                      <span>Current Health Score: </span>
-                      <strong className="text-blue-600">{message.data.currentScore}%</strong>
-                    </div>
-                  )}
-                  <ul className="text-xs space-y-1">
-                    {message.data.recommendations.map((rec: string, index: number) => (
-                      <li key={index} className="flex items-start">
-                        <FaStethoscope className="text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                        {rec}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            <p className={`text-xs mt-2 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-              {formatTime(message.timestamp)}
+            <p
+              className={`text-xs mt-2 ${
+                isUser ? 'text-blue-100' : 'text-gray-400'
+              }`}
+            >
+              {formatTime(message.createdAt)}
             </p>
           </div>
         </div>
@@ -373,256 +455,254 @@ const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
     )
   }
 
-  if (!patientData.botHealthAssistant) {
-    return (
-      <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-        <FaRobot className="text-gray-400 text-5xl mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-600 mb-2">AI Health Assistant</h3>
-        <p className="text-gray-500">Initializing your personal health assistant...</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
-      {/* AI Assistant Chat Interface */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="flex h-[calc(100vh-140px)] bg-gray-50 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Chat Sessions */}
+      <div
+        className={`${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 fixed lg:relative z-50 lg:z-0 w-72 h-full bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out`}
+      >
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-800 flex items-center">
+              <FaComments className="mr-2 text-purple-500" />
+              Chats
+            </h3>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-1 text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes />
+            </button>
+          </div>
+          <button
+            onClick={startNewChat}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition text-sm font-medium"
+          >
+            <FaPlus className="text-xs" />
+            New Chat
+          </button>
+        </div>
+
+        {/* Sessions List */}
+        <div className="flex-1 overflow-y-auto">
+          {isLoadingSessions ? (
+            <div className="p-4 text-center text-gray-400 text-sm">
+              Loading chats...
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="p-4 text-center text-gray-400 text-sm">
+              No chat history yet. Start a new conversation!
+            </div>
+          ) : (
+            sessions.map(session => (
+              <div
+                key={session.id}
+                onClick={() => loadSessionMessages(session.id)}
+                className={`group flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 transition ${
+                  activeSessionId === session.id
+                    ? 'bg-purple-50 border-l-2 border-l-purple-500'
+                    : ''
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {session.title}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {formatDate(session.updatedAt)} &middot;{' '}
+                    {session._count.messages} messages
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => deleteSession(session.id, e)}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition ml-2"
+                  title="Delete chat"
+                >
+                  <FaTrash className="text-xs" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Chat Header */}
-        <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 text-white p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <FaRobot className="text-2xl" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">AI Health Assistant</h2>
-                <p className="text-purple-100">Your personal nutrition & wellness advisor</p>
-              </div>
+        <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 text-white px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition"
+            >
+              <FaBars />
+            </button>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <FaRobot className="text-xl" />
             </div>
-            <div className="text-right">
-              <p className="text-sm text-purple-100">Health Score</p>
-              <p className="text-2xl font-bold">{patientData.healthScore}%</p>
+            <div>
+              <h2 className="text-lg font-bold">AI Health Assistant</h2>
+              <p className="text-xs text-purple-100">
+                Powered by AI &middot; Your personal wellness advisor
+              </p>
             </div>
+          </div>
+          <div className="text-right hidden sm:block">
+            <p className="text-xs text-purple-100">Health Score</p>
+            <p className="text-xl font-bold">{patientData.healthScore}%</p>
           </div>
         </div>
 
         {/* Chat Messages */}
-        <div className="h-96 overflow-y-auto p-6 bg-gray-50">
-          {messages.map(renderMessage)}
-          
-          {isTyping && (
-            <div className="flex justify-start mb-4">
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                  <FaRobot className="text-white text-sm" />
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+          {messages.length === 0 && !isLoading ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
+                <FaRobot className="text-3xl text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                Hello, {patientData.firstName}!
+              </h3>
+              <p className="text-gray-500 mb-6 max-w-md text-sm">
+                I am your AI Health Assistant. I can help you with diet and
+                nutrition advice, exercise recommendations, and wellness
+                guidance tailored to your health profile.
+              </p>
+
+              {/* Quick Action Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
+                <button
+                  onClick={() =>
+                    handleQuickAction(
+                      'What healthy meals would you recommend for me based on my health profile?'
+                    )
+                  }
+                  className="bg-white border border-gray-200 hover:border-green-300 hover:shadow-md p-4 rounded-xl transition text-left group"
+                >
+                  <FaUtensils className="text-green-500 text-lg mb-2 group-hover:scale-110 transition-transform" />
+                  <h4 className="font-medium text-gray-800 text-sm">
+                    Meal Planning
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Get diet suggestions
+                  </p>
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleQuickAction(
+                      'Can you suggest a safe exercise plan for me based on my health conditions?'
+                    )
+                  }
+                  className="bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md p-4 rounded-xl transition text-left group"
+                >
+                  <FaDumbbell className="text-blue-500 text-lg mb-2 group-hover:scale-110 transition-transform" />
+                  <h4 className="font-medium text-gray-800 text-sm">
+                    Exercise Plan
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Custom workouts
+                  </p>
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleQuickAction(
+                      'Can you analyze my health profile and give me tips to improve my health score?'
+                    )
+                  }
+                  className="bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md p-4 rounded-xl transition text-left group"
+                >
+                  <FaChartLine className="text-purple-500 text-lg mb-2 group-hover:scale-110 transition-transform" />
+                  <h4 className="font-medium text-gray-800 text-sm">
+                    Health Insights
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Improve your score
+                  </p>
+                </button>
               </div>
             </div>
+          ) : (
+            <>
+              {messages.map(renderMessage)}
+
+              {/* Typing Indicator */}
+              {isLoading && (
+                <div className="flex justify-start mb-4">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                      <FaRobot className="text-white text-sm" />
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
+                      <div className="flex space-x-1.5">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.15s' }}
+                        />
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.3s' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex justify-center mb-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-center gap-2 text-sm text-red-700 max-w-md">
+                    <FaExclamationTriangle className="flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Chat Input */}
-        <div className="p-4 border-t bg-white">
-          {selectedImage && (
-            <div className="mb-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-              <div className="flex items-center">
-                <FaImage className="text-blue-500 mr-2" />
-                <span className="text-sm text-blue-700">Image selected: {selectedImage.name}</span>
-              </div>
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
-            </div>
-          )}
-          
-          <div className="flex items-center space-x-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-3 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition"
-            >
-              <FaCamera className="text-lg" />
-            </button>
-            
-            <input
-              type="text"
+        <div className="p-3 md:p-4 border-t bg-white">
+          <div className="flex items-end space-x-3">
+            <textarea
+              ref={textareaRef}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask about nutrition, exercise, or upload a food photo..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask about nutrition, exercise, or wellness..."
+              rows={1}
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition resize-none text-sm"
+              style={{ maxHeight: '120px' }}
+              disabled={isLoading}
             />
-            
             <button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() && !selectedImage}
-              className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              disabled={!newMessage.trim() || isLoading}
+              className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition flex-shrink-0"
             >
               <FaPaperPlane className="text-lg" />
             </button>
           </div>
+          <p className="text-xs text-gray-400 mt-2 text-center">
+            AI responses are informational only. Always consult your doctor for
+            medical advice.
+          </p>
         </div>
-      </div>
-
-      {/* Quick Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button 
-          onClick={() => setNewMessage('Help me plan healthy meals')}
-          className="bg-gradient-to-br from-green-400 to-green-600 text-white p-6 rounded-2xl hover:from-green-500 hover:to-green-700 transition-all transform hover:scale-105"
-        >
-          <FaUtensils className="text-3xl mb-3" />
-          <h3 className="font-bold mb-2">Meal Planning</h3>
-          <p className="text-sm opacity-90">Get personalized meal suggestions</p>
-        </button>
-
-        <button 
-          onClick={() => setNewMessage('Create an exercise plan for me')}
-          className="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-6 rounded-2xl hover:from-blue-500 hover:to-blue-700 transition-all transform hover:scale-105"
-        >
-          <FaDumbbell className="text-3xl mb-3" />
-          <h3 className="font-bold mb-2">Exercise Plans</h3>
-          <p className="text-sm opacity-90">Custom workouts for your goals</p>
-        </button>
-
-        <button 
-          onClick={() => setNewMessage('Analyze my health metrics')}
-          className="bg-gradient-to-br from-purple-400 to-purple-600 text-white p-6 rounded-2xl hover:from-purple-500 hover:to-purple-700 transition-all transform hover:scale-105"
-        >
-          <FaChartLine className="text-3xl mb-3" />
-          <h3 className="font-bold mb-2">Health Insights</h3>
-          <p className="text-sm opacity-90">Track your health progress</p>
-        </button>
-      </div>
-
-      {/* Health Assistant Data */}
-      {patientData.botHealthAssistant.sessions && patientData.botHealthAssistant.sessions.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <FaClipboardList className="mr-2 text-purple-500" />
-            Previous Health Sessions
-          </h3>
-          <div className="space-y-4">
-            {patientData.botHealthAssistant.sessions.map((session) => (
-              <div key={session.id} className="border rounded-xl p-4 hover:shadow-md transition">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{session.topic}</h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(session.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <h5 className="font-medium text-green-800 mb-2 flex items-center">
-                      <FaLeaf className="mr-2" />
-                      Diet Recommendations
-                    </h5>
-                    <ul className="text-sm text-green-700 space-y-1">
-                      {session.recommendations.diet.map((item, index) => (
-                        <li key={index} className="flex items-start">
-                          <FaAppleAlt className="mr-2 mt-0.5 text-green-500 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <h5 className="font-medium text-blue-800 mb-2 flex items-center">
-                      <FaRunning className="mr-2" />
-                      Exercise Recommendations
-                    </h5>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      {session.recommendations.exercise.map((item, index) => (
-                        <li key={index} className="flex items-start">
-                          <FaDumbbell className="mr-2 mt-0.5 text-blue-500 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Current Health Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Hydration Tracking */}
-        {patientData.botHealthAssistant.hydrationTracking && patientData.botHealthAssistant.hydrationTracking.length > 0 && (
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <FaTint className="mr-2 text-blue-500" />
-              Hydration Tracking
-            </h3>
-            {patientData.botHealthAssistant.hydrationTracking.slice(0, 1).map((track, index) => (
-              <div key={index} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Today&apos;s Progress</span>
-                  <span className="text-lg font-bold text-blue-600">
-                    {track.consumedML}/{track.targetML}ml
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((track.consumedML / track.targetML) * 100, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Reminders: {track.reminders.join(', ')}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Meal Plan Overview */}
-        {patientData.botHealthAssistant.currentMealPlan && (
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <FaUtensils className="mr-2 text-green-500" />
-              Current Meal Plan
-            </h3>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-blue-50 rounded p-2 text-center">
-                  <p className="text-xs text-blue-700">Calories</p>
-                  <p className="text-lg font-bold text-blue-900">{patientData.botHealthAssistant.currentMealPlan.calorieTarget}</p>
-                </div>
-                <div className="bg-green-50 rounded p-2 text-center">
-                  <p className="text-xs text-green-700">Protein</p>
-                  <p className="text-lg font-bold text-green-900">{patientData.botHealthAssistant.currentMealPlan.proteinTarget}g</p>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">
-                Plan period: {patientData.botHealthAssistant.currentMealPlan.startDate} to {patientData.botHealthAssistant.currentMealPlan.endDate}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
