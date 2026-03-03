@@ -394,22 +394,6 @@ export default function DoctorsSearchPage() {
           ) : null}
         </div>
         
-        {/* Professional Banner */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Are you a healthcare professional?</h2>
-          <p className="text-blue-100 mb-6">
-            Join our platform and connect with patients who need your expertise. 
-            Get matched with consultation opportunities using our AI-powered system.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-white text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-              Join as Doctor →
-            </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-700 transition-colors">
-              Learn More
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )

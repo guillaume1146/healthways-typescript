@@ -146,18 +146,18 @@ interface DoctorStore {
 
 // Default initial state
 const defaultProfile: DoctorProfile = {
-  id: 'doc-001',
-  name: 'Dr. Sarah Johnson',
-  email: 'sarah.johnson@healthwyz.mu',
-  phone: '+230 5123 4567',
-  specialty: 'Cardiology',
-  registrationNumber: 'MED-2024-001',
-  avatar: '👩‍⚕️',
-  bio: 'Experienced cardiologist with over 10 years of practice',
-  languages: ['English', 'French', 'Creole'],
-  consultationFee: 2500,
-  videoConsultationFee: 2000,
-  emergencyConsultationAvailable: true
+  id: '',
+  name: '',
+  email: '',
+  phone: '',
+  specialty: '',
+  registrationNumber: '',
+  avatar: '',
+  bio: '',
+  languages: [],
+  consultationFee: 0,
+  videoConsultationFee: 0,
+  emergencyConsultationAvailable: false,
 }
 
 const defaultAvailability: AvailabilitySchedule = {

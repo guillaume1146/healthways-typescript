@@ -1,5 +1,4 @@
-import { AuthUser } from '@/app/login/types/auth'
-import { AuthService } from '@/app/login/utils/auth'
+import { AuthUser, AuthService } from '@/lib/services/auth'
 import { useState, useEffect, useCallback } from 'react'
 
 export function useAuth() {

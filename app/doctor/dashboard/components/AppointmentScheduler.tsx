@@ -41,6 +41,8 @@ interface PaymentInfo {
 interface Appointment {
   id: string
   patientName: string
+  patientPhone?: string
+  patientEmail?: string
   status: AppointmentStatus
   type: AppointmentType
   date: string
@@ -271,8 +273,8 @@ const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                 <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">Patient Info</h4>
                 <div className="space-y-1 text-xs sm:text-sm">
-                  <p className="flex items-center gap-1"><FaPhone className="text-blue-500" /> +230 5XXX XXXX</p>
-                  <p className="flex items-center gap-1"><FaEnvelope className="text-blue-500" /> patient@email.com</p>
+                  <p className="flex items-center gap-1"><FaPhone className="text-blue-500" /> {appointment.patientPhone || 'Not provided'}</p>
+                  <p className="flex items-center gap-1"><FaEnvelope className="text-blue-500" /> {appointment.patientEmail || 'Not provided'}</p>
                   <button className="text-blue-600 hover:underline">View Profile →</button>
                 </div>
               </div>

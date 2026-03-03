@@ -386,22 +386,6 @@ export default function NanniesSearchPage() {
           ) : null}
         </div>
         
-        {/* Professional Banner */}
-        <div className="mt-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Are you a childcare professional?</h2>
-          <p className="text-purple-100 mb-6">
-            Join our platform and connect with families who need your expertise. 
-            Get matched with childcare opportunities using our AI-powered system.
-          </p>
-          <div className="flex gap-4">
-            <button className="bg-white text-purple-700 px-6 py-3 rounded-lg font-medium hover:bg-purple-50 transition-colors">
-              Join as Nanny →
-            </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-purple-700 transition-colors">
-              Learn More
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )

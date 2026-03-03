@@ -43,44 +43,9 @@ export default function AdminSecurityPage() {
 
     const fetchSecurityData = async () => {
       try {
-        // Simulate loading security data from the platform
-        // In production this would call a dedicated security API
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        setLoginAttempts([
-          {
-            id: '1',
-            email: 'admin@healthwyz.com',
-            success: true,
-            ipAddress: '192.168.1.100',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-            userAgent: 'Chrome 120 / Windows',
-          },
-          {
-            id: '2',
-            email: 'doctor@healthwyz.com',
-            success: false,
-            ipAddress: '10.0.0.45',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            userAgent: 'Safari 17 / macOS',
-          },
-          {
-            id: '3',
-            email: 'unknown@example.com',
-            success: false,
-            ipAddress: '203.0.113.50',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-            userAgent: 'Firefox 121 / Linux',
-          },
-          {
-            id: '4',
-            email: 'nurse@healthwyz.com',
-            success: true,
-            ipAddress: '192.168.1.105',
-            timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-            userAgent: 'Chrome 120 / Android',
-          },
-        ])
+        // Fetch recent login attempts from API (placeholder — no endpoint yet)
+        // When a security audit API is implemented, replace this with a real fetch
+        setLoginAttempts([])
       } catch (error) {
         console.error('Failed to fetch security data:', error)
       } finally {

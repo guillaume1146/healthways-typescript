@@ -29,14 +29,12 @@ const Footer: React.FC = () => {
     { href: '/search/doctors', label: 'Online Consultation' },
     { href: '/search/medicines', label: 'Medicine Delivery' },
     { href: '/search/doctors', label: 'Find Specialists' },
-    { href: '/signup', label: 'Join as Provider' },
   ]
 
   const aboutLinks: FooterLink[] = [
     { href: '/privacy', label: 'Privacy Policy' },
     { href: '/terms', label: 'Terms of Service' },
     { href: '/medical-disclaimer', label: 'Medical Disclaimer' },
-    { href: '/login', label: 'Provider Login' },
   ]
 
   const socialLinks: SocialLink[] = [
@@ -140,19 +138,6 @@ const Footer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-center md:text-right">
-                <p className="text-white/80 mb-2">Stay updated:</p>
-                <div className="flex max-w-md">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="flex-1 px-4 py-2 rounded-l-xl text-gray-700 outline-none border-2 border-green-500 focus:border-green-400"
-                  />
-                  <button className="btn-gradient px-6 py-2 rounded-r-xl rounded-l-none font-semibold text-white">
-                    Subscribe
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
