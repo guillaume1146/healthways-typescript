@@ -1,7 +1,7 @@
 // File: app/doctor/profile/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   FaUser, 
@@ -20,104 +20,111 @@ import {
   FaLanguage,
   FaCheckCircle,
   FaExclamationCircle,
-  FaArrowLeft
+  FaArrowLeft,
+  FaSpinner
 } from 'react-icons/fa'
 
-// Mock data for static prototype
-const mockDoctorProfile = {
+const emptyDoctorProfile = {
   personalInfo: {
-    fullName: "Dr. Sarah Johnson",
-    email: "sarah.johnson@Healthwyz.mu",
-    phone: "+230 123 4567",
-    avatar: "👩‍⚕️",
-    bio: "Experienced cardiologist with over 10 years of practice. Specialized in interventional cardiology and heart disease prevention. Committed to providing compassionate, evidence-based care to all patients.",
-    languages: ["English", "French", "Creole"],
-    dateOfBirth: "1985-03-15",
-    gender: "Female"
+    fullName: "",
+    email: "",
+    phone: "",
+    avatar: "",
+    bio: "",
+    languages: [] as string[],
+    dateOfBirth: "",
+    gender: ""
   },
   professionalInfo: {
-    specialty: "Cardiology",
-    subSpecialties: ["Interventional Cardiology", "Preventive Cardiology"],
-    licenseNumber: "MD-12345-MU",
-    experience: "10+ years",
-    education: [
-      {
-        degree: "MD - Doctor of Medicine",
-        institution: "University of Mauritius",
-        year: "2012",
-        verified: true
-      },
-      {
-        degree: "Fellowship in Cardiology",
-        institution: "Royal College of Physicians",
-        year: "2015",
-        verified: true
-      }
-    ],
-    certifications: [
-      {
-        name: "Board Certification in Cardiology",
-        issuer: "Mauritius Medical Council",
-        expiryDate: "2026-03-15",
-        verified: true
-      },
-      {
-        name: "Advanced Cardiac Life Support (ACLS)",
-        issuer: "American Heart Association",
-        expiryDate: "2025-06-20",
-        verified: true
-      }
-    ],
-    affiliations: [
-      "Apollo Bramwell Hospital",
-      "Wellkin Hospital",
-      "Fortis Clinique Darné"
-    ]
+    specialty: "",
+    subSpecialties: [] as string[],
+    licenseNumber: "",
+    experience: "",
+    education: [] as { degree: string; institution: string; year: string; verified: boolean }[],
+    certifications: [] as { name: string; issuer: string; expiryDate: string; verified: boolean }[],
+    affiliations: [] as string[]
   },
   practiceInfo: {
-    consultationFee: 2500,
+    consultationFee: 0,
     currency: "MUR",
-    availableDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    workingHours: "09:00 AM - 05:00 PM",
-    locations: [
-      {
-        name: "Apollo Bramwell Hospital",
-        address: "Corner Brown Sequard & Antelme Streets, Port Louis",
-        isMain: true
-      },
-      {
-        name: "Private Clinic",
-        address: "Royal Road, Rose Hill",
-        isMain: false
-      }
-    ],
-    services: [
-      "General Cardiology Consultation",
-      "Cardiac Risk Assessment",
-      "Echocardiography",
-      "Stress Testing",
-      "Preventive Cardiology",
-      "Teleconsultation"
-    ]
+    availableDays: [] as string[],
+    workingHours: "",
+    locations: [] as { name: string; address: string; isMain: boolean }[],
+    services: [] as string[]
   },
   stats: {
-    rating: 4.8,
-    reviews: 142,
-    patients: 247,
-    completionRate: 95,
-    profileCompleteness: 85
+    rating: 0,
+    reviews: 0,
+    patients: 0,
+    completionRate: 0,
+    profileCompleteness: 0
   }
 }
 
 const DoctorProfile = () => {
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(mockDoctorProfile)
+  const [formData, setFormData] = useState(emptyDoctorProfile)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const u = json.data
+            setFormData({
+              personalInfo: {
+                fullName: `Dr. ${u.firstName || ''} ${u.lastName || ''}`.trim(),
+                email: u.email || '',
+                phone: u.phone || '',
+                avatar: u.avatar || '',
+                bio: u.doctorProfile?.bio || '',
+                languages: u.doctorProfile?.languages || [],
+                dateOfBirth: u.dateOfBirth || '',
+                gender: u.gender || ''
+              },
+              professionalInfo: {
+                specialty: u.doctorProfile?.specialty || '',
+                subSpecialties: u.doctorProfile?.subSpecialties || [],
+                licenseNumber: u.doctorProfile?.licenseNumber || '',
+                experience: u.doctorProfile?.experience || '',
+                education: u.doctorProfile?.education || [],
+                certifications: u.doctorProfile?.certifications || [],
+                affiliations: u.doctorProfile?.affiliations || []
+              },
+              practiceInfo: {
+                consultationFee: u.doctorProfile?.consultationFee || 0,
+                currency: 'MUR',
+                availableDays: u.doctorProfile?.availableDays || [],
+                workingHours: u.doctorProfile?.workingHours || '',
+                locations: u.doctorProfile?.locations || [],
+                services: u.doctorProfile?.services || []
+              },
+              stats: {
+                rating: u.doctorProfile?.rating || 0,
+                reviews: u.doctorProfile?.reviews || 0,
+                patients: u.doctorProfile?.patients || 0,
+                completionRate: u.doctorProfile?.completionRate || 0,
+                profileCompleteness: u.doctorProfile?.profileCompleteness || 0
+              }
+            })
+          }
+        }
+      } catch {} finally { setLoading(false) }
+    }
+    fetchProfile()
+  }, [])
 
   const handleSave = () => {
     // In real app, this would save to backend
     setIsEditing(false)
-    console.log('Profile saved:', formData)
   }
 
   const ProfileSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -135,6 +142,14 @@ const DoctorProfile = () => {
       {verified ? 'Verified' : 'Pending'}
     </span>
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-primary-blue text-3xl" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

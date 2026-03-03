@@ -256,7 +256,7 @@ export default function CompletePharmacyOrderBooking() {
   // Redirect to medicines page if cart is empty
   useEffect(() => {
     if (cartItems.length === 0 && !orderConfirmed) {
-      window.location.href = '/patient/pharmacy/medicines'
+      window.location.href = '/search/medicines'
     }
   }, [cartItems, orderConfirmed])
 
@@ -266,7 +266,7 @@ export default function CompletePharmacyOrderBooking() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/patient/pharmacy/medicines" className="text-gray-600 hover:text-green-600">
+            <Link href="/search/medicines" className="text-gray-600 hover:text-green-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
@@ -388,7 +388,7 @@ export default function CompletePharmacyOrderBooking() {
 
               <div className="flex justify-between mt-8">
                 <Link
-                  href="/patient/pharmacy/medicines"
+                  href="/search/medicines"
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Continue Shopping
@@ -831,7 +831,7 @@ export default function CompletePharmacyOrderBooking() {
 
               {/* Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/pharmacy/orders" className="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all text-center">
+                <Link href="/patient/dashboard/bookings" className="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all text-center">
                   View My Orders
                 </Link>
                 <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">

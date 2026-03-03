@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { adminAccountActionSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   try {
     const auth = validateRequest(request)
     if (!auth || auth.userType !== 'super-admin') {
@@ -38,6 +42,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   try {
     const auth = validateRequest(request)
     if (!auth || auth.userType !== 'super-admin') {

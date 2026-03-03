@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('CRITICAL: JWT_SECRET environment variable must be set in production. Refusing to start with an insecure default.')
+}
 if (!JWT_SECRET) {
   console.warn('WARNING: JWT_SECRET environment variable is not set. Using insecure default for development only.')
 }

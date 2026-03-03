@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  FaNewspaper, FaImage, FaStar, FaEdit, FaTrash, FaPlus, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown, FaChartBar
+  FaNewspaper, FaImage, FaStar, FaEdit, FaTrash, FaPlus, FaEye, FaToggleOn, FaToggleOff, FaArrowUp, FaArrowDown, FaChartBar, FaSpinner
 } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 
@@ -49,35 +49,39 @@ interface Statistic {
 // Using base64 placeholder or dicebear API
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjE5cHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NDAweDMwMDwvdGV4dD48L3N2Zz4='
 
-const mockSliders: Slider[] = [
-  { id: 'S1', title: 'Quality Healthcare at Your Fingertips', description: 'Connect with top doctors instantly', imageUrl: PLACEHOLDER_IMAGE, link: '/doctors', order: 1, isActive: true },
-  { id: 'S2', title: '24/7 Emergency Services', description: 'Rapid response when you need it most', imageUrl: PLACEHOLDER_IMAGE, link: '/emergency', order: 2, isActive: true },
-  { id: 'S3', title: 'Professional Nursing Care', description: 'Compassionate care at home', imageUrl: PLACEHOLDER_IMAGE, link: '/nurses', order: 3, isActive: false }
-]
-
-const mockNews: News[] = [
-  { id: 'N1', title: 'New Telemedicine Services Launched', content: 'We are excited to announce...', imageUrl: PLACEHOLDER_IMAGE, author: 'Admin', date: '2025-08-20', category: 'Announcement', isPublished: true },
-  { id: 'N2', title: 'COVID-19 Vaccination Drive', content: 'Free vaccination available...', imageUrl: PLACEHOLDER_IMAGE, author: 'Health Team', date: '2025-08-18', category: 'Health', isPublished: true }
-]
-
-const mockTestimonials: Testimonial[] = [
-  { id: 'T1', name: 'John Smith', role: 'Patient', content: 'Excellent service and caring staff!', rating: 5, imageUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=John', isActive: true },
-  { id: 'T2', name: 'Mary Johnson', role: 'Family Member', content: 'The home care service was exceptional.', rating: 5, imageUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Mary', isActive: true }
-]
-
-const mockStatistics: Statistic[] = [
-  { category: 'Doctors', count: 2341, icon: 'FaUserMd', color: 'blue' },
-  { category: 'Nurses', count: 3456, icon: 'FaUserNurse', color: 'purple' },
-  { category: 'Patients Served', count: 48750, icon: 'FaUsers', color: 'green' },
-  { category: 'Emergency Responses', count: 12847, icon: 'FaAmbulance', color: 'red' }
-]
-
 export default function CMSManagement() {
   const [activeTab, setActiveTab] = useState<'slider' | 'news' | 'testimonials' | 'statistics'>('slider')
-  const [sliders, setSliders] = useState(mockSliders)
-  const [news, setNews] = useState(mockNews)
-  const [testimonials, setTestimonials] = useState(mockTestimonials)
-  const [statistics, setStatistics] = useState(mockStatistics)
+  const [sliders, setSliders] = useState<Slider[]>([])
+  const [news, setNews] = useState<News[]>([])
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [statistics, setStatistics] = useState<Statistic[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCmsData = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/cms`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            if (json.data.sliders) setSliders(json.data.sliders)
+            if (json.data.news) setNews(json.data.news)
+            if (json.data.testimonials) setTestimonials(json.data.testimonials)
+            if (json.data.statistics) setStatistics(json.data.statistics)
+          }
+        }
+      } catch {
+        // Failed to fetch CMS data
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCmsData()
+  }, [])
   const [editingItem, setEditingItem] = useState<Slider | News | Testimonial | Statistic | null>(null);
   const [editType, setEditType] = useState<string>('')
 
@@ -102,6 +106,14 @@ export default function CMSManagement() {
 
   const toggleTestimonialStatus = (id: string) => {
     setTestimonials(prev => prev.map(t => t.id === id ? { ...t, isActive: !t.isActive } : t))
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (
@@ -134,15 +146,15 @@ export default function CMSManagement() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 px-2 sm:px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                className={`flex-1 p-3 rounded-lg font-medium transition flex items-center justify-center ${
                   activeTab === tab.id
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
                 title={tab.label}
+                aria-label={tab.label}
               >
-                <tab.icon className="text-base" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <tab.icon className="text-lg" />
               </button>
             ))}
           </div>

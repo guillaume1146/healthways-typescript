@@ -215,7 +215,7 @@ export default function BookingConfirmation({ bookingData }: BookingConfirmation
         {/* Main Action Buttons */}
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Link 
-            href="/patient/appointments" 
+            href="/patient/dashboard/bookings" 
             className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-center"
           >
             View My Appointments

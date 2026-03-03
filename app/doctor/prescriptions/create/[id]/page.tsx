@@ -189,11 +189,6 @@ const PrescriptionCreatePage = () => {
     
     // Simulate PDF generation and email sending
     setTimeout(() => {
-      console.log('Generating PDF...')
-      console.log('Applying e-signature...')
-      console.log('Sending email to patient...')
-      console.log('Prescription saved to records')
-      
       setIsLoading(false)
       setCurrentStep(5)
     }, 2000)

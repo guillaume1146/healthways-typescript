@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  FaCalendarAlt, 
-  FaVideo, 
-  FaUser, 
-  FaClock, 
-  FaMapMarkerAlt, 
+import {
+  FaCalendarAlt,
+  FaVideo,
+  FaUser,
+  FaClock,
+  FaMapMarkerAlt,
   FaPhone,
   FaComments,
   FaCheck,
@@ -19,104 +19,8 @@ import {
   FaPlus,
   FaArrowLeft,
   FaBell,
+  FaSpinner,
 } from 'react-icons/fa'
-
-// Mock data for static prototype
-const mockAppointments = [
-  {
-    id: 'APT001',
-    patient: {
-      name: 'John Smith',
-      age: 45,
-      avatar: 'JS',
-      phone: '+230 123 4567',
-      email: 'john.smith@email.com'
-    },
-    datetime: '2024-01-15T09:00:00',
-    duration: 30,
-    type: 'video',
-    status: 'upcoming',
-    complaint: 'Chest pain and shortness of breath',
-    location: 'Apollo Bramwell Hospital',
-    isNewPatient: false,
-    lastVisit: '2023-12-10',
-    notes: 'Follow-up consultation for cardiac evaluation'
-  },
-  {
-    id: 'APT002',
-    patient: {
-      name: 'Maria Garcia',
-      age: 38,
-      avatar: 'MG',
-      phone: '+230 234 5678',
-      email: 'maria.garcia@email.com'
-    },
-    datetime: '2024-01-15T10:30:00',
-    duration: 45,
-    type: 'in-person',
-    status: 'upcoming',
-    complaint: 'Routine cardiac checkup',
-    location: 'Apollo Bramwell Hospital',
-    isNewPatient: true,
-    notes: 'First-time consultation, family history of heart disease'
-  },
-  {
-    id: 'APT003',
-    patient: {
-      name: 'David Chen',
-      age: 52,
-      avatar: 'DC',
-      phone: '+230 345 6789',
-      email: 'david.chen@email.com'
-    },
-    datetime: '2024-01-15T14:00:00',
-    duration: 30,
-    type: 'video',
-    status: 'upcoming',
-    complaint: 'Hypertension management',
-    location: 'Virtual Consultation',
-    isNewPatient: false,
-    lastVisit: '2023-11-20',
-    notes: 'Medication review and blood pressure monitoring'
-  },
-  {
-    id: 'APT004',
-    patient: {
-      name: 'Emma Wilson',
-      age: 29,
-      avatar: 'EW',
-      phone: '+230 456 7890',
-      email: 'emma.wilson@email.com'
-    },
-    datetime: '2024-01-15T15:30:00',
-    duration: 30,
-    type: 'in-person',
-    status: 'upcoming',
-    complaint: 'Pre-pregnancy cardiac screening',
-    location: 'Private Clinic, Rose Hill',
-    isNewPatient: true,
-    notes: 'Comprehensive cardiac assessment before pregnancy'
-  },
-  {
-    id: 'APT005',
-    patient: {
-      name: 'Robert Brown',
-      age: 60,
-      avatar: 'RB',
-      phone: '+230 567 8901',
-      email: 'robert.brown@email.com'
-    },
-    datetime: '2024-01-14T16:00:00',
-    duration: 45,
-    type: 'in-person',
-    status: 'completed',
-    complaint: 'Post-surgery follow-up',
-    location: 'Apollo Bramwell Hospital',
-    isNewPatient: false,
-    lastVisit: '2024-01-14',
-    notes: 'Post-operative cardiac catheterization follow-up'
-  }
-]
 
 interface Patient {
   name: string;
@@ -141,8 +45,26 @@ interface Appointment {
 }
 
 const DoctorAppointments = () => {
-  const [appointments, setAppointments] = useState(mockAppointments)
-  const [selectedDate, setSelectedDate] = useState('2024-01-15')
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/doctors/${userId}/appointments`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) setAppointments(json.data || [])
+        }
+      } catch {} finally { setLoading(false) }
+    }
+    fetchAppointments()
+  }, [])
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -173,18 +95,15 @@ const DoctorAppointments = () => {
   })
 
   const handleStartConsultation = (appointmentId: string) => {
-    console.log('Starting consultation for:', appointmentId)
     // In real app, this would redirect to consultation interface
   }
 
   const handleReschedule = (appointmentId: string) => {
-    console.log('Rescheduling appointment:', appointmentId)
     // In real app, this would open rescheduling modal
   }
 
   const handleCancel = (appointmentId: string) => {
-    console.log('Cancelling appointment:', appointmentId)
-    setAppointments(prev => 
+    setAppointments(prev =>
       prev.map(apt => 
         apt.id === appointmentId 
           ? { ...apt, status: 'cancelled' }
@@ -225,6 +144,12 @@ const DoctorAppointments = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <FaSpinner className="animate-spin text-primary-blue text-3xl" />
+          </div>
+        ) :
+        <>
         {/* Filters and Search */}
         <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="grid md:grid-cols-4 gap-4 mb-4">
@@ -490,6 +415,8 @@ const DoctorAppointments = () => {
             </div>
           )}
         </div>
+        </>
+        }
       </div>
 
       {/* Appointment Detail Modal (Simple overlay for demo) */}

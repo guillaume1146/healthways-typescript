@@ -12,6 +12,9 @@ interface RoomState {
   sessionId?: string  // Add this line to include sessionId as optional
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const debug = process.env.NODE_ENV === 'development' ? console.log : () => {}
+
 export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [connected, setConnected] = useState(false)
@@ -23,14 +26,14 @@ export const useSocket = () => {
   useEffect(() => {
     // Determine socket URL
     let socketUrl = 'http://localhost:3000'
-    
+
     if (typeof window !== 'undefined') {
-      if (window.location.hostname !== 'localhost' && 
+      if (window.location.hostname !== 'localhost' &&
           window.location.hostname !== '127.0.0.1') {
         socketUrl = window.location.origin
-        console.log('Production mode detected, using:', socketUrl)
+        debug('Production mode detected, using:', socketUrl)
       } else {
-        console.log('Development mode, using:', socketUrl)
+        debug('Development mode, using:', socketUrl)
       }
     }
     
@@ -60,59 +63,59 @@ export const useSocket = () => {
 
     // Connection event handlers
     socketInstance.on('connect', () => {
-      console.log('✅ Socket connected! ID:', socketInstance.id)
+      debug('Socket connected! ID:', socketInstance.id)
       setConnected(true)
       setIsReconnecting(false)
       setReconnectAttempts(0)
       
       // Automatically rejoin room if we have room state
       if (roomStateRef.current) {
-        console.log('🔄 Auto-rejoining room after reconnection:', roomStateRef.current.roomId)
+        debug('Auto-rejoining room after reconnection:', roomStateRef.current.roomId)
         socketInstance.emit('join-room', roomStateRef.current)
       }
     })
 
     socketInstance.on('disconnect', (reason) => {
-      console.log(`⚠️ Socket disconnected. Reason: ${reason}`)
+      debug(`Socket disconnected. Reason: ${reason}`)
       setConnected(false)
       
       // Only set reconnecting if it's an unintentional disconnect
       if (reason === 'io server disconnect') {
         // Server disconnected us, need manual reconnect
-        console.log('Server disconnected. Attempting manual reconnect...')
+        debug('Server disconnected. Attempting manual reconnect...')
         socketInstance.connect()
       } else if (reason === 'io client disconnect') {
         // We disconnected manually, don't auto-reconnect
-        console.log('Client initiated disconnect')
+        debug('Client initiated disconnect')
       } else {
         // Network issue or other problem, will auto-reconnect
         setIsReconnecting(true)
-        console.log('Network issue detected. Auto-reconnecting...')
+        debug('Network issue detected. Auto-reconnecting...')
       }
     })
 
     socketInstance.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`🔄 Reconnection attempt #${attemptNumber}`)
+      debug(`Reconnection attempt #${attemptNumber}`)
       setReconnectAttempts(attemptNumber)
       setIsReconnecting(true)
     })
 
     socketInstance.on('reconnect', (attemptNumber) => {
-      console.log(`✅ Reconnected successfully after ${attemptNumber} attempts`)
+      debug(`Reconnected successfully after ${attemptNumber} attempts`)
       setIsReconnecting(false)
       setReconnectAttempts(0)
     })
 
     socketInstance.on('reconnect_error', (error) => {
-      console.error('Reconnection error:', error.message)
+      debug('Reconnection error:', error.message)
     })
 
     socketInstance.on('reconnect_failed', () => {
-      console.error('❌ Reconnection failed after maximum attempts')
+      debug('Reconnection failed after maximum attempts')
       setIsReconnecting(false)
       // This shouldn't happen with infinite retries, but handle it anyway
       setTimeout(() => {
-        console.log('Attempting manual reconnection...')
+        debug('Attempting manual reconnection...')
         socketInstance.connect()
       }, 5000)
     })
@@ -120,10 +123,10 @@ export const useSocket = () => {
     socketInstance.on('connect_error', (error) => {
       // During reconnection, treat connection errors as expected behavior
       if (isReconnecting || reconnectAttempts > 0) {
-        console.log('🔄 Server appears to be down, continuing reconnection attempts...')
+        debug('Server appears to be down, continuing reconnection attempts...')
       } else {
         // Only log as error on first connection attempt
-        console.warn('⚠️ Unable to connect to server:', error.message)
+        debug('Unable to connect to server:', error.message)
       }
       
       if (!connected && !isReconnecting) {
@@ -132,21 +135,21 @@ export const useSocket = () => {
     })
 
     socketInstance.on('error', (error) => {
-      console.error('Socket error:', error)
+      debug('Socket error:', error)
     })
 
     // Handle ping/pong for connection health (automatic response from client)
     socketInstance.on('ping', () => {
-      console.log('🏓 Ping received from server')
+      debug('Ping received from server')
     })
     
     socketInstance.on('pong', (latency) => {
-      console.log(`🏓 Pong received - latency: ${latency}ms`)
+      debug(`Pong received - latency: ${latency}ms`)
     })
 
     // Listen for room join confirmation
     socketInstance.on('room-joined', ({ roomId }) => {
-      console.log(`✅ Successfully joined room: ${roomId}`)
+      debug(`Successfully joined room: ${roomId}`)
     })
 
     // Custom heartbeat (application-level, not Socket.IO ping/pong)
@@ -192,7 +195,7 @@ export const useSocket = () => {
   // Function to manually reconnect
   const manualReconnect = () => {
     if (socketRef.current && !socketRef.current.connected) {
-      console.log('Manual reconnection triggered')
+      debug('Manual reconnection triggered')
       socketRef.current.connect()
     }
   }
@@ -204,9 +207,9 @@ export const useSocket = () => {
       if (savedState) {
         try {
           roomStateRef.current = JSON.parse(savedState)
-          console.log('Restored room state from session:', roomStateRef.current)
+          debug('Restored room state from session:', roomStateRef.current)
         } catch (e) {
-          console.error('Failed to parse saved room state:', e)
+          debug('Failed to parse saved room state:', e)
         }
       }
     }

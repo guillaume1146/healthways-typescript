@@ -43,7 +43,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Searching for:', searchQuery)
+    // TODO: implement search navigation
   }
 
   const defaultHeroImages = [

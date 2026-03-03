@@ -175,7 +175,7 @@ export default function InsuranceDashboardPage() {
             <div className="ml-3">
               <p className="text-sm text-orange-700">
                 <strong>Action Required:</strong> {insuranceData.stats.expiringPolicies} policies are expiring within 30 days.
-                <Link href="/insurance/expiring-policies" className="font-medium underline hover:text-orange-800 ml-1">
+                <Link href="/insurance/dashboard/clients" className="font-medium underline hover:text-orange-800 ml-1">
                   Review and renew policies
                 </Link>
               </p>
@@ -212,28 +212,28 @@ export default function InsuranceDashboardPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link
-            href="/insurance/policy-holders/new"
+            href="/insurance/dashboard/clients"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 hover:bg-blue-50 transition group"
           >
             <FaUsers className="text-2xl text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Add Policy Holder</p>
           </Link>
           <Link
-            href="/insurance/claims/process"
+            href="/insurance/dashboard/claims"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-green-500 hover:bg-green-50 transition group"
           >
             <FaClock className="text-2xl text-green-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Process Claims</p>
           </Link>
           <Link
-            href="/insurance/renewals"
+            href="/insurance/dashboard/clients"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-purple-500 hover:bg-purple-50 transition group"
           >
             <FaShieldAlt className="text-2xl text-purple-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Policy Renewals</p>
           </Link>
           <Link
-            href="/insurance/analytics"
+            href="/insurance/dashboard/analytics"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-orange-500 hover:bg-orange-50 transition group"
           >
             <FaChartLine className="text-2xl text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />

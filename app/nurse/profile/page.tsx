@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -9,7 +9,7 @@ import {
   FaGraduationCap, FaCertificate,  FaHeart, 
   FaStethoscope, FaHospital, FaAmbulance, 
   FaChevronLeft,  FaQuoteLeft, FaFileDownload,
-  FaVideo, FaWhatsapp, FaShareAlt, FaBookmark, FaExclamationTriangle
+  FaVideo, FaWhatsapp, FaShareAlt, FaBookmark, FaExclamationTriangle, FaSpinner
 } from 'react-icons/fa'
 
 // Type definitions
@@ -102,201 +102,59 @@ interface NurseProfile {
   repeatClientRate: number
 }
 
-// Mock data for demonstration
-const mockNurseProfile: NurseProfile = {
-  id: '1',
-  name: 'Maria Thompson',
-  type: 'Registered Nurse',
-  specialization: 'Elderly Care Specialist',
-  qualification: 'BSN, RN, CCRN',
-  registrationNumber: 'RN-MU-2012-4567',
-  experience: '12 years',
-  rating: 4.9,
-  totalReviews: 342,
-  completedServices: 1250,
-  responseTime: '< 1 hour',
-  location: 'Port Louis',
-  address: 'Central Healthcare Services, Royal Street, Port Louis',
-  languages: ['English', 'French', 'Creole', 'Hindi'],
-  hourlyRate: '$45',
-  weeklyRate: '$1,500',
-  monthlyRate: '$5,500',
-  bio: 'I am a dedicated registered nurse with over 12 years of experience specializing in elderly care. My passion lies in providing compassionate, high-quality care to seniors, helping them maintain their dignity and quality of life. I have extensive experience in managing chronic conditions, dementia care, and providing emotional support to both patients and their families. My approach combines professional medical expertise with genuine empathy and respect for each individual\'s unique needs.',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&backgroundColor=e0f2fe',
-  coverImage: '/images/nurse-cover.png',
-  specialties: [
-    'Elderly Care',
-    'Dementia Care',
-    'Palliative Care',
-    'Medication Management',
-    'Wound Care',
-    'Diabetes Management',
-    'Mobility Assistance',
-    'Post-Stroke Care'
-  ],
-  certifications: [
-    {
-      id: '1',
-      name: 'Critical Care Registered Nurse (CCRN)',
-      issuer: 'American Association of Critical-Care Nurses',
-      issueDate: '2020-03-15',
-      expiryDate: '2025-03-15',
-      verificationUrl: 'https://verify.aacn.org',
-      documentUrl: '/docs/ccrn-cert.pdf'
-    },
-    {
-      id: '2',
-      name: 'Geriatric Nursing Certification',
-      issuer: 'Gerontological Nursing Certification Commission',
-      issueDate: '2019-06-20',
-      expiryDate: '2024-06-20',
-      verificationUrl: 'https://verify.gncc.org',
-      documentUrl: '/docs/geriatric-cert.pdf'
-    },
-    {
-      id: '3',
-      name: 'Basic Life Support (BLS)',
-      issuer: 'American Heart Association',
-      issueDate: '2023-01-10',
-      expiryDate: '2025-01-10',
-      verificationUrl: 'https://verify.heart.org',
-      documentUrl: '/docs/bls-cert.pdf'
-    }
-  ],
-  education: [
-    {
-      id: '1',
-      degree: 'Bachelor of Science in Nursing',
-      institution: 'University of Mauritius',
-      year: '2012',
-      specialization: 'Critical Care Nursing'
-    },
-    {
-      id: '2',
-      degree: 'Advanced Diploma in Geriatric Care',
-      institution: 'Mauritius Institute of Health',
-      year: '2015',
-      specialization: 'Elderly Care Management'
-    }
-  ],
-  experiences: [
-    {
-      id: '1',
-      position: 'Senior Registered Nurse',
-      organization: 'Central Healthcare Services',
-      duration: '2018 - Present',
-      location: 'Port Louis',
-      description: 'Leading a team of nurses in providing comprehensive elderly care services, including home visits, medication management, and care coordination.'
-    },
-    {
-      id: '2',
-      position: 'ICU Nurse',
-      organization: 'Apollo Bramwell Hospital',
-      duration: '2014 - 2018',
-      location: 'Moka',
-      description: 'Provided critical care to patients in the intensive care unit, managing ventilators, monitoring vital signs, and coordinating with medical teams.'
-    },
-    {
-      id: '3',
-      position: 'Staff Nurse',
-      organization: 'Sir Seewoosagur Ramgoolam National Hospital',
-      duration: '2012 - 2014',
-      location: 'Pamplemousses',
-      description: 'General nursing duties in medical-surgical wards, gaining experience in various medical conditions and patient care protocols.'
-    }
-  ],
-  services: [
-    'Home Care',
-    'Hospital Care',
-    'Night Shift Available',
-    'Weekend Available',
-    'Emergency Response'
-  ],
-  equipment: [
-    'Blood Pressure Monitor',
-    'Glucometer',
-    'Pulse Oximeter',
-    'Thermometer',
-    'Stethoscope',
-    'First Aid Kit',
-    'Nebulizer',
-    'Wheelchair'
-  ],
-  verified: true,
-  emergencyAvailable: true,
-  instantBooking: true,
-  phone: '+230 5789 0123',
-  email: 'maria.t@healthcare.mu',
-  whatsapp: '+230 5789 0123',
-  availability: [
-    { day: 'Monday', morning: true, afternoon: true, evening: true, night: true },
-    { day: 'Tuesday', morning: true, afternoon: true, evening: true, night: true },
-    { day: 'Wednesday', morning: true, afternoon: true, evening: true, night: true },
-    { day: 'Thursday', morning: true, afternoon: true, evening: true, night: true },
-    { day: 'Friday', morning: true, afternoon: true, evening: true, night: true },
-    { day: 'Saturday', morning: true, afternoon: true, evening: true, night: false },
-    { day: 'Sunday', morning: true, afternoon: true, evening: false, night: false }
-  ],
-  reviews: [
-    {
-      id: '1',
-      patientName: 'John Smith',
-      patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
-      rating: 5,
-      date: '2024-01-15',
-      comment: 'Maria has been taking care of my elderly mother for the past 6 months. She is incredibly professional, caring, and goes above and beyond. My mother\'s health has improved significantly under her care.',
-      serviceType: 'Elderly Care',
-      verified: true
-    },
-    {
-      id: '2',
-      patientName: 'Sarah Johnson',
-      patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-      rating: 5,
-      date: '2024-01-10',
-      comment: 'Excellent post-surgery care. Maria helped me recover quickly with her expertise in wound care and pain management. Highly recommended!',
-      serviceType: 'Post-Surgery Care',
-      verified: true
-    },
-    {
-      id: '3',
-      patientName: 'Robert Chen',
-      patientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert',
-      rating: 4,
-      date: '2023-12-20',
-      comment: 'Very knowledgeable and patient. Maria helped manage my father\'s diabetes and taught us how to monitor his condition effectively.',
-      serviceType: 'Diabetes Management',
-      verified: true
-    }
-  ],
-  photos: [
-    '/images/nurse-work-1.png',
-    '/images/nurse-work-2.png',
-    '/images/nurse-work-3.png',
-    '/images/nurse-work-4.png'
-  ],
-  insuranceAccepted: [
-    'Swan Insurance',
-    'Mauritius Union',
-    'SICOM',
-    'Jubilee Insurance',
-    'Private Pay'
-  ],
-  cancellationPolicy: 'Free cancellation up to 24 hours before the appointment. 50% charge for cancellations within 24 hours.',
-  responseRate: 98,
-  acceptanceRate: 92,
-  repeatClientRate: 85
+const emptyNurseProfile: NurseProfile = {
+  id: '', name: '', type: '', specialization: '', qualification: '',
+  registrationNumber: '', experience: '', rating: 0, totalReviews: 0,
+  completedServices: 0, responseTime: '', location: '', address: '',
+  languages: [], hourlyRate: '', weeklyRate: '', monthlyRate: '', bio: '',
+  avatar: '', coverImage: '', specialties: [], certifications: [],
+  education: [], experiences: [], services: [], equipment: [],
+  verified: false, emergencyAvailable: false, instantBooking: false,
+  phone: '', email: '', whatsapp: '', availability: [], reviews: [],
+  photos: [], insuranceAccepted: [], cancellationPolicy: '',
+  responseRate: 0, acceptanceRate: 0, repeatClientRate: 0
 }
 
 export default function NurseProfilePage() {
   const params = useParams()
   const router = useRouter()
-  const [nurse] = useState<NurseProfile>(mockNurseProfile)
+  const [nurse, setNurse] = useState<NurseProfile>(emptyNurseProfile)
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'credentials' | 'availability'>('overview')
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [savedProfile, setSavedProfile] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchNurseProfile = async () => {
+      try {
+        const nurseId = params?.id as string
+        if (!nurseId) {
+          const stored = localStorage.getItem('healthwyz_user')
+          if (!stored) return
+          let userId: string
+          try { userId = JSON.parse(stored).id } catch { return }
+          const res = await fetch(`/api/users/${userId}`)
+          if (res.ok) {
+            const json = await res.json()
+            if (json.success && json.data) setNurse({ ...emptyNurseProfile, ...json.data })
+          }
+        } else {
+          const res = await fetch(`/api/users/${nurseId}`)
+          if (res.ok) {
+            const json = await res.json()
+            if (json.success && json.data) setNurse({ ...emptyNurseProfile, ...json.data })
+          }
+        }
+      } catch {
+        // Failed to fetch nurse profile
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchNurseProfile()
+  }, [params])
 
   const handleShare = () => {
     if (navigator.share) {
@@ -327,6 +185,14 @@ export default function NurseProfilePage() {
       stars.push(<FaStar key={`empty-${i}`} className="text-gray-300" />)
     }
     return stars
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-teal-600" />
+      </div>
+    )
   }
 
   return (

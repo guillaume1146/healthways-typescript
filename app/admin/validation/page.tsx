@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
   FaCheckCircle, FaTimes, FaEye, FaDownload, FaExclamationTriangle,
   FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
-  FaFileAlt, FaCertificate, FaIdCard, FaClock, FaSearch
+  FaFileAlt, FaCertificate, FaIdCard, FaClock, FaSearch, FaSpinner
 } from 'react-icons/fa'
 
 interface Document {
@@ -33,62 +33,33 @@ interface ValidationRequest {
   avatar: string
 }
 
-const mockValidationRequests: ValidationRequest[] = [
-  {
-    id: 'V001',
-    profileId: 'P003',
-    name: 'Emily Carter',
-    category: 'Child Care',
-    email: 'emily.c@kids.mu',
-    phone: '+230 5789 0125',
-    submittedDate: '2025-08-20',
-    priority: 'high',
-    status: 'pending',
-    avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Emily',
-    documents: [
-      { id: 'd1', type: 'Certification', name: 'Pediatric-Nursing-Cert.pdf', status: 'pending', uploadDate: '2025-08-20', fileUrl: '#' },
-      { id: 'd2', type: 'License', name: 'Nursing-License.pdf', status: 'pending', uploadDate: '2025-08-20', expiryDate: '2027-08-20', fileUrl: '#' },
-      { id: 'd3', type: 'ID', name: 'National-ID.pdf', status: 'verified', uploadDate: '2025-08-20', fileUrl: '#' }
-    ]
-  },
-  {
-    id: 'V002',
-    profileId: 'P007',
-    name: 'Dr. Michael Chen',
-    category: 'Doctor',
-    email: 'michael.c@med.mu',
-    phone: '+230 5789 0127',
-    submittedDate: '2025-08-19',
-    priority: 'medium',
-    status: 'under_review',
-    avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Michael',
-    documents: [
-      { id: 'd4', type: 'Certification', name: 'Medical-Degree.pdf', status: 'verified', uploadDate: '2025-08-19', fileUrl: '#' },
-      { id: 'd5', type: 'License', name: 'Medical-License.pdf', status: 'pending', uploadDate: '2025-08-19', expiryDate: '2026-12-31', fileUrl: '#' }
-    ]
-  },
-  {
-    id: 'V003',
-    profileId: 'P008',
-    name: 'QuickLab Diagnostics',
-    category: 'Lab Tech',
-    email: 'info@quicklab.mu',
-    phone: '+230 5789 0128',
-    submittedDate: '2025-08-18',
-    priority: 'low',
-    status: 'pending',
-    avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Lab',
-    documents: [
-      { id: 'd6', type: 'License', name: 'Lab-Operating-License.pdf', status: 'pending', uploadDate: '2025-08-18', expiryDate: '2026-06-30', fileUrl: '#' }
-    ]
-  }
-]
-
 export default function AccountValidation() {
-  const [requests, setRequests] = useState(mockValidationRequests)
+  const [requests, setRequests] = useState<ValidationRequest[]>([])
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRequest, setSelectedRequest] = useState<ValidationRequest | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/validation-requests`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) setRequests(json.data || [])
+        }
+      } catch {
+        // Failed to fetch validation requests
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchRequests()
+  }, [])
 
   const categories = ['All', 'Doctor', 'Nurse', 'Child Care', 'Emergency', 'Pharmacy', 'Lab Tech']
 
@@ -131,6 +102,14 @@ export default function AccountValidation() {
       req.id === id ? { ...req, status: 'rejected' as const } : req
     ))
     setSelectedRequest(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

@@ -85,9 +85,8 @@ export default function SuperAdminSettings() {
   };
 
   const handleSave = () => {
-    console.log('Saving settings:', settings)
     // API call to save settings would go here
-    alert('Settings saved successfully! (Check console for data)');
+    alert('Settings saved successfully!');
   }
 
   return (

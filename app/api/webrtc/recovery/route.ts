@@ -1,18 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { validateRequest } from '@/lib/auth/validate'
+import { recoverWebRTCSessionSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // POST - Attempt session recovery
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
+  const auth = validateRequest(request)
+  if (!auth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
-    const { roomId, userId } = body
-
-    if (!roomId || !userId) {
+    const parsed = recoverWebRTCSessionSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'roomId and userId are required' },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { roomId, userId } = parsed.data
 
     const videoRoom = await prisma.videoRoom.findFirst({
       where: { roomCode: roomId }

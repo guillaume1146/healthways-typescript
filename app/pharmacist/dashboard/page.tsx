@@ -195,7 +195,7 @@ export default function PharmacyDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Today&apos;s Payout</h3>
-              <button className="text-green-600 text-sm hover:underline"><FaFileExport /></button>
+              <button aria-label="Export data" className="text-green-600 text-sm hover:underline"><FaFileExport /></button>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between text-sm"><span className="text-gray-600">Total Revenue</span><span className="font-medium">Rs {stats.dailyRevenue.toLocaleString()}</span></div>

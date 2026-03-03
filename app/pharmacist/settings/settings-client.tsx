@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {  FaCreditCard, FaFileUpload, FaSave, FaTrash, FaTruck , 
     FaCheckCircle, FaToggleOn, FaToggleOff,  
-    FaUniversity,  FaClock,  FaStore, FaUserMd
+    FaUniversity,  FaClock,  FaStore, FaUserMd, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
@@ -27,30 +27,14 @@ interface AvailabilitySettings {
     deliveryAvailable: boolean
 }
 
-// --- MOCK DATA ---
-const mockProfileData: PharmacyProfileSettings = {
-    name: "HealthFirst Pharmacy",
-    licenseNumber: "PHARM-2023-0123",
-    phone: "+230 212 3456",
-    email: "contact@healthfirst.mu",
-    address: "123 Royal Street, Port Louis, Mauritius",
-    pharmacists: [
-        { id: 'p1', name: 'Mr. Jean Dupont', registration: 'RP-0456' },
-        { id: 'p2', name: 'Mrs. Priya Sharma', registration: 'RP-0789' },
-    ]
+const emptyProfileData: PharmacyProfileSettings = {
+    name: '', licenseNumber: '', phone: '', email: '', address: '',
+    pharmacists: [],
 }
 
-const mockAvailabilityData: AvailabilitySettings = {
-    storeHours: {
-        Monday: { open: "08:00", close: "20:00", isClosed: false },
-        Tuesday: { open: "08:00", close: "20:00", isClosed: false },
-        Wednesday: { open: "08:00", close: "20:00", isClosed: false },
-        Thursday: { open: "08:00", close: "20:00", isClosed: false },
-        Friday: { open: "08:00", close: "20:00", isClosed: false },
-        Saturday: { open: "09:00", close: "18:00", isClosed: false },
-        Sunday: { open: "09:00", close: "13:00", isClosed: true },
-    },
-    deliveryAvailable: true,
+const emptyAvailabilityData: AvailabilitySettings = {
+    storeHours: {},
+    deliveryAvailable: false,
 }
 
 // Reusable components (omitted for brevity)
@@ -63,8 +47,42 @@ export default function SettingsClient() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') as ActiveTab | null;
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile');
-  const [profile, setProfile] = useState<PharmacyProfileSettings>(mockProfileData);
-  const [availability, setAvailability] = useState<AvailabilitySettings>(mockAvailabilityData);
+  const [profile, setProfile] = useState<PharmacyProfileSettings>(emptyProfileData);
+  const [availability, setAvailability] = useState<AvailabilitySettings>(emptyAvailabilityData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const pp = d.pharmacistProfile || {}
+            setProfile({
+              name: pp.pharmacyName || `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              licenseNumber: pp.licenseNumber || '',
+              phone: d.phone || '',
+              email: d.email || '',
+              address: pp.address || '',
+              pharmacists: pp.pharmacists || [],
+            })
+            if (pp.storeHours) setAvailability({ storeHours: pp.storeHours, deliveryAvailable: pp.deliveryAvailable || false })
+          }
+        }
+      } catch {
+        // Failed to fetch settings
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, []);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
@@ -103,6 +121,14 @@ export default function SettingsClient() {
         }
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-green-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

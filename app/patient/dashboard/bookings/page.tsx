@@ -10,6 +10,10 @@ import {
   FaFlask,
   FaAmbulance,
   FaSearch,
+  FaThLarge,
+  FaClock,
+  FaCalendarAlt,
+  FaHistory,
 } from 'react-icons/fa'
 
 interface Booking {
@@ -151,7 +155,7 @@ export default function PatientBookingsPage() {
           </p>
         </div>
         <Link
-          href="/patient/dashboard/book/doctor"
+          href="/search/doctors"
           className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all flex items-center gap-2 w-fit text-sm"
         >
           <FaSearch /> Find a Provider
@@ -160,17 +164,24 @@ export default function PatientBookingsPage() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 flex-wrap">
-        {(['all', 'pending', 'upcoming', 'past'] as FilterType[]).map((f) => (
+        {([
+          { key: 'all' as FilterType, icon: FaThLarge, label: 'All' },
+          { key: 'pending' as FilterType, icon: FaClock, label: 'Pending' },
+          { key: 'upcoming' as FilterType, icon: FaCalendarAlt, label: 'Upcoming' },
+          { key: 'past' as FilterType, icon: FaHistory, label: 'Past' },
+        ]).map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              filter === f
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            title={f.label}
+            aria-label={f.label}
+            className={`p-2.5 rounded-lg text-sm font-medium transition ${
+              filter === f.key
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            <f.icon className="text-base" />
           </button>
         ))}
       </div>
@@ -189,7 +200,7 @@ export default function PatientBookingsPage() {
           </p>
           {filter === 'all' && (
             <Link
-              href="/patient/dashboard/book/doctor"
+              href="/search/doctors"
               className="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
               Browse Providers

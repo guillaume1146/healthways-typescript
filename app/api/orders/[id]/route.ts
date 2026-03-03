@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { updateOrderStatusSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // ─── GET — Single order details ────────────────────────────────────────────────
 
@@ -8,6 +10,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -82,6 +87,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
@@ -91,15 +99,15 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { status } = body as { status: string }
-
-    const validStatuses = ['confirmed', 'shipped', 'delivered', 'cancelled']
-    if (!status || !validStatuses.includes(status)) {
+    const parsed = updateOrderStatusSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: `Status must be one of: ${validStatuses.join(', ')}` },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { status } = parsed.data
 
     // Fetch the order with patient info and items
     const order = await prisma.medicineOrder.findUnique({

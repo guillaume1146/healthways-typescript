@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { 
   FaArrowLeft,
@@ -28,7 +29,8 @@ import {
   FaSyringe,
   FaNotesMedical,
   FaBandAid,
-  FaHandHoldingHeart
+  FaHandHoldingHeart,
+  FaSpinner
 } from "react-icons/fa"
 
 interface Nurse {
@@ -98,30 +100,12 @@ interface PaymentMethod {
   available: boolean;
 }
 
-// Mock nurse data (pre-selected)
-const mockNurse: Nurse = {
-  id: "1",
-  name: "Sarah Martinez, RN",
-  age: 32,
-  experience: "8+ years",
-  hourlyRate: 450,
-  avatar: "👩‍⚕️",
-  availability: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  languages: ["English", "French", "Creole", "Spanish"],
-  location: "Port Louis & Surrounding Areas",
-  qualifications: ["BSc Nursing", "Critical Care Certification", "Wound Care Specialist"],
-  specializations: ["Post-Operative Care", "Chronic Disease Management", "Elderly Care", "Wound Care", "IV Therapy"],
-  about: "Experienced registered nurse with specialization in home healthcare and post-operative care. Dedicated to providing compassionate, professional nursing services in the comfort of your home.",
-  rating: 4.8,
-  reviews: 89,
-  verified: true,
-  licenseInfo: {
-    number: "RN-2024-001",
-    expiry: "2026-12-31",
-    authority: "Mauritius Nursing Council"
-  },
-  certifications: ["BLS Certified", "ACLS Certified", "Wound Care Specialist", "IV Therapy Certified"],
-  serviceTypes: ["Home Visits", "Post-Op Care", "Chronic Care", "Elder Care"]
+const emptyNurse: Nurse = {
+  id: '', name: '', age: 0, experience: '', hourlyRate: 0, avatar: '',
+  availability: [], languages: [], location: '', qualifications: [],
+  specializations: [], about: '', rating: 0, reviews: 0, verified: false,
+  licenseInfo: { number: '', expiry: '', authority: '' },
+  certifications: [], serviceTypes: []
 }
 
 const serviceTypes: ServiceType[] = [
@@ -181,24 +165,7 @@ const serviceTypes: ServiceType[] = [
   }
 ]
 
-const mockTimeSlots: TimeSlot[] = [
-  { time: "07:00 AM", available: true, type: "regular" },
-  { time: "08:00 AM", available: true, type: "regular" },
-  { time: "09:00 AM", available: false, type: "regular" },
-  { time: "10:00 AM", available: true, type: "regular" },
-  { time: "11:00 AM", available: true, type: "regular" },
-  { time: "12:00 PM", available: true, type: "regular" },
-  { time: "01:00 PM", available: false, type: "regular" },
-  { time: "02:00 PM", available: true, type: "regular" },
-  { time: "03:00 PM", available: true, type: "regular" },
-  { time: "04:00 PM", available: true, type: "regular" },
-  { time: "05:00 PM", available: true, type: "regular" },
-  { time: "06:00 PM", available: true, type: "evening" },
-  { time: "07:00 PM", available: true, type: "evening" },
-  { time: "08:00 PM", available: true, type: "evening" },
-  { time: "10:00 PM", available: true, type: "night" },
-  { time: "11:00 PM", available: true, type: "night" }
-]
+// Time slots loaded from API
 
 const paymentMethods: PaymentMethod[] = [
   {
@@ -239,9 +206,42 @@ const paymentMethods: PaymentMethod[] = [
 ]
 
 export default function NursingServiceBooking() {
+  const params = useParams()
+  const nurseId = params?.id as string
   const [currentStep, setCurrentStep] = useState(1)
+  const [nurse, setNurse] = useState<Nurse>(emptyNurse)
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchNurseData = async () => {
+      try {
+        if (!nurseId) return
+        const res = await fetch(`/api/users/${nurseId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const nurseData = { ...emptyNurse, ...d, id: nurseId }
+            setNurse(nurseData)
+            setAppointmentDetails(prev => ({ ...prev, nurse: nurseData }))
+          }
+        }
+        const slotsRes = await fetch(`/api/nurses/${nurseId}/time-slots`)
+        if (slotsRes.ok) {
+          const slotsJson = await slotsRes.json()
+          if (slotsJson.success) setTimeSlots(slotsJson.data || [])
+        }
+      } catch {
+        // Failed to fetch nurse data
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchNurseData()
+  }, [nurseId])
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>({
-    nurse: mockNurse,
+    nurse: emptyNurse,
     date: "",
     startTime: "",
     endTime: "",
@@ -371,6 +371,14 @@ export default function NursingServiceBooking() {
       updateEndTimeAndCost(appointmentDetails.startTime, appointmentDetails.duration)
     }
   }, [appointmentDetails.serviceLocation, appointmentDetails.serviceType])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-teal-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
@@ -823,7 +831,7 @@ export default function NursingServiceBooking() {
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3 mb-6">
-                      {mockTimeSlots.map((slot) => (
+                      {timeSlots.map((slot) => (
                         <button
                           key={slot.time}
                           onClick={() => handleTimeSelect(slot.time)}
@@ -1162,7 +1170,7 @@ export default function NursingServiceBooking() {
 
               {/* Main Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/nursing/appointments" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transition-all text-center">
+                <Link href="/patient/dashboard/bookings" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transition-all text-center">
                   View My Appointments
                 </Link>
                 <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">

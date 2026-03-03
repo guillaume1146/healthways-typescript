@@ -1,7 +1,7 @@
 // app/patient/nurse-booking/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   FaUserNurse,
@@ -16,6 +16,7 @@ import {
   FaSearch,
   FaShieldAlt,
   FaLanguage,
+  FaSpinner,
 } from "react-icons/fa"
 
 interface NurseProfile {
@@ -81,192 +82,6 @@ interface PastBooking {
   rating: number | null;
 }
 
-const mockNurses: NurseProfile[] = [
-  {
-    id: "N001",
-    name: "Sister Mary Johnson",
-    avatar: "👩‍⚕️",
-    qualification: "RN, BSN",
-    experience: "8+ years",
-    rating: 4.9,
-    reviews: 156,
-    specializations: ["Post-Surgery Care", "Wound Care", "Elderly Care"],
-    languages: ["English", "French", "Creole"],
-    hourlyRate: 800,
-    availability: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    verified: true,
-    bio: "Experienced nurse specializing in home healthcare with a focus on post-operative and elderly care",
-    completedServices: 450
-  },
-  {
-    id: "N002",
-    name: "Nurse Patricia Chen",
-    avatar: "👩‍⚕️",
-    qualification: "RN, Critical Care Certified",
-    experience: "10+ years",
-    rating: 4.8,
-    reviews: 203,
-    specializations: ["Critical Care", "IV Therapy", "Medication Management"],
-    languages: ["English", "Mandarin", "Creole"],
-    hourlyRate: 900,
-    availability: ["Mon", "Wed", "Fri", "Sat", "Sun"],
-    verified: true,
-    bio: "Critical care nurse with extensive experience in complex medical conditions and IV therapy",
-    completedServices: 580
-  },
-  {
-    id: "N003",
-    name: "Nurse David Kumar",
-    avatar: "👨‍⚕️",
-    qualification: "RN, Pediatric Specialist",
-    experience: "6+ years",
-    rating: 4.7,
-    reviews: 89,
-    specializations: ["Pediatric Care", "Vaccination", "Newborn Care"],
-    languages: ["English", "Hindi", "French"],
-    hourlyRate: 750,
-    availability: ["Tue", "Thu", "Fri", "Sat", "Sun"],
-    verified: true,
-    bio: "Pediatric specialist providing compassionate care for children and newborns",
-    completedServices: 280
-  }
-]
-
-const mockServices: NursingService[] = [
-  {
-    id: "NS001",
-    name: "Post-Surgery Care",
-    category: "Medical Care",
-    description: "Professional post-operative care including wound dressing and monitoring",
-    duration: "2-4 hours",
-    price: 1500,
-    icon: "🏥",
-    popular: true
-  },
-  {
-    id: "NS002",
-    name: "IV Therapy",
-    category: "Medical Care",
-    description: "Intravenous medication administration and monitoring",
-    duration: "1-2 hours",
-    price: 1200,
-    icon: "💉",
-    popular: true
-  },
-  {
-    id: "NS003",
-    name: "Wound Dressing",
-    category: "Medical Care",
-    description: "Professional wound cleaning and dressing change",
-    duration: "30-60 min",
-    price: 600,
-    icon: "🩹",
-    popular: true
-  },
-  {
-    id: "NS004",
-    name: "Elderly Care",
-    category: "Long-term Care",
-    description: "Comprehensive care for elderly patients including medication management",
-    duration: "4-8 hours",
-    price: 2500,
-    icon: "👴",
-    popular: true
-  },
-  {
-    id: "NS005",
-    name: "Injection Administration",
-    category: "Medical Care",
-    description: "Safe administration of prescribed injections",
-    duration: "15-30 min",
-    price: 400,
-    icon: "💊",
-    popular: false
-  },
-  {
-    id: "NS006",
-    name: "Vital Signs Monitoring",
-    category: "Medical Care",
-    description: "Regular monitoring of blood pressure, temperature, and other vitals",
-    duration: "30 min",
-    price: 500,
-    icon: "❤️",
-    popular: false
-  },
-  {
-    id: "NS007",
-    name: "Newborn Care",
-    category: "Pediatric",
-    description: "Specialized care for newborns including feeding and hygiene",
-    duration: "4-6 hours",
-    price: 2000,
-    icon: "👶",
-    popular: false
-  },
-  {
-    id: "NS008",
-    name: "Physiotherapy Assistance",
-    category: "Rehabilitation",
-    description: "Assistance with prescribed physiotherapy exercises",
-    duration: "1-2 hours",
-    price: 1000,
-    icon: "🏃",
-    popular: false
-  }
-]
-
-const mockPackages: ServicePackage[] = [
-  {
-    id: "PKG001",
-    name: "Post-Surgery Recovery",
-    description: "Complete post-operative care package",
-    services: ["Wound Dressing", "IV Therapy", "Vital Monitoring", "Medication Management"],
-    duration: "7 days",
-    price: 8500,
-    savings: 1500,
-    recommended: true
-  },
-  {
-    id: "PKG002",
-    name: "Elderly Care Package",
-    description: "Comprehensive elderly care with daily visits",
-    services: ["Daily Care", "Medication Management", "Vital Monitoring", "Hygiene Assistance"],
-    duration: "30 days",
-    price: 35000,
-    savings: 5000,
-    recommended: false
-  },
-  {
-    id: "PKG003",
-    name: "New Mother Support",
-    description: "Support for new mothers and newborn care",
-    services: ["Newborn Care", "Breastfeeding Support", "Mother Care", "Baby Hygiene"],
-    duration: "14 days",
-    price: 18000,
-    savings: 3000,
-    recommended: false
-  }
-]
-
-const mockPastBookings: PastBooking[] = [
-  {
-    id: "BK001",
-    nurseName: "Sister Mary Johnson",
-    service: "Post-Surgery Care",
-    date: "2024-01-10",
-    status: "completed",
-    rating: 5
-  },
-  {
-    id: "BK002",
-    nurseName: "Nurse Patricia Chen",
-    service: "IV Therapy",
-    date: "2024-01-15",
-    status: "upcoming",
-    rating: 0
-  }
-]
-
 export default function NurseBookingPage() {
   const [activeTab, setActiveTab] = useState<"services" | "packages" | "nurses" | "history">("services")
   const [selectedServices, setSelectedServices] = useState<NursingService[]>([])
@@ -275,6 +90,37 @@ export default function NurseBookingPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
   const [bookingStep, setBookingStep] = useState(1)
+  const [nurses, setNurses] = useState<NurseProfile[]>([])
+  const [services, setServices] = useState<NursingService[]>([])
+  const [packages, setPackages] = useState<ServicePackage[]>([])
+  const [pastBookings, setPastBookings] = useState<PastBooking[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBookingData = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const [nursesRes, servicesRes, packagesRes, bookingsRes] = await Promise.all([
+          fetch('/api/nurses'),
+          fetch('/api/nursing-services'),
+          fetch('/api/nursing-packages'),
+          fetch(`/api/patients/${userId}/nursing-bookings`)
+        ])
+        if (nursesRes.ok) { const j = await nursesRes.json(); if (j.success) setNurses(j.data || []) }
+        if (servicesRes.ok) { const j = await servicesRes.json(); if (j.success) setServices(j.data || []) }
+        if (packagesRes.ok) { const j = await packagesRes.json(); if (j.success) setPackages(j.data || []) }
+        if (bookingsRes.ok) { const j = await bookingsRes.json(); if (j.success) setPastBookings(j.data || []) }
+      } catch {
+        // Failed to fetch booking data
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBookingData()
+  }, [])
   const [bookingDetails, setBookingDetails] = useState<BookingRequest>({
     nurse: null,
     services: [],
@@ -292,7 +138,7 @@ export default function NurseBookingPage() {
 
   const categories = ["all", "Medical Care", "Long-term Care", "Pediatric", "Rehabilitation"]
 
-  const filteredServices = mockServices.filter(service => {
+  const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = filterCategory === "all" || service.category === filterCategory
     return matchesSearch && matchesCategory
@@ -326,6 +172,14 @@ export default function NurseBookingPage() {
     if ((selectedServices.length > 0 || selectedPackage) && selectedNurse) {
       setBookingStep(2)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-teal-600" />
+      </div>
+    )
   }
 
   return (
@@ -511,7 +365,7 @@ export default function NurseBookingPage() {
             {/* Packages Tab */}
             {activeTab === "packages" && (
               <div className="grid md:grid-cols-3 gap-6">
-                {mockPackages.map((pkg) => (
+                {packages.map((pkg) => (
                   <div key={pkg.id} className={`bg-white rounded-2xl p-6 shadow-lg ${pkg.recommended ? "border-2 border-primary-blue" : ""}`}>
                     {pkg.recommended && (
                       <span className="inline-block px-3 py-1 bg-primary-blue text-white rounded-full text-xs font-medium mb-3">
@@ -554,7 +408,7 @@ export default function NurseBookingPage() {
             {/* Nurses Tab */}
             {activeTab === "nurses" && (
               <div className="space-y-6">
-                {mockNurses.map((nurse) => (
+                {nurses.map((nurse) => (
                   <div key={nurse.id} className="bg-white rounded-2xl p-6 shadow-lg">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
@@ -623,7 +477,7 @@ export default function NurseBookingPage() {
             {/* History Tab */}
             {activeTab === "history" && (
               <div className="space-y-4">
-                {mockPastBookings.map((booking) => (
+                {pastBookings.map((booking) => (
                   <div key={booking.id} className="bg-white rounded-lg p-4 shadow-lg flex items-center justify-between">
                     <div>
                       <h4 className="font-semibold">{booking.nurseName}</h4>

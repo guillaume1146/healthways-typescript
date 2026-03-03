@@ -1200,7 +1200,7 @@ export default function LabTestingBooking() {
 
               {/* Main Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/lab-tests/results" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-center">
+                <Link href="/patient/dashboard/lab-results" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-center">
                   View Test Results
                 </Link>
                 <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">

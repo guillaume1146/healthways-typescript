@@ -1,232 +1,42 @@
 'use client'
 
-import { useState } from 'react'
-import { FaSearch, FaShieldAlt, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaHome, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance, FaCalendarAlt, FaClipboardList, FaBuilding, FaUsers, FaMoneyBillWave, FaUserShield, FaClipboardCheck, FaCreditCard, FaCalculator, FaGift } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaSearch, FaShieldAlt, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock, FaPhoneAlt, FaHome, FaExclamationTriangle, FaCertificate, FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaThermometerHalf, FaHandHoldingMedical, FaMedkit, FaVial, FaPercent, FaTags, FaUserMd, FaIdCard, FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance, FaCalendarAlt, FaClipboardList, FaBuilding, FaUsers, FaMoneyBillWave, FaUserShield, FaClipboardCheck, FaCreditCard, FaCalculator, FaGift, FaSpinner } from 'react-icons/fa'
 
-const mockInsurancePlans = [
-  {
-    id: 1,
-    name: "Premium Health Plus",
-    provider: "Mauritius Health Insurance",
-    type: "Individual",
-    coverage: "Comprehensive",
-    monthlyPremium: "Rs 3,500",
-    annualPremium: "Rs 38,000",
-    originalPrice: "Rs 45,000",
-    discount: "16% OFF",
-    rating: 4.9,
-    reviews: 2341,
-    available: true,
-    description: "Comprehensive health coverage including hospitalization, outpatient care, and specialist consultations",
-    maxCoverage: "Rs 2,000,000",
-    deductible: "Rs 10,000",
-    copay: "Rs 500",
-    networkHospitals: 85,
-    waitingPeriod: "30 days",
-    claimSettlement: "98.5%",
-    renewalBonus: "10% annually",
-    location: "Mauritius Wide",
-    features: ["Cashless Treatment", "No Sub-limits", "Maternity Cover"],
-    benefits: [
-      { name: "Hospitalization", coverage: "100%", limit: "Rs 2,000,000" },
-      { name: "OPD Consultation", coverage: "80%", limit: "Rs 50,000" },
-      { name: "Medicines", coverage: "75%", limit: "Rs 30,000" },
-      { name: "Lab Tests", coverage: "90%", limit: "Rs 25,000" }
-    ],
-    exclusions: ["Pre-existing conditions (first 2 years)", "Cosmetic surgery", "Dental procedures"],
-    ageLimit: "18-65 years",
-    familyDiscount: "25%",
-    verified: true,
-    fastProcessing: true,
-    onlineQuote: true,
-    customerService: "24/7"
-  },
-  {
-    id: 2,
-    name: "Family Care Shield",
-    provider: "Swan Life Insurance",
-    type: "Family",
-    coverage: "Standard",
-    monthlyPremium: "Rs 6,800",
-    annualPremium: "Rs 75,000",
-    originalPrice: "Rs 90,000",
-    discount: "17% OFF",
-    rating: 4.8,
-    reviews: 1876,
-    available: true,
-    description: "Complete family health protection covering up to 6 members with extensive network coverage",
-    maxCoverage: "Rs 5,000,000",
-    deductible: "Rs 15,000",
-    copay: "Rs 750",
-    networkHospitals: 120,
-    waitingPeriod: "90 days",
-    claimSettlement: "96.2%",
-    renewalBonus: "15% annually",
-    location: "Indian Ocean Region",
-    features: ["Family Floater", "Preventive Care", "Emergency Evacuation"],
-    benefits: [
-      { name: "Hospitalization", coverage: "100%", limit: "Rs 5,000,000" },
-      { name: "Maternity", coverage: "100%", limit: "Rs 200,000" },
-      { name: "Emergency", coverage: "100%", limit: "Rs 500,000" },
-      { name: "Preventive Care", coverage: "100%", limit: "Rs 15,000" }
-    ],
-    exclusions: ["Adventure sports", "War and terrorism", "Substance abuse"],
-    ageLimit: "0-70 years",
-    familyDiscount: "30%",
-    verified: true,
-    fastProcessing: true,
-    onlineQuote: true,
-    customerService: "Business Hours"
-  },
-  {
-    id: 3,
-    name: "Senior Citizen Care",
-    provider: "State Insurance Mauritius",
-    type: "Senior",
-    coverage: "Specialized",
-    monthlyPremium: "Rs 4,200",
-    annualPremium: "Rs 48,000",
-    originalPrice: "Rs 60,000",
-    discount: "20% OFF",
-    rating: 4.7,
-    reviews: 1432,
-    available: true,
-    description: "Specialized health insurance for senior citizens with no upper age limit and chronic disease coverage",
-    maxCoverage: "Rs 1,500,000",
-    deductible: "Rs 8,000",
-    copay: "Rs 300",
-    networkHospitals: 95,
-    waitingPeriod: "60 days",
-    claimSettlement: "97.8%",
-    renewalBonus: "5% annually",
-    location: "Mauritius",
-    features: ["No Age Limit", "Chronic Disease", "Home Care"],
-    benefits: [
-      { name: "Hospitalization", coverage: "100%", limit: "Rs 1,500,000" },
-      { name: "Chronic Conditions", coverage: "90%", limit: "Rs 100,000" },
-      { name: "Home Nursing", coverage: "80%", limit: "Rs 50,000" },
-      { name: "Physiotherapy", coverage: "75%", limit: "Rs 20,000" }
-    ],
-    exclusions: ["Mental illness", "Congenital disorders", "Assisted reproduction"],
-    ageLimit: "55+ years",
-    familyDiscount: "20%",
-    verified: true,
-    fastProcessing: false,
-    onlineQuote: true,
-    customerService: "24/7"
-  },
-  {
-    id: 4,
-    name: "Basic Health Cover",
-    provider: "Mauritius Union Insurance",
-    type: "Individual",
-    coverage: "Basic",
-    monthlyPremium: "Rs 1,800",
-    annualPremium: "Rs 20,000",
-    originalPrice: "Rs 25,000",
-    discount: "20% OFF",
-    rating: 4.5,
-    reviews: 2103,
-    available: true,
-    description: "Affordable basic health coverage for essential medical needs and emergency situations",
-    maxCoverage: "Rs 500,000",
-    deductible: "Rs 5,000",
-    copay: "Rs 200",
-    networkHospitals: 45,
-    waitingPeriod: "30 days",
-    claimSettlement: "95.1%",
-    renewalBonus: "5% annually",
-    location: "Urban Areas",
-    features: ["Affordable Premium", "Quick Claims", "Emergency Cover"],
-    benefits: [
-      { name: "Hospitalization", coverage: "80%", limit: "Rs 500,000" },
-      { name: "Emergency", coverage: "100%", limit: "Rs 100,000" },
-      { name: "Surgery", coverage: "90%", limit: "Rs 300,000" },
-      { name: "Ambulance", coverage: "100%", limit: "Rs 5,000" }
-    ],
-    exclusions: ["OPD treatments", "Dental care", "Eye glasses"],
-    ageLimit: "18-60 years",
-    familyDiscount: "15%",
-    verified: true,
-    fastProcessing: true,
-    onlineQuote: true,
-    customerService: "Business Hours"
-  },
-  {
-    id: 5,
-    name: "Corporate Group Health",
-    provider: "La Prudence Insurance",
-    type: "Corporate",
-    coverage: "Group",
-    monthlyPremium: "Rs 2,500",
-    annualPremium: "Rs 28,000",
-    originalPrice: "Rs 35,000",
-    discount: "20% OFF",
-    rating: 4.6,
-    reviews: 892,
-    available: true,
-    description: "Comprehensive group health insurance for employees with corporate wellness benefits",
-    maxCoverage: "Rs 1,000,000",
-    deductible: "Rs 7,500",
-    copay: "Rs 400",
-    networkHospitals: 75,
-    waitingPeriod: "0 days",
-    claimSettlement: "99.2%",
-    renewalBonus: "12% annually",
-    location: "Corporate Network",
-    features: ["Group Benefits", "Wellness Program", "No Waiting Period"],
-    benefits: [
-      { name: "Hospitalization", coverage: "100%", limit: "Rs 1,000,000" },
-      { name: "OPD", coverage: "70%", limit: "Rs 25,000" },
-      { name: "Health Checkup", coverage: "100%", limit: "Rs 10,000" },
-      { name: "Vaccination", coverage: "100%", limit: "Rs 5,000" }
-    ],
-    exclusions: ["Non-medical expenses", "Experimental treatments", "Luxury treatments"],
-    ageLimit: "18-65 years",
-    familyDiscount: "40%",
-    verified: true,
-    fastProcessing: true,
-    onlineQuote: false,
-    customerService: "24/7"
-  },
-  {
-    id: 6,
-    name: "Maternity & Child Care",
-    provider: "Angel Insurance Mauritius",
-    type: "Specialized",
-    coverage: "Maternity",
-    monthlyPremium: "Rs 2,200",
-    annualPremium: "Rs 25,000",
-    originalPrice: "Rs 32,000",
-    discount: "22% OFF",
-    rating: 4.8,
-    reviews: 1567,
-    available: true,
-    description: "Specialized coverage for maternity, newborn care, and pediatric treatments",
-    maxCoverage: "Rs 800,000",
-    deductible: "Rs 3,000",
-    copay: "Rs 300",
-    networkHospitals: 65,
-    waitingPeriod: "12 months",
-    claimSettlement: "97.5%",
-    renewalBonus: "8% annually",
-    location: "Mother & Child Hospitals",
-    features: ["Maternity Cover", "Newborn Care", "Vaccination"],
-    benefits: [
-      { name: "Delivery", coverage: "100%", limit: "Rs 150,000" },
-      { name: "Prenatal Care", coverage: "90%", limit: "Rs 25,000" },
-      { name: "Newborn Care", coverage: "100%", limit: "Rs 100,000" },
-      { name: "Pediatric Care", coverage: "85%", limit: "Rs 50,000" }
-    ],
-    exclusions: ["Multiple births above twins", "IVF treatments", "Genetic disorders"],
-    ageLimit: "18-45 years",
-    familyDiscount: "25%",
-    verified: true,
-    fastProcessing: false,
-    onlineQuote: true,
-    customerService: "Business Hours"
-  }
-]
+interface InsurancePlan {
+  id: number
+  name: string
+  provider: string
+  type: string
+  coverage: string
+  monthlyPremium: string
+  annualPremium: string
+  originalPrice: string
+  discount: string
+  rating: number
+  reviews: number
+  available: boolean
+  description: string
+  maxCoverage: string
+  deductible: string
+  copay: string
+  networkHospitals: number
+  waitingPeriod: string
+  claimSettlement: string
+  renewalBonus: string
+  location: string
+  features: string[]
+  benefits: { name: string; coverage: string; limit: string }[]
+  exclusions: string[]
+  ageLimit: string
+  familyDiscount: string
+  verified: boolean
+  fastProcessing: boolean
+  onlineQuote: boolean
+  customerService: string
+}
+
+// Insurance plans loaded from API
 
 // Insurance type icons mapping
 const typeIcons = {
@@ -238,49 +48,44 @@ const typeIcons = {
   "Group": FaHandHoldingMedical
 }
 
-// AI search simulation function
-const aiSearchInsurance = (query: string, type: string, budget: string) => {
-  return new Promise<typeof mockInsurancePlans>((resolve) => {
-    setTimeout(() => {
-      let results = [...mockInsurancePlans]
-      
-      if (type !== 'all') {
-        results = results.filter(plan => 
-          plan.type.toLowerCase().includes(type.toLowerCase())
-        )
-      }
-      
-      if (budget !== 'all') {
-        const budgetNum = parseInt(budget)
-        results = results.filter(plan => {
-          const premium = parseInt(plan.monthlyPremium.replace(/[^\d]/g, ''))
-          if (budget === '2000') return premium <= 2000
-          if (budget === '5000') return premium > 2000 && premium <= 5000
-          if (budget === '10000') return premium > 5000 && premium <= 10000
-          return premium > 10000
-        })
-      }
-      
-      if (query) {
-        const lowerQuery = query.toLowerCase()
-        results = results.filter(plan => 
-          plan.name.toLowerCase().includes(lowerQuery) ||
-          plan.provider.toLowerCase().includes(lowerQuery) ||
-          plan.description.toLowerCase().includes(lowerQuery) ||
-          plan.features.some(f => f.toLowerCase().includes(lowerQuery)) ||
-          plan.benefits.some(b => b.name.toLowerCase().includes(lowerQuery)) ||
-          plan.coverage.toLowerCase().includes(lowerQuery)
-        )
-      }
-      
-      resolve(results)
-    }, 1500)
-  })
+// Search/filter function for insurance plans
+const filterInsurancePlans = (allPlans: InsurancePlan[], query: string, type: string, budget: string): InsurancePlan[] => {
+  let results = [...allPlans]
+
+  if (type !== 'all') {
+    results = results.filter(plan =>
+      plan.type.toLowerCase().includes(type.toLowerCase())
+    )
+  }
+
+  if (budget !== 'all') {
+    results = results.filter(plan => {
+      const premium = parseInt(plan.monthlyPremium.replace(/[^\d]/g, ''))
+      if (budget === '2000') return premium <= 2000
+      if (budget === '5000') return premium > 2000 && premium <= 5000
+      if (budget === '10000') return premium > 5000 && premium <= 10000
+      return premium > 10000
+    })
+  }
+
+  if (query) {
+    const lowerQuery = query.toLowerCase()
+    results = results.filter(plan =>
+      plan.name.toLowerCase().includes(lowerQuery) ||
+      plan.provider.toLowerCase().includes(lowerQuery) ||
+      plan.description.toLowerCase().includes(lowerQuery) ||
+      plan.features.some(f => f.toLowerCase().includes(lowerQuery)) ||
+      plan.benefits.some(b => b.name.toLowerCase().includes(lowerQuery)) ||
+      plan.coverage.toLowerCase().includes(lowerQuery)
+    )
+  }
+
+  return results
 }
 
 // Insurance Plan Card Component
 interface InsurancePlanProps {
-  plan: typeof mockInsurancePlans[0]
+  plan: InsurancePlan
 }
 
 const InsurancePlanCard = ({ plan }: InsurancePlanProps) => {
@@ -494,8 +299,30 @@ export default function InsurancePage() {
   const [insuranceType, setInsuranceType] = useState('all')
   const [budget, setBudget] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState(mockInsurancePlans)
+  const [allPlans, setAllPlans] = useState<InsurancePlan[]>([])
+  const [searchResults, setSearchResults] = useState<InsurancePlan[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch('/api/insurance/plans')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setAllPlans(json.data)
+            setSearchResults(json.data)
+          }
+        }
+      } catch {
+        // Failed to fetch plans
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPlans()
+  }, [])
   const [searchExamples] = useState([
     "Family health insurance",
     "Senior citizen coverage",
@@ -508,9 +335,9 @@ export default function InsurancePage() {
   const handleSearch = async () => {
     setIsSearching(true)
     setHasSearched(true)
-    
-    const results = await aiSearchInsurance(searchQuery, insuranceType, budget)
-    
+
+    const results = filterInsurancePlans(allPlans, searchQuery, insuranceType, budget)
+
     setSearchResults(results)
     setIsSearching(false)
   }
@@ -519,12 +346,20 @@ export default function InsurancePage() {
     setSearchQuery('')
     setInsuranceType('all')
     setBudget('all')
-    setSearchResults(mockInsurancePlans)
+    setSearchResults(allPlans)
     setHasSearched(false)
   }
 
   const handleExampleClick = (example: string) => {
     setSearchQuery(example)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

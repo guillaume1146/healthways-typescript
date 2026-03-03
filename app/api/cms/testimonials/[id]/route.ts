@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { testimonialUpdateSchema } from '@/lib/validations/cms'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
@@ -40,6 +44,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })

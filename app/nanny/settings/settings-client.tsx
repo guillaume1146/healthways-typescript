@@ -281,7 +281,7 @@ export default function SettingsClient() {
                                             <span className="ms-2 text-sm font-medium text-gray-700">Show on profile</span>
                                         </label>
                                     )}
-                                    <button className="text-red-500 hover:text-red-700"><FaTrash /></button>
+                                    <button aria-label="Delete document" className="text-red-500 hover:text-red-700"><FaTrash /></button>
                                   </div>
                               </div>
                           ))}

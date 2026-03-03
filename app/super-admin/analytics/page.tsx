@@ -5,9 +5,8 @@ import Link from 'next/link'
 import PredictiveAnalytics from './PredictiveAnalytics' // Import the child component
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('Last 30 Days');
+  const [timeRange] = useState('Last 30 Days');
   const [selectedRegion, setSelectedRegion] = useState('all');
-  console.log(setTimeRange)
   const regions = [
     { code: 'all', name: 'All Regions', flag: '🌍' },
     { code: 'MU', name: 'Mauritius', flag: '🇲🇺' },

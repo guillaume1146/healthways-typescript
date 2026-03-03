@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 

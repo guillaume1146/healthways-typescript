@@ -380,7 +380,7 @@ export default function PatientVideoCall() {
             <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
               <div className="flex space-x-2">
                 <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button type="submit" className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"><FaPaperPlane /></button>
+                <button type="submit" aria-label="Send message" className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"><FaPaperPlane /></button>
               </div>
             </form>
           </div>
@@ -392,7 +392,7 @@ export default function PatientVideoCall() {
         <div className="flex items-center justify-center space-x-4">
           <button onClick={handleToggleAudio} className={`p-4 rounded-full transition ${isAudioEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'}`}>{isAudioEnabled ? <FaMicrophone className="text-white text-xl" /> : <FaMicrophoneSlash className="text-white text-xl" />}</button>
           <button onClick={handleToggleVideo} className={`p-4 rounded-full transition ${isVideoEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'}`}>{isVideoEnabled ? <FaVideo className="text-white text-xl" /> : <FaVideoSlash className="text-white text-xl" />}</button>
-          <button onClick={handleScreenShare} className={`p-4 rounded-full transition ${isScreenSharing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}`}><FaDesktop className="text-white text-xl" /></button>
+          <button onClick={handleScreenShare} aria-label="Share screen" className={`p-4 rounded-full transition ${isScreenSharing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}`}><FaDesktop className="text-white text-xl" /></button>
           <button onClick={() => setShowChat(!showChat)} className={`p-4 rounded-full transition ${showChat ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}`}><FaComments className="text-white text-xl" /></button>
           <button onClick={handleEndCall} className="p-4 rounded-full bg-red-600 hover:bg-red-700 transition ml-8">
             <FaPhone className="text-white text-xl" style={{ transform: 'rotate(135deg)' }} />

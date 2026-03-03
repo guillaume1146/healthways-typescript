@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
+import { updatePostSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // GET /api/posts/[id] — Single post with comments preview
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const { id } = await params
 
   try {
@@ -91,6 +96,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
@@ -112,18 +120,23 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { content, category, tags, isPublished } = body
+    const parsed = updatePostSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
+    const { content, category, tags, isPublished } = parsed.data
 
     const updateData: Record<string, unknown> = {}
     if (content !== undefined) {
-      if (typeof content !== 'string' || content.trim().length === 0) {
-        return NextResponse.json({ message: 'Content cannot be empty' }, { status: 400 })
-      }
       updateData.content = content.trim()
     }
     if (category !== undefined) updateData.category = category
-    if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : []
-    if (typeof isPublished === 'boolean') updateData.isPublished = isPublished
+    if (tags !== undefined) updateData.tags = tags
+    if (isPublished !== undefined) updateData.isPublished = isPublished
 
     const updatedPost = await prisma.doctorPost.update({
       where: { id },
@@ -171,6 +184,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 

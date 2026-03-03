@@ -145,7 +145,7 @@ export default function ReferralPartnerDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Earnings Summary</h3>
-              <Link href="/referral-partner/earnings" className="text-purple-600 text-sm hover:underline">
+              <Link href="/referral-partner/dashboard/earnings" className="text-purple-600 text-sm hover:underline">
                 View Details
               </Link>
             </div>
@@ -220,7 +220,7 @@ export default function ReferralPartnerDashboard() {
                 <p className="text-purple-700 text-xs">Create comparison posts showing HealthWyz vs traditional healthcare costs.</p>
               </div>
             </div>
-            <Link href="/referral-partner/resources" className="text-purple-600 text-sm hover:underline mt-4 block">
+            <Link href="/referral-partner/dashboard/analytics" className="text-purple-600 text-sm hover:underline mt-4 block">
               View More Tips
             </Link>
           </div>

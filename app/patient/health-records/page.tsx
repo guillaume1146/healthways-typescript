@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   FaHeart, 
@@ -20,111 +20,9 @@ import {
   FaHeartbeat,
   FaThermometerHalf,
   FaExclamationTriangle,
-  FaTint
+  FaTint,
+  FaSpinner
 } from 'react-icons/fa'
-
-// Mock data for static prototype
-const mockHealthRecords = {
-  summary: {
-    totalRecords: 24,
-    lastUpdate: "2024-01-14",
-    healthScore: 85,
-    riskFactors: 2,
-    activeConditions: 2
-  },
-  vitals: {
-    bloodPressure: { value: "120/80", date: "2024-01-14", status: "normal", trend: "stable" },
-    heartRate: { value: "72", date: "2024-01-14", status: "normal", trend: "stable" },
-    temperature: { value: "36.8°C", date: "2024-01-14", status: "normal", trend: "stable" },
-    weight: { value: "75 kg", date: "2024-01-14", status: "normal", trend: "down" },
-    bloodSugar: { value: "95 mg/dL", date: "2024-01-14", status: "normal", trend: "stable" }
-  },
-  records: [
-    {
-      id: 1,
-      type: "consultation",
-      title: "Cardiology Consultation",
-      doctor: "Dr. Sarah Johnson",
-      date: "2024-01-14",
-      summary: "Routine cardiac checkup. Blood pressure and heart rate normal. Continue current medications.",
-      status: "completed",
-      files: ["consultation_notes.pdf", "ecg_report.pdf"]
-    },
-    {
-      id: 2,
-      type: "lab",
-      title: "Blood Test Results",
-      doctor: "Dr. Sarah Johnson",
-      date: "2024-01-12",
-      summary: "Complete blood count and lipid panel. All values within normal range. HbA1c: 6.1%",
-      status: "completed",
-      files: ["blood_test_report.pdf"],
-      results: {
-        cholesterol: { value: "180 mg/dL", range: "< 200", status: "normal" },
-        hdl: { value: "55 mg/dL", range: "> 40", status: "normal" },
-        ldl: { value: "110 mg/dL", range: "< 130", status: "normal" },
-        hba1c: { value: "6.1%", range: "< 7%", status: "good" }
-      }
-    },
-    {
-      id: 3,
-      type: "prescription",
-      title: "Prescription Update",
-      doctor: "Dr. Sarah Johnson",
-      date: "2024-01-10",
-      summary: "Metformin dosage adjusted to 500mg twice daily. New prescription for Lisinopril 10mg.",
-      status: "active",
-      medications: [
-        { name: "Metformin", dosage: "500mg", frequency: "Twice daily" },
-        { name: "Lisinopril", dosage: "10mg", frequency: "Once daily" }
-      ]
-    },
-    {
-      id: 4,
-      type: "imaging",
-      title: "Chest X-Ray",
-      doctor: "Dr. Michael Chen",
-      date: "2024-01-08",
-      summary: "Chest X-ray shows clear lungs. No signs of infection or abnormalities.",
-      status: "completed",
-      files: ["chest_xray.jpg", "radiology_report.pdf"]
-    },
-    {
-      id: 5,
-      type: "consultation",
-      title: "General Medicine Consultation",
-      doctor: "Dr. Michael Chen",
-      date: "2024-01-05",
-      summary: "Annual health checkup. Physical examination normal. Recommended lifestyle modifications.",
-      status: "completed",
-      files: ["annual_checkup_report.pdf"]
-    },
-    {
-      id: 6,
-      type: "vaccination",
-      title: "Influenza Vaccine",
-      doctor: "Nurse Jennifer Williams",
-      date: "2023-12-20",
-      summary: "Annual flu vaccination administered. No adverse reactions observed.",
-      status: "completed",
-      files: ["vaccination_record.pdf"]
-    }
-  ],
-  trends: {
-    bloodPressure: [
-      { date: "2023-12-01", systolic: 125, diastolic: 82 },
-      { date: "2023-12-15", systolic: 122, diastolic: 80 },
-      { date: "2024-01-01", systolic: 120, diastolic: 78 },
-      { date: "2024-01-14", systolic: 120, diastolic: 80 }
-    ],
-    weight: [
-      { date: "2023-12-01", value: 77 },
-      { date: "2023-12-15", value: 76 },
-      { date: "2024-01-01", value: 75.5 },
-      { date: "2024-01-14", value: 75 }
-    ]
-  }
-}
 
 interface Medication {
   name: string;
@@ -138,7 +36,7 @@ interface LabResult {
   status: string;
 }
 
-interface Record {
+interface HealthRecord {
   id: number;
   type: string;
   title: string;
@@ -158,12 +56,52 @@ interface Vital {
   trend: string;
 }
 
+interface HealthRecordsData {
+  summary: { totalRecords: number; lastUpdate: string; healthScore: number; riskFactors: number; activeConditions: number }
+  vitals: { [key: string]: Vital }
+  records: HealthRecord[]
+  trends: {
+    bloodPressure: { date: string; systolic: number; diastolic: number }[]
+    weight: { date: string; value: number }[]
+  }
+}
+
+const emptyHealthRecords: HealthRecordsData = {
+  summary: { totalRecords: 0, lastUpdate: '', healthScore: 0, riskFactors: 0, activeConditions: 0 },
+  vitals: {},
+  records: [],
+  trends: { bloodPressure: [], weight: [] }
+}
+
 
 const PatientHealthRecords = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [filterType, setFilterType] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedRecord, setSelectedRecord] = useState<Record | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<HealthRecord | null>(null)
+  const [healthRecords, setHealthRecords] = useState<HealthRecordsData>(emptyHealthRecords)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRecords = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/patients/${userId}/health-records`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) setHealthRecords(json.data)
+        }
+      } catch {
+        // Failed to fetch health records
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchRecords()
+  }, [])
 
   const getRecordIcon = (type: string) => {
     switch (type) {
@@ -203,7 +141,7 @@ const PatientHealthRecords = () => {
     }
   }
 
-  const filteredRecords = mockHealthRecords.records.filter(record => {
+  const filteredRecords = healthRecords.records.filter(record => {
     const matchesType = filterType === 'all' || record.type === filterType
     const matchesSearch = record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          record.doctor.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -211,6 +149,14 @@ const PatientHealthRecords = () => {
     
     return matchesType && matchesSearch
   })
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -248,7 +194,7 @@ const PatientHealthRecords = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Health Score</p>
-                <p className="text-2xl font-bold text-green-600">{mockHealthRecords.summary.healthScore}%</p>
+                <p className="text-2xl font-bold text-green-600">{healthRecords.summary.healthScore}%</p>
                 <p className="text-sm text-green-600">Excellent</p>
               </div>
               <FaHeart className="text-green-500 text-2xl" />
@@ -259,8 +205,8 @@ const PatientHealthRecords = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Records</p>
-                <p className="text-2xl font-bold text-blue-600">{mockHealthRecords.summary.totalRecords}</p>
-                <p className="text-sm text-gray-500">Last updated {mockHealthRecords.summary.lastUpdate}</p>
+                <p className="text-2xl font-bold text-blue-600">{healthRecords.summary.totalRecords}</p>
+                <p className="text-sm text-gray-500">Last updated {healthRecords.summary.lastUpdate}</p>
               </div>
               <FaFileAlt className="text-blue-500 text-2xl" />
             </div>
@@ -270,7 +216,7 @@ const PatientHealthRecords = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Active Conditions</p>
-                <p className="text-2xl font-bold text-orange-600">{mockHealthRecords.summary.activeConditions}</p>
+                <p className="text-2xl font-bold text-orange-600">{healthRecords.summary.activeConditions}</p>
                 <p className="text-sm text-orange-600">Managed</p>
               </div>
               <FaExclamationTriangle className="text-orange-500 text-2xl" />
@@ -281,7 +227,7 @@ const PatientHealthRecords = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Risk Factors</p>
-                <p className="text-2xl font-bold text-yellow-600">{mockHealthRecords.summary.riskFactors}</p>
+                <p className="text-2xl font-bold text-yellow-600">{healthRecords.summary.riskFactors}</p>
                 <p className="text-sm text-yellow-600">Monitor</p>
               </div>
               <FaChartLine className="text-yellow-500 text-2xl" />
@@ -365,7 +311,7 @@ const PatientHealthRecords = () => {
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Medical Activity</h3>
                   <div className="space-y-3">
-                    {mockHealthRecords.records.slice(0, 3).map((record) => {
+                    {healthRecords.records.slice(0, 3).map((record) => {
                       const Icon = getRecordIcon(record.type)
                       return (
                         <div key={record.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -525,7 +471,7 @@ const PatientHealthRecords = () => {
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Latest Vital Signs</h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Object.entries(mockHealthRecords.vitals).map(([key, vital]: [string, Vital]) => (
+                  {Object.entries(healthRecords.vitals).map(([key, vital]: [string, Vital]) => (
   <div key={key} className="bg-white border border-gray-200 rounded-lg p-6">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-3">
@@ -565,7 +511,7 @@ const PatientHealthRecords = () => {
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="font-semibold text-gray-900 mb-4">Blood Pressure Trend</h4>
                     <div className="space-y-3">
-                      {mockHealthRecords.trends.bloodPressure.map((reading, index) => (
+                      {healthRecords.trends.bloodPressure.map((reading, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <span className="text-gray-600">{reading.date}</span>
                           <span className="font-medium">{reading.systolic}/{reading.diastolic}</span>
@@ -580,7 +526,7 @@ const PatientHealthRecords = () => {
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="font-semibold text-gray-900 mb-4">Weight Trend</h4>
                     <div className="space-y-3">
-                      {mockHealthRecords.trends.weight.map((reading, index) => (
+                      {healthRecords.trends.weight.map((reading, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <span className="text-gray-600">{reading.date}</span>
                           <span className="font-medium">{reading.value} kg</span>

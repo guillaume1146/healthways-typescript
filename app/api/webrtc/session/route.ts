@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { createWebRTCSessionSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 // POST - Create or update a video call session
 export async function POST(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
     const body = await request.json()
-    const { roomId, userId, userName, userType } = body
-
-    if (!roomId || !userId) {
+    const parsed = createWebRTCSessionSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'roomId and userId are required' },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { roomId, userId } = parsed.data
 
     // Find the video room
     const videoRoom = await prisma.videoRoom.findFirst({
@@ -104,6 +110,9 @@ export async function POST(request: NextRequest) {
 
 // GET - Check for existing session
 export async function GET(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -157,6 +166,9 @@ export async function GET(request: NextRequest) {
 
 // PATCH - Update session health
 export async function PATCH(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -190,6 +202,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - End session
 export async function DELETE(request: NextRequest) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

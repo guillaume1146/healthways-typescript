@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { pharmacyMedicineSchema } from '@/lib/validations/catalog'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   if (auth.userType !== 'pharmacy') {
@@ -63,6 +67,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   if (auth.userType !== 'pharmacy') {

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { 
+import {
   FaArrowLeft,
   FaFileAlt,
   FaPrescriptionBottle,
@@ -25,7 +25,8 @@ import {
   FaPrint,
   FaVideo,
   FaEdit,
-  FaTimes
+  FaTimes,
+  FaSpinner
 } from 'react-icons/fa'
 import { useDoctorStore } from '../../../lib/data-store'
 
@@ -60,102 +61,21 @@ interface VitalSign {
   oxygenSaturation: string
 }
 
-// Mock data for demonstration
-const mockPatientData = {
-  id: 'pat-001',
-  name: 'John Smith',
-  age: 45,
-  gender: 'Male',
-  bloodType: 'O+',
-  phone: '+230 5123 4567',
-  email: 'john.smith@email.com',
-  address: 'Port Louis, Mauritius',
-  emergencyContact: {
-    name: 'Jane Smith',
-    relation: 'Wife',
-    phone: '+230 5234 5678'
-  },
-  medicalHistory: [
-    'Hypertension (2018)',
-    'Type 2 Diabetes (2020)',
-    'Appendectomy (2015)'
-  ],
-  allergies: ['Penicillin', 'Peanuts'],
-  currentMedications: [
-    { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily' },
-    { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily' }
-  ],
-  insurance: {
-    provider: 'Swan Insurance',
-    policyNumber: 'POL-123456',
-    validUntil: '2024-12-31'
-  }
+const emptyPatientData = {
+  id: '',
+  name: '',
+  age: 0,
+  gender: '',
+  bloodType: '',
+  phone: '',
+  email: '',
+  address: '',
+  emergencyContact: { name: '', relation: '', phone: '' },
+  medicalHistory: [] as string[],
+  allergies: [] as string[],
+  currentMedications: [] as { name: string; dosage: string; frequency: string }[],
+  insurance: { provider: '', policyNumber: '', validUntil: '' }
 }
-
-const mockMedicalRecords: MedicalRecord[] = [
-  {
-    id: '1',
-    date: '2024-01-15',
-    type: 'consultation',
-    title: 'Routine Checkup',
-    doctor: 'Dr. Sarah Johnson',
-    summary: 'Regular follow-up for hypertension and diabetes management. Patient stable.',
-    details: {
-      chiefComplaint: 'Routine checkup',
-      examination: 'Blood pressure controlled, glucose levels within target range',
-      diagnosis: 'Hypertension and Type 2 Diabetes - stable',
-      plan: 'Continue current medications, lifestyle modifications'
-    }
-  },
-  {
-    id: '2',
-    date: '2024-01-10',
-    type: 'lab_result',
-    title: 'Blood Test Results',
-    doctor: 'Dr. Sarah Johnson',
-    summary: 'Complete blood count and metabolic panel',
-    details: {
-      hba1c: '6.8%',
-      cholesterol: '180 mg/dL',
-      ldl: '100 mg/dL',
-      hdl: '50 mg/dL',
-      triglycerides: '150 mg/dL'
-    }
-  },
-  {
-    id: '3',
-    date: '2023-12-20',
-    type: 'prescription',
-    title: 'Medication Prescription',
-    doctor: 'Dr. Sarah Johnson',
-    summary: 'Monthly medication refill',
-    details: {
-      medications: [
-        'Metformin 500mg - 60 tablets',
-        'Lisinopril 10mg - 30 tablets'
-      ]
-    }
-  }
-]
-
-const mockVitalSigns: VitalSign[] = [
-  {
-    date: '2024-01-15',
-    bloodPressure: '128/82',
-    heartRate: '72 bpm',
-    temperature: '36.8°C',
-    weight: '75 kg',
-    oxygenSaturation: '98%'
-  },
-  {
-    date: '2023-12-20',
-    bloodPressure: '132/85',
-    heartRate: '76 bpm',
-    temperature: '36.6°C',
-    weight: '76 kg',
-    oxygenSaturation: '97%'
-  }
-]
 
 export default function PatientRecordsPage() {
   const params = useParams()
@@ -166,31 +86,80 @@ export default function PatientRecordsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null)
-  
-  // Get patient data
-  const patient = mockPatientData // In real app, use: getPatientById(patientId)
-  
-  useEffect(() => {
-    if (patient) {
-      setSelectedPatient({
-        id: patient.id,
-        name: patient.name,
-        age: patient.age,
-        gender: patient.gender,
-        email: patient.email,
-        phone: patient.phone,
-        avatar: 'JS',
-        medicalHistory: patient.medicalHistory.map(h => h.split('(')[0].trim()),
-        allergies: patient.allergies,
-        lastVisit: '2024-01-15',
-        upcomingAppointment: undefined,
-        totalVisits: 12,
-        prescriptions: 3
-      })
-    }
-  }, [patient, setSelectedPatient])
+  const [patient, setPatient] = useState(emptyPatientData)
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([])
+  const [vitalSigns, setVitalSigns] = useState<VitalSign[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredRecords = mockMedicalRecords.filter(record => {
+  useEffect(() => {
+    const fetchPatientData = async () => {
+      try {
+        if (!patientId) return
+        const res = await fetch(`/api/patients/${patientId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            setPatient({
+              id: d.id || patientId,
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              age: d.age || 0,
+              gender: d.gender || '',
+              bloodType: d.bloodType || '',
+              phone: d.phone || '',
+              email: d.email || '',
+              address: d.address || '',
+              emergencyContact: d.emergencyContact || { name: '', relation: '', phone: '' },
+              medicalHistory: d.medicalHistory || [],
+              allergies: d.allergies || [],
+              currentMedications: d.currentMedications || [],
+              insurance: d.insurance || { provider: '', policyNumber: '', validUntil: '' }
+            })
+            setSelectedPatient({
+              id: d.id || patientId,
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              age: d.age || 0,
+              gender: d.gender || '',
+              email: d.email || '',
+              phone: d.phone || '',
+              avatar: `${(d.firstName || '')[0] || ''}${(d.lastName || '')[0] || ''}`,
+              medicalHistory: (d.medicalHistory || []).map((h: string) => h.split('(')[0].trim()),
+              allergies: d.allergies || [],
+              lastVisit: d.lastVisit || '',
+              upcomingAppointment: undefined,
+              totalVisits: d.totalVisits || 0,
+              prescriptions: d.prescriptions || 0
+            })
+          }
+        }
+        const recordsRes = await fetch(`/api/patients/${patientId}/health-records`)
+        if (recordsRes.ok) {
+          const recordsJson = await recordsRes.json()
+          if (recordsJson.success) setMedicalRecords(recordsJson.data || [])
+        }
+        const vitalsRes = await fetch(`/api/patients/${patientId}/vitals`)
+        if (vitalsRes.ok) {
+          const vitalsJson = await vitalsRes.json()
+          if (vitalsJson.success) setVitalSigns(vitalsJson.data || [])
+        }
+      } catch {
+        // Failed to fetch patient data
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPatientData()
+  }, [patientId, setSelectedPatient])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
+  }
+
+  const filteredRecords = medicalRecords.filter(record => {
     const matchesSearch = record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          record.summary.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesType = filterType === 'all' || record.type === filterType
@@ -379,7 +348,7 @@ export default function PatientRecordsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
                   <div className="space-y-3">
-                    {mockMedicalRecords.slice(0, 3).map((record) => {
+                    {medicalRecords.slice(0, 3).map((record) => {
                       const Icon = getRecordIcon(record.type)
                       return (
                         <div key={record.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
@@ -398,25 +367,25 @@ export default function PatientRecordsPage() {
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-4">Latest Vital Signs</h3>
-                  {mockVitalSigns[0] && (
+                  {vitalSigns[0] && (
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-3">Recorded on {mockVitalSigns[0].date}</p>
+                      <p className="text-sm text-gray-600 mb-3">Recorded on {vitalSigns[0].date}</p>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <p className="text-xs text-gray-600">Blood Pressure</p>
-                          <p className="font-semibold">{mockVitalSigns[0].bloodPressure}</p>
+                          <p className="font-semibold">{vitalSigns[0].bloodPressure}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Heart Rate</p>
-                          <p className="font-semibold">{mockVitalSigns[0].heartRate}</p>
+                          <p className="font-semibold">{vitalSigns[0].heartRate}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Temperature</p>
-                          <p className="font-semibold">{mockVitalSigns[0].temperature}</p>
+                          <p className="font-semibold">{vitalSigns[0].temperature}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Weight</p>
-                          <p className="font-semibold">{mockVitalSigns[0].weight}</p>
+                          <p className="font-semibold">{vitalSigns[0].weight}</p>
                         </div>
                       </div>
                     </div>
@@ -510,7 +479,7 @@ export default function PatientRecordsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockVitalSigns.map((vital, idx) => (
+                      {vitalSigns.map((vital, idx) => (
                         <tr key={idx} className="border-b hover:bg-gray-50">
                           <td className="px-4 py-3">{vital.date}</td>
                           <td className="px-4 py-3">{vital.bloodPressure}</td>

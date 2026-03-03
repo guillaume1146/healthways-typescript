@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
     FaUserEdit, FaCreditCard, FaBell, FaSave, FaToggleOn, FaToggleOff,
     FaUniversity, FaShieldAlt, FaPhone, FaEnvelope, FaMapMarkerAlt,
-    FaIdCard, FaCertificate, FaLanguage, FaTimes
+    FaIdCard, FaCertificate, FaLanguage, FaTimes, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
@@ -53,39 +53,21 @@ interface NotificationSettings {
     systemUpdates: boolean
 }
 
-// Mock Data
-const mockProfileData: InsuranceProfileSettings = {
-    name: "Marie Dubois",
-    email: "marie.dubois@swissre.mu",
-    phone: "+230 5789 0123",
-    alternatePhone: "+230 5789 0124",
-    address: "456 St. Louis Street, Port Louis, Mauritius",
-    companyName: "SwissRe Mauritius",
-    licenseNumber: "INS-2020-5678",
-    specialization: "Health & Life Insurance",
-    experience: 8,
-    bio: "Experienced insurance representative specializing in health and life insurance products. Committed to providing comprehensive coverage solutions for individuals and families.",
-    languages: ["English", "French", "Creole"]
+const emptyProfileData: InsuranceProfileSettings = {
+    name: '', email: '', phone: '', alternatePhone: '', address: '',
+    companyName: '', licenseNumber: '', specialization: '',
+    experience: 0, bio: '', languages: [],
 }
 
-const mockBillingData: BillingSettings = {
+const emptyBillingData: BillingSettings = {
     accountType: 'MCB Juice',
-    accountDetails: {
-        accountNumber: '•••• •••• 5678',
-        accountName: 'Marie Dubois',
-        bankName: 'MCB',
-    },
-    commissionRate: 15,
-    paymentMethods: ['MCB Juice', 'Bank Transfer', 'Mobile Money'],
-    taxId: 'TAX-987654321',
+    accountDetails: { accountNumber: '', accountName: '', bankName: '' },
+    commissionRate: 0, paymentMethods: [], taxId: '',
 }
 
-const mockNotificationData: NotificationSettings = {
-    policyExpiry: true,
-    claimUpdates: true,
-    paymentReminders: true,
-    commissionAlerts: true,
-    systemUpdates: false,
+const emptyNotificationData: NotificationSettings = {
+    policyExpiry: true, claimUpdates: true, paymentReminders: true,
+    commissionAlerts: true, systemUpdates: false,
 }
 
 // Reusable Components
@@ -158,9 +140,47 @@ function InsuranceSettingsContent() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
-  const [profile, setProfile] = useState<InsuranceProfileSettings>(mockProfileData)
-  const [billing, setBilling] = useState<BillingSettings>(mockBillingData)
-  const [notifications, setNotifications] = useState<NotificationSettings>(mockNotificationData)
+  const [profile, setProfile] = useState<InsuranceProfileSettings>(emptyProfileData)
+  const [billing, setBilling] = useState<BillingSettings>(emptyBillingData)
+  const [notifications, setNotifications] = useState<NotificationSettings>(emptyNotificationData)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const ip = d.insuranceRepProfile || {}
+            setProfile({
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              email: d.email || '', phone: d.phone || '',
+              alternatePhone: ip.alternatePhone || '',
+              address: ip.address || '',
+              companyName: ip.companyName || '',
+              licenseNumber: ip.licenseNumber || '',
+              specialization: ip.specialization || '',
+              experience: ip.experience || 0,
+              bio: ip.bio || '', languages: ip.languages || [],
+            })
+            if (ip.billing) setBilling(ip.billing)
+            if (ip.notifications) setNotifications(ip.notifications)
+          }
+        }
+      } catch {
+        // Failed to fetch settings
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -187,6 +207,14 @@ function InsuranceSettingsContent() {
             paymentMethods: [...prev.paymentMethods, method]
         }))
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

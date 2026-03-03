@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   FaUsers,
@@ -14,7 +14,8 @@ import {
   FaEnvelope,
   FaDownload,
   FaCreditCard,
-  FaUserShield
+  FaUserShield,
+  FaSpinner
 } from "react-icons/fa"
 
 interface InsuranceProvider {
@@ -83,158 +84,42 @@ interface InsuranceData {
   }[];
 }
 
-const mockInsuranceData: InsuranceData = {
-  primaryPlan: {
-    id: "INS-001",
-    provider: {
-      id: "1",
-      name: "Mauritius Health Insurance",
-      logo: "🏥",
-      type: "health",
-      status: "active"
-    },
-    policyNumber: "MHI-123456789",
-    groupNumber: "GRP-987654",
-    memberSince: "2020-01-15",
-    validUntil: "2025-01-15",
-    status: "active",
-    type: "family",
-    premium: 5000,
-    deductible: 10000,
-    copay: 500,
-    maxCoverage: 1000000
-  },
+const emptyInsuranceData: InsuranceData = {
+  primaryPlan: null,
   secondaryPlan: null,
-  coverage: [
-    {
-      category: "General Consultations",
-      covered: true,
-      percentage: 100,
-      maxAmount: 50000,
-      remainingAmount: 42000,
-      notes: "Unlimited visits"
-    },
-    {
-      category: "Specialist Consultations",
-      covered: true,
-      percentage: 80,
-      maxAmount: 100000,
-      remainingAmount: 85000,
-      notes: "Requires referral"
-    },
-    {
-      category: "Prescription Medications",
-      covered: true,
-      percentage: 80,
-      maxAmount: 50000,
-      remainingAmount: 35000,
-      notes: "Generic drugs preferred"
-    },
-    {
-      category: "Laboratory Tests",
-      covered: true,
-      percentage: 90,
-      maxAmount: 75000,
-      remainingAmount: 60000,
-      notes: "Pre-authorization required for special tests"
-    },
-    {
-      category: "Hospitalization",
-      covered: true,
-      percentage: 100,
-      maxAmount: 500000,
-      remainingAmount: 500000,
-      notes: "Semi-private room"
-    },
-    {
-      category: "Emergency Services",
-      covered: true,
-      percentage: 100,
-      maxAmount: 200000,
-      remainingAmount: 200000,
-      notes: "24/7 coverage"
-    }
-  ],
-  recentClaims: [
-    {
-      id: "CLM-001",
-      date: "2024-01-10",
-      provider: "Dr. Sarah Johnson",
-      amount: 2500,
-      status: "approved",
-      type: "Consultation",
-      documents: ["consultation_receipt.pdf"]
-    },
-    {
-      id: "CLM-002",
-      date: "2024-01-05",
-      provider: "Apollo Pharmacy",
-      amount: 1200,
-      status: "processing",
-      type: "Medication",
-      documents: ["prescription.pdf", "pharmacy_bill.pdf"]
-    },
-    {
-      id: "CLM-003",
-      date: "2023-12-20",
-      provider: "MediLab Diagnostics",
-      amount: 3500,
-      status: "approved",
-      type: "Lab Tests",
-      documents: ["lab_report.pdf", "payment_receipt.pdf"]
-    }
-  ],
-  dependents: [
-    {
-      id: "DEP-001",
-      name: "Jane Smith",
-      relationship: "Spouse",
-      dateOfBirth: "1990-03-20",
-      policyNumber: "MHI-123456789-D1",
-      status: "active"
-    },
-    {
-      id: "DEP-002",
-      name: "Tom Smith",
-      relationship: "Child",
-      dateOfBirth: "2015-07-10",
-      policyNumber: "MHI-123456789-D2",
-      status: "active"
-    }
-  ],
-  documents: [
-    {
-      id: "DOC-001",
-      name: "Insurance Card - Front",
-      type: "image",
-      uploadedDate: "2024-01-01",
-      status: "verified"
-    },
-    {
-      id: "DOC-002",
-      name: "Insurance Card - Back",
-      type: "image",
-      uploadedDate: "2024-01-01",
-      status: "verified"
-    },
-    {
-      id: "DOC-003",
-      name: "Policy Document",
-      type: "pdf",
-      uploadedDate: "2024-01-01",
-      status: "verified"
-    }
-  ]
+  coverage: [],
+  recentClaims: [],
+  dependents: [],
+  documents: []
 }
 
 export default function InsuranceVerificationPage() {
-  const [insuranceData] = useState<InsuranceData>(mockInsuranceData)
+  const [insuranceData, setInsuranceData] = useState<InsuranceData>(emptyInsuranceData)
   const [activeTab, setActiveTab] = useState<"overview" | "coverage" | "claims" | "documents">("overview")
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showClaimModal, setShowClaimModal] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  console.log(showUploadModal)
-  console.log(showClaimModal)
+  useEffect(() => {
+    const fetchInsurance = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/patients/${userId}/insurance`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) setInsuranceData(json.data)
+        }
+      } catch {
+        // Failed to fetch insurance data
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchInsurance()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -255,6 +140,14 @@ export default function InsuranceVerificationPage() {
 
   const formatCurrency = (amount: number) => {
     return `Rs ${amount.toLocaleString()}`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

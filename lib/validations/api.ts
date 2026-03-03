@@ -161,6 +161,17 @@ export const createPostSchema = z.object({
   tags: z.array(z.string()).optional(),
 })
 
+export const updatePostSchema = z.object({
+  content: z.string().min(1, 'Content cannot be empty').max(10000).optional(),
+  category: z.string().nullable().optional(),
+  tags: z.array(z.string()).optional(),
+  isPublished: z.boolean().optional(),
+})
+
+export const createCommentSchema = z.object({
+  content: z.string().min(1, 'Comment content is required').max(5000),
+})
+
 // ─── Wallet ─────────────────────────────────────────────────────────────────
 
 export const walletDebitSchema = z.object({

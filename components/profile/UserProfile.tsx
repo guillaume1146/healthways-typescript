@@ -207,7 +207,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
             {userData.profileImage ? (
-              <img src={userData.profileImage} alt="" className="w-20 h-20 rounded-full object-cover" />
+              <img src={userData.profileImage} alt="Profile photo" className="w-20 h-20 rounded-full object-cover" />
             ) : (
               `${userData.firstName?.[0] || ''}${userData.lastName?.[0] || ''}`
             )}

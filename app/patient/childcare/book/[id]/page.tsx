@@ -1116,7 +1116,7 @@ export default function ChildcareAppointmentBooking() {
 
               {/* Main Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/childcare/appointments" className="bg-gradient-to-r from-pink-600 to-pink-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-pink-700 hover:to-pink-800 transition-all text-center">
+                <Link href="/patient/dashboard/bookings" className="bg-gradient-to-r from-pink-600 to-pink-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-pink-700 hover:to-pink-800 transition-all text-center">
                   View My Bookings
                 </Link>
                 <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">

@@ -361,7 +361,7 @@ export default function SettingsClient() {
                                 </div>
                                 <div className="flex items-center gap-4 mt-2 md:mt-0">
                                     {doc.status === 'Expired' && (<button className="text-sm font-semibold text-white bg-red-500 px-3 py-1 rounded-md hover:bg-red-600">Renew</button>)}
-                                    <button className="text-gray-500 hover:text-red-600"><FaTrash /></button>
+                                    <button aria-label="Delete document" className="text-gray-500 hover:text-red-600"><FaTrash /></button>
                                 </div>
                             </div>
                         ))}

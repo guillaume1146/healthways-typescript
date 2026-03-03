@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { sendMessageSchema } from '@/lib/validations/api'
 
 /**
  * GET /api/conversations/[id]/messages
@@ -122,11 +123,10 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { content } = body as { content?: string }
-
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    const parsed = sendMessageSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Message content is required' },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
@@ -137,7 +137,7 @@ export async function POST(
         data: {
           conversationId,
           senderId: userId,
-          content: content.trim(),
+          content: parsed.data.content.trim(),
         },
         select: {
           id: true,

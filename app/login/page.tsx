@@ -37,7 +37,6 @@ const LoginForm: React.FC = () => {
     setError('')
     
     try {
-      console.log('Attempting login:', { email: formData.email, userType: selectedUserType.id })
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -58,11 +57,7 @@ const LoginForm: React.FC = () => {
         return
       }
 
-      console.log('Authentication successful:', data.user)
-
       AuthService.saveToLocalStorage(data.user)
-      
-      console.log('Data saved to storage, redirecting...')
 
       setTimeout(() => {
         setIsSubmitting(false)
@@ -70,7 +65,6 @@ const LoginForm: React.FC = () => {
         const redirectPath = returnUrl && returnUrl.startsWith('/')
           ? returnUrl
           : AuthService.getUserTypeRedirectPath(selectedUserType.id)
-        console.log('Redirecting to:', redirectPath)
         window.location.href = redirectPath
       }, 500)
 

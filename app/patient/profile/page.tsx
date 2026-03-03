@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   FaUser, 
@@ -22,83 +22,104 @@ import {
   FaRuler,
   FaWeight,
   FaTrash,
-  FaPlus
+  FaPlus,
+  FaSpinner
 } from 'react-icons/fa'
 
-// Mock data for static prototype
-const mockPatientProfile = {
+const emptyPatientProfile = {
   personalInfo: {
-    fullName: "John Smith",
-    email: "john.smith@email.com",
-    phone: "+230 123 4567",
-    avatar: "👨",
-    dateOfBirth: "1988-05-15",
-    gender: "Male",
-    nationalId: "M1234567890",
-    address: {
-      street: "123 Royal Road",
-      city: "Port Louis",
-      postalCode: "11101",
-      country: "Mauritius"
-    },
-    emergencyContact: {
-      name: "Jane Smith",
-      relationship: "Spouse",
-      phone: "+230 234 5678"
-    }
+    fullName: '', email: '', phone: '', avatar: '',
+    dateOfBirth: '', gender: '', nationalId: '',
+    address: { street: '', city: '', postalCode: '', country: '' },
+    emergencyContact: { name: '', relationship: '', phone: '' }
   },
   medicalInfo: {
-    bloodType: "O+",
-    height: "175", // cm
-    weight: "75", // kg
-    allergies: [
-      { name: "Penicillin", severity: "Severe", reaction: "Rash, difficulty breathing" },
-      { name: "Peanuts", severity: "Moderate", reaction: "Hives, swelling" }
-    ],
-    chronicConditions: [
-      { name: "Hypertension", diagnosed: "2020", status: "Controlled" },
-      { name: "Type 2 Diabetes", diagnosed: "2019", status: "Managed" }
-    ],
-    currentMedications: [
-      { name: "Metformin 500mg", dosage: "Twice daily", prescribedBy: "Dr. Sarah Johnson" },
-      { name: "Lisinopril 10mg", dosage: "Once daily", prescribedBy: "Dr. Sarah Johnson" }
-    ],
-    familyHistory: [
-      { condition: "Heart Disease", relation: "Father", age: "65" },
-      { condition: "Diabetes", relation: "Mother", age: "58" }
-    ]
+    bloodType: '', height: '', weight: '',
+    allergies: [] as { name: string; severity: string; reaction: string }[],
+    chronicConditions: [] as { name: string; diagnosed: string; status: string }[],
+    currentMedications: [] as { name: string; dosage: string; prescribedBy: string }[],
+    familyHistory: [] as { condition: string; relation: string; age: string }[]
   },
   insuranceInfo: {
-    provider: "Mauritius Health Insurance",
-    policyNumber: "MHI-123456789",
-    groupNumber: "GRP-987654",
-    expiryDate: "2024-12-31",
-    copay: "500 MUR",
-    deductible: "5000 MUR"
+    provider: '', policyNumber: '', groupNumber: '',
+    expiryDate: '', copay: '', deductible: ''
   },
   preferences: {
-    preferredLanguage: "English",
-    communicationMethod: "Email",
-    doctorGender: "No preference",
-    appointmentReminders: true,
-    healthTips: true,
-    marketingEmails: false
+    preferredLanguage: 'English', communicationMethod: 'Email',
+    doctorGender: 'No preference', appointmentReminders: true,
+    healthTips: true, marketingEmails: false
   },
-  stats: {
-    profileCompleteness: 85,
-    lastUpdated: "2024-01-10",
-    memberSince: "2023-01-15"
-  }
+  stats: { profileCompleteness: 0, lastUpdated: '', memberSince: '' }
 }
 
 const PatientProfile = () => {
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(mockPatientProfile)
+  const [formData, setFormData] = useState(emptyPatientProfile)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const pp = d.patientProfile || {}
+            setFormData({
+              personalInfo: {
+                fullName: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+                email: d.email || '',
+                phone: d.phone || '',
+                avatar: d.avatar || '',
+                dateOfBirth: d.dateOfBirth || '',
+                gender: d.gender || '',
+                nationalId: d.nationalId || '',
+                address: d.address || { street: '', city: '', postalCode: '', country: '' },
+                emergencyContact: pp.emergencyContact || { name: '', relationship: '', phone: '' }
+              },
+              medicalInfo: {
+                bloodType: pp.bloodType || '',
+                height: pp.height || '',
+                weight: pp.weight || '',
+                allergies: pp.allergies || [],
+                chronicConditions: pp.chronicConditions || [],
+                currentMedications: pp.currentMedications || [],
+                familyHistory: pp.familyHistory || []
+              },
+              insuranceInfo: pp.insuranceInfo || {
+                provider: '', policyNumber: '', groupNumber: '',
+                expiryDate: '', copay: '', deductible: ''
+              },
+              preferences: pp.preferences || {
+                preferredLanguage: 'English', communicationMethod: 'Email',
+                doctorGender: 'No preference', appointmentReminders: true,
+                healthTips: true, marketingEmails: false
+              },
+              stats: {
+                profileCompleteness: pp.profileCompleteness || 0,
+                lastUpdated: d.updatedAt || '',
+                memberSince: d.createdAt || ''
+              }
+            })
+          }
+        }
+      } catch {
+        // Failed to fetch profile
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const handleSave = () => {
     setIsEditing(false)
-    console.log('Profile saved:', formData)
   }
 
   const ProfileSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -117,6 +138,14 @@ const PatientProfile = () => {
       {severity}
     </span>
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -217,11 +246,11 @@ const PatientProfile = () => {
                   <FaHeart className="text-blue-500" />
                   <span className="text-blue-800 font-medium">View Health Records</span>
                 </Link>
-                <Link href="/patient/appointments" className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition">
+                <Link href="/patient/dashboard/bookings" className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition">
                   <FaCalendarAlt className="text-green-500" />
                   <span className="text-green-800 font-medium">Book Appointment</span>
                 </Link>
-                <Link href="/patient/prescriptions" className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition">
+                <Link href="/patient/dashboard/prescriptions" className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition">
                   <FaPills className="text-purple-500" />
                   <span className="text-purple-800 font-medium">My Prescriptions</span>
                 </Link>

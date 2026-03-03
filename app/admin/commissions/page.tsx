@@ -1,12 +1,12 @@
 'use client'
 
-import { JSX, useState } from 'react'
+import { JSX, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
     FaPercentage, FaSave, FaEdit, FaTrash, FaPlus, FaInfoCircle,
     FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
     FaChartBar, FaDollarSign, FaDownload, FaCalendarAlt, FaFilter,
-    FaArrowUp, FaArrowDown, FaFilePdf, FaFileExcel, FaFileCsv
+    FaArrowUp, FaArrowDown, FaFilePdf, FaFileExcel, FaFileCsv, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
@@ -45,38 +45,32 @@ interface TransactionData {
   status: 'completed' | 'pending' | 'refunded'
 }
 
-// --- MOCK DATA ---
-
-const mockCommissionRules: CommissionRule[] = [
-  { id: 'C001', category: 'Doctors', type: 'percentage', baseRate: 10, effectiveDate: '2025-01-01', status: 'active' },
-  { id: 'C002', category: 'Nurses', type: 'tiered', baseRate: 8, tiers: [{ min: 0, max: 100, rate: 8 }, { min: 101, max: 500, rate: 10 }, { min: 501, max: 9999, rate: 12 }], effectiveDate: '2025-01-01', status: 'active' },
-  { id: 'C003', category: 'Child Care', type: 'percentage', baseRate: 12, effectiveDate: '2025-01-01', status: 'active' },
-  { id: 'C004', category: 'Emergency', type: 'fixed', baseRate: 50, minAmount: 50, maxAmount: 200, effectiveDate: '2025-01-01', status: 'active' },
-  { id: 'C005', category: 'Pharmacy', type: 'percentage', baseRate: 8, effectiveDate: '2025-01-01', status: 'active' },
-  { id: 'C006', category: 'Lab Tech', type: 'percentage', baseRate: 15, effectiveDate: '2025-01-01', status: 'active' }
-]
-
-const mockCategoryRevenue: CategoryRevenue[] = [
-  { category: 'Doctors', revenue: 52340, commission: 5234, netPayout: 47106, transactions: 342, growth: 12 },
-  { category: 'Nurses', revenue: 28750, commission: 2875, netPayout: 25875, transactions: 486, growth: 8 },
-  { category: 'Child Care', revenue: 15200, commission: 1520, netPayout: 13680, transactions: 124, growth: -3 },
-  { category: 'Emergency', revenue: 38900, commission: 3890, netPayout: 35010, transactions: 89, growth: 15 },
-  { category: 'Pharmacy', revenue: 42100, commission: 4210, netPayout: 37890, transactions: 567, growth: 20 },
-  { category: 'Lab Tech', revenue: 12800, commission: 1280, netPayout: 11520, transactions: 156, growth: 5 }
-]
-
-const mockTransactions: TransactionData[] = [
-  { id: 'T001', date: '2025-08-24', provider: 'Dr. Sarah Johnson', category: 'Doctors', service: 'Consultation', amount: 150, commission: 15, payout: 135, status: 'completed' },
-  { id: 'T002', date: '2025-08-24', provider: 'HealthFirst Pharmacy', category: 'Pharmacy', service: 'Medication Delivery', amount: 85, commission: 8.5, payout: 76.5, status: 'completed' },
-  { id: 'T003', date: '2025-08-23', provider: 'MediRescue Team', category: 'Emergency', service: 'Emergency Response', amount: 450, commission: 45, payout: 405, status: 'pending' },
-  { id: 'T004', date: '2025-08-23', provider: 'Maria Thompson', category: 'Nurses', service: 'Home Care', amount: 120, commission: 12, payout: 108, status: 'completed' }
-]
-
-
 export default function CommissionManagement() {
-  const [rules, setRules] = useState(mockCommissionRules)
+  const [rules, setRules] = useState<CommissionRule[]>([])
   const [editingRule, setEditingRule] = useState<CommissionRule | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCommissions = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/commissions`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) setRules(json.data || [])
+        }
+      } catch {
+        // Failed to fetch commission rules
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCommissions()
+  }, [])
 
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, JSX.Element> = {
@@ -112,6 +106,14 @@ export default function CommissionManagement() {
       return tier ? (amount * tier.rate) / 100 : 0
     }
     return 0
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

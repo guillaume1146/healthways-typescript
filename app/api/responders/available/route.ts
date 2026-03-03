@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { rateLimitPublic } from '@/lib/rate-limit'
+import { rateLimitSearch } from '@/lib/rate-limit'
 
 /**
  * GET /api/responders/available
  * Lists available emergency workers/services.
  */
 export async function GET(request: NextRequest) {
-  const limited = rateLimitPublic(request)
+  const limited = rateLimitSearch(request)
   if (limited) return limited
 
   try {

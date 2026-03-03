@@ -1,21 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import {  FaSearch, FaCheck, FaTimes, FaBan } from 'react-icons/fa'
+import {  FaSearch, FaCheck, FaTimes, FaBan, FaThLarge, FaClock, FaCheckCircle, FaSpinner } from 'react-icons/fa'
 import type { Admin } from '@/types/super-admin'
 
-const mockAdmins: Admin[] = [
-  { id: 'A001', name: 'Alice Johnson', email: 'alice@example.com', role: 'Content Manager', status: 'active', joinDate: '2025-01-15', lastLogin: '2 hours ago', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Alice', permissions: { canManageCMS: true, canManageFinances: false, canManageUsers: false } },
-  { id: 'A002', name: 'Bob Williams', email: 'bob@example.com', role: 'Financial Analyst', status: 'pending', joinDate: '2025-08-25', lastLogin: 'Never', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Bob', permissions: { canManageCMS: false, canManageFinances: true, canManageUsers: false } },
-  { id: 'A003', name: 'Charlie Brown', email: 'charlie@example.com', role: 'User Moderator', status: 'suspended', joinDate: '2024-11-10', lastLogin: '5 days ago', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Charlie', permissions: { canManageCMS: false, canManageFinances: false, canManageUsers: true } },
-  { id: 'A004', name: 'Diana Miller', email: 'diana@example.com', role: 'Content Manager', status: 'pending', joinDate: '2025-08-28', lastLogin: 'Never', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Diana', permissions: { canManageCMS: true, canManageFinances: false, canManageUsers: false } },
-];
-
 const AdminManagementPage = () => {
-  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
+  const [admins, setAdmins] = useState<Admin[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'active' | 'suspended'>('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/admins`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) setAdmins(json.data || [])
+        }
+      } catch {
+        // Failed to fetch admins
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAdmins()
+  }, []);
 
   const handleUpdateStatus = (id: string, newStatus: Admin['status']) => {
     setAdmins(admins.map(admin => admin.id === id ? { ...admin, status: newStatus } : admin));
@@ -28,6 +43,14 @@ const AdminManagementPage = () => {
     pending: 'bg-orange-100 text-orange-800',
     suspended: 'bg-red-100 text-red-800',
   }[status]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,13 +70,20 @@ const AdminManagementPage = () => {
         {/* Filters */}
         <div className="bg-white p-4 rounded-xl shadow mb-6 flex justify-between items-center">
           <div className="flex gap-2">
-            {(['all', 'pending', 'active', 'suspended'] as const).map(f => (
+            {([
+              { key: 'all' as const, icon: FaThLarge, label: 'All' },
+              { key: 'pending' as const, icon: FaClock, label: 'Pending' },
+              { key: 'active' as const, icon: FaCheckCircle, label: 'Active' },
+              { key: 'suspended' as const, icon: FaBan, label: 'Suspended' },
+            ]).map(f => (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${filter === f ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                title={`${f.label} (${f.key === 'all' ? admins.length : admins.filter(a => a.status === f.key).length})`}
+                aria-label={f.label}
+                className={`p-2.5 text-sm font-medium rounded-lg transition ${filter === f.key ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)} ({f === 'all' ? admins.length : admins.filter(a => a.status === f).length})
+                <f.icon className="text-base" />
               </button>
             ))}
           </div>

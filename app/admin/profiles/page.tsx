@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
   FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
   FaSearch, FaFilter, FaEdit, FaTrash, FaEye, FaCheckCircle,
-  FaBan, FaStar, FaExclamationCircle, FaDownload
+  FaBan, FaStar, FaExclamationCircle, FaDownload, FaSpinner
 } from 'react-icons/fa'
 
 interface Profile {
@@ -24,22 +24,35 @@ interface Profile {
   avatar: string
 }
 
-const mockProfiles: Profile[] = [
-  { id: 'P001', name: 'Dr. Sarah Johnson', category: 'Doctor', specialization: 'Cardiology', email: 'sarah.j@health.mu', phone: '+230 5789 0123', status: 'active', rating: 4.8, joinDate: '2024-01-15', lastActive: '2 hours ago', earnings: 15420, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah' },
-  { id: 'P002', name: 'Maria Thompson', category: 'Nurse', specialization: 'Elderly Care', email: 'maria.t@care.mu', phone: '+230 5789 0124', status: 'active', rating: 4.9, joinDate: '2024-02-20', lastActive: '1 hour ago', earnings: 8750, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Maria' },
-  { id: 'P003', name: 'Emily Carter', category: 'Child Care', specialization: 'Pediatric Nurse', email: 'emily.c@kids.mu', phone: '+230 5789 0125', status: 'pending', rating: 0, joinDate: '2025-08-20', lastActive: 'Never', earnings: 0, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Emily' },
-  { id: 'P004', name: 'MediRescue Team', category: 'Emergency', specialization: 'Ambulance Service', email: 'dispatch@medirescue.mu', phone: '911', status: 'active', rating: 4.7, joinDate: '2023-11-10', lastActive: 'Online', earnings: 28900, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Emergency' },
-  { id: 'P005', name: 'HealthFirst Pharmacy', category: 'Pharmacy', specialization: 'Community Pharmacy', email: 'contact@healthfirst.mu', phone: '+230 212 3456', status: 'active', rating: 4.6, joinDate: '2023-09-05', lastActive: '3 hours ago', earnings: 34500, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Pharmacy' },
-  { id: 'P006', name: 'Dr. James Wilson', category: 'Lab Tech', specialization: 'Pathology', email: 'james.w@lab.mu', phone: '+230 5789 0126', status: 'suspended', rating: 4.2, joinDate: '2024-03-12', lastActive: '5 days ago', earnings: 5200, avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=James' },
-]
-
 const categories = ['All', 'Doctor', 'Nurse', 'Child Care', 'Emergency', 'Pharmacy', 'Lab Tech']
 
 export default function ProfileManagement() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [profiles, setProfiles] = useState(mockProfiles)
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/profiles`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) setProfiles(json.data || [])
+        }
+      } catch {
+        // Failed to fetch profiles
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfiles()
+  }, [])
 
   const filteredProfiles = profiles.filter(profile => {
     const matchCategory = selectedCategory === 'All' || profile.category === selectedCategory
@@ -69,6 +82,14 @@ export default function ProfileManagement() {
     }
     const Icon = icons[category as keyof typeof icons] || FaUserMd
     return <Icon className="text-gray-600" />
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (

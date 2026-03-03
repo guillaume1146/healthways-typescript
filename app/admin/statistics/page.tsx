@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   FaChartLine, FaUsers, FaEye, FaCalendarAlt, FaArrowUp, FaArrowDown,
   FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
-  FaClock, FaGlobeAmericas, FaMobileAlt, FaDesktop
+  FaClock, FaGlobeAmericas, FaMobileAlt, FaDesktop, FaSpinner
 } from 'react-icons/fa'
 
 interface CategoryStats {
@@ -25,33 +25,41 @@ interface TimeSeriesData {
   visits: number
 }
 
-const mockCategoryStats: CategoryStats[] = [
-  { category: 'Doctors', activeUsers: 1892, newUsers: 145, totalBookings: 2341, avgSessionTime: '12:34', conversionRate: 23.5, growth: 12 },
-  { category: 'Nurses', activeUsers: 3102, newUsers: 234, totalBookings: 4567, avgSessionTime: '15:20', conversionRate: 18.2, growth: 8 },
-  { category: 'Child Care', activeUsers: 756, newUsers: 67, totalBookings: 892, avgSessionTime: '10:15', conversionRate: 15.7, growth: -2 },
-  { category: 'Emergency', activeUsers: 402, newUsers: 23, totalBookings: 567, avgSessionTime: '08:45', conversionRate: 34.2, growth: 15 },
-  { category: 'Pharmacy', activeUsers: 621, newUsers: 89, totalBookings: 1234, avgSessionTime: '06:30', conversionRate: 28.9, growth: 22 },
-  { category: 'Lab Tech', activeUsers: 198, newUsers: 12, totalBookings: 345, avgSessionTime: '09:10', conversionRate: 19.4, growth: 5 }
-]
-
-const mockTimeSeriesData: TimeSeriesData[] = [
-  { date: '2025-08-18', users: 2450, bookings: 234, visits: 5670 },
-  { date: '2025-08-19', users: 2680, bookings: 267, visits: 6230 },
-  { date: '2025-08-20', users: 2590, bookings: 245, visits: 5890 },
-  { date: '2025-08-21', users: 2820, bookings: 289, visits: 6450 },
-  { date: '2025-08-22', users: 3100, bookings: 312, visits: 7200 },
-  { date: '2025-08-23', users: 2950, bookings: 298, visits: 6800 },
-  { date: '2025-08-24', users: 3200, bookings: 325, visits: 7500 }
-]
-
 export default function UserStatistics() {
   const [selectedPeriod, setSelectedPeriod] = useState('week')
   const [selectedMetric, setSelectedMetric] = useState('users')
+  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([])
+  const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const totalActiveUsers = mockCategoryStats.reduce((sum, cat) => sum + cat.activeUsers, 0)
-  const totalNewUsers = mockCategoryStats.reduce((sum, cat) => sum + cat.newUsers, 0)
-  const totalBookings = mockCategoryStats.reduce((sum, cat) => sum + cat.totalBookings, 0)
-  const avgConversionRate = mockCategoryStats.reduce((sum, cat) => sum + cat.conversionRate, 0) / mockCategoryStats.length
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/admin/${userId}/statistics`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            if (json.data.categoryStats) setCategoryStats(json.data.categoryStats)
+            if (json.data.timeSeriesData) setTimeSeriesData(json.data.timeSeriesData)
+          }
+        }
+      } catch {
+        // Failed to fetch statistics
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  const totalActiveUsers = categoryStats.reduce((sum, cat) => sum + cat.activeUsers, 0)
+  const totalNewUsers = categoryStats.reduce((sum, cat) => sum + cat.newUsers, 0)
+  const totalBookings = categoryStats.reduce((sum, cat) => sum + cat.totalBookings, 0)
+  const avgConversionRate = categoryStats.length > 0 ? categoryStats.reduce((sum, cat) => sum + cat.conversionRate, 0) / categoryStats.length : 0
 
   const getCategoryIcon = (category: string): React.JSX.Element => {
     const icons: Record<string, React.JSX.Element> = {
@@ -67,11 +75,19 @@ export default function UserStatistics() {
 
   const getMaxValue = () => {
     switch(selectedMetric) {
-      case 'users': return Math.max(...mockTimeSeriesData.map(d => d.users))
-      case 'bookings': return Math.max(...mockTimeSeriesData.map(d => d.bookings))
-      case 'visits': return Math.max(...mockTimeSeriesData.map(d => d.visits))
+      case 'users': return Math.max(...timeSeriesData.map(d => d.users))
+      case 'bookings': return Math.max(...timeSeriesData.map(d => d.bookings))
+      case 'visits': return Math.max(...timeSeriesData.map(d => d.visits))
       default: return 100
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (
@@ -171,7 +187,7 @@ export default function UserStatistics() {
             </div>
           </div>
           <div className="h-64 flex items-end justify-between gap-2">
-            {mockTimeSeriesData.map((data, idx) => {
+            {timeSeriesData.map((data, idx) => {
               const value = data[selectedMetric as keyof TimeSeriesData] as number
               const height = (value / getMaxValue()) * 100
               return (
@@ -202,7 +218,7 @@ export default function UserStatistics() {
                 </tr>
               </thead>
               <tbody>
-                {mockCategoryStats.map((stat, idx) => (
+                {categoryStats.map((stat, idx) => (
                   <tr key={idx} className="border-t hover:bg-gray-50">
                     <td className="p-3">
                       <div className="flex items-center gap-2">

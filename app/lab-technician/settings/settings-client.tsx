@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {  FaCreditCard, FaFileUpload, FaSave, FaTrash,
     FaCheckCircle,
-    FaUniversity,  FaClock, FaStore, FaUserMd
+    FaUniversity,  FaClock, FaStore, FaUserMd, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import AvailabilitySettingsTab from '@/components/settings/tabs/AvailabilitySettingsTab'
@@ -21,17 +21,9 @@ interface PharmacyProfileSettings {
     pharmacists: { id: string, name: string, registration: string }[]
 }
 
-// --- MOCK DATA ---
-const mockProfileData: PharmacyProfileSettings = {
-    name: "HealthFirst Pharmacy",
-    licenseNumber: "PHARM-2023-0123",
-    phone: "+230 212 3456",
-    email: "contact@healthfirst.mu",
-    address: "123 Royal Street, Port Louis, Mauritius",
-    pharmacists: [
-        { id: 'p1', name: 'Mr. Jean Dupont', registration: 'RP-0456' },
-        { id: 'p2', name: 'Mrs. Priya Sharma', registration: 'RP-0789' },
-    ]
+const emptyProfileData: PharmacyProfileSettings = {
+    name: '', licenseNumber: '', phone: '', email: '', address: '',
+    pharmacists: [],
 }
 
 // Reusable components (omitted for brevity)
@@ -45,18 +37,40 @@ export default function SettingsClient() {
   const initialTab = searchParams.get('tab') as ActiveTab | null;
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile');
   const [userId, setUserId] = useState<string | null>(null)
-  const [profile, setProfile] = useState<PharmacyProfileSettings>(mockProfileData);
+  const [profile, setProfile] = useState<PharmacyProfileSettings>(emptyProfileData);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const user = JSON.parse(stored)
-        setUserId(user.id)
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let uid: string
+        try { uid = JSON.parse(stored).id } catch { return }
+        setUserId(uid)
+        const res = await fetch(`/api/users/${uid}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const lp = d.labTechProfile || {}
+            setProfile({
+              name: lp.labName || `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              licenseNumber: lp.licenseNumber || '',
+              phone: d.phone || '',
+              email: d.email || '',
+              address: lp.address || '',
+              pharmacists: lp.technicians || [],
+            })
+          }
+        }
+      } catch {
+        // ignore errors
+      } finally {
+        setLoading(false)
       }
-    } catch {
-      // ignore parse errors
     }
+    fetchSettings()
   }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -86,6 +100,14 @@ export default function SettingsClient() {
         pharmacists: profile.pharmacists.filter(p => p.id !== id)
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-green-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

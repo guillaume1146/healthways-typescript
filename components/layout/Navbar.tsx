@@ -58,7 +58,7 @@ const Navbar: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Searching for:', searchQuery)
+    // TODO: implement search navigation
   }
 
   const toggleDropdown = (category: string) => {

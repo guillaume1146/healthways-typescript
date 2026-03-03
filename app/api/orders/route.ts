@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { createOrderSchema } from '@/lib/validations/api'
 
 // ─── POST — Create a medicine order ────────────────────────────────────────────
 
@@ -16,26 +17,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { items } = body as {
-      items: Array<{ pharmacyMedicineId: string; quantity: number }>
-    }
-
-    // Validate items array
-    if (!Array.isArray(items) || items.length === 0) {
+    const parsed = createOrderSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: 'Items must be a non-empty array' },
+        { success: false, error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
 
-    for (const item of items) {
-      if (!item.pharmacyMedicineId || typeof item.quantity !== 'number' || item.quantity <= 0) {
-        return NextResponse.json(
-          { success: false, message: 'Each item must have a valid pharmacyMedicineId and quantity > 0' },
-          { status: 400 }
-        )
-      }
-    }
+    const { items } = parsed.data
 
     // Find patient profile
     const patientProfile = await prisma.patientProfile.findUnique({

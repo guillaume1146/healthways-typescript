@@ -20,6 +20,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const { id } = await params
   const { searchParams } = new URL(request.url)
 

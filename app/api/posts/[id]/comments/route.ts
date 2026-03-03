@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { createCommentSchema } from '@/lib/validations/api'
 
 // GET /api/posts/[id]/comments — Paginated comments for a post
 export async function GET(
@@ -90,17 +91,19 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { content } = body
-
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return NextResponse.json({ message: 'Content is required' }, { status: 400 })
+    const parsed = createCommentSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
 
     const comment = await prisma.postComment.create({
       data: {
         postId: id,
         authorId: auth.sub,
-        content: content.trim(),
+        content: parsed.data.content.trim(),
       },
       select: {
         id: true,

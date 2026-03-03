@@ -92,20 +92,23 @@ export default function AccountsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
-        {(['pending', 'active', 'suspended'] as const).map((status) => (
+        {([
+          { key: 'pending' as const, icon: FaClock, label: 'Pending' },
+          { key: 'active' as const, icon: FaUserCheck, label: 'Active' },
+          { key: 'suspended' as const, icon: FaBan, label: 'Suspended' },
+        ]).map((f) => (
           <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              filter === status
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            title={f.label}
+            aria-label={f.label}
+            className={`p-2.5 rounded-lg font-medium text-sm transition-colors ${
+              filter === f.key
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {status === 'pending' && <FaClock className="inline mr-2" />}
-            {status === 'active' && <FaUserCheck className="inline mr-2" />}
-            {status === 'suspended' && <FaBan className="inline mr-2" />}
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            <f.icon className="text-base" />
           </button>
         ))}
       </div>

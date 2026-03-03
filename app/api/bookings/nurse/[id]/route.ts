@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import { acceptBooking, denyBooking, cancelBooking } from '@/lib/booking-actions'
 import { bookingActionSchema } from '@/lib/validations/api'
+import { rateLimitPublic } from '@/lib/rate-limit'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 

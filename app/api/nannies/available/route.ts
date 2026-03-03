@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { rateLimitPublic } from '@/lib/rate-limit'
+import { rateLimitSearch } from '@/lib/rate-limit'
 
 /**
  * GET /api/nannies/available
  * Lists available nannies with profile info for the booking form.
  */
 export async function GET(request: NextRequest) {
-  const limited = rateLimitPublic(request)
+  const limited = rateLimitSearch(request)
   if (limited) return limited
 
   try {

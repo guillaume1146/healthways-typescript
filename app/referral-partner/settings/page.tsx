@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { FaUserEdit, FaCreditCard, FaBell, FaFileUpload } from 'react-icons/fa'
+import { FaUserEdit, FaCreditCard, FaBell, FaFileUpload, FaSpinner } from 'react-icons/fa'
 import { 
   ActiveTab,
   ReferralPartnerSettings,
@@ -17,19 +17,52 @@ import {
   DocumentSettings
 } from '../SettingsComponents'
 import {
-  mockReferralPartnerSettings,
-  mockBillingSettings, 
-  mockNotificationSettings
+  emptyReferralPartnerSettings,
+  emptyBillingSettings,
+  emptyNotificationSettings
 } from '../constants'
 
 function SettingsContent() {
   const searchParams = useSearchParams()
   const initialTab = searchParams?.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
-  
-  const [profile, setProfile] = useState<ReferralPartnerSettings>(mockReferralPartnerSettings)
-  const [billing, setBilling] = useState<BillingSettings>(mockBillingSettings)
-  const [notifications, setNotifications] = useState<NotificationSettings>(mockNotificationSettings)
+
+  const [profile, setProfile] = useState<ReferralPartnerSettings>(emptyReferralPartnerSettings)
+  const [billing, setBilling] = useState<BillingSettings>(emptyBillingSettings)
+  const [notifications, setNotifications] = useState<NotificationSettings>(emptyNotificationSettings)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const rp = d.referralPartnerProfile || {}
+            setProfile({
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              email: d.email || '', phone: d.phone || '',
+              address: rp.address || '', dateOfBirth: d.dateOfBirth || '',
+              businessType: rp.businessType || '', taxId: rp.taxId || ''
+            })
+            if (rp.billing) setBilling(rp.billing)
+            if (rp.notifications) setNotifications(rp.notifications)
+          }
+        }
+      } catch {
+        // Failed to fetch settings
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -43,6 +76,14 @@ function SettingsContent() {
 
   const handleNotificationToggle = (key: keyof NotificationSettings) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-purple-600" />
+      </div>
+    )
   }
 
   return (

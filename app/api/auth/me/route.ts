@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { cookieToPrismaUserType, prismaUserTypeToCookie, userTypeToProfileRelation } from '@/lib/auth/user-type-map'
+import { rateLimitAuth } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimitAuth(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })

@@ -173,7 +173,6 @@ export default function PrescriptionManagementPage() {
   }
 
   const confirmRefill = () => {
-    console.log("Refill requested for:", selectedRefillPrescription?.id)
     setShowRefillModal(false)
     setSelectedRefillPrescription(null)
   }

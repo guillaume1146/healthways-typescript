@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
     FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash,
-    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt
+    FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, FaSpinner
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import AvailabilitySettingsTab from '@/components/settings/tabs/AvailabilitySettingsTab'
@@ -61,39 +61,14 @@ interface NurseProfileSettings {
     emergencyAvailable: boolean
 }
 
-// --- MOCK DATA ---
-const mockProfileData: NurseProfileSettings = {
-    name: "Maria Thompson",
-    email: "maria.t@healthcare.mu",
-    phone: "+230 5789 0123",
-    avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Avery",
-    type: "Registered Nurse",
-    specialization: "Elderly Care Specialist",
-    qualification: "BSN, RN, CCRN",
-    experience: 12,
-    location: "Port Louis",
-    address: "Central Healthcare Services, Port Louis",
-    bio: "Specialized in geriatric care with expertise in managing chronic conditions and providing compassionate end-of-life care.",
-    languages: ["English", "French", "Creole"],
-    specialties: ["Elderly Care", "Dementia Care", "Palliative Care", "Medication Management"],
-    services: ["Home Care", "Hospital Care", "Night Shift Available"],
-    hourlyRate: 45,
-    weeklyRate: 1500,
-    monthlyRate: 5500,
-    emergencyAvailable: true,
+const emptyProfileData: NurseProfileSettings = {
+    name: '', email: '', phone: '', avatar: '',
+    type: 'Registered Nurse', specialization: '', qualification: '',
+    experience: 0, location: '', address: '', bio: '',
+    languages: [], specialties: [], services: [],
+    hourlyRate: 0, weeklyRate: 0, monthlyRate: 0,
+    emergencyAvailable: false,
 }
-
-const mockTransactionData: Transaction[] = [
-    { id: 't1', date: '2025-07-20', patientName: 'John Smith', amount: 180.00, commission: 18.00, payout: 162.00, status: 'Paid' },
-    { id: 't2', date: '2025-07-18', patientName: 'Sarah Johnson', amount: 250.00, commission: 25.00, payout: 225.00, status: 'Paid' },
-    { id: 't3', date: '2025-07-15', patientName: 'Robert Chen', amount: 150.00, commission: 15.00, payout: 135.00, status: 'Paid' },
-]
-
-const mockDocumentData: Document[] = [
-    { id: 'd1', name: 'Critical Care (CCRN).pdf', type: 'Certification', status: 'Verified', uploadDate: '2024-01-15', showOnProfile: true },
-    { id: 'd2', name: 'Geriatric Nursing Cert.pdf', type: 'Certification', status: 'Verified', uploadDate: '2024-01-15', showOnProfile: true },
-    { id: 'd3', name: 'RN-License-2025.pdf', type: 'License', status: 'Pending Review', uploadDate: '2025-06-30', showOnProfile: false },
-]
 
 // --- REUSABLE COMPONENTS ---
 const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: TabButtonProps) => (
@@ -173,19 +148,56 @@ export default function SettingsClient() {
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
   const [userId, setUserId] = useState<string | null>(null)
-  const [profile, setProfile] = useState<NurseProfileSettings>(mockProfileData)
-  const [documents, setDocuments] = useState<Document[]>(mockDocumentData)
+  const [profile, setProfile] = useState<NurseProfileSettings>(emptyProfileData)
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const user = JSON.parse(stored)
-        setUserId(user.id)
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let uid: string
+        try { uid = JSON.parse(stored).id } catch { return }
+        setUserId(uid)
+        const res = await fetch(`/api/users/${uid}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            const np = d.nurseProfile || {}
+            setProfile({
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              email: d.email || '',
+              phone: d.phone || '',
+              avatar: d.avatar || '',
+              type: np.type || 'Registered Nurse',
+              specialization: np.specialization || '',
+              qualification: np.qualification || '',
+              experience: np.experience || 0,
+              location: np.location || '',
+              address: np.address || '',
+              bio: np.bio || '',
+              languages: np.languages || [],
+              specialties: np.specialties || [],
+              services: np.services || [],
+              hourlyRate: np.hourlyRate || 0,
+              weeklyRate: np.weeklyRate || 0,
+              monthlyRate: np.monthlyRate || 0,
+              emergencyAvailable: np.emergencyAvailable || false,
+            })
+            if (np.documents) setDocuments(np.documents)
+            if (np.transactions) setTransactions(np.transactions)
+          }
+        }
+      } catch {
+        // ignore errors
+      } finally {
+        setLoading(false)
       }
-    } catch {
-      // ignore parse errors
     }
+    fetchSettings()
   }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -195,6 +207,14 @@ export default function SettingsClient() {
 
   const handleDocumentToggle = (docId: string) => {
     setDocuments(docs => docs.map(doc => doc.id === docId ? { ...doc, showOnProfile: !doc.showOnProfile } : doc));
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-teal-600" />
+      </div>
+    )
   }
 
   return (
@@ -360,7 +380,7 @@ export default function SettingsClient() {
                                   </tr>
                               </thead>
                               <tbody>
-                                  {mockTransactionData.map(tx => (
+                                  {transactions.map(tx => (
                                       <tr key={tx.id} className="border-b hover:bg-gray-50">
                                           <td className="p-3">{tx.date}</td>
                                           <td className="p-3">{tx.patientName}</td>
@@ -408,7 +428,7 @@ export default function SettingsClient() {
                                             <span className="ms-2 text-sm font-medium text-gray-700">Show on profile</span>
                                         </label>
                                     )}
-                                    <button className="text-red-500 hover:text-red-700"><FaTrash /></button>
+                                    <button aria-label="Delete document" className="text-red-500 hover:text-red-700"><FaTrash /></button>
                                   </div>
                               </div>
                           ))}

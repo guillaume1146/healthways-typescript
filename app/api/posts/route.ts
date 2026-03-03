@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateRequest } from '@/lib/auth/validate'
 import prisma from '@/lib/db'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { createPostSchema } from '@/lib/validations/api'
 
 // GET /api/posts — Public feed, paginated, filterable by category
 export async function GET(request: NextRequest) {
@@ -93,18 +94,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { content, category, tags } = body
-
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return NextResponse.json({ message: 'Content is required' }, { status: 400 })
+    const parsed = createPostSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
 
     const post = await prisma.doctorPost.create({
       data: {
         authorId: auth.sub,
-        content: content.trim(),
-        category: category || null,
-        tags: Array.isArray(tags) ? tags : [],
+        content: parsed.data.content.trim(),
+        category: parsed.data.category || null,
+        tags: Array.isArray(parsed.data.tags) ? parsed.data.tags : [],
       },
       select: {
         id: true,

@@ -43,7 +43,7 @@ interface ValidationStage {
 }
 
 export default function ValidationPage() {
-  const [requests, setRequests] = useState<ValidationRequest[]>([
+  const [requests] = useState<ValidationRequest[]>([
     {
       id: 'VAL001',
       applicant: {
@@ -91,8 +91,6 @@ export default function ValidationPage() {
       status: 'pending'
     }
   ])
-
-  console.log(setRequests)
 
   const [selectedRequest, setSelectedRequest] = useState<ValidationRequest | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'scoring' | 'decision'>('overview')

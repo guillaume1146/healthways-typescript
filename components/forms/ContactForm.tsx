@@ -25,7 +25,6 @@ const ContactForm: React.FC = () => {
     setIsSubmitting(true)
     
     try {
-      console.log('Form submitted:', formData)
       // Add your API call here
       
       // Reset form

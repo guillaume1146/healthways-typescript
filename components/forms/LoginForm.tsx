@@ -125,8 +125,6 @@ const LoginForm: React.FC = () => {
     setIsSubmitting(true)
     
     try {
-      console.log('Login attempt:', { ...formData, userType: selectedUserType.id })
-      
       // Simulate authentication for static prototype
       setTimeout(() => {
         setIsSubmitting(false)

@@ -4,10 +4,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { 
-  FaUsersCog, FaCheckCircle, FaClock, FaEye, 
+import {
+  FaUsersCog, FaCheckCircle, FaClock, FaEye,
    FaSearch,  FaDownload,
-  FaChartBar, FaStar, FaExclamationTriangle
+  FaChartBar, FaStar, FaExclamationTriangle,
+  FaThLarge, FaBan, FaClipboardCheck
 } from 'react-icons/fa'
 
 interface RegionalAdmin {
@@ -40,7 +41,7 @@ interface RegionalAdmin {
 }
 
 export default function RegionalAdminsPage() {
-  const [admins, setAdmins] = useState<RegionalAdmin[]>([
+  const [admins] = useState<RegionalAdmin[]>([
     {
       id: 'RA001',
       name: 'Jean-Pierre Rakotomalala',
@@ -127,14 +128,10 @@ export default function RegionalAdminsPage() {
     }
   ])
 
-  console.log(setAdmins)
-
   const [selectedAdmin, setSelectedAdmin] = useState<RegionalAdmin | null>(null)
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showValidationModal, setShowValidationModal] = useState(false)
-  console.log(selectedAdmin)
-  console.log(showValidationModal)
   const getStatusBadge = (status: string) => {
     const styles = {
       active: 'bg-green-100 text-green-800',
@@ -185,17 +182,25 @@ export default function RegionalAdminsPage() {
         <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex gap-2">
-              {['all', 'active', 'pending', 'under_review', 'suspended'].map(status => (
+              {([
+                { key: 'all', icon: FaThLarge, label: 'All' },
+                { key: 'active', icon: FaCheckCircle, label: 'Active' },
+                { key: 'pending', icon: FaClock, label: 'Pending' },
+                { key: 'under_review', icon: FaClipboardCheck, label: 'Under Review' },
+                { key: 'suspended', icon: FaBan, label: 'Suspended' },
+              ]).map(f => (
                 <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    filterStatus === status 
-                      ? 'bg-blue-600 text-white' 
+                  key={f.key}
+                  onClick={() => setFilterStatus(f.key)}
+                  title={f.label}
+                  aria-label={f.label}
+                  className={`p-2.5 rounded-lg font-medium transition ${
+                    filterStatus === f.key
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                  <f.icon className="text-base" />
                 </button>
               ))}
             </div>

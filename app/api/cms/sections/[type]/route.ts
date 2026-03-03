@@ -34,6 +34,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
@@ -79,6 +82,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
   const auth = validateRequest(request)
   if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })

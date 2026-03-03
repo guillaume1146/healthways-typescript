@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
     FaUserEdit, FaCalendarAlt, FaCreditCard, FaFileUpload, FaSave, FaTrash, 
     FaCheckCircle, FaTimes, FaToggleOn, FaToggleOff, FaDollarSign, FaShieldAlt, 
     FaUniversity, FaSync, FaClock, FaCrown, FaExclamationCircle, FaStethoscope,
     FaStar, FaPhone, FaEnvelope, FaMapMarkerAlt, FaGraduationCap, FaLanguage,
-    FaUserGraduate, FaBriefcaseMedical, FaCertificate, FaIdCard
+    FaUserGraduate, FaBriefcaseMedical, FaCertificate, FaIdCard, FaSpinner
 } from 'react-icons/fa'
 
 import { IconType } from 'react-icons'
@@ -85,144 +85,21 @@ interface SubscriptionPlan {
     isCurrent: boolean
 }
 
-// --- MOCK DATA ---
-const mockProfileData: DoctorProfileSettings = {
-    name: "Dr. Sarah Johnson",
-    email: "sarah.johnson@healthcare.mu",
-    phone: "+230 5789 0123",
-    alternatePhone: "+230 5789 0124",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=c0aede",
-    specialty: "Cardiology",
-    subSpecialty: "Interventional Cardiology",
-    qualification: "MD, FACC, FSCAI",
-    experience: 15,
-    registrationNumber: "MED-2008-1234",
-    location: "Port Louis",
-    clinicAddress: "123 Royal Street, Port Louis, Mauritius",
-    bio: "Board-certified cardiologist with over 15 years of experience in interventional cardiology. Specialized in complex coronary interventions and structural heart disease.",
-    languages: ["English", "French", "Creole", "Hindi"],
-    education: [
-        { id: 'e1', degree: 'MD', institution: 'Harvard Medical School', year: '2008' },
-        { id: 'e2', degree: 'Fellowship in Cardiology', institution: 'Mayo Clinic', year: '2012' },
-    ],
-    specializations: ["Coronary Angioplasty", "Heart Failure Management", "Echocardiography", "Pacemaker Implantation"],
-    services: ["In-Person Consultation", "Video Consultation", "Second Opinion", "Emergency Consultation"],
-    consultationFee: 2500,
-    followUpFee: 1500,
-    videoConsultationFee: 2000,
-    emergencyConsultationAvailable: true,
+const emptyProfileData: DoctorProfileSettings = {
+    name: '', email: '', phone: '', alternatePhone: '', avatar: '',
+    specialty: '', subSpecialty: '', qualification: '', experience: 0,
+    registrationNumber: '', location: '', clinicAddress: '', bio: '',
+    languages: [], education: [], specializations: [], services: [],
+    consultationFee: 0, followUpFee: 0, videoConsultationFee: 0,
+    emergencyConsultationAvailable: false,
 }
 
-const mockAvailabilityData: DayAvailability[] = [
-    { 
-        day: 'Monday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: true },
-        evening: { start: '17:30', end: '20:00', isAvailable: true },
-        isClosed: false 
-    },
-    { 
-        day: 'Tuesday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: true },
-        evening: { start: '17:30', end: '20:00', isAvailable: true },
-        isClosed: false 
-    },
-    { 
-        day: 'Wednesday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: false },
-        evening: { start: '17:30', end: '20:00', isAvailable: false },
-        isClosed: false 
-    },
-    { 
-        day: 'Thursday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: true },
-        evening: { start: '17:30', end: '20:00', isAvailable: true },
-        isClosed: false 
-    },
-    { 
-        day: 'Friday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: true },
-        evening: { start: '17:30', end: '20:00', isAvailable: false },
-        isClosed: false 
-    },
-    { 
-        day: 'Saturday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: true },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: false },
-        evening: { start: '17:30', end: '20:00', isAvailable: false },
-        isClosed: false 
-    },
-    { 
-        day: 'Sunday', 
-        morning: { start: '09:00', end: '12:00', isAvailable: false },
-        afternoon: { start: '14:00', end: '17:00', isAvailable: false },
-        evening: { start: '17:30', end: '20:00', isAvailable: false },
-        isClosed: true 
-    },
-]
-
-const mockBillingData: BillingSettings = {
+const emptyBillingData: BillingSettings = {
     accountType: 'MCB Juice',
-    accountDetails: {
-        accountNumber: '•••• •••• 1234',
-        accountName: 'Dr. Sarah Johnson',
-        bankName: 'MCB',
-    },
-    paymentMethods: ['MCB Juice', 'Credit Card', 'Cash', 'Insurance'],
-    taxId: 'TAX-123456789',
+    accountDetails: { accountNumber: '', accountName: '', bankName: '' },
+    paymentMethods: [],
+    taxId: '',
 }
-
-const mockSubscriptionPlans: SubscriptionPlan[] = [
-    {
-        id: 'basic',
-        name: 'Basic',
-        price: 0,
-        features: [
-            'Up to 50 appointments/month',
-            'Basic patient management',
-            'Email support',
-            'Standard analytics',
-        ],
-        period: 'monthly',
-        isCurrent: false,
-    },
-    {
-        id: 'professional',
-        name: 'Professional',
-        price: 4999,
-        features: [
-            'Unlimited appointments',
-            'Advanced patient management',
-            'Priority support',
-            'Advanced analytics',
-            'Video consultations',
-            'Prescription management',
-            'Lab report integration',
-        ],
-        period: 'monthly',
-        isCurrent: true,
-    },
-    {
-        id: 'premium',
-        name: 'Premium',
-        price: 9999,
-        features: [
-            'Everything in Professional',
-            'Multi-clinic support',
-            'Custom branding',
-            'API access',
-            'Dedicated account manager',
-            'Training sessions',
-            'Custom integrations',
-        ],
-        period: 'monthly',
-        isCurrent: false,
-    },
-]
 
 // --- REUSABLE COMPONENTS ---
 const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: TabButtonProps) => (
@@ -320,12 +197,76 @@ export default function DoctorSettingsPage() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as ActiveTab | null
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab || 'profile')
-  const [profile, setProfile] = useState<DoctorProfileSettings>(mockProfileData)
-  const [availability, setAvailability] = useState<DayAvailability[]>(mockAvailabilityData)
-  const [billing, setBilling] = useState<BillingSettings>(mockBillingData)
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | undefined>(
-    mockSubscriptionPlans.find(plan => plan.isCurrent)
-  )
+  const [profile, setProfile] = useState<DoctorProfileSettings>(emptyProfileData)
+  const [availability, setAvailability] = useState<DayAvailability[]>([])
+  const [billing, setBilling] = useState<BillingSettings>(emptyBillingData)
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([])
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | undefined>(undefined)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (!stored) return
+        let userId: string
+        try { userId = JSON.parse(stored).id } catch { return }
+        const res = await fetch(`/api/users/${userId}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            const d = json.data
+            setProfile({
+              name: `${d.firstName || ''} ${d.lastName || ''}`.trim(),
+              email: d.email || '',
+              phone: d.phone || '',
+              alternatePhone: d.alternatePhone || '',
+              avatar: d.avatar || '',
+              specialty: d.doctorProfile?.specialty || '',
+              subSpecialty: d.doctorProfile?.subSpecialty || '',
+              qualification: d.doctorProfile?.qualification || '',
+              experience: d.doctorProfile?.experience || 0,
+              registrationNumber: d.doctorProfile?.licenseNumber || '',
+              location: d.doctorProfile?.location || '',
+              clinicAddress: d.doctorProfile?.clinicAddress || '',
+              bio: d.doctorProfile?.bio || '',
+              languages: d.doctorProfile?.languages || [],
+              education: d.doctorProfile?.education || [],
+              specializations: d.doctorProfile?.specializations || [],
+              services: d.doctorProfile?.services || [],
+              consultationFee: d.doctorProfile?.consultationFee || 0,
+              followUpFee: d.doctorProfile?.followUpFee || 0,
+              videoConsultationFee: d.doctorProfile?.videoConsultationFee || 0,
+              emergencyConsultationAvailable: d.doctorProfile?.emergencyConsultationAvailable || false,
+            })
+          }
+        }
+        const availRes = await fetch(`/api/doctors/${userId}/schedule`)
+        if (availRes.ok) {
+          const availJson = await availRes.json()
+          if (availJson.success && availJson.data) setAvailability(availJson.data)
+        }
+        const billingRes = await fetch(`/api/doctors/${userId}/billing`)
+        if (billingRes.ok) {
+          const billingJson = await billingRes.json()
+          if (billingJson.success && billingJson.data) setBilling(billingJson.data)
+        }
+        const subRes = await fetch(`/api/doctors/${userId}/subscription`)
+        if (subRes.ok) {
+          const subJson = await subRes.json()
+          if (subJson.success && subJson.data) {
+            setSubscriptionPlans(subJson.data)
+            setCurrentPlan(subJson.data.find((p: SubscriptionPlan) => p.isCurrent))
+          }
+        }
+      } catch {
+        // Failed to fetch settings
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -383,6 +324,14 @@ export default function DoctorSettingsPage() {
             paymentMethods: [...billing.paymentMethods, method]
         });
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (
@@ -828,7 +777,7 @@ export default function DoctorSettingsPage() {
                     {/* Available Plans */}
                     <h3 className="font-bold text-gray-800 mb-4">Available Plans</h3>
                     <div className="grid md:grid-cols-3 gap-6">
-                        {mockSubscriptionPlans.map(plan => (
+                        {subscriptionPlans.map(plan => (
                             <div key={plan.id} className={`border rounded-lg p-6 ${plan.isCurrent ? 'border-primary-blue bg-blue-50' : 'hover:shadow-lg transition-shadow'}`}>
                                 {plan.isCurrent && (
                                     <div className="bg-primary-blue text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
