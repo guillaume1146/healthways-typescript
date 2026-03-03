@@ -16,6 +16,7 @@ export interface Document {
   accepted: string;
   file?: File;
   uploaded?: boolean;
+  skipped?: boolean;
 }
 
 export interface SignupFormData {
@@ -63,6 +64,9 @@ export interface SignupFormData {
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
   
+  // Skipped Documents (document IDs the user chose to provide later)
+  skippedDocuments?: string[];
+
   // Terms and Privacy Agreement (mandatory)
   agreeToTerms?: boolean;
   agreeToPrivacy?: boolean;

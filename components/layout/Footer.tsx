@@ -45,7 +45,7 @@ const Footer: React.FC = () => {
   ]
 
   return (
-    <footer className="bg-gradient-footer-dark text-white">
+    <footer role="contentinfo" className="bg-gradient-footer-dark text-white">
       {/* Footer Content - with much darker overlay */}
       <div className="bg-black/60 py-16">
         <div className="container mx-auto px-4">
@@ -129,7 +129,7 @@ const Footer: React.FC = () => {
                     <a
                       key={social.label}
                       href={social.href}
-                      className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition"
+                      className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                       aria-label={social.label}
                     >
                       {social.icon}

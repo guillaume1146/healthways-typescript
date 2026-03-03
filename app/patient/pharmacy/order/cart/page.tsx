@@ -148,7 +148,7 @@ export default function CheckoutPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Link
-                href="/patient/dashboard"
+                href="/patient"
                 className="bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all text-center"
               >
                 View Orders

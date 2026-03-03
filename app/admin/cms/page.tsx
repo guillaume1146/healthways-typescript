@@ -126,7 +126,7 @@ export default function CMSManagement() {
               <h1 className="text-2xl font-bold text-gray-900">Content Management System</h1>
               <p className="text-gray-600">Manage landing page content and appearance</p>
             </div>
-            <Link href="/admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+            <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
               Back to Dashboard
             </Link>
           </div>

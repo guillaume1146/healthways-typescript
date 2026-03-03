@@ -646,7 +646,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
             </div>
 
             {/* Messages area */}
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-4" aria-live="polite" aria-label="Chat messages">
               {loadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />

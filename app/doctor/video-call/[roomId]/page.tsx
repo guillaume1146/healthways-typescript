@@ -288,7 +288,7 @@ export default function DoctorVideoCall() {
     cleanupMediaStream()
     peers.forEach((p) => { p.peer?.destroy?.() })
     if (socket) socket.emit('leave-room')
-    setTimeout(() => { router.push('/doctor/dashboard') }, 100)
+    setTimeout(() => { router.push('/doctor') }, 100)
   }
 
   const toggleFullscreen = () => {
@@ -343,7 +343,7 @@ export default function DoctorVideoCall() {
           <button onClick={retryMediaAccess} className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2 mx-auto">
             <FaSync /> Retry Access
           </button>
-          <button onClick={() => router.push('/doctor/dashboard')} className="mt-4 text-gray-400 hover:text-white transition">Return to Dashboard</button>
+          <button onClick={() => router.push('/doctor')} className="mt-4 text-gray-400 hover:text-white transition">Return to Dashboard</button>
         </div>
       </div>
     )
@@ -354,7 +354,7 @@ export default function DoctorVideoCall() {
       {/* Header */}
       <div className="bg-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button onClick={() => router.push('/doctor/dashboard')} className="text-gray-400 hover:text-white transition"><FaArrowLeft /></button>
+          <button onClick={() => router.push('/doctor')} className="text-gray-400 hover:text-white transition"><FaArrowLeft /></button>
           <FaUserMd className="text-blue-400 text-xl" />
           <div>
             <h1 className="text-white font-semibold">Video Consultation</h1>

@@ -357,7 +357,7 @@ export default function ChildcareAppointmentBooking() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/patient/dashboard" className="text-gray-600 hover:text-pink-600">
+            <Link href="/patient" className="text-gray-600 hover:text-pink-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
@@ -1116,10 +1116,10 @@ export default function ChildcareAppointmentBooking() {
 
               {/* Main Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/dashboard/bookings" className="bg-gradient-to-r from-pink-600 to-pink-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-pink-700 hover:to-pink-800 transition-all text-center">
+                <Link href="/patient/bookings" className="bg-gradient-to-r from-pink-600 to-pink-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-pink-700 hover:to-pink-800 transition-all text-center">
                   View My Bookings
                 </Link>
-                <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
+                <Link href="/patient" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
                   Go to Dashboard
                 </Link>
               </div>

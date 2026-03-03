@@ -259,8 +259,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
                       src={heroImages[currentImageIndex].src}
                       alt={heroImages[currentImageIndex].alt}
                       fill
-                      className="object-center" 
+                      className="object-center"
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 70vw"
+                      priority={currentImageIndex === 0}
                     />
                     
                     <div

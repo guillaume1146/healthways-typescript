@@ -831,10 +831,10 @@ export default function CompletePharmacyOrderBooking() {
 
               {/* Action Buttons */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/patient/dashboard/bookings" className="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all text-center">
+                <Link href="/patient/bookings" className="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all text-center">
                   View My Orders
                 </Link>
-                <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
+                <Link href="/patient" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
                   Go to Dashboard
                 </Link>
               </div>

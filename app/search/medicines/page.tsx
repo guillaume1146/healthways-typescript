@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
-import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaLeaf, FaExclamationTriangle,  FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaHandHoldingMedical, FaMedkit, FaPercent,  FaPlus, FaMinus, FaTrash } from 'react-icons/fa'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaLeaf, FaExclamationTriangle,  FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaHandHoldingMedical, FaMedkit, FaPercent,  FaPlus, FaMinus, FaTrash, FaHistory, FaTimes } from 'react-icons/fa'
 import { useCart } from '@/app/search/medicines/contexts/CartContext'
+import { useSearchHistory } from '@/hooks/useSearchHistory'
 
 const categoryIcons = {
   "Pain Relief": FaHandHoldingMedical,
@@ -443,27 +445,48 @@ const EmptyState = ({ onClear }: EmptyStateProps) => {
 }
 
 // Main Component
-export default function MedicinesPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [category, setCategory] = useState('all')
+function MedicinesContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const initialQuery = searchParams.get('q') || ''
+  const initialCategory = searchParams.get('category') || 'all'
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [category, setCategory] = useState(initialCategory)
   const [isSearching, setIsSearching] = useState(false)
   const [allMedicines, setAllMedicines] = useState<MedicineUi[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchResults, setSearchResults] = useState<MedicineUi[]>([])
-  const [hasSearched, setHasSearched] = useState(false)
-  const [searchExamples] = useState([
+  const [hasSearched, setHasSearched] = useState(!!initialQuery)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory()
+
+  const searchExamples = [
     "Paracetamol for fever",
     "Diabetes medication",
     "Vitamin D supplements",
     "Antibiotics for infection",
     "Blood pressure medicine",
     "Cough syrup for children"
-  ])
+  ]
+
+  const updateUrl = useCallback((q: string, cat: string) => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (cat && cat !== 'all') params.set('category', cat)
+    const qs = params.toString()
+    router.replace(`/search/medicines${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [router])
 
   const fetchMedicines = useCallback(async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/search/medicines')
+      const params = new URLSearchParams()
+      if (initialQuery) params.set('q', initialQuery)
+      if (initialCategory && initialCategory !== 'all') params.set('category', initialCategory)
+      const res = await fetch(`/api/search/medicines?${params.toString()}`)
       const json = await res.json()
       if (json.success && Array.isArray(json.data)) {
         const mapped = json.data.map(mapApiMedicine)
@@ -475,20 +498,27 @@ export default function MedicinesPage() {
     } finally {
       setIsLoading(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     fetchMedicines()
   }, [fetchMedicines])
 
-  const handleSearch = async () => {
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     setIsSearching(true)
     setHasSearched(true)
+    setShowHistory(false)
 
     const results = await aiSearchMedicines(searchQuery, category)
-
     setSearchResults(results)
     setIsSearching(false)
+    updateUrl(searchQuery, category)
+
+    if (searchQuery.trim()) {
+      addToHistory(searchQuery, 'medicines')
+    }
   }
 
   const handleClearFilters = () => {
@@ -496,22 +526,32 @@ export default function MedicinesPage() {
     setCategory('all')
     setSearchResults(allMedicines)
     setHasSearched(false)
+    router.replace('/search/medicines', { scroll: false })
   }
 
   const handleExampleClick = (example: string) => {
     setSearchQuery(example)
   }
 
+  const handleHistoryClick = (entry: { query: string }) => {
+    setSearchQuery(entry.query)
+    setShowHistory(false)
+    setTimeout(() => {
+      const btn = document.getElementById('medicine-search-btn')
+      if (btn) btn.click()
+    }, 50)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Floating Cart */}
       <FloatingCart />
-      
+
       <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">Medicine Store & Pharmacy</h1>
           <p className="text-xl text-green-100">
-            AI-powered search for authentic medicines with fast delivery across Mauritius
+            Search for authentic medicines with fast delivery across Mauritius
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
             <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
@@ -533,23 +573,68 @@ export default function MedicinesPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
-            <div>
+            <form onSubmit={handleSearch}>
               <div className="flex flex-col gap-4">
                 <div className="relative">
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setShowHistory(true) }}
+                    onFocus={() => !searchQuery && setShowHistory(true)}
+                    onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                     placeholder="Search medicines by name, condition, or symptoms (e.g., 'headache medicine', 'diabetes pills')"
                     className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors text-lg"
                   />
                   <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
+                  {/* Search History Dropdown */}
+                  {showHistory && history.length > 0 && !searchQuery && (
+                    <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                        <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                          <FaHistory className="text-[10px]" />
+                          Recent Searches
+                        </span>
+                        <button
+                          type="button"
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => clearHistory()}
+                          className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
+                        >
+                          <FaTrash className="text-[10px]" />
+                          Clear
+                        </button>
+                      </div>
+                      {history.map((entry, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => handleHistoryClick(entry)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition text-sm text-gray-700 group"
+                        >
+                          <span className="flex items-center gap-2">
+                            <FaHistory className="text-xs text-gray-300" />
+                            {entry.query}
+                          </span>
+                          <button
+                            type="button"
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={e => { e.stopPropagation(); removeFromHistory(entry.query) }}
+                            className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <FaTimes className="text-xs" />
+                          </button>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                
+
                 {/* Example Searches */}
                 {!hasSearched && (
                   <div className="flex flex-wrap gap-2">
@@ -566,9 +651,9 @@ export default function MedicinesPage() {
                     ))}
                   </div>
                 )}
-                
+
                 <div className="flex flex-col md:flex-row gap-4">
-                  <select 
+                  <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors"
@@ -580,12 +665,12 @@ export default function MedicinesPage() {
                     <option value="vitamins">Vitamins & Supplements</option>
                     <option value="digestive">Digestive Health</option>
                     <option value="heart">Heart Health</option>
-                    <option value="children">Medicine for Children </option>
+                    <option value="children">Medicine for Children</option>
                   </select>
-                  
-                  <button 
-                    type="button"
-                    onClick={handleSearch}
+
+                  <button
+                    id="medicine-search-btn"
+                    type="submit"
                     className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px]"
                   >
                     <FaSearch />
@@ -593,7 +678,7 @@ export default function MedicinesPage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
         </div>
         
@@ -697,5 +782,17 @@ export default function MedicinesPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function MedicinesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    }>
+      <MedicinesContent />
+    </Suspense>
   )
 }

@@ -122,7 +122,7 @@ export default function AccountValidation() {
               <h1 className="text-2xl font-bold text-gray-900">Account Validation</h1>
               <p className="text-gray-600">Review and approve provider registrations</p>
             </div>
-            <Link href="/admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+            <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
               Back to Dashboard
             </Link>
           </div>

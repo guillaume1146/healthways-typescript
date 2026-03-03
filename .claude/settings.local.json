@@ -19,7 +19,19 @@
       "Bash(do echo:*)",
       "Bash(taskkill:*)",
       "Bash(npm uninstall:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(do:*)",
+      "Bash(cd:*)",
+      "Bash(done)",
+      "Bash(do test:*)",
+      "Bash(echo EXIT: $?:*)",
+      "Bash(npx vitest:*)",
+      "Bash(xargs wc:*)",
+      "Bash(grep:*)",
+      "Bash(git:*)",
+      "Bash(python3:*)",
+      "Bash(netstat:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

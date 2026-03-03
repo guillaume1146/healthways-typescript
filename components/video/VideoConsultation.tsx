@@ -719,7 +719,7 @@ const VideoConsultation: React.FC<VideoConsultationProps> = ({ currentUser, pati
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2" aria-live="polite" aria-label="Chat messages">
               {chatMessages.map((msg, idx) => (
                 <div
                   key={idx}

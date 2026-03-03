@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FaCheck, FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaSpinner } from 'react-icons/fa'
+import { FaCheck, FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaSpinner, FaClock } from 'react-icons/fa'
 import { SignupFormData, UserType, Document } from './types'
 import type { DocumentVerificationStatus } from './hooks/useDocumentVerification'
 
@@ -97,7 +97,7 @@ export default function VerificationStep({ formData, selectedType, documents, ve
               <span>Verifying {verifyingCount} document{verifyingCount > 1 ? 's' : ''}...</span>
             </div>
           )}
-          {allVerified && !requiresManualApproval && verifyingCount === 0 && (
+          {allVerified && !requiresManualApproval && verifyingCount === 0 && documents.filter(d => d.skipped).length === 0 && (
             <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-sm">
               <FaCheckCircle />
               <span>All required documents verified — your account will be activated immediately!</span>
@@ -107,6 +107,15 @@ export default function VerificationStep({ formData, selectedType, documents, ve
             <div className="flex items-center gap-2 text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm">
               <FaExclamationTriangle />
               <span>Some documents could not be verified automatically and will require manual review.</span>
+            </div>
+          )}
+          {documents.filter(d => d.skipped).length > 0 && (
+            <div className="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm">
+              <FaClock />
+              <span>
+                {documents.filter(d => d.skipped).length} document{documents.filter(d => d.skipped).length > 1 ? 's' : ''} deferred.
+                Your account will be in pending status until all required documents are provided.
+              </span>
             </div>
           )}
           <div className="space-y-3">
@@ -131,12 +140,24 @@ export default function VerificationStep({ formData, selectedType, documents, ve
                 </div>
               )
             })}
+            {/* Show skipped/deferred documents */}
+            {documents.filter(doc => doc.skipped).map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between">
+                <span className="text-gray-400">{doc.name}</span>
+                <span className="font-medium flex items-center gap-1 text-sm text-amber-500">
+                  <FaClock className="text-sm" /> Provide later
+                </span>
+              </div>
+            ))}
           </div>
           {/* Counts */}
           <div className="mt-4 pt-4 border-t border-green-200 flex gap-4 text-xs text-gray-600">
             <span>Verified: {verifiedCount}</span>
             <span>Manual review: {failedCount + errorCount}</span>
             <span>Total uploaded: {documents.filter(d => d.uploaded).length}</span>
+            {documents.filter(d => d.skipped).length > 0 && (
+              <span className="text-amber-600">Deferred: {documents.filter(d => d.skipped).length}</span>
+            )}
           </div>
         </div>
 
@@ -174,7 +195,14 @@ export default function VerificationStep({ formData, selectedType, documents, ve
             <FaInfoCircle className="text-blue-600 mt-1" />
             <div>
               <h4 className="font-bold text-blue-800 mb-2">What happens next?</h4>
-              {allVerified && !requiresManualApproval ? (
+              {documents.filter(d => d.skipped).length > 0 ? (
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• Your account will be created with pending status</li>
+                  <li>• You can upload deferred documents from your account settings</li>
+                  <li>• Your account will be fully activated once all required documents are provided and verified</li>
+                  <li>• You will receive a confirmation email with instructions</li>
+                </ul>
+              ) : allVerified && !requiresManualApproval ? (
                 <ul className="text-blue-700 text-sm space-y-1">
                   <li>• All your documents have been verified automatically</li>
                   <li>• Your account will be activated immediately upon submission</li>

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Determine the redirect path — default to feed page after login
     const slug = USER_TYPE_SLUGS[dbUser.userType] || 'patient'
-    const redirectPath = `/${slug}/dashboard/feed`
+    const redirectPath = `/${slug}/feed`
 
     // Generate JWT
     const token = signToken({ sub: dbUser.id, userType: cookieUserType, email: dbUser.email })

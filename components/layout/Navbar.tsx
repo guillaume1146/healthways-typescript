@@ -61,11 +61,18 @@ const Navbar: React.FC = () => {
   }
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav role="navigation" aria-label="Main navigation" className="bg-white shadow-lg sticky top-0 z-50">
+      {/* Skip to content link — visible only on focus */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        Skip to main content
+      </a>
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16 lg:h-20">
           {/* Logo - Responsive sizing */}
-          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Link href="/" className="flex items-center space-x-2 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-md">
             <HealthwyzLogo 
               width={isMobile ? 140 : 160} 
               height={isMobile ? 35 : 40} 
@@ -84,10 +91,14 @@ const Navbar: React.FC = () => {
 
             {/* Services Dropdown */}
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50">
-                <FaUserMd className="text-sm" />
+              <button
+                className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-haspopup="true"
+                aria-label="Services menu"
+              >
+                <FaUserMd className="text-sm" aria-hidden="true" />
                 <span className="text-sm font-medium">Services</span>
-                <FaChevronDown className="text-xs" />
+                <FaChevronDown className="text-xs" aria-hidden="true" />
               </button>
               
               <div className="absolute top-full left-0 mt-1 w-80 bg-white rounded-xl shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
@@ -143,13 +154,13 @@ const Navbar: React.FC = () => {
             {/* Auth Buttons with Blue-Green Gradient */}
             <Link
               href="/login"
-              className="px-4 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full hover:bg-blue-50 transition-all duration-200 font-medium text-sm"
+              className="px-4 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full hover:bg-blue-50 transition-all duration-200 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full hover:from-blue-700 hover:to-green-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full hover:from-blue-700 hover:to-green-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Sign Up
             </Link>
@@ -158,10 +169,11 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="xl:hidden text-gray-700 p-2 rounded-md hover:bg-gray-100 transition-colors"
-            aria-label="Toggle menu"
+            className="xl:hidden text-gray-700 p-2 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+            {isMenuOpen ? <FaTimes size={20} aria-hidden="true" /> : <FaBars size={20} aria-hidden="true" />}
           </button>
         </div>
 

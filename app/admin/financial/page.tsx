@@ -111,7 +111,7 @@ export default function FinancialReporting() {
               <p className="text-gray-600">Revenue, commissions, and payout analytics</p>
             </div>
             <div className="flex gap-3">
-              <Link href="/admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
                 Back to Dashboard
               </Link>
             </div>

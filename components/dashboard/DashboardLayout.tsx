@@ -96,6 +96,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Skip to content link — visible only on focus */}
+      <a
+        href="#dashboard-main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        Skip to main content
+      </a>
+
       {/* Fixed header */}
       <DashboardHeader
         userName={userName}
@@ -120,7 +128,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       />
 
       {/* Main content area — offset for fixed header + fixed sidebar */}
-      <main className="pt-14 sm:pt-14 md:pt-16 lg:pt-16 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
+      <main
+        id="dashboard-main-content"
+        role="main"
+        className="pt-14 sm:pt-14 md:pt-16 lg:pt-16 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden"
+      >
         {children}
       </main>
     </div>

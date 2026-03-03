@@ -219,7 +219,7 @@ export default function DynamicAvailabilityPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/doctor/dashboard" className="text-gray-600 hover:text-blue-600">
+              <Link href="/doctor" className="text-gray-600 hover:text-blue-600">
                 <FaArrowLeft className="text-xl" />
               </Link>
               <div>

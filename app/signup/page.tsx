@@ -112,6 +112,17 @@ export default function RegistrationForm() {
     resetVerification(documentId)
   }
 
+  const handleSkipDocument = (documentId: string, skipped: boolean) => {
+    setDocuments(prev => prev.map(doc =>
+      doc.id === documentId
+        ? { ...doc, skipped, ...(skipped ? { file: undefined, uploaded: false } : {}) }
+        : doc
+    ))
+    if (skipped) {
+      resetVerification(documentId)
+    }
+  }
+
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
@@ -136,12 +147,12 @@ export default function RegistrationForm() {
         return true
       case 3:
         const requiredDocs = documents.filter(doc => doc.required)
-        return requiredDocs.every(doc => doc.uploaded)
+        return requiredDocs.every(doc => doc.uploaded || doc.skipped)
       case 4:
-        // For step 4, we just need the required documents uploaded and form filled
+        // For step 4, we just need the required documents uploaded or skipped
         // The checkboxes will be validated in handleSubmit
         const step4RequiredDocs = documents.filter(doc => doc.required)
-        return step4RequiredDocs.every(doc => doc.uploaded)
+        return step4RequiredDocs.every(doc => doc.uploaded || doc.skipped)
       default:
         return true
     }
@@ -170,10 +181,15 @@ export default function RegistrationForm() {
         confidence: v.confidence,
       }))
 
+      // Collect skipped document IDs
+      const skippedDocuments = documents
+        .filter(doc => doc.required && doc.skipped)
+        .map(doc => doc.id)
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, documentVerifications }),
+        body: JSON.stringify({ ...formData, documentVerifications, skippedDocuments }),
       })
 
       const result = await response.json()
@@ -230,11 +246,21 @@ export default function RegistrationForm() {
                     <p className="text-gray-600 mb-4">
                       Your registration has been received and is being processed.
                     </p>
+                    {documents.some(doc => doc.skipped) && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                        <p className="text-amber-800 text-sm">
+                          You have deferred {documents.filter(doc => doc.skipped).length} document{documents.filter(doc => doc.skipped).length > 1 ? 's' : ''}.
+                          Please upload them from your account settings to complete your verification.
+                        </p>
+                      </div>
+                    )}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="text-blue-800 text-sm">
-                        {formData.userType === 'corporate' || formData.userType === 'regional-admin' 
-                          ? 'Your account requires super administrator approval and will be reviewed within 2-5 business days.' 
-                          : 'Your account will be verified within 2-5 business days.'
+                        {formData.userType === 'corporate' || formData.userType === 'regional-admin'
+                          ? 'Your account requires super administrator approval and will be reviewed within 2-5 business days.'
+                          : documents.some(doc => doc.skipped)
+                            ? 'Your account is pending until all required documents are provided and verified.'
+                            : 'Your account will be verified within 2-5 business days.'
                         }
                       </p>
                     </div>
@@ -280,6 +306,7 @@ export default function RegistrationForm() {
                       documents={documents}
                       onFileUpload={handleFileUpload}
                       onRemoveFile={removeFile}
+                      onSkipDocument={handleSkipDocument}
                       verificationResults={verificationResults}
                     />
                   )}

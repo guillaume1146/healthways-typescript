@@ -36,9 +36,14 @@ interface PatientContext {
   activeMedications: string[]
 }
 
-/**
- * Fetch patient health context from the database for personalized AI responses.
- */
+interface InsightRecord {
+  date: Date
+  category: string
+  summary: string
+}
+
+// ─── Patient Context ─────────────────────────────────────────────────────────
+
 async function getPatientContext(userId: string): Promise<PatientContext | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -53,7 +58,7 @@ async function getPatientContext(userId: string): Promise<PatientContext | null>
           healthScore: true,
           medicalRecords: {
             where: {
-              date: { gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) }, // last year
+              date: { gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) },
             },
             select: { diagnosis: true },
             orderBy: { date: 'desc' },
@@ -100,10 +105,136 @@ async function getPatientContext(userId: string): Promise<PatientContext | null>
   }
 }
 
+// ─── Dietary Insight Storage & Retrieval ─────────────────────────────────────
+
 /**
- * Build the system prompt incorporating patient health context.
+ * Retrieve the patient's recent dietary/health insights from the database.
+ * Returns a summarized text block to inject into the system prompt.
+ * Covers the last 14 days to allow weekly pattern analysis.
  */
-function buildSystemPrompt(context: PatientContext): string {
+export async function getRecentInsights(userId: string, days: number = 14): Promise<string> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+  const insights = await prisma.aiPatientInsight.findMany({
+    where: {
+      userId,
+      date: { gte: since },
+    },
+    orderBy: { date: 'desc' },
+    select: {
+      date: true,
+      category: true,
+      summary: true,
+    },
+  })
+
+  if (insights.length === 0) return ''
+
+  // Group by date for readability
+  const grouped: Record<string, InsightRecord[]> = {}
+  for (const ins of insights) {
+    const dateKey = ins.date.toISOString().split('T')[0]
+    if (!grouped[dateKey]) grouped[dateKey] = []
+    grouped[dateKey].push(ins)
+  }
+
+  const lines: string[] = ['PATIENT RECENT HISTORY (last ' + days + ' days):']
+  const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
+
+  for (const dateKey of sortedDates) {
+    const dayName = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+    lines.push(`\n${dayName} (${dateKey}):`)
+    for (const ins of grouped[dateKey]) {
+      lines.push(`  - [${ins.category}] ${ins.summary}`)
+    }
+  }
+
+  return lines.join('\n')
+}
+
+/**
+ * Use the LLM to extract structured dietary/health insights from the user's message.
+ * This is the "tool call" — we ask the model to parse the user's natural language
+ * into structured records we can store.
+ */
+export async function extractAndStoreInsights(
+  userId: string,
+  userMessage: string,
+  assistantResponse: string,
+  apiKey: string
+): Promise<void> {
+  const today = new Date().toISOString().split('T')[0]
+  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+
+  const extractionPrompt = `You are a data extraction tool. Today is ${dayOfWeek}, ${today}.
+
+Analyze the following conversation exchange and extract any health/dietary/exercise/symptom information the patient mentioned. Output ONLY a valid JSON array (no markdown, no explanation). Each item must have:
+- "date": the ISO date (YYYY-MM-DD) the information refers to. If the patient says "today", use "${today}". If they say "yesterday", compute it. If they say a weekday name like "Monday", resolve it to the most recent past occurrence (or today if it matches). If unclear, use "${today}".
+- "category": one of "food", "exercise", "symptom", "medication", "sleep", "water", "mood"
+- "summary": a concise one-line summary of what was reported (max 150 chars)
+
+If NO health/dietary/exercise information is present (e.g. the user is just asking a general question or greeting), return an empty array: []
+
+USER MESSAGE: ${userMessage}
+
+ASSISTANT RESPONSE: ${assistantResponse}
+
+JSON ARRAY:`
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: extractionPrompt }],
+        temperature: 0.1,
+        max_tokens: 512,
+      }),
+    })
+
+    if (!response.ok) return
+
+    const data: GroqResponse = await response.json()
+    const raw = data.choices?.[0]?.message?.content?.trim()
+    if (!raw) return
+
+    // Parse the JSON array from the response
+    const jsonMatch = raw.match(/\[[\s\S]*\]/)
+    if (!jsonMatch) return
+
+    const parsed: { date: string; category: string; summary: string }[] = JSON.parse(jsonMatch[0])
+    if (!Array.isArray(parsed) || parsed.length === 0) return
+
+    const validCategories = ['food', 'exercise', 'symptom', 'medication', 'sleep', 'water', 'mood']
+
+    const insightsToCreate = parsed
+      .filter(item =>
+        item.date && item.category && item.summary &&
+        validCategories.includes(item.category) &&
+        item.summary.length <= 300
+      )
+      .map(item => ({
+        userId,
+        date: new Date(item.date + 'T12:00:00Z'),
+        category: item.category,
+        summary: item.summary.substring(0, 300),
+      }))
+
+    if (insightsToCreate.length > 0) {
+      await prisma.aiPatientInsight.createMany({ data: insightsToCreate })
+    }
+  } catch {
+    // Silent — insight extraction failure should never break the chat
+  }
+}
+
+// ─── System Prompt Builder ───────────────────────────────────────────────────
+
+function buildSystemPrompt(context: PatientContext, insightsSummary: string): string {
   const conditionDietaryNotes: string[] = []
 
   for (const condition of context.chronicConditions) {
@@ -158,6 +289,7 @@ function buildSystemPrompt(context: PatientContext): string {
     : ''
 
   return `You are a helpful, knowledgeable AI Health Assistant for the Healthwyz healthcare platform in Mauritius. Your name is Healthwyz AI Assistant.
+Today's date is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
 
 PATIENT PROFILE:
 - Name: ${context.firstName} ${context.lastName}
@@ -170,14 +302,18 @@ ${diagnosisNote ? `- ${diagnosisNote}` : ''}
 
 ${conditionDietaryNotes.length > 0 ? 'CONDITION-SPECIFIC DIETARY GUIDANCE:\n' + conditionDietaryNotes.join('\n') : ''}
 
+${insightsSummary}
+
 YOUR ROLE AND GUIDELINES:
-1. Provide personalized wellness, diet, nutrition, and exercise recommendations based on the patient's health profile above.
+1. Provide personalized wellness, diet, nutrition, and exercise recommendations based on the patient's health profile and recent history above.
 2. Consider the patient's allergies, chronic conditions, and medications when making any food or supplement suggestions.
 3. Tailor recommendations to Mauritian cuisine and locally available foods when relevant.
 4. Always be supportive, encouraging, and non-judgmental.
 5. Use clear, simple language that is easy to understand.
 6. When discussing nutrition, provide specific food suggestions with approximate nutritional information when possible.
 7. For exercise recommendations, consider the patient's health conditions and suggest safe, appropriate activities.
+8. ACTIVELY TRACK the patient's dietary patterns from their recent history. If you notice gaps (e.g. low fruit intake, insufficient water, missing food groups), proactively suggest improvements. Reference specific days from their history when giving advice.
+9. When the patient tells you what they ate or did, acknowledge it and note how it fits into their overall nutritional balance for the day/week.
 
 IMPORTANT SAFETY RULES:
 - ALWAYS remind the patient to consult their doctor or healthcare provider before making significant changes to their diet, exercise routine, or medication.
@@ -189,9 +325,11 @@ IMPORTANT SAFETY RULES:
 Keep responses concise but thorough. Use markdown formatting for lists and emphasis when helpful.`
 }
 
+// ─── Main Chat Function ──────────────────────────────────────────────────────
+
 /**
  * Send a message to the AI assistant and get a response.
- * Creates a new session if sessionId is not provided.
+ * Flow: fetch insights → build context → call LLM → save messages → extract & store new insights
  */
 export async function chatWithAssistant(
   userId: string,
@@ -212,6 +350,9 @@ export async function chatWithAssistant(
   if (!patientContext) {
     throw new Error('Patient profile not found')
   }
+
+  // Tool call #1: Retrieve recent dietary/health insights from DB
+  const insightsSummary = await getRecentInsights(userId, 14)
 
   // Create or retrieve session
   let session: { id: string; title: string }
@@ -239,8 +380,8 @@ export async function chatWithAssistant(
     select: { role: true, content: true },
   })
 
-  // Build the message array for the API call
-  const systemPrompt = buildSystemPrompt(patientContext)
+  // Build the message array with patient context + dietary history
+  const systemPrompt = buildSystemPrompt(patientContext, insightsSummary)
   const groqMessages: GroqMessage[] = [
     { role: 'system', content: systemPrompt },
     ...previousMessages.map(m => ({
@@ -250,7 +391,7 @@ export async function chatWithAssistant(
     { role: 'user', content: message },
   ]
 
-  // Call Groq API
+  // Call Groq API for the main response
   const response = await fetch(GROQ_API_URL, {
     method: 'POST',
     headers: {
@@ -287,10 +428,15 @@ export async function chatWithAssistant(
     ],
   })
 
+  // Tool call #2: Extract and store dietary/health insights from this exchange
+  // This runs async — we don't block the response on it
+  extractAndStoreInsights(userId, message, assistantMessage, apiKey).catch(() => {
+    // Silent failure — extraction is best-effort
+  })
+
   // Auto-generate session title from the first user message
   let title = session.title
   if (session.title === 'New Chat' && previousMessages.length === 0) {
-    // Generate a short title from the first message
     title = message.length > 50 ? message.substring(0, 50) + '...' : message
     await prisma.aiChatSession.update({
       where: { id: session.id },
@@ -311,9 +457,8 @@ export async function chatWithAssistant(
   }
 }
 
-/**
- * List all chat sessions for a user.
- */
+// ─── Session Management ──────────────────────────────────────────────────────
+
 export async function listChatSessions(userId: string) {
   return prisma.aiChatSession.findMany({
     where: { userId },
@@ -328,9 +473,6 @@ export async function listChatSessions(userId: string) {
   })
 }
 
-/**
- * Get messages for a specific chat session.
- */
 export async function getSessionMessages(userId: string, sessionId: string) {
   const session = await prisma.aiChatSession.findFirst({
     where: { id: sessionId, userId },
@@ -354,9 +496,6 @@ export async function getSessionMessages(userId: string, sessionId: string) {
   return session
 }
 
-/**
- * Delete a chat session and all its messages.
- */
 export async function deleteChatSession(userId: string, sessionId: string) {
   const session = await prisma.aiChatSession.findFirst({
     where: { id: sessionId, userId },
@@ -369,4 +508,26 @@ export async function deleteChatSession(userId: string, sessionId: string) {
   })
 
   return true
+}
+
+/**
+ * Get insight history for a patient (used by the insights API endpoint).
+ */
+export async function getPatientInsights(userId: string, days: number = 14) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+  return prisma.aiPatientInsight.findMany({
+    where: {
+      userId,
+      date: { gte: since },
+    },
+    orderBy: { date: 'desc' },
+    select: {
+      id: true,
+      date: true,
+      category: true,
+      summary: true,
+      createdAt: true,
+    },
+  })
 }

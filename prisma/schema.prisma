@@ -72,6 +72,7 @@ model User {
 
   // AI Chat relations
   aiChatSessions    AiChatSession[]
+  aiPatientInsights AiPatientInsight[]
 
   @@index([email])
   @@index([userType])
@@ -1120,5 +1121,20 @@ model AiChatMessage {
   createdAt DateTime      @default(now())
 
   @@index([sessionId])
+  @@index([createdAt])
+}
+
+model AiPatientInsight {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime // the date the insight refers to (e.g. "Monday" → resolved to actual date)
+  category  String   // "food", "exercise", "symptom", "medication", "sleep", "water", "mood"
+  summary   String   // concise summary: "Ate sardines for lunch, rice and vegetables for dinner"
+  details   Json?    // optional structured data: { meals: [...], nutrients: [...] }
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@index([userId, category])
   @@index([createdAt])
 }

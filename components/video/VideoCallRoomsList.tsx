@@ -173,7 +173,7 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl bg-green-500 shadow-md">
                 {selectedRoomData.participantImage ? (
-                  <img src={selectedRoomData.participantImage} alt={selectedRoomData.participantName} className="w-16 h-16 rounded-full" />
+                  <img src={selectedRoomData.participantImage} alt={selectedRoomData.participantName} className="w-16 h-16 rounded-full" loading="lazy" />
                 ) : (
                   <FaUser />
                 )}
@@ -238,7 +238,7 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
                       upcoming ? 'bg-green-500' : 'bg-gray-400'
                     }`}>
                       {room.participantImage ? (
-                        <img src={room.participantImage} alt={room.participantName} className="w-14 h-14 rounded-full" />
+                        <img src={room.participantImage} alt={room.participantName} className="w-14 h-14 rounded-full" loading="lazy" />
                       ) : (
                         <FaUser />
                       )}

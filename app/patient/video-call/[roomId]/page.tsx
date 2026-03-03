@@ -283,7 +283,7 @@ export default function PatientVideoCall() {
     }
 
     if (socket) socket.emit('leave-room')
-    setTimeout(() => { router.push('/patient/dashboard') }, 100)
+    setTimeout(() => { router.push('/patient') }, 100)
   }
 
   const toggleFullscreen = () => {
@@ -326,7 +326,7 @@ export default function PatientVideoCall() {
           <button onClick={retryMediaAccess} className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2 mx-auto">
             <FaSync /> Retry Access
           </button>
-          <button onClick={() => router.push('/patient/dashboard')} className="mt-4 text-gray-400 hover:text-white transition">Return to Dashboard</button>
+          <button onClick={() => router.push('/patient')} className="mt-4 text-gray-400 hover:text-white transition">Return to Dashboard</button>
         </div>
       </div>
     )
@@ -337,7 +337,7 @@ export default function PatientVideoCall() {
       {/* Header */}
       <div className="bg-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button onClick={() => router.push('/patient/dashboard')} className="text-gray-400 hover:text-white transition"><FaArrowLeft /></button>
+          <button onClick={() => router.push('/patient')} className="text-gray-400 hover:text-white transition"><FaArrowLeft /></button>
           <FaUserMd className="text-blue-400 text-xl" />
           <div>
             <h1 className="text-white font-semibold">Medical Consultation</h1>

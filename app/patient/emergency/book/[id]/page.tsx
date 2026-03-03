@@ -278,7 +278,7 @@ export default function SimplifiedEmergencyBooking() {
                 </button>
               </div>
 
-              <Link href="/patient/dashboard" className="block w-full bg-blue-600 text-white py-3 rounded-xl font-medium text-center hover:bg-blue-700">
+              <Link href="/patient" className="block w-full bg-blue-600 text-white py-3 rounded-xl font-medium text-center hover:bg-blue-700">
                 Return to Dashboard
               </Link>
             </div>
@@ -295,7 +295,7 @@ export default function SimplifiedEmergencyBooking() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/patient/dashboard" className="text-white/80 hover:text-white">
+              <Link href="/patient" className="text-white/80 hover:text-white">
                 <FaArrowLeft />
               </Link>
               <div>

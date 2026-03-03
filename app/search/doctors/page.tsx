@@ -2,13 +2,18 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { type Doctor } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import SearchFilters, { type SearchFilterValues } from '@/components/search/SearchFilters'
+import { SearchResultsSkeleton, NoResults } from '@/components/search/SearchResults'
+import { useSearchHistory } from '@/hooks/useSearchHistory'
 import {
   FaSearch, FaUserMd, FaStar, FaMapMarkerAlt, FaClock,
-   FaShieldAlt,
+  FaShieldAlt,
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
+  FaHistory, FaTimes, FaTrash,
 } from 'react-icons/fa'
 
 interface DoctorProps {
@@ -22,10 +27,10 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
         {/* Doctor Header */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
-            <Image 
-              src={doctor.profileImage} 
+            <Image
+              src={doctor.profileImage}
               alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
-              width={80} 
+              width={80}
               height={80}
               className="rounded-full object-cover border-4 border-blue-100"
             />
@@ -42,12 +47,12 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
             <p className="text-blue-600 font-medium mb-2">
               {doctor.specialty.join(', ')}
             </p>
-            
+
             {/* Category Badge */}
             <div className="mb-2">
               <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                doctor.category === 'Specialist' 
-                  ? 'bg-purple-100 text-purple-700' 
+                doctor.category === 'Specialist'
+                  ? 'bg-purple-100 text-purple-700'
                   : doctor.category === 'General Practice'
                   ? 'bg-green-100 text-green-700'
                   : doctor.category === 'Emergency'
@@ -63,7 +68,7 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
                 {doctor.category}
               </span>
             </div>
-            
+
             {/* Rating */}
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center text-yellow-500">
@@ -107,7 +112,7 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
               </div>
             )}
           </div>
-          
+
           {/* Emergency Available - Fixed height container */}
           <div className="mt-2 h-10 flex items-center">
             {doctor.emergencyAvailable && (
@@ -148,7 +153,7 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
               </div>
             )}
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4 border-t border-gray-100">
             <Link href={`/search/doctors/${doctor.id}`} className="flex-1">
@@ -166,43 +171,65 @@ const DoctorCard = ({ doctor }: DoctorProps) => {
   )
 }
 
-const LoadingAnimation = () => (
-  <div className="flex justify-center items-center py-12">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-3 text-gray-600">Finding the best doctors for you...</span>
-  </div>
-)
+const DOCTOR_SPECIALTIES = [
+  { value: '', label: 'All Specialties' },
+  { value: 'cardiology', label: 'Cardiology' },
+  { value: 'neurology', label: 'Neurology' },
+  { value: 'pediatrics', label: 'Pediatrics' },
+  { value: 'orthopedic', label: 'Orthopedic Surgery' },
+  { value: 'dermatology', label: 'Dermatology' },
+  { value: 'emergency', label: 'Emergency Medicine' },
+  { value: 'dentistry', label: 'Dentistry' },
+  { value: 'psychiatry', label: 'Psychiatry' },
+  { value: 'gastroenterology', label: 'Gastroenterology' },
+  { value: 'ophthalmology', label: 'Ophthalmology' },
+]
 
-const EmptyState = ({ onClear }: { onClear: () => void }) => (
-  <div className="text-center py-12">
-    <FaUserMd className="text-6xl text-gray-300 mx-auto mb-4" />
-    <h3 className="text-xl font-semibold text-gray-700 mb-2">No doctors found</h3>
-    <p className="text-gray-600 mb-6">Try adjusting your search criteria or browse all available doctors</p>
-    <button 
-      onClick={onClear}
-      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-    >
-      View All Doctors
-    </button>
-  </div>
-)
+function DoctorsSearchContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
-export default function DoctorsSearchPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [specialization, setSpecialization] = useState('all')
-  const [isSearching, setIsSearching] = useState(false)
+  const initialQuery = searchParams.get('q') || ''
+  const initialSpecialty = searchParams.get('specialty') || ''
+  const initialCity = searchParams.get('city') || ''
+  const initialMinRating = searchParams.get('minRating') || ''
+  const initialAvailable = searchParams.get('available') || ''
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [filters, setFilters] = useState<SearchFilterValues>({
+    type: 'doctors',
+    specialty: initialSpecialty,
+    city: initialCity,
+    minRating: initialMinRating,
+    available: initialAvailable,
+  })
+  const [isLoading, setIsLoading] = useState(true)
   const [searchResults, setSearchResults] = useState<Doctor[]>([])
   const [allDoctors, setAllDoctors] = useState<Doctor[]>([])
-  const [hasSearched, setHasSearched] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchExamples] = useState([
+  const [hasSearched, setHasSearched] = useState(!!initialQuery || !!initialSpecialty)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory()
+
+  const searchExamples = [
     "Find a heart specialist near me",
     "I need a pediatrician for my baby",
     "Looking for skin doctor",
     "Neurologist for migraine treatment",
     "Doctor who speaks French",
     "Weekend availability doctor"
-  ])
+  ]
+
+  const updateUrl = useCallback((q: string, f: SearchFilterValues) => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (f.specialty) params.set('specialty', f.specialty)
+    if (f.city) params.set('city', f.city)
+    if (f.minRating) params.set('minRating', f.minRating)
+    if (f.available) params.set('available', f.available)
+    const qs = params.toString()
+    router.replace(`/search/doctors${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [router])
 
   const fetchDoctors = useCallback(async (query = '', specialty = '') => {
     const params = new URLSearchParams()
@@ -214,30 +241,107 @@ export default function DoctorsSearchPage() {
   }, [])
 
   useEffect(() => {
-    fetchDoctors().then((data) => {
+    fetchDoctors(initialQuery, initialSpecialty).then((data: Doctor[]) => {
       setAllDoctors(data)
-      setSearchResults(data)
+      let filtered = data
+      // Apply additional client-side filters
+      if (initialCity) {
+        filtered = filtered.filter(d => d.location.toLowerCase().includes(initialCity.toLowerCase()))
+      }
+      if (initialMinRating) {
+        const min = parseFloat(initialMinRating)
+        filtered = filtered.filter(d => d.rating >= min)
+      }
+      if (initialAvailable === 'true') {
+        filtered = filtered.filter(d => d.nextAvailable === 'Available Today' || d.nextAvailable <= new Date().toISOString().split('T')[0])
+      }
+      setSearchResults(filtered)
       setIsLoading(false)
     })
-  }, [fetchDoctors])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const handleSearch = async () => {
-    setIsSearching(true)
+  const applyFilters = useCallback((doctors: Doctor[], q: string, f: SearchFilterValues) => {
+    let filtered = doctors
+    if (q) {
+      const lq = q.toLowerCase()
+      filtered = filtered.filter(d =>
+        d.firstName.toLowerCase().includes(lq) ||
+        d.lastName.toLowerCase().includes(lq) ||
+        d.specialty.some(s => s.toLowerCase().includes(lq)) ||
+        d.location.toLowerCase().includes(lq) ||
+        d.bio.toLowerCase().includes(lq) ||
+        d.languages.some(l => l.toLowerCase().includes(lq))
+      )
+    }
+    if (f.specialty) {
+      filtered = filtered.filter(d =>
+        d.specialty.some(s => s.toLowerCase().includes(f.specialty.toLowerCase()))
+      )
+    }
+    if (f.city) {
+      filtered = filtered.filter(d => d.location.toLowerCase().includes(f.city.toLowerCase()))
+    }
+    if (f.minRating) {
+      const min = parseFloat(f.minRating)
+      filtered = filtered.filter(d => d.rating >= min)
+    }
+    if (f.available === 'true') {
+      filtered = filtered.filter(d => d.nextAvailable === 'Available Today' || d.nextAvailable <= new Date().toISOString().split('T')[0])
+    }
+    return filtered
+  }, [])
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    setIsLoading(true)
     setHasSearched(true)
-    const results = await fetchDoctors(searchQuery, specialization)
-    setSearchResults(results)
-    setIsSearching(false)
+    setShowHistory(false)
+
+    const data = await fetchDoctors(searchQuery, filters.specialty)
+    setAllDoctors(data)
+    const filtered = applyFilters(data, searchQuery, filters)
+    setSearchResults(filtered)
+    setIsLoading(false)
+    updateUrl(searchQuery, filters)
+
+    if (searchQuery.trim()) {
+      addToHistory(searchQuery, 'doctors')
+    }
+  }
+
+  const handleFilterChange = (key: keyof SearchFilterValues, value: string) => {
+    const updated = { ...filters, [key]: value }
+    setFilters(updated)
+    setHasSearched(true)
+
+    // Re-apply all filters client-side
+    const filtered = applyFilters(allDoctors, searchQuery, updated)
+    setSearchResults(filtered)
+    updateUrl(searchQuery, updated)
   }
 
   const handleClearFilters = () => {
+    const cleared: SearchFilterValues = { type: 'doctors', specialty: '', city: '', minRating: '', available: '' }
     setSearchQuery('')
-    setSpecialization('all')
+    setFilters(cleared)
     setSearchResults(allDoctors)
     setHasSearched(false)
+    router.replace('/search/doctors', { scroll: false })
   }
 
   const handleExampleClick = (example: string) => {
     setSearchQuery(example)
+  }
+
+  const handleHistoryClick = (entry: { query: string }) => {
+    setSearchQuery(entry.query)
+    setShowHistory(false)
+    // Trigger search
+    setTimeout(() => {
+      const btn = document.getElementById('doctor-search-btn')
+      if (btn) btn.click()
+    }, 50)
   }
 
   return (
@@ -247,53 +351,90 @@ export default function DoctorsSearchPage() {
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">Find Your Perfect Doctor</h1>
           <p className="text-xl text-blue-100">
-            AI-powered search to connect you with the best healthcare professionals in Mauritius
+            Search to connect you with the best healthcare professionals in Mauritius
           </p>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8 mt-15">
         {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
-            <div className="flex flex-col gap-4">
+            <form onSubmit={handleSearch} className="flex flex-col gap-4">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setShowHistory(true) }}
+                  onFocus={() => !searchQuery && setShowHistory(true)}
+                  onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                   placeholder="Describe what you are looking for (e.g., 'heart specialist', 'pediatrician near me', 'doctor for headaches')"
                   className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-lg"
                 />
                 <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
+                {/* Search History Dropdown */}
+                {showHistory && history.length > 0 && !searchQuery && (
+                  <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                      <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                        <FaHistory className="text-[10px]" />
+                        Recent Searches
+                      </span>
+                      <button
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => clearHistory()}
+                        className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
+                      >
+                        <FaTrash className="text-[10px]" />
+                        Clear
+                      </button>
+                    </div>
+                    {history.map((entry, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => handleHistoryClick(entry)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition text-sm text-gray-700 group"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FaHistory className="text-xs text-gray-300" />
+                          {entry.query}
+                        </span>
+                        <button
+                          type="button"
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={e => { e.stopPropagation(); removeFromHistory(entry.query) }}
+                          className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              
+
               <div className="flex flex-col md:flex-row gap-4">
                 <select
-                  value={specialization}
-                  onChange={(e) => setSpecialization(e.target.value)}
+                  value={filters.specialty}
+                  onChange={(e) => handleFilterChange('specialty', e.target.value)}
                   className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                 >
-                  <option value="all">All Specializations</option>
-                  <option value="cardiology">Cardiology</option>
-                  <option value="neurology">Neurology</option>
-                  <option value="pediatrics">Pediatrics</option>
-                  <option value="orthopedic">Orthopedic Surgery</option>
-                  <option value="dermatology">Dermatology</option>
-                  <option value="emergency">Emergency Medicine</option>
-                  <option value="dentistry">Dentistry</option>
-                  <option value="psychiatry">Psychiatry</option>
-                  <option value="gastroenterology">Gastroenterology</option>
-                  <option value="ophthalmology">Ophthalmology</option>
+                  {DOCTOR_SPECIALTIES.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
                 </select>
-                
-                <button 
-                  type="button"
-                  onClick={handleSearch}
-                  disabled={isSearching}
+
+                <button
+                  id="doctor-search-btn"
+                  type="submit"
+                  disabled={isLoading}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg disabled:opacity-50"
                 >
-                  {isSearching ? (
+                  {isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Searching...
@@ -306,8 +447,8 @@ export default function DoctorsSearchPage() {
                   )}
                 </button>
               </div>
-            </div>
-            
+            </form>
+
             {/* Search Examples */}
             {!hasSearched && (
               <div className="mt-6">
@@ -327,7 +468,7 @@ export default function DoctorsSearchPage() {
             )}
           </div>
         </div>
-        
+
         {/* Statistics (computed from actual data) */}
         {(() => {
           const avgRating = allDoctors.length > 0
@@ -362,39 +503,60 @@ export default function DoctorsSearchPage() {
             </div>
           )
         })()}
-        
-        {/* Results */}
-        <div className="mt-12">
-          {isLoading || isSearching ? (
-            <LoadingAnimation />
-          ) : searchResults.length > 0 ? (
-            <>
-              {hasSearched && (
-                <div className="mb-6 flex items-center justify-between">
-                  <p className="text-gray-600">
-                    Found <span className="font-semibold text-gray-900">{searchResults.length}</span> doctors matching your criteria
-                  </p>
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Clear filters
-                  </button>
+
+        {/* Filters + Results */}
+        <div className="flex flex-col lg:flex-row gap-6 mt-6">
+          <SearchFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearAll={handleClearFilters}
+            showTypes={['doctors']}
+            specialtyOptions={DOCTOR_SPECIALTIES}
+          />
+
+          <div className="flex-1 min-w-0">
+            {isLoading ? (
+              <SearchResultsSkeleton />
+            ) : searchResults.length > 0 ? (
+              <>
+                {hasSearched && (
+                  <div className="mb-6 flex items-center justify-between">
+                    <p className="text-gray-600">
+                      Found <span className="font-semibold text-gray-900">{searchResults.length}</span> doctors matching your criteria
+                    </p>
+                    <button
+                      onClick={handleClearFilters}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {searchResults.map((doctor) => (
+                    <DoctorCard key={doctor.id} doctor={doctor} />
+                  ))}
                 </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((doctor) => (
-                  <DoctorCard key={doctor.id} doctor={doctor} />
-                ))}
-              </div>
-            </>
-          ) : hasSearched ? (
-            <EmptyState onClear={handleClearFilters} />
-          ) : null}
+              </>
+            ) : hasSearched ? (
+              <NoResults query={searchQuery} onClear={handleClearFilters} />
+            ) : null}
+          </div>
         </div>
-        
       </div>
     </div>
+  )
+}
+
+export default function DoctorsSearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <DoctorsSearchContent />
+    </Suspense>
   )
 }

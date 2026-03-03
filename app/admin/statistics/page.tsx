@@ -100,7 +100,7 @@ export default function UserStatistics() {
               <h1 className="text-2xl font-bold text-gray-900">User & Visit Statistics</h1>
               <p className="text-gray-600">Analytics and growth metrics by category</p>
             </div>
-            <Link href="/admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+            <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
               Back to Dashboard
             </Link>
           </div>

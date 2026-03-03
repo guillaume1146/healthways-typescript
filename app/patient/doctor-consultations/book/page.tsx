@@ -200,7 +200,7 @@ export default function DoctorConsultationBooking() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/patient/dashboard" className="text-gray-600 hover:text-blue-600">
+            <Link href="/patient" className="text-gray-600 hover:text-blue-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
@@ -806,7 +806,7 @@ export default function DoctorConsultationBooking() {
                 <Link href="/patient/appointments" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-center">
                   View My Appointments
                 </Link>
-                <Link href="/patient/dashboard" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
+                <Link href="/patient" className="border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center">
                   Go to Dashboard
                 </Link>
               </div>

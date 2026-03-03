@@ -31,7 +31,7 @@ export default function SuperAdminNotFound() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
-            href="/super-admin/dashboard"
+            href="/super-admin"
             className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center"
           >
             Go to Dashboard

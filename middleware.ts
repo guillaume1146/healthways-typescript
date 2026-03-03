@@ -109,21 +109,21 @@ export async function middleware(request: NextRequest) {
 
 function getUserTypeRedirectPath(userType: string): string {
   const redirectPaths: Record<string, string> = {
-    'patient': '/patient/dashboard',
-    'doctor': '/doctor/dashboard',
-    'nurse': '/nurse/dashboard',
-    'child-care-nurse': '/nanny/dashboard',
-    'pharmacy': '/pharmacist/dashboard',
-    'lab': '/lab-technician/dashboard',
-    'ambulance': '/responder/dashboard',
-    'admin': '/admin/dashboard',
-    'corporate': '/corporate/dashboard',
-    'insurance': '/insurance/dashboard',
-    'referral-partner': '/referral-partner/dashboard',
-    'super-admin': '/super-admin/dashboard'
+    'patient': '/patient/feed',
+    'doctor': '/doctor/feed',
+    'nurse': '/nurse/feed',
+    'child-care-nurse': '/nanny/feed',
+    'pharmacy': '/pharmacist/feed',
+    'lab': '/lab-technician/feed',
+    'ambulance': '/responder/feed',
+    'admin': '/admin/feed',
+    'corporate': '/corporate/feed',
+    'insurance': '/insurance/feed',
+    'referral-partner': '/referral-partner/feed',
+    'super-admin': '/super-admin/feed'
   }
-  
-  return redirectPaths[userType] || '/dashboard'
+
+  return redirectPaths[userType] || '/'
 }
 
 export const config = {

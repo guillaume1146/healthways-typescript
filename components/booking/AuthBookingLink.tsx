@@ -21,8 +21,8 @@ export default function AuthBookingLink({ type, providerId, children, className 
   const router = useRouter()
 
   const bookingPath = type === 'emergency'
-    ? '/patient/dashboard/book/emergency'
-    : `/patient/dashboard/book/${type}/${providerId}`
+    ? '/patient/book/emergency'
+    : `/patient/book/${type}/${providerId}`
 
   const handleClick = useCallback(() => {
     const userType = getCookie('healthwyz_userType')

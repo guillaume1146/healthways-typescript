@@ -55,7 +55,7 @@ const LoginForm: React.FC = () => {
       localStorage.setItem('healthwyz_user', JSON.stringify(data.user))
 
       // Redirect to the user's dashboard (auto-detected from their role)
-      router.push(data.redirectPath || '/patient/dashboard')
+      router.push(data.redirectPath || '/patient')
     } catch {
       setError('Network error. Please try again.')
       setIsSubmitting(false)

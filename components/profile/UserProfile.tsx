@@ -22,7 +22,16 @@ import {
   FaSpinner,
 } from 'react-icons/fa'
 import Link from 'next/link'
-import PdfViewer from '@/components/shared/PdfViewer'
+import dynamic from 'next/dynamic'
+
+const PdfViewer = dynamic(() => import('@/components/shared/PdfViewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+    </div>
+  ),
+})
 
 /* ─── Interfaces ─────────────────────────────────────────────────────────── */
 
@@ -933,7 +942,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
             {userData.profileImage ? (
-              <img src={userData.profileImage} alt="Profile photo" className="w-20 h-20 rounded-full object-cover" />
+              <img src={userData.profileImage} alt={`${userData.firstName || ''} ${userData.lastName || ''} profile photo`} className="w-20 h-20 rounded-full object-cover" loading="lazy" />
             ) : (
               `${userData.firstName?.[0] || ''}${userData.lastName?.[0] || ''}`
             )}

@@ -61,7 +61,7 @@ const AdminManagementPage = () => {
             <h1 className="text-2xl font-bold text-gray-900">Admin Management</h1>
             <p className="text-gray-600">Approve, manage, and monitor all admin accounts.</p>
           </div>
-          <Link href="/super-admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">Back to Dashboard</Link>
+          <Link href="/super-admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">Back to Dashboard</Link>
         </div>
       </header>
 

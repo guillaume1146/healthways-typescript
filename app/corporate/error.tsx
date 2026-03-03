@@ -51,7 +51,7 @@ export default function CorporateError({
             Go Back
           </button>
           <Link
-            href="/corporate/dashboard"
+            href="/corporate"
             className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-center"
           >
             Dashboard

@@ -35,7 +35,7 @@ export default function AnalyticsPage() {
                 </option>
               ))}
             </select>
-            <Link href="/super-admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-100">
+            <Link href="/super-admin" className="px-4 py-2 border rounded-lg hover:bg-gray-100">
               Back to Dashboard
             </Link>
           </div>

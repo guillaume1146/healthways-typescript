@@ -71,6 +71,9 @@ export const registerSchema = z.object({
     verified: z.boolean(),
     confidence: z.number(),
   })).optional().default([]),
+
+  // Document IDs the user chose to provide later
+  skippedDocuments: z.array(z.string()).optional().default([]),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],

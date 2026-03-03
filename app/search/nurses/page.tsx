@@ -2,12 +2,17 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { type Nurse } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import SearchFilters, { type SearchFilterValues } from '@/components/search/SearchFilters'
+import { SearchResultsSkeleton, NoResults } from '@/components/search/SearchResults'
+import { useSearchHistory } from '@/hooks/useSearchHistory'
 import {
-  FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock,  FaShieldAlt,
+  FaSearch, FaUserNurse, FaStar, FaMapMarkerAlt, FaClock, FaShieldAlt,
   FaVideo, FaHome, FaLanguage, FaCheckCircle, FaExclamationCircle,
+  FaHistory, FaTimes, FaTrash,
 } from 'react-icons/fa'
 
 interface NurseProps {
@@ -21,10 +26,10 @@ const NurseCard = ({ nurse }: NurseProps) => {
         {/* Nurse Header */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
-            <Image 
-              src={nurse.profileImage} 
+            <Image
+              src={nurse.profileImage}
               alt={`${nurse.firstName} ${nurse.lastName}`}
-              width={80} 
+              width={80}
               height={80}
               className="rounded-full object-cover border-4 border-blue-100"
             />
@@ -41,12 +46,12 @@ const NurseCard = ({ nurse }: NurseProps) => {
             <p className="text-blue-600 font-medium mb-2">
               {nurse.specialization.join(', ')}
             </p>
-            
+
             {/* Type Badge */}
             <div className="mb-2">
               <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                nurse.type === 'Registered Nurse' 
-                  ? 'bg-purple-100 text-purple-700' 
+                nurse.type === 'Registered Nurse'
+                  ? 'bg-purple-100 text-purple-700'
                   : nurse.type === 'Licensed Practical Nurse'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-blue-100 text-blue-700'
@@ -54,7 +59,7 @@ const NurseCard = ({ nurse }: NurseProps) => {
                 {nurse.type}
               </span>
             </div>
-            
+
             {/* Rating */}
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center text-yellow-500">
@@ -104,7 +109,7 @@ const NurseCard = ({ nurse }: NurseProps) => {
               </div>
             )}
           </div>
-          
+
           {/* Emergency Available - Fixed height container */}
           <div className="mt-2 h-10 flex items-center">
             {nurse.emergencyAvailable && (
@@ -145,7 +150,7 @@ const NurseCard = ({ nurse }: NurseProps) => {
               </div>
             )}
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4 border-t border-gray-100">
             <Link href={`/search/nurses/${nurse.id}`} className="flex-1">
@@ -163,43 +168,65 @@ const NurseCard = ({ nurse }: NurseProps) => {
   )
 }
 
-const LoadingAnimation = () => (
-  <div className="flex justify-center items-center py-12">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-3 text-gray-600">Finding the best nurses for you...</span>
-  </div>
-)
+const NURSE_SPECIALTIES = [
+  { value: '', label: 'All Specializations' },
+  { value: 'elderly', label: 'Elderly Care' },
+  { value: 'post-surgery', label: 'Post-Surgery Care' },
+  { value: 'child', label: 'Child Care' },
+  { value: 'icu', label: 'ICU Care' },
+  { value: 'mental-health', label: 'Mental Health' },
+  { value: 'cancer', label: 'Cancer Care' },
+  { value: 'cardiac', label: 'Cardiac Care' },
+  { value: 'maternity', label: 'Labor & Delivery' },
+  { value: 'rehabilitation', label: 'Rehabilitation' },
+  { value: 'emergency', label: 'Emergency Care' },
+]
 
-const EmptyState = ({ onClear }: { onClear: () => void }) => (
-  <div className="text-center py-12">
-    <FaUserNurse className="text-6xl text-gray-300 mx-auto mb-4" />
-    <h3 className="text-xl font-semibold text-gray-700 mb-2">No nurses found</h3>
-    <p className="text-gray-600 mb-6">Try adjusting your search criteria or browse all available nurses</p>
-    <button 
-      onClick={onClear}
-      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-    >
-      View All Nurses
-    </button>
-  </div>
-)
+function NursesSearchContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
-export default function NursesSearchPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [specialization, setSpecialization] = useState('all')
-  const [isSearching, setIsSearching] = useState(false)
+  const initialQuery = searchParams.get('q') || ''
+  const initialSpecialty = searchParams.get('specialization') || searchParams.get('specialty') || ''
+  const initialCity = searchParams.get('city') || ''
+  const initialMinRating = searchParams.get('minRating') || ''
+  const initialAvailable = searchParams.get('available') || ''
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [filters, setFilters] = useState<SearchFilterValues>({
+    type: 'nurses',
+    specialty: initialSpecialty,
+    city: initialCity,
+    minRating: initialMinRating,
+    available: initialAvailable,
+  })
+  const [isLoading, setIsLoading] = useState(true)
   const [searchResults, setSearchResults] = useState<Nurse[]>([])
   const [allNurses, setAllNurses] = useState<Nurse[]>([])
-  const [hasSearched, setHasSearched] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchExamples] = useState([
+  const [hasSearched, setHasSearched] = useState(!!initialQuery || !!initialSpecialty)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory()
+
+  const searchExamples = [
     "Find elderly care nurse near me",
     "I need post-surgery care nurse",
     "Looking for pediatric nurse",
     "ICU nurse for critical care",
     "Nurse who speaks French",
     "Home visit nurse available"
-  ])
+  ]
+
+  const updateUrl = useCallback((q: string, f: SearchFilterValues) => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (f.specialty) params.set('specialization', f.specialty)
+    if (f.city) params.set('city', f.city)
+    if (f.minRating) params.set('minRating', f.minRating)
+    if (f.available) params.set('available', f.available)
+    const qs = params.toString()
+    router.replace(`/search/nurses${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [router])
 
   const fetchNurses = useCallback(async (query = '', spec = '') => {
     const params = new URLSearchParams()
@@ -211,30 +238,97 @@ export default function NursesSearchPage() {
   }, [])
 
   useEffect(() => {
-    fetchNurses().then((data) => {
+    fetchNurses(initialQuery, initialSpecialty).then((data: Nurse[]) => {
       setAllNurses(data)
-      setSearchResults(data)
+      let filtered = data
+      if (initialCity) {
+        filtered = filtered.filter(n => n.location.toLowerCase().includes(initialCity.toLowerCase()))
+      }
+      if (initialMinRating) {
+        const min = parseFloat(initialMinRating)
+        filtered = filtered.filter(n => n.rating >= min)
+      }
+      setSearchResults(filtered)
       setIsLoading(false)
     })
-  }, [fetchNurses])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const handleSearch = async () => {
-    setIsSearching(true)
+  const applyFilters = useCallback((nurses: Nurse[], q: string, f: SearchFilterValues) => {
+    let filtered = nurses
+    if (q) {
+      const lq = q.toLowerCase()
+      filtered = filtered.filter(n =>
+        n.firstName.toLowerCase().includes(lq) ||
+        n.lastName.toLowerCase().includes(lq) ||
+        n.specialization.some(s => s.toLowerCase().includes(lq)) ||
+        n.location.toLowerCase().includes(lq) ||
+        n.bio.toLowerCase().includes(lq)
+      )
+    }
+    if (f.specialty) {
+      filtered = filtered.filter(n =>
+        n.specialization.some(s => s.toLowerCase().includes(f.specialty.toLowerCase()))
+      )
+    }
+    if (f.city) {
+      filtered = filtered.filter(n => n.location.toLowerCase().includes(f.city.toLowerCase()))
+    }
+    if (f.minRating) {
+      const min = parseFloat(f.minRating)
+      filtered = filtered.filter(n => n.rating >= min)
+    }
+    return filtered
+  }, [])
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    setIsLoading(true)
     setHasSearched(true)
-    const results = await fetchNurses(searchQuery, specialization)
-    setSearchResults(results)
-    setIsSearching(false)
+    setShowHistory(false)
+
+    const data = await fetchNurses(searchQuery, filters.specialty)
+    setAllNurses(data)
+    const filtered = applyFilters(data, searchQuery, filters)
+    setSearchResults(filtered)
+    setIsLoading(false)
+    updateUrl(searchQuery, filters)
+
+    if (searchQuery.trim()) {
+      addToHistory(searchQuery, 'nurses')
+    }
+  }
+
+  const handleFilterChange = (key: keyof SearchFilterValues, value: string) => {
+    const updated = { ...filters, [key]: value }
+    setFilters(updated)
+    setHasSearched(true)
+
+    const filtered = applyFilters(allNurses, searchQuery, updated)
+    setSearchResults(filtered)
+    updateUrl(searchQuery, updated)
   }
 
   const handleClearFilters = () => {
+    const cleared: SearchFilterValues = { type: 'nurses', specialty: '', city: '', minRating: '', available: '' }
     setSearchQuery('')
-    setSpecialization('all')
+    setFilters(cleared)
     setSearchResults(allNurses)
     setHasSearched(false)
+    router.replace('/search/nurses', { scroll: false })
   }
 
   const handleExampleClick = (example: string) => {
     setSearchQuery(example)
+  }
+
+  const handleHistoryClick = (entry: { query: string }) => {
+    setSearchQuery(entry.query)
+    setShowHistory(false)
+    setTimeout(() => {
+      const btn = document.getElementById('nurse-search-btn')
+      if (btn) btn.click()
+    }, 50)
   }
 
   return (
@@ -244,53 +338,90 @@ export default function NursesSearchPage() {
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">Find Your Perfect Nurse</h1>
           <p className="text-xl text-blue-100">
-            AI-powered search to connect you with the best nursing professionals in Mauritius
+            Search to connect you with the best nursing professionals in Mauritius
           </p>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8 mt-15">
         {/* Search Form */}
         <div className="max-w-4xl mx-auto -mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
-            <div className="flex flex-col gap-4">
+            <form onSubmit={handleSearch} className="flex flex-col gap-4">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setShowHistory(true) }}
+                  onFocus={() => !searchQuery && setShowHistory(true)}
+                  onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                   placeholder="Describe what you are looking for (e.g., 'elderly care nurse', 'post-surgery care', 'pediatric nurse')"
                   className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-lg"
                 />
                 <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
+                {/* Search History Dropdown */}
+                {showHistory && history.length > 0 && !searchQuery && (
+                  <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                      <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                        <FaHistory className="text-[10px]" />
+                        Recent Searches
+                      </span>
+                      <button
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => clearHistory()}
+                        className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
+                      >
+                        <FaTrash className="text-[10px]" />
+                        Clear
+                      </button>
+                    </div>
+                    {history.map((entry, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => handleHistoryClick(entry)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition text-sm text-gray-700 group"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FaHistory className="text-xs text-gray-300" />
+                          {entry.query}
+                        </span>
+                        <button
+                          type="button"
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={e => { e.stopPropagation(); removeFromHistory(entry.query) }}
+                          className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              
+
               <div className="flex flex-col md:flex-row gap-4">
                 <select
-                  value={specialization}
-                  onChange={(e) => setSpecialization(e.target.value)}
+                  value={filters.specialty}
+                  onChange={(e) => handleFilterChange('specialty', e.target.value)}
                   className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                 >
-                  <option value="all">All Specializations</option>
-                  <option value="elderly">Elderly Care</option>
-                  <option value="post-surgery">Post-Surgery Care</option>
-                  <option value="child">Child Care</option>
-                  <option value="icu">ICU Care</option>
-                  <option value="mental-health">Mental Health</option>
-                  <option value="cancer">Cancer Care</option>
-                  <option value="cardiac">Cardiac Care</option>
-                  <option value="maternity">Labor & Delivery</option>
-                  <option value="rehabilitation">Rehabilitation</option>
-                  <option value="emergency">Emergency Care</option>
+                  {NURSE_SPECIALTIES.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
                 </select>
-                
-                <button 
-                  type="button"
-                  onClick={handleSearch}
-                  disabled={isSearching}
+
+                <button
+                  id="nurse-search-btn"
+                  type="submit"
+                  disabled={isLoading}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg disabled:opacity-50"
                 >
-                  {isSearching ? (
+                  {isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Searching...
@@ -303,8 +434,8 @@ export default function NursesSearchPage() {
                   )}
                 </button>
               </div>
-            </div>
-            
+            </form>
+
             {/* Search Examples */}
             {!hasSearched && (
               <div className="mt-6">
@@ -324,7 +455,7 @@ export default function NursesSearchPage() {
             )}
           </div>
         </div>
-        
+
         {/* Statistics (computed from actual data) */}
         {(() => {
           const avgRating = allNurses.length > 0
@@ -359,39 +490,60 @@ export default function NursesSearchPage() {
             </div>
           )
         })()}
-        
-        {/* Results */}
-        <div className="mt-12">
-          {isLoading || isSearching ? (
-            <LoadingAnimation />
-          ) : searchResults.length > 0 ? (
-            <>
-              {hasSearched && (
-                <div className="mb-6 flex items-center justify-between">
-                  <p className="text-gray-600">
-                    Found <span className="font-semibold text-gray-900">{searchResults.length}</span> nurses matching your criteria
-                  </p>
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Clear filters
-                  </button>
+
+        {/* Filters + Results */}
+        <div className="flex flex-col lg:flex-row gap-6 mt-6">
+          <SearchFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearAll={handleClearFilters}
+            showTypes={['nurses']}
+            specialtyOptions={NURSE_SPECIALTIES}
+          />
+
+          <div className="flex-1 min-w-0">
+            {isLoading ? (
+              <SearchResultsSkeleton />
+            ) : searchResults.length > 0 ? (
+              <>
+                {hasSearched && (
+                  <div className="mb-6 flex items-center justify-between">
+                    <p className="text-gray-600">
+                      Found <span className="font-semibold text-gray-900">{searchResults.length}</span> nurses matching your criteria
+                    </p>
+                    <button
+                      onClick={handleClearFilters}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {searchResults.map((nurse) => (
+                    <NurseCard key={nurse.id} nurse={nurse} />
+                  ))}
                 </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((nurse) => (
-                  <NurseCard key={nurse.id} nurse={nurse} />
-                ))}
-              </div>
-            </>
-          ) : hasSearched ? (
-            <EmptyState onClear={handleClearFilters} />
-          ) : null}
+              </>
+            ) : hasSearched ? (
+              <NoResults query={searchQuery} onClear={handleClearFilters} />
+            ) : null}
+          </div>
         </div>
-        
       </div>
     </div>
+  )
+}
+
+export default function NursesSearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <NursesSearchContent />
+    </Suspense>
   )
 }

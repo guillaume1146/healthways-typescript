@@ -1,4 +1,4 @@
-import { FaUpload, FaCheck, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa'
+import { FaUpload, FaCheck, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSpinner, FaClock } from 'react-icons/fa'
 import { Document } from './types'
 import type { DocumentVerificationStatus } from './hooks/useDocumentVerification'
 
@@ -6,10 +6,11 @@ interface DocumentUploadStepProps {
   documents: Document[];
   onFileUpload: (documentId: string, file: File) => void;
   onRemoveFile: (documentId: string) => void;
+  onSkipDocument: (documentId: string, skipped: boolean) => void;
   verificationResults?: Record<string, DocumentVerificationStatus>;
 }
 
-export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFile, verificationResults = {} }: DocumentUploadStepProps) {
+export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFile, onSkipDocument, verificationResults = {} }: DocumentUploadStepProps) {
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
@@ -24,29 +25,62 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
 
       <div className="space-y-6">
         {documents.map((doc) => (
-          <div key={doc.id} className={`border-2 rounded-xl p-6 ${doc.required ? 'border-red-200' : 'border-gray-200'}`}>
+          <div key={doc.id} className={`border-2 rounded-xl p-6 transition-colors ${
+            doc.skipped
+              ? 'border-gray-200 bg-gray-50/50'
+              : doc.required
+                ? 'border-red-200'
+                : 'border-gray-200'
+          }`}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-bold text-lg text-gray-900">{doc.name}</h3>
-                  {doc.required && (
+                  <h3 className={`font-bold text-lg ${doc.skipped ? 'text-gray-400' : 'text-gray-900'}`}>{doc.name}</h3>
+                  {doc.required && !doc.skipped && (
                     <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">
                       Required
                     </span>
                   )}
-                  {doc.uploaded && (
+                  {doc.skipped && (
+                    <span className="bg-amber-50 text-amber-600 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                      <FaClock className="text-xs" />
+                      Deferred
+                    </span>
+                  )}
+                  {doc.uploaded && !doc.skipped && (
                     <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
                       <FaCheck className="text-xs" />
                       Uploaded
                     </span>
                   )}
                 </div>
-                <p className="text-gray-600 text-sm mb-2">{doc.description}</p>
-                <p className="text-gray-500 text-xs">Accepted formats: {doc.accepted}</p>
+                <p className={`text-sm mb-2 ${doc.skipped ? 'text-gray-400' : 'text-gray-600'}`}>{doc.description}</p>
+                <p className={`text-xs ${doc.skipped ? 'text-gray-300' : 'text-gray-500'}`}>Accepted formats: {doc.accepted}</p>
               </div>
             </div>
 
-            {doc.uploaded && doc.file ? (
+            {/* "I'll provide this later" option for required documents */}
+            {doc.required && (
+              <label className="flex items-center gap-2 mb-4 cursor-pointer group select-none">
+                <input
+                  type="checkbox"
+                  checked={doc.skipped || false}
+                  onChange={(e) => onSkipDocument(doc.id, e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-xs text-gray-400 group-hover:text-gray-500 transition-colors">
+                  I&apos;ll provide this later
+                </span>
+              </label>
+            )}
+
+            {doc.skipped ? (
+              <div className="border border-dashed border-gray-200 rounded-lg p-4 text-center">
+                <p className="text-gray-400 text-sm">
+                  You can upload this document from your account settings after registration.
+                </p>
+              </div>
+            ) : doc.uploaded && doc.file ? (
               <div>
                 <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center gap-3">
@@ -119,11 +153,11 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
       {/* Upload Progress Summary */}
       <div className="mt-8 bg-gray-50 rounded-xl p-6">
         <h3 className="font-bold text-gray-900 mb-4">Upload Progress</h3>
-        <div className="grid md:grid-cols-2 gap-4 text-sm">
+        <div className="grid md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="text-gray-600">Required Documents:</span>
             <span className="font-medium ml-2">
-              {documents.filter(doc => doc.required && doc.uploaded).length} / {documents.filter(doc => doc.required).length}
+              {documents.filter(doc => doc.required && doc.uploaded && !doc.skipped).length} / {documents.filter(doc => doc.required).length}
             </span>
           </div>
           <div>
@@ -132,24 +166,46 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
               {documents.filter(doc => !doc.required && doc.uploaded).length} / {documents.filter(doc => !doc.required).length}
             </span>
           </div>
+          {documents.some(doc => doc.skipped) && (
+            <div>
+              <span className="text-amber-600">Deferred:</span>
+              <span className="font-medium text-amber-600 ml-2">
+                {documents.filter(doc => doc.skipped).length}
+              </span>
+            </div>
+          )}
         </div>
-        
+
         <div className="mt-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-600">Required Documents Progress</span>
             <span className="font-medium">
-              {Math.round((documents.filter(doc => doc.required && doc.uploaded).length / documents.filter(doc => doc.required).length) * 100) || 0}%
+              {Math.round(
+                (documents.filter(doc => doc.required && (doc.uploaded || doc.skipped)).length /
+                  Math.max(documents.filter(doc => doc.required).length, 1)) * 100
+              )}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ 
-                width: `${(documents.filter(doc => doc.required && doc.uploaded).length / documents.filter(doc => doc.required).length) * 100 || 0}%` 
+              style={{
+                width: `${(documents.filter(doc => doc.required && (doc.uploaded || doc.skipped)).length / Math.max(documents.filter(doc => doc.required).length, 1)) * 100}%`
               }}
             />
           </div>
         </div>
+
+        {/* Info about deferred documents */}
+        {documents.some(doc => doc.skipped) && (
+          <div className="mt-4 flex items-start gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">
+            <FaClock className="mt-0.5 flex-shrink-0" />
+            <span>
+              Deferred documents can be uploaded from your account settings after registration.
+              Your account will remain in pending status until all required documents are provided.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

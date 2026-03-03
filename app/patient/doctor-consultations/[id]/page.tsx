@@ -119,7 +119,7 @@ export default function PatientTeleconsultationPage() {
 
   const handleEndCall = () => {
     setShowEndCallConfirm(false)
-    window.location.href = "/patient/dashboard"
+    window.location.href = "/patient"
   }
 
   if (connectionStatus === "connecting") {

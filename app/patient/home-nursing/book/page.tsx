@@ -189,7 +189,7 @@ export default function NurseBookingPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/patient/dashboard" className="text-gray-600 hover:text-primary-blue">
+              <Link href="/patient" className="text-gray-600 hover:text-primary-blue">
                 <FaArrowLeft className="text-xl" />
               </Link>
               <div>

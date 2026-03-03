@@ -73,18 +73,22 @@ export async function POST(request: NextRequest) {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
 
     // ── Determine account status ───────────────────────────────────────────
-    // Patients are activated immediately.
+    // Patients are activated immediately (unless they skipped required documents).
     // Professional types with all documents OCR-verified (≥70% confidence) are auto-activated.
     // Corporate and regional-admin always require manual approval.
+    // Users who skipped required documents are set to pending.
     const requiresManualApproval = prismaUserType === UserType.CORPORATE_ADMIN || prismaUserType === UserType.REGIONAL_ADMIN
+    const hasSkippedDocuments = data.skippedDocuments.length > 0
     const allDocsVerified = data.documentVerifications.length > 0 &&
       data.documentVerifications.every(v => v.verified && v.confidence >= 70)
 
-    const accountStatus = prismaUserType === UserType.PATIENT
-      ? 'active'
-      : (allDocsVerified && !requiresManualApproval)
+    const accountStatus = hasSkippedDocuments
+      ? 'pending'
+      : prismaUserType === UserType.PATIENT
         ? 'active'
-        : 'pending'
+        : (allDocsVerified && !requiresManualApproval)
+          ? 'active'
+          : 'pending'
 
     // ── Create User + profile in a single transaction ──────────────────────
     const user = await prisma.$transaction(async (tx) => {
@@ -280,7 +284,9 @@ export async function POST(request: NextRequest) {
 
     // ── Return success ─────────────────────────────────────────────────────
     let message: string
-    if (accountStatus === 'active') {
+    if (hasSkippedDocuments) {
+      message = 'Registration submitted. Please upload your remaining documents from your account settings to complete verification.'
+    } else if (accountStatus === 'active') {
       message = prismaUserType === UserType.PATIENT
         ? 'Registration successful. You can now log in.'
         : 'Registration successful. Your documents were verified — you can log in immediately.'
@@ -291,7 +297,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, userId: user.id, accountStatus, message },
+      { success: true, userId: user.id, accountStatus, hasSkippedDocuments, message },
       { status: 201 }
     )
   } catch (error) {

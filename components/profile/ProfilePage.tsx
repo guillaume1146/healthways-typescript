@@ -390,7 +390,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
           <div className="absolute -top-16 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0">
             <div className="w-32 h-32 rounded-full ring-4 ring-white bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden shadow-lg">
               {userData.profileImage ? (
-                <img src={userData.profileImage} alt="Profile" className="w-32 h-32 rounded-full object-cover" />
+                <img src={userData.profileImage} alt={`${userData.firstName || ''} ${userData.lastName || ''} profile photo`} className="w-32 h-32 rounded-full object-cover" loading="lazy" />
               ) : (
                 getInitials()
               )}

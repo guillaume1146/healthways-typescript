@@ -106,7 +106,7 @@ export default function ProfileManagement() {
               <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                 <FaDownload /> Export Data
               </button>
-              <Link href="/admin/dashboard" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
                 Back to Dashboard
               </Link>
             </div>

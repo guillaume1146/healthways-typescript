@@ -255,9 +255,10 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
             </div>
             <button
               onClick={toggleFullscreen}
-              className="text-white hover:text-gray-300 transition hidden sm:block"
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              className="text-white hover:text-gray-300 transition hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
             >
-              {isFullscreen ? <FaCompress /> : <FaExpand />}
+              {isFullscreen ? <FaCompress aria-hidden="true" /> : <FaExpand aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -354,59 +355,64 @@ const VideoCallRoom: React.FC<VideoCallRoomProps> = ({
           <div className="flex items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={onToggleMic}
-              className={`p-3 sm:p-4 rounded-full transition-all ${
+              aria-label={isMicOn ? 'Mute microphone' : 'Unmute microphone'}
+              className={`p-3 sm:p-4 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isMicOn
                   ? 'bg-gray-700/80 hover:bg-gray-600/80'
                   : 'bg-red-500/80 hover:bg-red-600/80'
               }`}
             >
               {isMicOn ? (
-                <FaMicrophone className="text-white text-lg sm:text-xl" />
+                <FaMicrophone className="text-white text-lg sm:text-xl" aria-hidden="true" />
               ) : (
-                <FaMicrophoneSlash className="text-white text-lg sm:text-xl" />
+                <FaMicrophoneSlash className="text-white text-lg sm:text-xl" aria-hidden="true" />
               )}
             </button>
 
             <button
               onClick={onToggleVideo}
-              className={`p-3 sm:p-4 rounded-full transition-all ${
+              aria-label={isVideoOn ? 'Turn off camera' : 'Turn on camera'}
+              className={`p-3 sm:p-4 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isVideoOn
                   ? 'bg-gray-700/80 hover:bg-gray-600/80'
                   : 'bg-red-500/80 hover:bg-red-600/80'
               }`}
             >
               {isVideoOn ? (
-                <FaVideo className="text-white text-lg sm:text-xl" />
+                <FaVideo className="text-white text-lg sm:text-xl" aria-hidden="true" />
               ) : (
-                <FaVideoSlash className="text-white text-lg sm:text-xl" />
+                <FaVideoSlash className="text-white text-lg sm:text-xl" aria-hidden="true" />
               )}
             </button>
 
             <button
               onClick={onToggleScreenShare}
-              className={`hidden sm:block p-3 sm:p-4 rounded-full transition-all ${
+              aria-label={isScreenSharing ? 'Stop screen sharing' : 'Share screen'}
+              className={`hidden sm:block p-3 sm:p-4 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isScreenSharing
                   ? 'bg-blue-500/80 hover:bg-blue-600/80'
                   : 'bg-gray-700/80 hover:bg-gray-600/80'
               }`}
             >
-              <FaDesktop className="text-white text-lg sm:text-xl" />
+              <FaDesktop className="text-white text-lg sm:text-xl" aria-hidden="true" />
             </button>
 
             {onToggleChat && (
               <button
                 onClick={onToggleChat}
-                className="p-3 sm:p-4 rounded-full bg-gray-700/80 hover:bg-gray-600/80 transition-all"
+                aria-label="Toggle chat"
+                className="p-3 sm:p-4 rounded-full bg-gray-700/80 hover:bg-gray-600/80 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               >
-                <FaComments className="text-white text-lg sm:text-xl" />
+                <FaComments className="text-white text-lg sm:text-xl" aria-hidden="true" />
               </button>
             )}
 
             <button
               onClick={onEndCall}
-              className="p-3 sm:p-4 rounded-full bg-red-500 hover:bg-red-600 transition-all ml-2 sm:ml-4"
+              aria-label="End call"
+              className="p-3 sm:p-4 rounded-full bg-red-500 hover:bg-red-600 transition-all ml-2 sm:ml-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
-              <FaPhone className="text-white text-lg sm:text-xl transform rotate-135" />
+              <FaPhone className="text-white text-lg sm:text-xl transform rotate-135" aria-hidden="true" />
             </button>
           </div>
         </div>
