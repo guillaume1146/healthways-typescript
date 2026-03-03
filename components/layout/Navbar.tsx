@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import {  
-  FaHome,  
-  FaUserMd,  
-  FaPills, 
-  FaRobot, 
-  FaPhone, 
-  FaSearch, 
-  FaBars, 
+import {
+  FaHome,
+  FaUserMd,
+  FaPills,
+  FaRobot,
+  FaPhone,
+  FaBars,
   FaTimes,
   FaInfoCircle,
   FaUserNurse,
@@ -21,6 +20,7 @@ import {
 } from 'react-icons/fa'
 
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
+import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 
 const serviceCategories = {
   'Healthcare Services': [
@@ -41,7 +41,6 @@ const serviceCategories = {
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const [searchQuery, setSearchQuery] = useState<string>('')
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
@@ -49,17 +48,12 @@ const Navbar: React.FC = () => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640)
     }
-    
+
     handleResize()
     window.addEventListener('resize', handleResize)
 
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: implement search navigation
-  }
 
   const toggleDropdown = (category: string) => {
     setActiveDropdown(activeDropdown === category ? null : category)
@@ -138,18 +132,9 @@ const Navbar: React.FC = () => {
           {/* Search and Auth - Responsive */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Search - Hidden on smaller screens, shown on medium+ */}
-            <form onSubmit={handleSearch} className="relative hidden lg:block">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search diseases, symptoms..."
-                className="pl-4 pr-10 py-2.5 border-2 border-gray-200 rounded-full w-48 xl:w-64 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
-              />
-              <button type="submit" className="absolute right-3 top-3">
-                <FaSearch className="text-gray-400 hover:text-blue-600 transition-colors" />
-              </button>
-            </form>
+            <div className="hidden lg:block w-48 xl:w-64">
+              <SearchAutocomplete variant="navbar" placeholder="Search doctors, medicines..." />
+            </div>
             
             {/* Auth Buttons with Blue-Green Gradient */}
             <Link 
@@ -182,18 +167,7 @@ const Navbar: React.FC = () => {
             <div className="py-4 border-t border-gray-200">
               {/* Mobile Search */}
               <div className="px-2 mb-4">
-                <form onSubmit={handleSearch} className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search diseases, symptoms..."
-                    className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-full focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
-                  <button type="submit" className="absolute right-3 top-3.5">
-                    <FaSearch className="text-gray-400" />
-                  </button>
-                </form>
+                <SearchAutocomplete variant="navbar" placeholder="Search doctors, medicines..." />
               </div>
 
               {/* Navigation Links */}

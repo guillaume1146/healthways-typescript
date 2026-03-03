@@ -6,7 +6,14 @@ export async function POST(request: NextRequest) {
   const limited = rateLimitAuth(request)
   if (limited) return limited
 
-  const response = NextResponse.json({ success: true, message: 'Logged out' })
-  clearAuthCookies(response)
-  return response
+  try {
+    const response = NextResponse.json({ success: true, message: 'Logged out' })
+    clearAuthCookies(response)
+    return response
+  } catch {
+    return NextResponse.json(
+      { success: false, message: 'Logout failed' },
+      { status: 500 }
+    )
+  }
 }

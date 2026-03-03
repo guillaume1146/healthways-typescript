@@ -3,11 +3,8 @@ import { z } from 'zod'
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  userType: z.enum([
-    'patient', 'doctor', 'nurse', 'child-care-nurse',
-    'pharmacy', 'lab', 'ambulance', 'admin',
-    'corporate', 'insurance', 'referral-partner',
-  ]),
+  // userType is no longer required — the API auto-detects from the database
+  userType: z.string().optional(),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>

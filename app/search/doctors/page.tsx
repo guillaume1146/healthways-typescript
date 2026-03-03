@@ -328,29 +328,40 @@ export default function DoctorsSearchPage() {
           </div>
         </div>
         
-        {/* Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
-            <FaUserMd className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{allDoctors.length}+</p>
-            <p className="text-sm text-gray-600">Verified Doctors</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
-            <FaStar className="text-3xl text-yellow-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">4.8</p>
-            <p className="text-sm text-gray-600">Average Rating</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
-            <FaShieldAlt className="text-3xl text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">100%</p>
-            <p className="text-sm text-gray-600">Verified & Licensed</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-orange-100">
-            <FaCheckCircle className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">95%</p>
-            <p className="text-sm text-gray-600">Patient Satisfaction</p>
-          </div>
-        </div>
+        {/* Statistics (computed from actual data) */}
+        {(() => {
+          const avgRating = allDoctors.length > 0
+            ? (allDoctors.reduce((sum, d) => sum + (d.rating || 0), 0) / allDoctors.length).toFixed(1)
+            : '0.0'
+          const verifiedPct = allDoctors.length > 0
+            ? Math.round((allDoctors.filter(d => d.verified).length / allDoctors.length) * 100)
+            : 0
+          const totalReviews = allDoctors.reduce((sum, d) => sum + (d.reviews || 0), 0)
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
+                <FaUserMd className="text-3xl text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{allDoctors.length}</p>
+                <p className="text-sm text-gray-600">Verified Doctors</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
+                <FaStar className="text-3xl text-yellow-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{avgRating}</p>
+                <p className="text-sm text-gray-600">Average Rating</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
+                <FaShieldAlt className="text-3xl text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{verifiedPct}%</p>
+                <p className="text-sm text-gray-600">Verified & Licensed</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-orange-100">
+                <FaCheckCircle className="text-3xl text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{totalReviews.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Patient Reviews</p>
+              </div>
+            </div>
+          )
+        })()}
         
         {/* Results */}
         <div className="mt-12">

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { FaSearch } from 'react-icons/fa'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useAppConfig } from '@/hooks/useAppConfig'
+import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 
 // Corrected Mauritius Flag Component - Horizontal orientation (static)
 const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
@@ -37,14 +37,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { config } = useAppConfig()
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: implement search navigation
-  }
 
   const defaultHeroImages = [
     {
@@ -201,28 +195,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
               {content?.subtitle || 'Connect with qualified doctors, get AI-powered health insights, and access medicines across Mauritius. Your trusted healthcare companion.'}
             </motion.p>
             
-            {/* Search Form - Responsive */}
-            <motion.form 
+            {/* Search with Autocomplete */}
+            <motion.div
               variants={itemVariants}
-              onSubmit={handleSearch} 
-              className="bg-white/10 backdrop-blur-md rounded-xl p-1.5 sm:p-2 flex items-center w-full max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 shadow-2xl border border-white/20"
+              className="w-full max-w-2xl mx-auto lg:mx-0 mb-6 sm:mb-8"
             >
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={content?.searchPlaceholder || "Search doctors, diseases..."}
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 outline-none rounded-l-xl text-sm sm:text-base bg-white/90"
+              <SearchAutocomplete
+                variant="hero"
+                placeholder={content?.searchPlaceholder || "Search doctors, medicines, nurses..."}
               />
-              <button
-                type="submit"
-                className="px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2 rounded-r-xl text-sm sm:text-base text-white font-medium transition-transform hover:scale-105 active:scale-95"
-                style={{ background: "linear-gradient(45deg, #3B82F6, #1D4ED8)" }}
-              >
-                <FaSearch className="text-xs sm:text-sm" />
-                <span className="hidden sm:inline">Search</span>
-              </button>
-            </motion.form>
+            </motion.div>
 
             {/* Action Buttons - Responsive Grid */}
             <motion.div 

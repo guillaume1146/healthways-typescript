@@ -346,41 +346,43 @@ interface ApiMedicine {
 }
 
 // Map API response items to the shape the UI expects
-const mapApiMedicine = (item: ApiMedicine): MedicineUi => ({
-  id: item.id,
-  name: item.name,
-  brand: item.pharmacy || 'Unknown Pharmacy',
-  genericName: item.genericName || '',
-  category: item.category,
-  type: item.requiresPrescription ? 'Prescription' : 'Over-the-counter',
-  price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-  originalPrice: typeof item.price === 'number'
-    ? Math.round(item.price * 1.2)
-    : Math.round((parseFloat(item.price) || 0) * 1.2),
-  discount: '20% OFF',
-  rating: 4.5,
-  reviews: 0,
-  inStock: (item.inStock ?? false) && (item.quantity ?? 0) > 0,
-  quantity: item.quantity ?? 0,
-  stockQuantity: item.quantity ?? 0,
-  description: item.description || '',
-  image: item.imageUrl || 'https://via.placeholder.com/150x150/4F46E5/ffffff?text=Pills',
-  manufacturer: item.pharmacy || '',
-  expiryDate: '12/2026',
-  prescriptionRequired: item.requiresPrescription ?? false,
-  activeIngredient: item.genericName || item.name,
-  sideEffects: item.sideEffects || [],
-  dosage: item.strength || '',
-  maxDailyDose: '',
-  contraindications: [] as string[],
-  storage: 'Store in cool, dry place',
-  deliveryTime: '2-4 hours',
-  fastDelivery: true,
-  verified: item.pharmacist?.verified ?? false,
-  pharmacyLocation: item.pharmacy || 'Mauritius',
-  features: [item.dosageForm, item.strength, item.category].filter((v): v is string => Boolean(v)),
-  stockStatus: (item.quantity ?? 0) > 10 ? 'In Stock' : (item.quantity ?? 0) > 0 ? `Only ${item.quantity} left` : 'Out of Stock',
-})
+const mapApiMedicine = (item: ApiMedicine): MedicineUi => {
+  const price = typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0
+  const qty = item.quantity ?? 0
+  return {
+    id: item.id,
+    name: item.name,
+    brand: item.pharmacy || 'Unknown Pharmacy',
+    genericName: item.genericName || '',
+    category: item.category,
+    type: item.requiresPrescription ? 'Prescription' : 'Over-the-counter',
+    price,
+    originalPrice: price, // No fake markup
+    discount: '',
+    rating: 0, // No fake rating — should come from reviews API
+    reviews: 0,
+    inStock: (item.inStock ?? false) && qty > 0,
+    quantity: qty,
+    stockQuantity: qty,
+    description: item.description || '',
+    image: item.imageUrl || 'https://via.placeholder.com/150x150/4F46E5/ffffff?text=Pills',
+    manufacturer: item.pharmacy || '',
+    expiryDate: '',
+    prescriptionRequired: item.requiresPrescription ?? false,
+    activeIngredient: item.genericName || item.name,
+    sideEffects: item.sideEffects || [],
+    dosage: item.strength || '',
+    maxDailyDose: '',
+    contraindications: [] as string[],
+    storage: 'Store in cool, dry place',
+    deliveryTime: '',
+    fastDelivery: false,
+    verified: item.pharmacist?.verified ?? false,
+    pharmacyLocation: item.pharmacy || 'Mauritius',
+    features: [item.dosageForm, item.strength, item.category].filter((v): v is string => Boolean(v)),
+    stockStatus: qty > 10 ? 'In Stock' : qty > 0 ? `Only ${qty} left` : 'Out of Stock',
+  }
+}
 
 // Fetch medicines from API with optional search params
 const aiSearchMedicines = async (query: string, category: string) => {

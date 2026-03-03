@@ -10,6 +10,73 @@ import {
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+function SystemHealthCard() {
+  const [health, setHealth] = useState<{
+    cpuUsage: number; memoryUsage: number; responseTime: number
+  } | null>(null)
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('/api/admin/system-health')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setHealth({
+              cpuUsage: json.data.performance.cpuUsage,
+              memoryUsage: json.data.performance.memoryUsage,
+              responseTime: json.data.services?.[0]?.responseTime ?? 0,
+            })
+          }
+        }
+      } catch {
+        // fail silently
+      }
+    }
+    fetchHealth()
+    const interval = setInterval(fetchHealth, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const getBarColor = (v: number) => v > 80 ? 'bg-red-500' : v > 60 ? 'bg-yellow-500' : 'bg-green-500'
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-lg">
+      <h3 className="text-lg font-bold text-gray-900 mb-4">System Health</h3>
+      {health ? (
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Server Load</span>
+              <span className="font-medium">{health.cpuUsage}%</span>
+            </div>
+            <div className="bg-gray-200 rounded-full h-2">
+              <div className={`${getBarColor(health.cpuUsage)} rounded-full h-2`} style={{ width: `${health.cpuUsage}%` }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Database Usage</span>
+              <span className="font-medium">{health.memoryUsage}%</span>
+            </div>
+            <div className="bg-gray-200 rounded-full h-2">
+              <div className={`${getBarColor(health.memoryUsage)} rounded-full h-2`} style={{ width: `${health.memoryUsage}%` }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">API Response Time</span>
+              <span className={`font-medium ${health.responseTime < 200 ? 'text-green-600' : 'text-yellow-600'}`}>{health.responseTime}ms</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-4 text-gray-400 text-sm">Loading health data...</div>
+      )}
+    </div>
+  )
+}
+
 interface CategoryStat {
   category: string
   count: number
@@ -233,35 +300,7 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">System Health</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Server Load</span>
-                    <span className="font-medium">42%</span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-500 rounded-full h-2 w-5/12"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Database Usage</span>
-                    <span className="font-medium">68%</span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-2">
-                    <div className="bg-yellow-500 rounded-full h-2 w-8/12"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">API Response Time</span>
-                    <span className="font-medium text-green-600">124ms</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SystemHealthCard />
 
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6">
               <h3 className="text-lg font-bold mb-4">Admin Tools</h3>

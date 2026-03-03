@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import GlobalMetrics from './GlobalMetrics'
 import RevenueAnalytics from './RevenueAnalytics'
@@ -11,12 +11,18 @@ import {
   FaCog, FaChartPie, FaUsersCog
 } from 'react-icons/fa'
 
+interface Alert {
+  type: string
+  message: string
+  time: string
+}
+
 const QuickActions = () => {
   const actions = [
     { name: 'Manage Admins', href: '/super-admin/regional-admins', icon: FaUsersCog, color: 'text-blue-500' },
     { name: 'Full Analytics', href: '/super-admin/analytics', icon: FaChartPie, color: 'text-purple-500' },
     { name: 'System Settings', href: '/super-admin/settings', icon: FaCog, color: 'text-slate-500' },
-  ];
+  ]
 
   return (
     <div className="mb-8">
@@ -37,28 +43,43 @@ const QuickActions = () => {
         ))}
       </div>
     </div>
-  );
-};
-
+  )
+}
 
 export default function SuperAdminDashboard() {
   const [timeRange, setTimeRange] = useState('24h')
   const [selectedRegion, setSelectedRegion] = useState('all')
-  
+  const [criticalAlerts, setCriticalAlerts] = useState<Alert[]>([])
+
   const regions = [
-    { code: 'all', name: 'All Regions', flag: '🌍' },
-    { code: 'MU', name: 'Mauritius', flag: '🇲🇺' },
-    { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
-    { code: 'MG', name: 'Madagascar', flag: '🇲🇬' },
-    { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
-    { code: 'NG', name: 'Nigeria', flag: '🇳🇬' }
+    { code: 'all', name: 'All Regions', flag: '\u{1F30D}' },
+    { code: 'MU', name: 'Mauritius', flag: '\u{1F1F2}\u{1F1FA}' },
+    { code: 'KE', name: 'Kenya', flag: '\u{1F1F0}\u{1F1EA}' },
+    { code: 'MG', name: 'Madagascar', flag: '\u{1F1F2}\u{1F1EC}' },
+    { code: 'ZA', name: 'South Africa', flag: '\u{1F1FF}\u{1F1E6}' },
+    { code: 'NG', name: 'Nigeria', flag: '\u{1F1F3}\u{1F1EC}' },
   ]
 
-  const criticalAlerts = [
-    { type: 'error', message: 'High error rate detected in Kenya region', time: '5 min ago' },
-    { type: 'warning', message: 'Payment gateway latency in Mauritius', time: '15 min ago' },
-    { type: 'info', message: '3 new regional admin applications pending', time: '1 hour ago' }
-  ]
+  // Fetch real alerts from API
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const res = await fetch('/api/admin/alerts')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data)) {
+            setCriticalAlerts(json.data)
+          }
+        }
+      } catch {
+        // Keep empty on error
+      }
+    }
+
+    fetchAlerts()
+    const interval = setInterval(fetchAlerts, 60000) // Refresh every minute
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <>
@@ -89,8 +110,8 @@ export default function SuperAdminDashboard() {
 
       {/* Critical Alerts Bar */}
       {criticalAlerts.length > 0 && (
-        <div className="bg-yellow-50 border-b border-yellow-200">
-          <div className="container mx-auto px-6 py-3">
+        <div className="bg-yellow-50 border-b border-yellow-200 rounded-lg mb-6">
+          <div className="px-6 py-3">
             <div className="flex items-center gap-4 overflow-x-auto">
               <FaExclamationTriangle className="text-yellow-600 flex-shrink-0" />
               {criticalAlerts.map((alert, idx) => (
@@ -117,7 +138,6 @@ export default function SuperAdminDashboard() {
 
       <PlatformHealth />
 
-      {/* FIX: Removed the 'regions' prop as the component no longer accepts it */}
       <ActivityHeatmap />
     </>
   )

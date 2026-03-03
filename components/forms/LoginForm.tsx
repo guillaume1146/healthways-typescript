@@ -1,125 +1,32 @@
-// File: components/forms/LoginForm.tsx (Enhanced)
 'use client'
 
 import { useState, FormEvent, ChangeEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
-  FaUser, 
-  FaUserMd, 
-  FaUserNurse, 
-  FaFlask, 
-  FaPills, 
-  FaAmbulance, 
+import {
   FaEye,
   FaEyeSlash,
   FaGoogle,
   FaLock,
   FaEnvelope,
-  FaChild, 
-  FaUserCog
 } from 'react-icons/fa'
 import type { LoginFormData } from '@/types'
 
-import { IconType } from 'react-icons';
-
-interface UserType {
-  id: string;
-  label: string;
-  icon: IconType; // Use IconType instead of React.ComponentType
-  description: string;
-  redirectPath: string;
-  demoEmail: string;
-}
-
-
-const userTypes: UserType[] = [
-  {
-    id: 'patient',
-    label: 'Patient',
-    icon: FaUser,
-    description: 'Book appointments & manage health',
-    redirectPath: '/patient/dashboard',
-    demoEmail: 'patient@Healthwyz.mu'
-  },
-  {
-    id: 'doctor',
-    label: 'Doctor',
-    icon: FaUserMd,
-    description: 'Manage patients & consultations',
-    redirectPath: '/doctor/dashboard',
-    demoEmail: 'dr.sarah@Healthwyz.mu'
-  },
-  {
-    id: 'nurse',
-    label: 'Nurse',
-    icon: FaUserNurse,
-    description: 'Provide home care services',
-    redirectPath: '/nurse/dashboard',
-    demoEmail: 'nurse@Healthwyz.mu'
-  },
-  {
-    id: 'child-care-nurse',
-    label: 'Nanny',
-    icon: FaChild,
-    description: 'Provide Child care services',
-    redirectPath: '/nanny/dashboard',
-    demoEmail: 'nurse@Healthwyz.mu'
-  },
-  {
-    id: 'pharmacy',
-    label: 'Pharmacy',
-    icon: FaPills,
-    description: 'Manage inventory & prescriptions',
-    redirectPath: '/pharmacist/dashboard',
-    demoEmail: 'pharmacy@Healthwyz.mu'
-  },
-  {
-    id: 'lab',
-    label: 'Lab Partner',
-    icon: FaFlask,
-    description: 'Laboratory services & results',
-    redirectPath: '/lab-technician/dashboard',
-    demoEmail: 'lab@Healthwyz.mu'
-  },
-  {
-    id: 'ambulance',
-    label: 'Emergency Responder',
-    icon: FaAmbulance,
-    description: 'Emergency services coordination',
-    redirectPath: '/responder/dashboard',
-    demoEmail: 'ambulance@Healthwyz.mu'
-  },
-  {
-    id: 'admin',
-    label: 'Administrator',
-    icon: FaUserCog ,
-    description: 'Platform management & oversight',
-    redirectPath: '/admin/dashboard',
-    demoEmail: 'ambulance@Healthwyz.mu'
-  }
-]
-
 const LoginForm: React.FC = () => {
-  const [selectedUserType, setSelectedUserType] = useState<UserType>(userTypes[0]) // Default to patient
-  const [showPassword, setShowPassword] = useState<boolean>(false)
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-  const [error, setError] = useState<string>('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
-    password: ''
+    password: '',
   })
-  const SelectedIcon = selectedUserType.icon;
 
   const router = useRouter()
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setError('')
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -134,7 +41,6 @@ const LoginForm: React.FC = () => {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          userType: selectedUserType.id,
         }),
       })
       const data = await res.json()
@@ -147,7 +53,9 @@ const LoginForm: React.FC = () => {
 
       // Store user data in localStorage for client-side access
       localStorage.setItem('healthwyz_user', JSON.stringify(data.user))
-      router.push(selectedUserType.redirectPath)
+
+      // Redirect to the user's dashboard (auto-detected from their role)
+      router.push(data.redirectPath || '/patient/dashboard')
     } catch {
       setError('Network error. Please try again.')
       setIsSubmitting(false)
@@ -155,77 +63,17 @@ const LoginForm: React.FC = () => {
   }
 
   const handleGoogleLogin = () => {
-    // Google OAuth not yet implemented — show message
     setError('Google sign-in coming soon. Please use email/password.')
   }
 
-
-  const handleUserTypeSelect = (userType: UserType) => {
-    setSelectedUserType(userType)
-    // Clear form when switching user types
-    setFormData({ email: '', password: '' })
-  }
-
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
+    <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Healthwyz</h3>
-        <p className="text-gray-600">Select your account type and sign in</p>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h3>
+        <p className="text-gray-600">Sign in to your Healthwyz account</p>
       </div>
 
-
-      <div className="mb-6">
-        <label className="block text-gray-700 text-sm font-medium mb-3">I am a:</label>
-        <div className="grid grid-cols-2 gap-3">
-          {userTypes.map((userType) => {
-            const Icon = userType.icon;
-            return (
-              <button
-                key={userType.id}
-                type="button"
-                onClick={() => handleUserTypeSelect(userType)}
-                className={`p-3 border-2 rounded-lg text-left transition ${
-                  selectedUserType.id === userType.id
-                    ? 'border-primary-blue bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon
-                    className={`text-lg ${
-                      selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-600'
-                    }`}
-                  />
-                  <span
-                    className={`font-medium text-sm ${
-                      selectedUserType.id === userType.id ? 'text-primary-blue' : 'text-gray-900'
-                    }`}
-                  >
-                    {userType.label}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600">{userType.description}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Selected User Type Display */}
-      <div className="bg-gradient-main text-white rounded-lg p-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            
-<SelectedIcon className="text-white text-lg" />
-          </div>
-          <div>
-            <div className="font-semibold">{selectedUserType.label} Portal</div>
-            <div className="text-sm text-white/90">{selectedUserType.description}</div>
-          </div>
-        </div>
-      </div>
-      
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
@@ -245,7 +93,7 @@ const LoginForm: React.FC = () => {
               id="email"
               name="email"
               required
-              placeholder={`Enter your ${selectedUserType.label.toLowerCase()} email`}
+              placeholder="Enter your email"
               className="w-full px-4 py-3 pl-10 border rounded-lg focus:outline-none focus:border-primary-blue"
               value={formData.email}
               onChange={handleChange}
@@ -253,7 +101,7 @@ const LoginForm: React.FC = () => {
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
-        
+
         <div>
           <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
             Password
@@ -282,9 +130,9 @@ const LoginForm: React.FC = () => {
 
         <div className="flex items-center justify-between">
           <label className="flex items-center">
-            <input 
-              type="checkbox" 
-              className="rounded border-gray-300 text-primary-blue focus:ring-primary-blue" 
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-primary-blue focus:ring-primary-blue"
             />
             <span className="ml-2 text-sm text-gray-600">Remember me</span>
           </label>
@@ -292,19 +140,19 @@ const LoginForm: React.FC = () => {
             Forgot password?
           </Link>
         </div>
-        
-        <button 
-          type="submit" 
+
+        <button
+          type="submit"
           disabled={isSubmitting}
           className="w-full btn-gradient py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Signing In...
             </div>
           ) : (
-            `Sign In to ${selectedUserType.label} Portal`
+            'Sign In'
           )}
         </button>
       </form>
@@ -313,7 +161,7 @@ const LoginForm: React.FC = () => {
       <div className="my-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
@@ -330,23 +178,15 @@ const LoginForm: React.FC = () => {
         <FaGoogle className="text-red-500" />
         <span className="text-gray-700 font-medium">Sign in with Google</span>
       </button>
-      
-      {/* Register Links */}
-      <div className="mt-6 text-center space-y-2">
+
+      {/* Register Link */}
+      <div className="mt-6 text-center">
         <p className="text-gray-600 text-sm">
           New to Healthwyz?{' '}
           <Link href="/signup" className="text-primary-blue hover:underline font-medium">
-            Register as Patient
+            Create an account
           </Link>
         </p>
-        {selectedUserType.id !== 'patient' && (
-          <p className="text-gray-600 text-xs">
-            Healthcare Professional?{' '}
-            <Link href="/professional/register" className="text-primary-blue hover:underline">
-              Register as {selectedUserType.label}
-            </Link>
-          </p>
-        )}
       </div>
 
       {/* Help */}

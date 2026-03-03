@@ -4,8 +4,9 @@ import bcrypt from 'bcrypt'
 import { signToken } from '@/lib/auth/jwt'
 import { setAuthCookies } from '@/lib/auth/cookies'
 import { loginSchema } from '@/lib/auth/schemas'
-import { cookieToPrismaUserType, prismaUserTypeToCookie } from '@/lib/auth/user-type-map'
+import { prismaUserTypeToCookie } from '@/lib/auth/user-type-map'
 import { rateLimitAuth } from '@/lib/rate-limit'
+import { USER_TYPE_SLUGS } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitAuth(request)
@@ -22,19 +23,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password, userType } = parsed.data
+    const { email, password } = parsed.data
     const normalizedEmail = email.toLowerCase()
 
-    // Map the cookie/form user type string to the Prisma enum
-    const prismaUserType = cookieToPrismaUserType[userType]
-    if (!prismaUserType) {
-      return NextResponse.json(
-        { success: false, message: 'User type not supported' },
-        { status: 400 }
-      )
-    }
-
-    // Single query against the unified User table
+    // Look up user by email — userType is auto-detected from the database
     const dbUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       select: {
@@ -51,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (!dbUser || !(await bcrypt.compare(password, dbUser.password))) {
       return NextResponse.json(
-        { success: false, message: 'Invalid credentials' },
+        { success: false, message: 'Invalid email or password' },
         { status: 401 }
       )
     }
@@ -70,16 +62,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify the user's stored type matches what was submitted on the form
-    if (dbUser.userType !== prismaUserType) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
-
-    // Convert back to the cookie-friendly string for the JWT and response
+    // Auto-detect the cookie-friendly user type from the DB record
     const cookieUserType = prismaUserTypeToCookie[dbUser.userType]
+
+    // Determine the dashboard redirect path from the user type
+    const slug = USER_TYPE_SLUGS[dbUser.userType] || 'patient'
+    const redirectPath = `/${slug}/dashboard`
 
     // Generate JWT
     const token = signToken({ sub: dbUser.id, userType: cookieUserType, email: dbUser.email })
@@ -95,6 +83,7 @@ export async function POST(request: NextRequest) {
         profileImage: dbUser.profileImage,
         userType: cookieUserType,
       },
+      redirectPath,
       message: 'Login successful',
     })
 

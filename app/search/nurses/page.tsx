@@ -325,29 +325,40 @@ export default function NursesSearchPage() {
           </div>
         </div>
         
-        {/* Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
-            <FaUserNurse className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{allNurses.length}+</p>
-            <p className="text-sm text-gray-600">Verified Nurses</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
-            <FaStar className="text-3xl text-yellow-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">4.7</p>
-            <p className="text-sm text-gray-600">Average Rating</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
-            <FaShieldAlt className="text-3xl text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">100%</p>
-            <p className="text-sm text-gray-600">Verified & Licensed</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center border border-orange-100">
-            <FaCheckCircle className="text-3xl text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">96%</p>
-            <p className="text-sm text-gray-600">Patient Satisfaction</p>
-          </div>
-        </div>
+        {/* Statistics (computed from actual data) */}
+        {(() => {
+          const avgRating = allNurses.length > 0
+            ? (allNurses.reduce((sum, n) => sum + (n.rating || 0), 0) / allNurses.length).toFixed(1)
+            : '0.0'
+          const verifiedPct = allNurses.length > 0
+            ? Math.round((allNurses.filter(n => n.verified).length / allNurses.length) * 100)
+            : 0
+          const totalReviews = allNurses.reduce((sum, n) => sum + (n.reviews || 0), 0)
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-blue-100">
+                <FaUserNurse className="text-3xl text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{allNurses.length}</p>
+                <p className="text-sm text-gray-600">Verified Nurses</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-green-100">
+                <FaStar className="text-3xl text-yellow-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{avgRating}</p>
+                <p className="text-sm text-gray-600">Average Rating</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-purple-100">
+                <FaShieldAlt className="text-3xl text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{verifiedPct}%</p>
+                <p className="text-sm text-gray-600">Verified & Licensed</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 text-center border border-orange-100">
+                <FaCheckCircle className="text-3xl text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{totalReviews.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Patient Reviews</p>
+              </div>
+            </div>
+          )
+        })()}
         
         {/* Results */}
         <div className="mt-12">
