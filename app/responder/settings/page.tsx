@@ -1,33 +1,37 @@
-import { Suspense } from 'react'
-import SettingsClient from './settings-client'
+'use client'
 
-const SettingsSkeleton = () => (
-  <div className="container mx-auto px-4 py-8 animate-pulse">
-    <div className="h-9 bg-gray-200 rounded-md w-1/3 mb-8"></div>
-    <div className="flex flex-col md:flex-row gap-8">
-      <aside className="w-full md:w-1/4">
-        <div className="bg-white rounded-xl shadow-lg p-4 space-y-2">
-          <div className="h-12 bg-red-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-        </div>
-      </aside>
-      <main className="w-full md:w-3/4">
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          <div className="h-8 bg-gray-200 rounded-md w-1/2"></div>
-          <div className="h-8 bg-gray-200 rounded-md w-full"></div>
-          <div className="h-24 bg-gray-200 rounded-md w-full"></div>
-        </div>
-      </main>
-    </div>
-  </div>
-);
+import { FaUser, FaShieldAlt, FaBell, FaFileAlt } from 'react-icons/fa'
+import {
+  SettingsLayout,
+  SecuritySettingsTab,
+  NotificationSettingsTab,
+  DocumentsTab,
+} from '@/components/settings'
+import type { SettingsTab } from '@/components/settings'
+import ResponderProfileTab from './ResponderProfileTab'
 
-export default function EmergencySettingsPage() {
-  return (
-    <Suspense fallback={<SettingsSkeleton />}>
-      <SettingsClient />
-    </Suspense>
-  )
+const NOTIFICATION_OPTIONS = [
+  { key: 'emergencyDispatch', label: 'Emergency Dispatch', description: 'New emergency dispatch notifications' },
+  { key: 'statusUpdates', label: 'Status Updates', description: 'Updates on assigned incidents' },
+  { key: 'shiftReminders', label: 'Shift Reminders', description: 'Upcoming shift and on-call reminders' },
+  { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
+  { key: 'smsNotifications', label: 'SMS Notifications', description: 'Receive critical alerts via SMS' },
+]
+
+const RESPONDER_DOCUMENTS = [
+  { key: 'emsCert', title: 'EMS Certification', description: 'Emergency Medical Services certification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'license', title: 'Operating License', description: 'Emergency service operating license', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'nationalId', title: 'National ID / Passport', description: 'Government-issued identification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'additionalCerts', title: 'Additional Certifications', description: 'ALS, PALS, Hazmat, or other certifications', required: false, acceptedFormats: '.pdf, .jpg, .png' },
+]
+
+const tabs: SettingsTab[] = [
+  { id: 'profile', label: 'Profile', icon: FaUser, component: <ResponderProfileTab /> },
+  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ emergencyDispatch: true, statusUpdates: true, shiftReminders: true, emailNotifications: true, smsNotifications: true }} /> },
+  { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={RESPONDER_DOCUMENTS} /> },
+]
+
+export default function ResponderSettingsPage() {
+  return <SettingsLayout tabs={tabs} />
 }

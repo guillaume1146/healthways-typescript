@@ -23,10 +23,8 @@ export const useAppConfig = () => {
       .then(data => {
         setConfig(data)
         setLoading(false)
-        console.log('✅ Config loaded from backend:', data)
       })
-      .catch(err => {
-        console.error('❌ Failed to load config:', err)
+      .catch(() => {
         setLoading(false)
       })
   }, [])

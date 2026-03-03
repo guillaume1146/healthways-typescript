@@ -41,3 +41,4 @@ service-account-*.json
 storage-sa.json
 vertex-sa.json
 /lib/generated/prisma
+.env.production

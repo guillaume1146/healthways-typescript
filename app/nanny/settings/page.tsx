@@ -1,38 +1,54 @@
-import { Suspense } from 'react'
-import SettingsClient from './settings-client'
+'use client'
 
-// A skeleton loader for a better user experience
-const SettingsSkeleton = () => (
-  <div className="container mx-auto px-4 py-8 animate-pulse">
-    <div className="h-9 bg-gray-200 rounded-md w-1/3 mb-8"></div>
-    <div className="flex flex-col md:flex-row gap-8">
-      <aside className="w-full md:w-1/4">
-        <div className="bg-white rounded-xl shadow-lg p-4 space-y-2">
-          <div className="h-12 bg-purple-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-        </div>
-      </aside>
-      <main className="w-full md:w-3/4">
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-full bg-gray-200"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
-          </div>
-          <div className="h-8 bg-gray-200 rounded-md w-full"></div>
-          <div className="h-24 bg-gray-200 rounded-md w-full"></div>
-        </div>
-      </main>
-    </div>
-  </div>
-);
+import { FaUser, FaShieldAlt, FaCalendarAlt, FaBell, FaFileAlt } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import {
+  SettingsLayout,
+  SecuritySettingsTab,
+  NotificationSettingsTab,
+  DocumentsTab,
+  AvailabilitySettingsTab,
+} from '@/components/settings'
+import type { SettingsTab } from '@/components/settings'
+import NannyProfileTab from './NannyProfileTab'
 
+const NOTIFICATION_OPTIONS = [
+  { key: 'bookings', label: 'Booking Notifications', description: 'New booking requests and confirmations' },
+  { key: 'familyMessages', label: 'Family Messages', description: 'Messages from families you work with' },
+  { key: 'scheduleChanges', label: 'Schedule Changes', description: 'Notifications about schedule updates' },
+  { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
+  { key: 'promotions', label: 'Promotions & Tips', description: 'Childcare tips and platform offers' },
+]
 
-export default function CaregiverSettingsPage() {
-  return (
-    <Suspense fallback={<SettingsSkeleton />}>
-      <SettingsClient />
-    </Suspense>
-  )
+const NANNY_DOCUMENTS = [
+  { key: 'nationalId', title: 'National ID / Passport', description: 'Government-issued identification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'backgroundCheck', title: 'Background Check', description: 'Police clearance or background check certificate', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'firstAid', title: 'First Aid Certificate', description: 'CPR and first aid certification', required: false, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'education', title: 'Education Certificate', description: 'Early childhood education or related qualification', required: false, acceptedFormats: '.pdf, .jpg, .png' },
+]
+
+export default function NannySettingsPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const tabs: SettingsTab[] = [
+    { id: 'profile', label: 'Profile', icon: FaUser, component: <NannyProfileTab /> },
+    { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+    { id: 'availability', label: 'Availability', icon: FaCalendarAlt, component: userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div> },
+    { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ bookings: true, familyMessages: true, scheduleChanges: true, emailNotifications: true, promotions: false }} /> },
+    { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={NANNY_DOCUMENTS} /> },
+  ]
+
+  return <SettingsLayout tabs={tabs} />
 }

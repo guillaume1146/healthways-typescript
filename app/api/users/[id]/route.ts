@@ -4,6 +4,56 @@ import { validateRequest } from '@/lib/auth/validate'
 import { updateUserProfileSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 
+// Allowed fields per profile type to prevent mass-assignment
+const ALLOWED_PROFILE_FIELDS: Record<string, string[]> = {
+  PATIENT: ['bloodType', 'allergies', 'chronicConditions', 'healthScore'],
+  DOCTOR: ['category', 'specialty', 'subSpecialties', 'licenseNumber', 'clinicAffiliation', 'consultationFee', 'videoConsultationFee', 'emergencyConsultationFee', 'bio', 'languages', 'experience', 'location', 'alternatePhone', 'website', 'consultationTypes', 'emergencyAvailable', 'homeVisitAvailable', 'telemedicineAvailable', 'nationality', 'philosophy', 'specialInterests', 'hospitalPrivileges', 'consultationDuration'],
+  NURSE: ['licenseNumber', 'experience', 'specializations'],
+  NANNY: ['experience', 'certifications'],
+  PHARMACIST: ['licenseNumber', 'pharmacyName', 'pharmacyAddress', 'specializations'],
+  LAB_TECHNICIAN: ['licenseNumber', 'labName', 'specializations'],
+  EMERGENCY_WORKER: ['certifications', 'vehicleType', 'responseZone', 'emtLevel'],
+  INSURANCE_REP: ['companyName', 'licenseNumber', 'coverageTypes'],
+  CORPORATE_ADMIN: ['companyName', 'registrationNumber', 'employeeCount', 'industry'],
+  REFERRAL_PARTNER: ['businessType', 'commissionRate', 'referralCode'],
+  REGIONAL_ADMIN: ['region', 'country', 'countryCode'],
+}
+
+const PROFILE_TABLE_MAP: Record<string, string> = {
+  PATIENT: 'patientProfile',
+  DOCTOR: 'doctorProfile',
+  NURSE: 'nurseProfile',
+  NANNY: 'nannyProfile',
+  PHARMACIST: 'pharmacistProfile',
+  LAB_TECHNICIAN: 'labTechProfile',
+  EMERGENCY_WORKER: 'emergencyWorkerProfile',
+  INSURANCE_REP: 'insuranceRepProfile',
+  CORPORATE_ADMIN: 'corporateAdminProfile',
+  REFERRAL_PARTNER: 'referralPartnerProfile',
+  REGIONAL_ADMIN: 'regionalAdminProfile',
+}
+
+async function updateTypeProfile(userId: string, userType: string, data: Record<string, unknown>) {
+  const tableName = PROFILE_TABLE_MAP[userType]
+  const allowedFields = ALLOWED_PROFILE_FIELDS[userType]
+  if (!tableName || !allowedFields) return
+
+  // Filter to only allowed fields
+  const filtered: Record<string, unknown> = {}
+  for (const key of allowedFields) {
+    if (data[key] !== undefined) filtered[key] = data[key]
+  }
+  if (Object.keys(filtered).length === 0) return
+
+  // Use dynamic prisma access to update the profile
+  const model = (prisma as unknown as Record<string, unknown>)[tableName] as {
+    update: (args: { where: { userId: string }; data: Record<string, unknown> }) => Promise<unknown>
+  }
+  if (model?.update) {
+    await model.update({ where: { userId }, data: filtered })
+  }
+}
+
 const PROFILE_INCLUDES: Record<string, string> = {
   PATIENT: 'patientProfile',
   DOCTOR: 'doctorProfile',
@@ -73,7 +123,7 @@ export async function GET(
 
     return NextResponse.json({ data: { ...user, profile } })
   } catch (error) {
-    console.error('GET /api/users/[id] error:', error)
+    void error
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -110,6 +160,7 @@ export async function PATCH(
       gender,
       address,
       emergencyContact,
+      profileData,
     } = parsed.data
 
     // Build the User update data (only include fields that were provided)
@@ -164,9 +215,14 @@ export async function PATCH(
       }
     }
 
+    // Update type-specific profile if profileData is provided
+    if (profileData && Object.keys(profileData).length > 0) {
+      await updateTypeProfile(id, updatedUser.userType, profileData)
+    }
+
     return NextResponse.json({ data: updatedUser })
   } catch (error) {
-    console.error('PATCH /api/users/[id] error:', error)
+    void error
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

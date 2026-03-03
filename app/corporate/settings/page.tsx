@@ -1,28 +1,27 @@
 'use client'
 
-import { Suspense } from 'react'
-import SettingsTabs from '../SettingsTabs'
+import { FaUser, FaShieldAlt, FaBell } from 'react-icons/fa'
+import {
+  SettingsLayout,
+  SecuritySettingsTab,
+  NotificationSettingsTab,
+} from '@/components/settings'
+import type { SettingsTab } from '@/components/settings'
+import CorporateProfileTab from './CorporateProfileTab'
 
-function SettingsLoading() {
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="mt-4 text-gray-600">Loading settings...</p>
-      </div>
-    </div>
-  )
-}
+const NOTIFICATION_OPTIONS = [
+  { key: 'employeeHealth', label: 'Employee Health Updates', description: 'Aggregate health trends for your workforce' },
+  { key: 'billingAlerts', label: 'Billing Alerts', description: 'Invoice and payment reminders' },
+  { key: 'programUpdates', label: 'Wellness Program Updates', description: 'Updates on corporate wellness initiatives' },
+  { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
+]
+
+const tabs: SettingsTab[] = [
+  { id: 'profile', label: 'Profile', icon: FaUser, component: <CorporateProfileTab /> },
+  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ employeeHealth: true, billingAlerts: true, programUpdates: true, emailNotifications: true }} /> },
+]
 
 export default function CorporateSettingsPage() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Corporate Settings</h1>
-        <Suspense fallback={<SettingsLoading />}>
-          <SettingsTabs />
-        </Suspense>
-      </div>
-    </div>
-  )
+  return <SettingsLayout tabs={tabs} />
 }

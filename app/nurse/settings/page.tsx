@@ -1,40 +1,56 @@
-import { Suspense } from 'react'
-import SettingsClient from './settings-client'
-import { FaUserEdit } from 'react-icons/fa'
+'use client'
 
-// A simple skeleton loader to show while the client component is loading
-const SettingsSkeleton = () => (
-  <div className="container mx-auto px-4 py-8 animate-pulse">
-    <div className="h-9 bg-gray-200 rounded-md w-1/3 mb-8"></div>
-    <div className="flex flex-col md:flex-row gap-8">
-      <aside className="w-full md:w-1/4">
-        <div className="bg-white rounded-xl shadow-lg p-4 space-y-2">
-          <div className="h-12 bg-gray-300 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-        </div>
-      </aside>
-      <main className="w-full md:w-3/4">
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-full bg-gray-200"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
-          </div>
-          <div className="h-8 bg-gray-200 rounded-md w-1/2"></div>
-          <div className="h-8 bg-gray-200 rounded-md w-full"></div>
-          <div className="h-8 bg-gray-200 rounded-md w-full"></div>
-        </div>
-      </main>
-    </div>
-  </div>
-);
+import { useState, useEffect } from 'react'
+import { FaUser, FaShieldAlt, FaCalendarAlt, FaCreditCard, FaBell, FaFileAlt } from 'react-icons/fa'
+import {
+  SettingsLayout,
+  SecuritySettingsTab,
+  NotificationSettingsTab,
+  DocumentsTab,
+  AvailabilitySettingsTab,
+} from '@/components/settings'
+import type { SettingsTab } from '@/components/settings'
+import PaymentMethodForm from '@/components/shared/PaymentMethodForm'
+import NurseProfileTab from './NurseProfileTab'
 
+const NOTIFICATION_OPTIONS = [
+  { key: 'appointments', label: 'Appointment Notifications', description: 'New bookings, cancellations, and schedule changes' },
+  { key: 'patientUpdates', label: 'Patient Updates', description: 'Updates on assigned patients' },
+  { key: 'emergencyAlerts', label: 'Emergency Alerts', description: 'Urgent care notifications' },
+  { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
+  { key: 'smsNotifications', label: 'SMS Notifications', description: 'Receive updates via SMS' },
+]
+
+const NURSE_DOCUMENTS = [
+  { key: 'license', title: 'Nursing License', description: 'Valid nursing practice license', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'degree', title: 'Nursing Degree Certificate', description: 'Your primary nursing qualification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'certifications', title: 'Additional Certifications', description: 'CPR, BLS, or specialty certifications', required: false, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'nationalId', title: 'National ID / Passport', description: 'Government-issued identification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+]
 
 export default function NurseSettingsPage() {
-  return (
-    <Suspense fallback={<SettingsSkeleton />}>
-      <SettingsClient />
-    </Suspense>
-  )
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const tabs: SettingsTab[] = [
+    { id: 'profile', label: 'Profile', icon: FaUser, component: <NurseProfileTab /> },
+    { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+    { id: 'availability', label: 'Availability', icon: FaCalendarAlt, component: userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div> },
+    { id: 'payment', label: 'Payment Methods', icon: FaCreditCard, component: <PaymentMethodForm methods={[]} /> },
+    { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ appointments: true, patientUpdates: true, emergencyAlerts: true, emailNotifications: true, smsNotifications: false }} /> },
+    { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={NURSE_DOCUMENTS} /> },
+  ]
+
+  return <SettingsLayout tabs={tabs} />
 }

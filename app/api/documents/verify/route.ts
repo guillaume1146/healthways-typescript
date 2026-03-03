@@ -39,11 +39,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    console.log(`Document verify: type=${documentType}, file=${file.name}, size=${file.size}, mime=${file.type}`)
-
     const result = await verifyDocument(buffer, file.type, fullName)
-
-    console.log(`Document verify result: verified=${result.success}, confidence=${result.confidence}, method=${result.method}`)
 
     return NextResponse.json({
       success: true,
@@ -54,7 +50,7 @@ export async function POST(request: NextRequest) {
       matchDetails: result.matchDetails,
     })
   } catch (error) {
-    console.error('Document verification error:', error)
+    void error
     return NextResponse.json(
       { success: false, message: 'Verification failed. Please try again.' },
       { status: 500 }

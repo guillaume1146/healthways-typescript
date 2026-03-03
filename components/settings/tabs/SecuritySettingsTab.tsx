@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { FaLock, FaSave, FaShieldAlt, FaToggleOn, FaToggleOff, FaKey } from 'react-icons/fa'
+import { useState, useEffect, useCallback } from 'react'
+import { FaLock, FaSave, FaShieldAlt, FaToggleOn, FaToggleOff, FaKey, FaSpinner } from 'react-icons/fa'
 
 const SecuritySettingsTab: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -9,9 +9,25 @@ const SecuritySettingsTab: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        if (user?.id) setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const handlePasswordChange = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
+    setMessage(null)
+
     if (newPassword !== confirmPassword) {
       setMessage({ type: 'error', text: 'New passwords do not match' })
       return
@@ -20,12 +36,38 @@ const SecuritySettingsTab: React.FC = () => {
       setMessage({ type: 'error', text: 'Password must be at least 8 characters' })
       return
     }
-    // In production this would call the API
-    setMessage({ type: 'success', text: 'Password updated successfully' })
-    setCurrentPassword('')
-    setNewPassword('')
-    setConfirmPassword('')
-  }
+
+    if (!userId) {
+      setMessage({ type: 'error', text: 'User session not found. Please log in again.' })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/users/${userId}/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setMessage({ type: 'error', text: data.error || 'Failed to update password' })
+        return
+      }
+
+      setMessage({ type: 'success', text: data.message || 'Password updated successfully' })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [userId, currentPassword, newPassword, confirmPassword])
 
   return (
     <div className="space-y-8">
@@ -41,18 +83,19 @@ const SecuritySettingsTab: React.FC = () => {
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required />
+            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required disabled={isSubmitting} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required />
+            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required disabled={isSubmitting} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required />
+            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500" required disabled={isSubmitting} />
           </div>
-          <button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2">
-            <FaSave /> Update Password
+          <button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaSave />}
+            {isSubmitting ? 'Updating...' : 'Update Password'}
           </button>
         </form>
       </div>

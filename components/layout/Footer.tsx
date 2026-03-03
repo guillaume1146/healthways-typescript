@@ -19,28 +19,24 @@ interface SocialLink {
 
 const Footer: React.FC = () => {
   const quickLinks: FooterLink[] = [
-    { href: '/doctors', label: 'Find Doctors' },
-    { href: '/medicines', label: 'Buy Medicines' },
-    { href: '/ai-search', label: 'AI Health Search' },
-    { href: '/contact', label: 'Contact Us' },
+    { href: '/search/doctors', label: 'Find Doctors' },
+    { href: '/search/medicines', label: 'Buy Medicines' },
+    { href: '/signup', label: 'Get Started' },
+    { href: '/login', label: 'Sign In' },
   ]
 
   const ourServices: FooterLink[] = [
-    { href: '/services/consultation', label: 'Online Consultation' },
-    { href: '/services/delivery', label: 'Medicine Delivery' },
-    { href: '/services/ai', label: 'Health AI Assistant' },
-    { href: '/services/secure', label: 'Secure Platform' },
+    { href: '/search/doctors', label: 'Online Consultation' },
+    { href: '/search/medicines', label: 'Medicine Delivery' },
+    { href: '/search/doctors', label: 'Find Specialists' },
+    { href: '/signup', label: 'Join as Provider' },
   ]
 
-  const specialties: FooterLink[] = [
-    { href: '/specialties/general', label: 'General Medicine' },
-    { href: '/specialties/cardiology', label: 'Cardiology' },
-    { href: '/specialties/dermatology', label: 'Dermatology' },
-    { href: '/specialties/pediatrics', label: 'Pediatrics' },
-    { href: '/specialties/gynecology', label: 'Gynecology' },
-    { href: '/specialties/orthopedics', label: 'Orthopedics' },
-    { href: '/specialties/psychiatry', label: 'Psychiatry' },
-    { href: '/specialties/ayurveda', label: 'Ayurveda' },
+  const aboutLinks: FooterLink[] = [
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: '/medical-disclaimer', label: 'Medical Disclaimer' },
+    { href: '/login', label: 'Provider Login' },
   ]
 
   const socialLinks: SocialLink[] = [
@@ -110,14 +106,14 @@ const Footer: React.FC = () => {
               </ul>
             </div>
 
-            {/* Specialties */}
+            {/* About */}
             <div>
-              <h5 className="text-lg font-semibold mb-4 text-white">Specialties</h5>
+              <h5 className="text-lg font-semibold mb-4 text-white">About</h5>
               <ul className="space-y-2">
-                {specialties.map((specialty) => (
-                  <li key={specialty.href}>
-                    <Link href={specialty.href} className="text-white/80 hover:text-white transition">
-                      {specialty.label}
+                {aboutLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-white/80 hover:text-white transition">
+                      {link.label}
                     </Link>
                   </li>
                 ))}

@@ -1,33 +1,36 @@
-import { Suspense } from 'react'
-import SettingsClient from './settings-client'
+'use client'
 
-const SettingsSkeleton = () => (
-  <div className="container mx-auto px-4 py-8 animate-pulse">
-    <div className="h-9 bg-gray-200 rounded-md w-1/3 mb-8"></div>
-    <div className="flex flex-col md:flex-row gap-8">
-      <aside className="w-full md:w-1/4">
-        <div className="bg-white rounded-xl shadow-lg p-4 space-y-2">
-          <div className="h-12 bg-purple-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-          <div className="h-12 bg-gray-200 rounded-lg"></div>
-        </div>
-      </aside>
-      <main className="w-full md:w-3/4">
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-          <div className="h-8 bg-gray-200 rounded-md w-1/2"></div>
-          <div className="h-8 bg-gray-200 rounded-md w-full"></div>
-          <div className="h-24 bg-gray-200 rounded-md w-full"></div>
-        </div>
-      </main>
-    </div>
-  </div>
-);
+import { FaUser, FaShieldAlt, FaBell, FaFileAlt } from 'react-icons/fa'
+import {
+  SettingsLayout,
+  SecuritySettingsTab,
+  NotificationSettingsTab,
+  DocumentsTab,
+} from '@/components/settings'
+import type { SettingsTab } from '@/components/settings'
+import LabTechProfileTab from './LabTechProfileTab'
 
-export default function LaboratorySettingsPage() {
-  return (
-    <Suspense fallback={<SettingsSkeleton />}>
-      <SettingsClient />
-    </Suspense>
-  )
+const NOTIFICATION_OPTIONS = [
+  { key: 'testRequests', label: 'Test Request Notifications', description: 'New lab test orders from doctors' },
+  { key: 'resultReady', label: 'Result Ready Alerts', description: 'Notification when results are finalized' },
+  { key: 'qualityAlerts', label: 'Quality Control Alerts', description: 'Equipment calibration and QC reminders' },
+  { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
+]
+
+const LAB_DOCUMENTS = [
+  { key: 'license', title: 'Laboratory License', description: 'Valid laboratory operating license', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'techCert', title: 'Lab Technician Certificate', description: 'Professional certification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'accreditation', title: 'Lab Accreditation', description: 'Quality accreditation certificate', required: false, acceptedFormats: '.pdf, .jpg, .png' },
+  { key: 'nationalId', title: 'National ID / Passport', description: 'Government-issued identification', required: true, acceptedFormats: '.pdf, .jpg, .png' },
+]
+
+const tabs: SettingsTab[] = [
+  { id: 'profile', label: 'Profile', icon: FaUser, component: <LabTechProfileTab /> },
+  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ testRequests: true, resultReady: true, qualityAlerts: true, emailNotifications: true }} /> },
+  { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={LAB_DOCUMENTS} /> },
+]
+
+export default function LabTechSettingsPage() {
+  return <SettingsLayout tabs={tabs} />
 }

@@ -101,6 +101,12 @@ export const updateUserProfileSchema = z.object({
     relationship: z.string().min(1),
     phone: z.string().min(1),
   }).optional(),
+  profileData: z.record(z.string(), z.unknown()).optional(),
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
 })
 
 // ─── Notifications ──────────────────────────────────────────────────────────
