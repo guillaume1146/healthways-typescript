@@ -58,7 +58,7 @@ export default function DoctorDashboardLayout({ children }: { children: React.Re
     <DoctorDashboardProvider userData={userData}>
       <DashboardLayout
         userName={`Dr. ${userData.firstName} ${userData.lastName}`}
-        userSubtitle="Doctor Dashboard"
+        userSubtitle="Doctor"
         sidebarItems={DOCTOR_SIDEBAR_ITEMS}
         activeSectionId={activeSectionId}
         notificationCount={0}

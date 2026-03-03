@@ -41,7 +41,7 @@ export default function LabTechDashboardLayout({ children }: { children: React.R
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Lab Technician Dashboard"
+      userSubtitle="Lab Technician"
       sidebarItems={LAB_TECH_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

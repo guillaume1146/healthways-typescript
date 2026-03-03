@@ -120,7 +120,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       />
 
       {/* Main content area — offset for fixed header + fixed sidebar */}
-      <main className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
+      <main className="pt-14 sm:pt-14 md:pt-16 lg:pt-16 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden">
         {children}
       </main>
     </div>

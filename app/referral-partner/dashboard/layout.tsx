@@ -41,7 +41,7 @@ export default function ReferralPartnerDashboardLayout({ children }: { children:
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Referral Partner Dashboard"
+      userSubtitle="Referral Partner"
       sidebarItems={REFERRAL_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

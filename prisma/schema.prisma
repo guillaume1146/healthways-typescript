@@ -994,6 +994,7 @@ model DoctorPost {
   content     String
   category    String?
   tags        String[]
+  imageUrl    String?
   likeCount   Int           @default(0)
   isPublished Boolean       @default(true)
   createdAt   DateTime      @default(now())

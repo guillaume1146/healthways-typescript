@@ -41,7 +41,7 @@ export default function CorporateDashboardLayout({ children }: { children: React
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Corporate Admin Dashboard"
+      userSubtitle="Corporate"
       sidebarItems={CORPORATE_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

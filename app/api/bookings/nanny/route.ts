@@ -4,6 +4,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
 import { createNannyBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -76,6 +77,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Nanny profile not found' },
         { status: 404 }
+      )
+    }
+
+    // Validate slot availability (provider settings + no conflicting bookings)
+    const slotCheck = await validateSlotAvailability(nannyProfile.id, 'nanny', scheduledDate, scheduledTime)
+    if (!slotCheck.available) {
+      return NextResponse.json(
+        { success: false, message: slotCheck.reason },
+        { status: 409 }
       )
     }
 

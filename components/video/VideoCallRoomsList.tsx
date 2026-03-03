@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { FaVideo, FaCalendarAlt, FaClock, FaUser, FaSpinner, FaArrowLeft, FaHistory } from 'react-icons/fa'
+import { useState, useEffect, useMemo } from 'react'
+import { FaVideo, FaCalendarAlt, FaClock, FaUser, FaSpinner, FaArrowLeft, FaHistory, FaCheckCircle } from 'react-icons/fa'
 import VideoConsultation from './VideoConsultation'
 
 interface VideoRoom {
@@ -30,6 +30,7 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
   const [rooms, setRooms] = useState<VideoRoom[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
 
   useEffect(() => {
@@ -39,7 +40,17 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
         if (res.ok) {
           const json = await res.json()
           if (json.success) {
-            setRooms(json.data || [])
+            const fetchedRooms: VideoRoom[] = json.data || []
+            setRooms(fetchedRooms)
+
+            // Auto-select the nearest/soonest upcoming video call
+            const upcomingList = fetchedRooms
+              .filter(r => isUpcoming(r) || isActive(r))
+              .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+
+            if (upcomingList.length > 0) {
+              setSelectedRoomId(upcomingList[0].id)
+            }
           }
         }
       } catch (error) {
@@ -85,7 +96,11 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
     )
   }
 
-  const now = new Date()
+  // Derive the currently selected room object
+  const selectedRoomData = useMemo(() => {
+    if (!selectedRoomId) return null
+    return rooms.find(r => r.id === selectedRoomId) || null
+  }, [rooms, selectedRoomId])
 
   const filteredRooms = rooms.filter(room => {
     if (filter === 'upcoming') return isUpcoming(room) || isActive(room)
@@ -151,18 +166,69 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
         </div>
       )}
 
+      {/* Selected Room - Prominent Join Call Panel */}
+      {!loading && selectedRoomData && (isUpcoming(selectedRoomData) || isActive(selectedRoomData)) && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 shadow-lg border-2 border-green-400">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl bg-green-500 shadow-md">
+                {selectedRoomData.participantImage ? (
+                  <img src={selectedRoomData.participantImage} alt={selectedRoomData.participantName} className="w-16 h-16 rounded-full" />
+                ) : (
+                  <FaUser />
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Next Consultation</p>
+                <h2 className="text-xl font-bold text-gray-900">{selectedRoomData.participantName}</h2>
+                <div className="flex flex-wrap gap-3 mt-1 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <FaCalendarAlt className="text-xs text-green-600" />
+                    {new Date(selectedRoomData.scheduledAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <FaClock className="text-xs text-green-600" />
+                    {new Date(selectedRoomData.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                {selectedRoomData.reason && selectedRoomData.reason !== 'Video Session' && (
+                  <p className="text-sm text-gray-500 mt-1">{selectedRoomData.reason}</p>
+                )}
+              </div>
+            </div>
+            {selectedRoomData.roomId && (
+              <button
+                onClick={() => setSelectedRoom(selectedRoomData.roomId)}
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-base flex items-center gap-3 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                <FaVideo className="text-lg" />
+                Join Call
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Rooms List */}
       {!loading && filteredRooms.length > 0 && (
         <div className="space-y-4">
           {filteredRooms.map((room) => {
             const upcoming = isUpcoming(room) || isActive(room)
+            const isSelected = room.id === selectedRoomId
             const scheduledDate = new Date(room.scheduledAt)
 
             return (
               <div
                 key={`${room.roomId}-${room.id}`}
+                onClick={() => {
+                  if (upcoming) setSelectedRoomId(room.id)
+                }}
                 className={`bg-white rounded-2xl p-5 shadow-lg border-l-4 transition-all hover:shadow-xl ${
-                  upcoming ? 'border-green-500' : 'border-gray-300'
+                  isSelected && upcoming
+                    ? 'border-green-500 ring-2 ring-green-300 ring-offset-1'
+                    : upcoming
+                      ? 'border-green-500 cursor-pointer'
+                      : 'border-gray-300'
                 }`}
               >
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -179,7 +245,12 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 text-lg">{room.participantName}</h3>
+                      <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                        {room.participantName}
+                        {isSelected && upcoming && (
+                          <FaCheckCircle className="text-green-500 text-sm" title="Selected" />
+                        )}
+                      </h3>
                       <div className="flex flex-wrap gap-3 mt-1 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <FaCalendarAlt className="text-xs" />
@@ -205,15 +276,23 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
                       {upcoming ? 'Upcoming' : room.status === 'completed' ? 'Completed' : room.status}
                     </span>
 
-                    {/* Join Button */}
-                    {upcoming && room.roomId && (
+                    {/* Join Button - shown on selected upcoming room */}
+                    {upcoming && room.roomId && isSelected && (
                       <button
-                        onClick={() => setSelectedRoom(room.roomId)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedRoom(room.roomId)
+                        }}
                         className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all transform hover:scale-105 shadow-md hover:shadow-lg"
                       >
                         <FaVideo />
                         Join Call
                       </button>
+                    )}
+
+                    {/* Select hint for non-selected upcoming rooms */}
+                    {upcoming && room.roomId && !isSelected && (
+                      <span className="text-sm text-green-600 font-medium">Click to select</span>
                     )}
 
                     {!upcoming && (

@@ -42,7 +42,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           overflow-hidden
         `}
       >
-        <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-5 lg:p-6 pt-16 md:pt-20 lg:pt-24">
+        <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-5 lg:p-6 pt-16 md:pt-16 lg:pt-16">
           {/* Mobile close button */}
           <button
             onClick={onClose}

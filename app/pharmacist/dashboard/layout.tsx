@@ -41,7 +41,7 @@ export default function PharmacistDashboardLayout({ children }: { children: Reac
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Pharmacist Dashboard"
+      userSubtitle="Pharmacist"
       sidebarItems={PHARMACIST_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

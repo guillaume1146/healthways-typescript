@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaVideo, FaUser, FaCalendarAlt, FaSpinner } from 'react-icons/fa'
-import type { BookingData } from '@/app/booking/doctors/[id]/page'
+import type { BookingData } from '@/types/booking'
 
 interface ScheduleSelectionProps {
   bookingData: BookingData
@@ -27,6 +27,8 @@ export default function ScheduleSelection({
   const [loadingSlots, setLoadingSlots] = useState(false)
 
   // Fetch available time slots when date changes
+  // Uses the unified available-slots endpoint that checks provider availability
+  // settings AND filters out already-booked slots
   useEffect(() => {
     if (!bookingData.date || !bookingData.doctor?.id) return
 
@@ -34,16 +36,23 @@ export default function ScheduleSelection({
       setLoadingSlots(true)
       try {
         const res = await fetch(
-          `/api/doctors/${bookingData.doctor.id}/availability?date=${bookingData.date}`
+          `/api/bookings/available-slots?providerId=${bookingData.doctor.id}&date=${bookingData.date}&providerType=doctor`
         )
         if (res.ok) {
           const data = await res.json()
-          if (data.success && Array.isArray(data.data)) {
-            setTimeSlots(data.data.map((slot: { startTime: string; isActive?: boolean }) => ({
-              time: slot.startTime,
-              available: slot.isActive !== false,
-              type: 'regular' as const,
-            })))
+          if (data.success && Array.isArray(data.slots) && data.slots.length > 0) {
+            setTimeSlots(data.slots.map((slot: string) => {
+              const [hours, minutes] = slot.split(':')
+              const h = parseInt(hours, 10)
+              const ampm = h >= 12 ? 'PM' : 'AM'
+              const displayHour = h % 12 || 12
+              const formattedTime = `${displayHour.toString().padStart(2, '0')}:${minutes} ${ampm}`
+              return {
+                time: formattedTime,
+                available: true,
+                type: 'regular' as const,
+              }
+            }))
           } else {
             setTimeSlots(generateDefaultSlots())
           }

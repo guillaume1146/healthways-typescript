@@ -121,11 +121,34 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return () => window.removeEventListener('notification:new' as string, handler as EventListener)
   }, [])
 
-  const unreadCount = notificationCount > 0 ? notificationCount : notifications.filter(n => !n.readAt).length
+  const [autoUnreadCount, setAutoUnreadCount] = useState(0)
+
+  // Auto-fetch unread notification count on mount
+  useEffect(() => {
+    if (!userId) return
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch(`/api/users/${userId}/notifications?unread=true&limit=1`)
+        const data = await res.json()
+        if (data.metadata?.unreadCount != null) {
+          setAutoUnreadCount(data.metadata.unreadCount)
+        } else if (data.metadata?.total != null) {
+          setAutoUnreadCount(data.metadata.total)
+        }
+      } catch {
+        // silent
+      }
+    }
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 30000)
+    return () => clearInterval(interval)
+  }, [userId])
+
+  const unreadCount = notifications.filter(n => !n.readAt).length || autoUnreadCount || notificationCount
 
   return (
-    <div className="bg-white shadow-lg border-b fixed top-0 left-0 right-0 z-50">
-      <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3.5 md:py-4 lg:py-5">
+    <div className="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-50">
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2 md:py-2.5">
         <div className="flex items-center justify-between">
           {/* Left: mobile toggle + user info */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
@@ -150,10 +173,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 />
               )}
               <div>
-                <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">
+                <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">
                   {userName}
                 </h1>
-                <p className="text-xs sm:text-xs md:text-sm lg:text-base text-gray-600">
+                <p className="text-[10px] sm:text-xs md:text-xs text-gray-500">
                   {userSubtitle}
                 </p>
               </div>
@@ -170,7 +193,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 aria-label="Notifications"
                 aria-expanded={showDropdown}
               >
-                <FaBell className="text-base sm:text-lg md:text-xl lg:text-2xl" />
+                <FaBell className="text-sm sm:text-base md:text-lg" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center font-bold">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -232,16 +255,16 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               className="p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition"
               aria-label="Settings"
             >
-              <FaCog className="text-base sm:text-lg md:text-xl lg:text-2xl" />
+              <FaCog className="text-sm sm:text-base md:text-lg" />
             </Link>
 
             {/* Logout button */}
             <button
               onClick={onLogout}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2.5 sm:px-3 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-lg flex items-center gap-1 sm:gap-2 hover:from-red-600 hover:to-red-700 transition"
+              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 md:px-3.5 py-1.5 sm:py-1.5 md:py-2 rounded-lg flex items-center gap-1 sm:gap-1.5 hover:from-red-600 hover:to-red-700 transition"
             >
-              <FaSignOutAlt className="text-xs sm:text-sm md:text-base lg:text-lg" />
-              <span className="hidden sm:inline text-xs sm:text-sm md:text-base lg:text-lg">
+              <FaSignOutAlt className="text-xs sm:text-sm md:text-sm" />
+              <span className="hidden sm:inline text-xs sm:text-xs md:text-sm">
                 Logout
               </span>
             </button>

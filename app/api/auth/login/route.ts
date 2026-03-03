@@ -65,9 +65,9 @@ export async function POST(request: NextRequest) {
     // Auto-detect the cookie-friendly user type from the DB record
     const cookieUserType = prismaUserTypeToCookie[dbUser.userType]
 
-    // Determine the dashboard redirect path from the user type
+    // Determine the redirect path — default to feed page after login
     const slug = USER_TYPE_SLUGS[dbUser.userType] || 'patient'
-    const redirectPath = `/${slug}/dashboard`
+    const redirectPath = `/${slug}/dashboard/feed`
 
     // Generate JWT
     const token = signToken({ sub: dbUser.id, userType: cookieUserType, email: dbUser.email })

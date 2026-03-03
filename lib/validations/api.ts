@@ -165,12 +165,14 @@ export const createPostSchema = z.object({
   content: z.string().min(1, 'Content is required').max(10000),
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  imageUrl: z.string().max(5000000).optional(),
 })
 
 export const updatePostSchema = z.object({
   content: z.string().min(1, 'Content cannot be empty').max(10000).optional(),
   category: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
+  imageUrl: z.string().max(5000000).nullable().optional(),
   isPublished: z.boolean().optional(),
 })
 

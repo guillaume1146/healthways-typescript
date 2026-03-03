@@ -41,7 +41,7 @@ export default function InsuranceDashboardLayout({ children }: { children: React
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Insurance Rep Dashboard"
+      userSubtitle="Insurance"
       sidebarItems={INSURANCE_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

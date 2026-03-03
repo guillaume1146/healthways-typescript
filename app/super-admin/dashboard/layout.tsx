@@ -41,7 +41,7 @@ export default function SuperAdminDashboardLayout({ children }: { children: Reac
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Super Admin Dashboard"
+      userSubtitle="Regional Admin"
       sidebarItems={SUPER_ADMIN_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

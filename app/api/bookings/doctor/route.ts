@@ -5,6 +5,7 @@ import { createNotification } from '@/lib/notifications'
 import { randomUUID } from 'crypto'
 import { createDoctorBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -55,6 +56,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Doctor profile not found' },
         { status: 404 }
+      )
+    }
+
+    // Validate slot availability (provider settings + no conflicting bookings)
+    const slotCheck = await validateSlotAvailability(doctorProfile.id, 'doctor', scheduledDate, scheduledTime)
+    if (!slotCheck.available) {
+      return NextResponse.json(
+        { success: false, message: slotCheck.reason },
+        { status: 409 }
       )
     }
 

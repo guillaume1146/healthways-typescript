@@ -1,5 +1,5 @@
 import { FaInfoCircle } from 'react-icons/fa'
-import type { BookingData } from '@/app/booking/doctors/[id]/page'
+import type { BookingData } from '@/types/booking'
 
 interface ConsultationDetailsProps {
   bookingData: BookingData

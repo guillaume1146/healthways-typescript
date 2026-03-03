@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import {
   FaCalendarAlt,
   FaPills,
@@ -8,28 +7,10 @@ import {
   FaHeart,
   FaClock,
   FaEdit,
-  FaUserNurse,
-  FaBaby,
-  FaAmbulance,
-  FaFlask,
-  FaShieldAlt,
-  FaRobot,
-  FaStethoscope,
   FaChartLine,
 } from 'react-icons/fa'
 import { usePatientData } from './context'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
-
-const QUICK_ACTIONS = [
-  { label: 'Doctor Consultations', icon: FaStethoscope, color: 'text-green-600', bgColor: 'bg-green-50', href: '/patient/dashboard/consultations' },
-  { label: 'Prescriptions', icon: FaPills, color: 'text-purple-600', bgColor: 'bg-purple-50', href: '/patient/dashboard/prescriptions' },
-  { label: 'Health Records', icon: FaFileAlt, color: 'text-indigo-600', bgColor: 'bg-indigo-50', href: '/patient/dashboard/health-records' },
-  { label: 'AI Health Assistant', icon: FaRobot, color: 'text-orange-600', bgColor: 'bg-orange-50', href: '/patient/dashboard/ai-assistant' },
-  { label: 'Nurse Services', icon: FaUserNurse, color: 'text-pink-600', bgColor: 'bg-pink-50', href: '/patient/dashboard/nurse-services' },
-  { label: 'Childcare Services', icon: FaBaby, color: 'text-yellow-600', bgColor: 'bg-yellow-50', href: '/patient/dashboard/childcare' },
-  { label: 'Emergency Services', icon: FaAmbulance, color: 'text-red-600', bgColor: 'bg-red-50', href: '/patient/dashboard/emergency' },
-  { label: 'Lab Results', icon: FaFlask, color: 'text-cyan-600', bgColor: 'bg-cyan-50', href: '/patient/dashboard/lab-results' },
-]
 
 export default function PatientOverviewPage() {
   const patientData = usePatientData()
@@ -143,25 +124,6 @@ export default function PatientOverviewPage() {
               <FaClock className="text-red-600 text-base md:text-xl lg:text-2xl" />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-gray-200">
-        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-5 lg:mb-6">
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
-          {QUICK_ACTIONS.map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className={`w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 ${action.bgColor} flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2`}
-            >
-              <action.icon className={`${action.color} text-xl md:text-2xl lg:text-3xl`} />
-              <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">{action.label}</p>
-            </Link>
-          ))}
         </div>
       </div>
 

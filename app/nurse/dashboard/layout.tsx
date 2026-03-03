@@ -41,7 +41,7 @@ export default function NurseDashboardLayout({ children }: { children: React.Rea
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Nurse Dashboard"
+      userSubtitle="Nurse"
       sidebarItems={NURSE_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

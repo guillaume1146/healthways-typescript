@@ -41,7 +41,7 @@ export default function ResponderDashboardLayout({ children }: { children: React
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Emergency Responder Dashboard"
+      userSubtitle="Responder"
       sidebarItems={RESPONDER_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

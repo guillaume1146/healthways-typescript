@@ -4,7 +4,7 @@ import {
   FaCheck, FaVideo, FaInfoCircle, FaDownload, FaPrint, 
   FaCalendarPlus, FaPhone, FaStar, FaMapMarkerAlt, FaHospital 
 } from 'react-icons/fa'
-import type { BookingData } from '@/app/booking/doctors/[id]/page'
+import type { BookingData } from '@/types/booking'
 
 interface BookingConfirmationProps {
   bookingData: BookingData

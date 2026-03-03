@@ -3,23 +3,20 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FaCalendarAlt,
   FaUsers,
-  FaComments,
   FaVideo,
   FaStar,
   FaStethoscope,
   FaPrescriptionBottle,
   FaHistory,
   FaCalendarCheck,
-  FaUserPlus,
-  FaNotesMedical,
   FaDollarSign,
   FaUserMd,
   FaSpinner,
 } from 'react-icons/fa'
 import { useDoctorData } from './context'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
+import DoctorStatistics from './components/DoctorStatistics'
 
 interface OverviewAppointment {
   id: string
@@ -41,6 +38,7 @@ interface OverviewData {
   upcomingAppointments: OverviewAppointment[]
   pastAppointments: OverviewAppointment[]
   activePrescriptions: number
+  statistics: Record<string, unknown> | null
 }
 
 export default function DoctorOverviewPage() {
@@ -51,20 +49,22 @@ export default function DoctorOverviewPage() {
   useEffect(() => {
     const fetchOverview = async () => {
       try {
-        const [profileRes, upcomingRes, pastRes, patientsRes, prescRes] = await Promise.all([
+        const [profileRes, upcomingRes, pastRes, patientsRes, prescRes, statsRes] = await Promise.all([
           fetch(`/api/users/${user.id}`),
           fetch(`/api/doctors/${user.id}/appointments?status=upcoming&limit=5`),
           fetch(`/api/doctors/${user.id}/appointments?status=completed&limit=5`),
           fetch(`/api/doctors/${user.id}/patients`),
           fetch(`/api/doctors/${user.id}/prescriptions`),
+          fetch(`/api/doctors/${user.id}/statistics`),
         ])
 
-        const [profile, upcoming, past, patients, prescriptions] = await Promise.all([
+        const [profile, upcoming, past, patients, prescriptions, statsJson] = await Promise.all([
           profileRes.json(),
           upcomingRes.json(),
           pastRes.json(),
           patientsRes.json(),
           prescRes.json(),
+          statsRes.ok ? statsRes.json() : { success: false },
         ])
 
         const doctorProfile = profile.data?.doctorProfile || profile.data?.profile || {}
@@ -101,6 +101,7 @@ export default function DoctorOverviewPage() {
           activePrescriptions: prescriptions.success
             ? (prescriptions.data || []).filter((p: { isActive: boolean }) => p.isActive).length
             : 0,
+          statistics: statsJson.success ? statsJson.data : null,
         })
       } catch (error) {
         console.error('Failed to fetch overview:', error)
@@ -113,6 +114,7 @@ export default function DoctorOverviewPage() {
           upcomingAppointments: [],
           pastAppointments: [],
           activePrescriptions: 0,
+          statistics: null,
         })
       } finally {
         setLoading(false)
@@ -295,46 +297,6 @@ export default function DoctorOverviewPage() {
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-gray-200">
-        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-5 lg:mb-6">
-          Quick Actions
-        </h3>
-        <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-3 md:gap-4 lg:gap-5">
-          <Link
-            href="/doctor/dashboard/appointments"
-            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all transform hover:scale-105 bg-gradient-to-br from-blue-50 to-indigo-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
-          >
-            <FaCalendarAlt className="text-blue-600 text-xl md:text-2xl lg:text-3xl" />
-            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">View Schedule</p>
-          </Link>
-
-          <Link
-            href="/doctor/dashboard/patients"
-            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all transform hover:scale-105 bg-gradient-to-br from-purple-50 to-pink-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
-          >
-            <FaUserPlus className="text-purple-600 text-xl md:text-2xl lg:text-3xl" />
-            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">My Patients</p>
-          </Link>
-
-          <Link
-            href="/doctor/dashboard/prescriptions"
-            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-orange-400 hover:bg-orange-50 transition-all transform hover:scale-105 bg-gradient-to-br from-orange-50 to-yellow-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
-          >
-            <FaNotesMedical className="text-orange-600 text-xl md:text-2xl lg:text-3xl" />
-            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">Write Prescription</p>
-          </Link>
-
-          <Link
-            href="/doctor/dashboard/messages"
-            className="w-full p-3 md:p-4 lg:p-5 border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-pink-400 hover:bg-pink-50 transition-all transform hover:scale-105 bg-gradient-to-br from-pink-50 to-purple-50 flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2"
-          >
-            <FaComments className="text-pink-600 text-xl md:text-2xl lg:text-3xl" />
-            <p className="text-xs md:text-sm lg:text-base font-medium text-gray-700">Messages</p>
-          </Link>
-        </div>
-      </div>
-
       {/* Recent Activity */}
       {data.pastAppointments.length > 0 && (
         <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-lg border border-cyan-100">
@@ -371,6 +333,11 @@ export default function DoctorOverviewPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Analytics & Statistics */}
+      {data.statistics && (
+        <DoctorStatistics doctorData={data.statistics} />
       )}
     </div>
   )

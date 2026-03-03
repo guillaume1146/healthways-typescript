@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { FaShieldAlt, FaWallet, FaCreditCard, FaLock } from 'react-icons/fa'
-import type { BookingData, PaymentMethod, CreditCardData } from '@/app/booking/doctors/[id]/page'
+import type { BookingData, PaymentMethod, CreditCardData } from '@/types/booking'
 
 interface PaymentOptionsProps {
   bookingData: BookingData

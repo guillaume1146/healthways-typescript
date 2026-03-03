@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { FaPaperPlane, FaTags } from 'react-icons/fa'
+import { useState, useRef, useCallback } from 'react'
+import { FaPaperPlane, FaTags, FaImage, FaTimes } from 'react-icons/fa'
 
 interface CreatePostFormProps {
   onPostCreated?: (post: Record<string, unknown>) => void
 }
 
 const CATEGORIES = [
-  { value: '', label: 'Select a category' },
+  { value: '', label: 'Category' },
   { value: 'health_tips', label: 'Health Tips' },
   { value: 'article', label: 'Article' },
   { value: 'news', label: 'News' },
@@ -20,9 +20,62 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('')
   const [tagsInput, setTagsInput] = useState('')
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [showOptions, setShowOptions] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 300) + 'px'
+  }, [])
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value)
+    autoResize()
+    // Show options row when user starts typing
+    if (e.target.value.trim() && !showOptions) {
+      setShowOptions(true)
+    }
+  }
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file')
+      return
+    }
+
+    // Limit to 4MB for base64
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Image must be under 4MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setImagePreview(reader.result as string)
+      setError('')
+    }
+    reader.onerror = () => {
+      setError('Failed to read image')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +98,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
           content: content.trim(),
           category: category || null,
           tags,
+          imageUrl: imagePreview || undefined,
         }),
       })
 
@@ -54,7 +108,12 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
         setContent('')
         setCategory('')
         setTagsInput('')
+        setImagePreview(null)
+        setShowOptions(false)
         setSuccess(true)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        // Reset textarea height
+        if (textareaRef.current) textareaRef.current.style.height = 'auto'
         onPostCreated?.(json.data)
         setTimeout(() => setSuccess(false), 3000)
       } else {
@@ -69,80 +128,138 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Create a Post</h3>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Content textarea */}
+    <div className="bg-white rounded-xl shadow p-3 sm:p-4">
+      <form onSubmit={handleSubmit}>
+        {/* Compact textarea */}
         <textarea
+          ref={textareaRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Share health tips, articles, or knowledge with the community..."
-          rows={4}
-          className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          onChange={handleContentChange}
+          onFocus={() => content.trim() && setShowOptions(true)}
+          placeholder="Share health tips, articles, or knowledge..."
+          rows={1}
+          className="w-full border-0 border-b border-gray-100 px-1 py-2 text-sm focus:outline-none focus:border-blue-300 resize-none overflow-hidden transition-colors placeholder:text-gray-400"
+          style={{ minHeight: '36px' }}
           disabled={submitting}
         />
 
-        {/* Category and Tags row */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Category dropdown */}
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            disabled={submitting}
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
-          </select>
+        {/* Image preview */}
+        {imagePreview && (
+          <div className="relative mt-2 inline-block">
+            <img
+              src={imagePreview}
+              alt="Upload preview"
+              className="max-h-40 rounded-lg object-cover"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+              title="Remove image"
+            >
+              <FaTimes className="text-xs" />
+            </button>
+          </div>
+        )}
 
-          {/* Tags input */}
-          <div className="flex-1 relative">
-            <FaTags className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+        {/* Action bar - always visible, options expand when typing */}
+        <div className="flex items-center justify-between mt-2 gap-2">
+          <div className="flex items-center gap-1">
+            {/* Image upload button */}
             <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="Tags (comma-separated)"
-              className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
               disabled={submitting}
             />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className={`p-2 rounded-lg text-sm transition-colors ${
+                imagePreview
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              }`}
+              title="Attach image"
+              disabled={submitting}
+            >
+              <FaImage />
+            </button>
+
+            {/* Category - shown when typing */}
+            {showOptions && (
+              <>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="border-0 bg-gray-50 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-600"
+                  disabled={submitting}
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Tags input */}
+                <div className="relative hidden sm:block">
+                  <FaTags className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]" />
+                  <input
+                    type="text"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    placeholder="Tags..."
+                    className="border-0 bg-gray-50 rounded-lg pl-6 pr-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 w-28 text-gray-600 placeholder:text-gray-400"
+                    disabled={submitting}
+                  />
+                </div>
+              </>
+            )}
           </div>
-        </div>
 
-        {/* Error message */}
-        {error && (
-          <p className="text-red-500 text-sm">{error}</p>
-        )}
-
-        {/* Success toast */}
-        {success && (
-          <p className="text-green-600 text-sm font-medium">Post published successfully!</p>
-        )}
-
-        {/* Submit button */}
-        <div className="flex justify-end">
+          {/* Submit button */}
           <button
             type="submit"
             disabled={submitting || !content.trim()}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium text-xs hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {submitting ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Publishing...
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="hidden sm:inline">Publishing...</span>
               </>
             ) : (
               <>
-                <FaPaperPlane className="text-xs" />
-                Publish Post
+                <FaPaperPlane className="text-[10px]" />
+                <span className="hidden sm:inline">Publish</span>
               </>
             )}
           </button>
         </div>
+
+        {/* Tags input - mobile (below action bar) */}
+        {showOptions && (
+          <div className="sm:hidden mt-2">
+            <div className="relative">
+              <FaTags className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 text-[10px]" />
+              <input
+                type="text"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="Tags (comma-separated)"
+                className="w-full border-0 bg-gray-50 rounded-lg pl-6 pr-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-600 placeholder:text-gray-400"
+                disabled={submitting}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Error / Success messages */}
+        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+        {success && <p className="text-green-600 text-xs font-medium mt-2">Post published!</p>}
       </form>
     </div>
   )

@@ -4,6 +4,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
 import { createLabTestBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 
 const DEFAULT_LAB_TEST_PRICE = 500
 
@@ -66,6 +67,17 @@ export async function POST(request: NextRequest) {
     }
 
     const fee = price && price > 0 ? price : DEFAULT_LAB_TEST_PRICE
+
+    // Validate slot availability if a lab tech is assigned (provider settings + no conflicting bookings)
+    if (labTechId) {
+      const slotCheck = await validateSlotAvailability(labTechId, 'lab-test', scheduledDate, scheduledTime)
+      if (!slotCheck.available) {
+        return NextResponse.json(
+          { success: false, message: slotCheck.reason },
+          { status: 409 }
+        )
+      }
+    }
 
     // Combine date and time
     const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`)

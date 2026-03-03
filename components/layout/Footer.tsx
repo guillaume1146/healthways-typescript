@@ -95,7 +95,7 @@ const Footer: React.FC = () => {
               <h5 className="text-lg font-semibold mb-4 text-white">Our Services</h5>
               <ul className="space-y-2">
                 {ourServices.map((service) => (
-                  <li key={service.href}>
+                  <li key={service.label}>
                     <Link href={service.href} className="text-white/80 hover:text-white transition">
                       {service.label}
                     </Link>

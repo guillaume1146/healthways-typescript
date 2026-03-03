@@ -41,7 +41,7 @@ export default function NannyDashboardLayout({ children }: { children: React.Rea
   return (
     <DashboardLayout
       userName={`${userData.firstName} ${userData.lastName}`}
-      userSubtitle="Nanny Dashboard"
+      userSubtitle="Childcare"
       sidebarItems={NANNY_SIDEBAR_ITEMS}
       activeSectionId={getActiveSectionFromPath(pathname)}
       notificationCount={0}

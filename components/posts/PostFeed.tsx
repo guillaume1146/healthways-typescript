@@ -12,6 +12,7 @@ interface Post {
   content: string
   category: string | null
   tags: string[]
+  imageUrl: string | null
   likeCount: number
   createdAt: string
   author: {

@@ -9,6 +9,7 @@ interface PostCardProps {
     content: string
     category: string | null
     tags: string[]
+    imageUrl?: string | null
     likeCount: number
     createdAt: string
     author: {
@@ -127,6 +128,17 @@ export default function PostCard({
           </button>
         )}
       </div>
+
+      {/* Post Image */}
+      {post.imageUrl && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <img
+            src={post.imageUrl}
+            alt="Post attachment"
+            className="w-full max-h-96 object-cover rounded-lg"
+          />
+        </div>
+      )}
 
       {/* Category and Tags */}
       {(post.category || post.tags.length > 0) && (
