@@ -1,17 +1,17 @@
 'use client'
 
 import { useDoctorData } from '../context'
-import ReviewsRatings from '../components/ReviewsRatings'
+import ProviderReviews from '@/components/shared/ProviderReviews'
 
 export default function ReviewsPage() {
   const doctorData = useDoctorData()
+
   return (
-    <ReviewsRatings
-      doctorData={{
-        patientComments: [],
-        rating: 0,
-        reviews: 0,
-      }}
+    <ProviderReviews
+      providerUserId={doctorData.id}
+      providerLabel="Doctor"
+      headerGradient="from-yellow-500 via-orange-500 to-red-500"
+      isOwner
     />
   )
 }

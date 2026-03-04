@@ -31,6 +31,8 @@ export default function BookEmergencyPage() {
           emergencyType: data.emergencyType,
           location: data.location,
           contactNumber: data.contactNumber,
+          scheduledDate: data.scheduledDate,
+          responseWindow: data.scheduledTime,
           notes: data.notes,
           priority: data.priority,
         }),
@@ -104,8 +106,18 @@ export default function BookEmergencyPage() {
               <div className="flex items-center gap-2">
                 <FaClock className="text-red-200" />
                 <div>
-                  <p className="text-red-200 text-xs">Submitted At</p>
-                  <p className="font-semibold">{bookingResult.createdAt ? new Date(bookingResult.createdAt).toLocaleString() : 'Just now'}</p>
+                  <p className="text-red-200 text-xs">Response Window</p>
+                  <p className="font-semibold">
+                    {submitData?.scheduledTime === 'next_available'
+                      ? 'Next Available'
+                      : submitData?.scheduledTime === 'within_30min'
+                      ? 'Within 30 min'
+                      : submitData?.scheduledTime === 'within_1hr'
+                      ? 'Within 1 hour'
+                      : submitData?.scheduledTime === 'within_2hrs'
+                      ? 'Within 2 hours'
+                      : 'Next Available'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -148,7 +160,7 @@ export default function BookEmergencyPage() {
               Back to Dashboard
             </Link>
             <Link
-              href="/patient/dashboard/emergency"
+              href="/patient/emergency"
               className="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
             >
               View Emergency Services

@@ -6,12 +6,6 @@ import { FaCheckCircle, FaArrowLeft, FaCalendarAlt, FaClock, FaUserNurse, FaWall
 import BookingForm from '@/components/booking/BookingForm'
 import type { BookingSubmitData } from '@/components/booking/BookingForm'
 
-const NURSE_FEES: Record<string, number> = {
-  in_person: 500,
-  home_visit: 400,
-  video: 350,
-}
-
 interface NurseInfo {
   id: string
   firstName: string
@@ -209,7 +203,7 @@ export default function BookNursePage({ params }: { params: Promise<{ id: string
                 <FaWallet className="text-pink-200" />
                 <div>
                   <p className="text-pink-200 text-xs">Fee Paid</p>
-                  <p className="font-semibold">Rs {submitData?.consultationType ? NURSE_FEES[submitData.consultationType] : 500}</p>
+                  <p className="font-semibold">Rs {nurse.hourlyRate.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -230,7 +224,7 @@ export default function BookNursePage({ params }: { params: Promise<{ id: string
               Back to Dashboard
             </Link>
             <Link
-              href="/patient/dashboard/nurse-services"
+              href="/patient/nurse-services"
               className="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
             >
               View Nurse Services
@@ -252,12 +246,9 @@ export default function BookNursePage({ params }: { params: Promise<{ id: string
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">
         Book Nurse Service with {nurse.firstName} {nurse.lastName}
       </h1>
-      <p className="text-gray-500 mb-6 text-sm">
-        In-Person: Rs {NURSE_FEES.in_person} | Home Visit: Rs {NURSE_FEES.home_visit} | Video: Rs {NURSE_FEES.video}
-      </p>
 
       <BookingForm
         providerType="nurse"
@@ -267,7 +258,7 @@ export default function BookNursePage({ params }: { params: Promise<{ id: string
         providerImage={nurse.profileImage}
         providerLocation={nurse.location}
         showConsultationType={true}
-        price={NURSE_FEES.in_person}
+        price={nurse.hourlyRate}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         walletBalance={walletBalance}

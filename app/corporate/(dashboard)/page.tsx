@@ -51,8 +51,14 @@ export default function CorporateDashboard() {
             setCorporateData(prev => ({
               ...prev,
               stats: {
-                ...prev.stats,
                 totalEmployees: apiData.stats.totalEmployees || 0,
+                activePolicyHolders: apiData.stats.activePolicyHolders || 0,
+                pendingVerifications: prev.stats.pendingVerifications,
+                approvedClaims: apiData.stats.approvedClaims || 0,
+                pendingClaims: apiData.stats.pendingClaims || 0,
+                rejectedClaims: apiData.stats.rejectedClaims || 0,
+                monthlyContribution: apiData.stats.monthlyContribution || 0,
+                totalClaims: apiData.stats.totalClaims || 0,
               },
             }))
           }

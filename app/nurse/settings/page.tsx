@@ -8,9 +8,9 @@ import {
   NotificationSettingsTab,
   DocumentsTab,
   AvailabilitySettingsTab,
+  BillingSettingsTab,
 } from '@/components/settings'
 import type { SettingsTab } from '@/components/settings'
-import PaymentMethodForm from '@/components/shared/PaymentMethodForm'
 import NurseProfileTab from './NurseProfileTab'
 
 const NOTIFICATION_OPTIONS = [
@@ -47,7 +47,7 @@ export default function NurseSettingsPage() {
     { id: 'profile', label: 'Profile', icon: FaUser, component: <NurseProfileTab /> },
     { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
     { id: 'availability', label: 'Availability', icon: FaCalendarAlt, component: userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div> },
-    { id: 'payment', label: 'Payment Methods', icon: FaCreditCard, component: <PaymentMethodForm methods={[]} /> },
+    { id: 'billing', label: 'Billing', icon: FaCreditCard, component: <BillingSettingsTab userId={userId} /> },
     { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ appointments: true, patientUpdates: true, emergencyAlerts: true, emailNotifications: true, smsNotifications: false }} /> },
     { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={NURSE_DOCUMENTS} /> },
   ]

@@ -12,6 +12,63 @@ interface LogEntry {
   details: string
 }
 
+interface SecurityEvent {
+  type: string
+  message: string
+  timestamp: string
+}
+
+interface RecentUser {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  userType: string
+  accountStatus: string
+  createdAt: string
+}
+
+interface SecurityData {
+  suspendedAccounts: number
+  pendingAccounts: number
+  totalUsers: number
+  recentRegistrations: RecentUser[]
+  securityEvents: SecurityEvent[]
+}
+
+function mapSecurityDataToLogs(data: SecurityData): LogEntry[] {
+  const logs: LogEntry[] = []
+
+  // Add security event entries
+  data.securityEvents.forEach((ev, idx) => {
+    logs.push({
+      id: `sec-${idx}`,
+      timestamp: ev.timestamp,
+      level: ev.type === 'error' ? 'error' : ev.type === 'warning' ? 'warning' : 'info',
+      action: 'Security Event',
+      user: 'System',
+      details: ev.message,
+    })
+  })
+
+  // Add recent registration entries
+  data.recentRegistrations.forEach(user => {
+    logs.push({
+      id: `reg-${user.id}`,
+      timestamp: user.createdAt,
+      level: user.accountStatus === 'suspended' ? 'warning' : 'info',
+      action: 'User Registered',
+      user: `${user.firstName} ${user.lastName} (${user.email})`,
+      details: `User type: ${user.userType.replace(/_/g, ' ')} — Status: ${user.accountStatus}`,
+    })
+  })
+
+  // Sort by timestamp descending
+  logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+  return logs
+}
+
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -21,15 +78,15 @@ export default function AdminLogsPage() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch('/api/admin/logs')
+        const res = await fetch('/api/admin/security')
         if (res.ok) {
           const json = await res.json()
-          if (json.success) {
-            setLogs(json.data || [])
+          if (json.success && json.data) {
+            setLogs(mapSecurityDataToLogs(json.data as SecurityData))
           }
         }
       } catch {
-        // API may not exist yet — show empty state
+        // API unavailable — show empty state
       } finally {
         setLoading(false)
       }
@@ -40,7 +97,9 @@ export default function AdminLogsPage() {
 
   const filteredLogs = logs.filter(log => {
     if (filter !== 'all' && log.level !== filter) return false
-    if (search && !log.action.toLowerCase().includes(search.toLowerCase()) && !log.user.toLowerCase().includes(search.toLowerCase())) return false
+    if (search &&
+      !log.action.toLowerCase().includes(search.toLowerCase()) &&
+      !log.user.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
@@ -103,7 +162,9 @@ export default function AdminLogsPage() {
             <tbody>
               {filteredLogs.map((log) => (
                 <tr key={log.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3 text-gray-600 text-xs font-mono">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="p-3 text-gray-600 text-xs font-mono">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getLevelBadge(log.level)}`}>
                       {log.level.toUpperCase()}

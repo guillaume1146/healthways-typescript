@@ -284,7 +284,7 @@ export default function DoctorOverviewPage() {
                 </div>
                 {appointment.type === 'video' && appointment.roomId && (
                   <Link
-                    href={`/doctor/dashboard/video?roomId=${appointment.roomId}`}
+                    href={`/doctor/video?roomId=${appointment.roomId}`}
                     className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition text-xs sm:text-sm flex-shrink-0"
                   >
                     <FaVideo className="inline mr-1" />

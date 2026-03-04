@@ -1,112 +1,79 @@
 'use client'
 
-import { JSX, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-    FaPercentage, FaSave, FaEdit, FaTrash, FaPlus, FaInfoCircle,
-    FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
-    FaChartBar, FaDollarSign, FaDownload, FaCalendarAlt, FaFilter,
-    FaArrowUp, FaArrowDown, FaFilePdf, FaFileExcel, FaFileCsv, FaSpinner
+import {
+  FaPercentage, FaInfoCircle,
+  FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
+  FaDollarSign, FaArrowUp, FaArrowDown, FaSpinner
 } from 'react-icons/fa'
-import { IconType } from 'react-icons'
 
-// --- TYPE DEFINITIONS ---
-
-interface CommissionRule {
-  id: string
-  category: string
-  type: 'fixed' | 'percentage' | 'tiered'
-  baseRate: number
-  tiers?: { min: number; max: number; rate: number }[]
-  minAmount?: number
-  maxAmount?: number
-  effectiveDate: string
-  status: 'active' | 'inactive' | 'scheduled'
+interface ServiceRevenue {
+  serviceType: string
+  total: number
 }
 
-interface CategoryRevenue {
-  category: string
-  revenue: number
-  commission: number
-  netPayout: number
-  transactions: number
-  growth: number
+interface MetricsData {
+  revenue: {
+    total: number
+    thisMonth: number
+    lastMonth: number
+    byServiceType: ServiceRevenue[]
+  }
+  bookings: {
+    total: number
+    completed: number
+  }
 }
 
-interface TransactionData {
-  id: string
-  date: string
-  provider: string
-  category: string
-  service: string
-  amount: number
-  commission: number
-  payout: number
-  status: 'completed' | 'pending' | 'refunded'
+const SERVICE_ICON_MAP: Record<string, React.ReactNode> = {
+  doctor: <FaUserMd className="text-blue-600" />,
+  nurse: <FaUserNurse className="text-purple-600" />,
+  nanny: <FaChild className="text-pink-600" />,
+  childcare: <FaChild className="text-pink-600" />,
+  emergency: <FaAmbulance className="text-red-600" />,
+  pharmacy: <FaPills className="text-green-600" />,
+  lab: <FaFlask className="text-orange-600" />,
+}
+
+function getServiceIcon(serviceType: string) {
+  const key = Object.keys(SERVICE_ICON_MAP).find(k =>
+    serviceType.toLowerCase().includes(k)
+  )
+  return key ? SERVICE_ICON_MAP[key] : <FaPercentage className="text-gray-600" />
+}
+
+function formatServiceLabel(serviceType: string) {
+  return serviceType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 export default function CommissionManagement() {
-  const [rules, setRules] = useState<CommissionRule[]>([])
-  const [editingRule, setEditingRule] = useState<CommissionRule | null>(null)
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [metrics, setMetrics] = useState<MetricsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchCommissions = async () => {
+    const fetchMetrics = async () => {
       try {
-        const stored = localStorage.getItem('healthwyz_user')
-        if (!stored) return
-        let userId: string
-        try { userId = JSON.parse(stored).id } catch { return }
-        const res = await fetch(`/api/admin/${userId}/commissions`)
+        const res = await fetch('/api/admin/metrics')
         if (res.ok) {
           const json = await res.json()
-          if (json.success) setRules(json.data || [])
+          if (json.success && json.data) {
+            setMetrics(json.data)
+          } else {
+            setError('Failed to load commission data')
+          }
+        } else {
+          setError('Failed to load commission data')
         }
       } catch {
-        // Failed to fetch commission rules
+        setError('Failed to load commission data')
       } finally {
         setLoading(false)
       }
     }
-    fetchCommissions()
+    fetchMetrics()
   }, [])
-
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, JSX.Element> = {
-      'Doctors': <FaUserMd className="text-blue-600" />,
-      'Nurses': <FaUserNurse className="text-purple-600" />,
-      'Child Care': <FaChild className="text-pink-600" />,
-      'Emergency': <FaAmbulance className="text-red-600" />,
-      'Pharmacy': <FaPills className="text-green-600" />,
-      'Lab Tech': <FaFlask className="text-orange-600" />
-    }
-    return icons[category] || <FaPercentage className="text-gray-600" />
-  }
-
-  const getTypeBadge = (type: string) => {
-    const styles: { [key: string]: string } = {
-      fixed: 'bg-blue-100 text-blue-800',
-      percentage: 'bg-green-100 text-green-800',
-      tiered: 'bg-purple-100 text-purple-800'
-    }
-    return styles[type]
-  }
-
-  const calculateCommission = (amount: number, rule: CommissionRule) => {
-    if (rule.type === 'fixed') {
-      const commission = rule.baseRate
-      if (rule.minAmount && commission < rule.minAmount) return rule.minAmount
-      if (rule.maxAmount && commission > rule.maxAmount) return rule.maxAmount
-      return commission
-    } else if (rule.type === 'percentage') {
-      return (amount * rule.baseRate) / 100
-    } else if (rule.type === 'tiered' && rule.tiers) {
-      const tier = [...rule.tiers].reverse().find(t => amount >= t.min)
-      return tier ? (amount * tier.rate) / 100 : 0
-    }
-    return 0
-  }
 
   if (loading) {
     return (
@@ -116,6 +83,12 @@ export default function CommissionManagement() {
     )
   }
 
+  const totalRevenue = metrics?.revenue.total ?? 0
+  const thisMonth = metrics?.revenue.thisMonth ?? 0
+  const lastMonth = metrics?.revenue.lastMonth ?? 0
+  const monthGrowth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
+  const byServiceType = metrics?.revenue.byServiceType ?? []
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -123,127 +96,124 @@ export default function CommissionManagement() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Commission Management</h1>
-              <p className="text-gray-600">Configure commission rules by service category</p>
+              <h1 className="text-2xl font-bold text-gray-900">Revenue &amp; Commissions</h1>
+              <p className="text-gray-600">Platform revenue breakdown by service category</p>
             </div>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                <FaPlus /> Add Rule
-              </button>
-              <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                Back to Dashboard
-              </Link>
-            </div>
+            <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
         {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex gap-3">
             <FaInfoCircle className="text-blue-600 text-xl flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-900">Commission Rules Overview</h3>
+              <h3 className="font-semibold text-blue-900">Revenue Overview</h3>
               <p className="text-sm text-blue-800 mt-1">
-                Configure how commissions are calculated for each service category. You can set fixed amounts, 
-                percentage-based rates, or tiered structures based on transaction amounts.
+                This page shows actual revenue collected through wallet transactions across all service types.
+                Revenue is sourced from completed debit transactions.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Commission Rules Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {rules.map(rule => (
-            <div key={rule.id} className="bg-white rounded-xl p-6 shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  {getCategoryIcon(rule.category)}
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{rule.category}</h3>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 capitalize ${getTypeBadge(rule.type)}`}>
-                      {rule.type}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => setEditingRule(rule)}
-                    className="p-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200">
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-xl p-6 shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm">Total Revenue (All Time)</span>
+              <FaDollarSign className="text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString()}</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm">This Month</span>
+              <FaDollarSign className="text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">Rs {thisMonth.toLocaleString()}</p>
+            <p className={`text-sm flex items-center gap-1 mt-2 ${monthGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {monthGrowth >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+              {Math.abs(monthGrowth).toFixed(1)}% vs last month
+            </p>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm">Last Month</span>
+              <FaDollarSign className="text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">Rs {lastMonth.toLocaleString()}</p>
+          </div>
+        </div>
 
-              <div className="space-y-2 text-sm">
-                {rule.type === 'fixed' ? (
-                  <div>
-                    <span className="text-gray-600">Fixed Amount:</span>
-                    <span className="font-medium ml-2">Rs {rule.baseRate}</span>
-                    {rule.minAmount && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Min: Rs {rule.minAmount} | Max: Rs {rule.maxAmount}
+        {/* Revenue by Service Type */}
+        <div className="bg-white rounded-xl p-6 shadow mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue by Service Type</h2>
+          {byServiceType.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <FaDollarSign className="text-4xl mx-auto mb-3 text-gray-300" />
+              <p className="text-lg font-medium">No revenue data yet</p>
+              <p className="text-sm mt-1">Revenue from completed transactions will appear here</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {byServiceType.map(row => {
+                const percentage = totalRevenue > 0 ? (row.total / totalRevenue) * 100 : 0
+                return (
+                  <div key={row.serviceType} className="border rounded-xl p-5 bg-white hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{getServiceIcon(row.serviceType)}</span>
+                        <h3 className="font-semibold text-gray-900">
+                          {formatServiceLabel(row.serviceType)}
+                        </h3>
                       </div>
-                    )}
-                  </div>
-                ) : rule.type === 'percentage' ? (
-                  <div>
-                    <span className="text-gray-600">Commission Rate:</span>
-                    <span className="font-medium ml-2">{rule.baseRate}%</span>
-                  </div>
-                ) : rule.type === 'tiered' && rule.tiers ? (
-                  <div>
-                    <span className="text-gray-600">Tiered Rates:</span>
-                    <div className="mt-2 space-y-1">
-                      {rule.tiers.map((tier, idx) => (
-                        <div key={idx} className="flex justify-between text-xs">
-                          <span className="text-gray-500">
-                            Rs {tier.min} - {tier.max === 9999 ? '∞' : `Rs ${tier.max}`}
-                          </span>
-                          <span className="font-medium">{tier.rate}%</span>
-                        </div>
-                      ))}
+                      <span className="text-xl font-bold text-gray-900">
+                        Rs {row.total.toLocaleString()}
+                      </span>
                     </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2 text-right">
+                      {percentage.toFixed(1)}% of total revenue
+                    </p>
                   </div>
-                ) : null}
-                
-                <div className="pt-2 border-t">
-                  <span className="text-gray-600">Effective Date:</span>
-                  <span className="ml-2">{rule.effectiveDate}</span>
-                </div>
-              </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
-              {/* Commission Calculator */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs font-medium text-gray-700 mb-2">Quick Calculator</p>
-                <div className="flex gap-2">
-                  <input 
-                    type="number" 
-                    placeholder="Amount"
-                    className="flex-1 px-2 py-1 border rounded text-sm"
-                    onChange={(e) => {
-                      const amount = parseFloat(e.target.value) || 0
-                      const commission = calculateCommission(amount, rule)
-                      const el = document.getElementById(`commission-${rule.id}`)
-                      if (el) el.textContent = `Rs ${commission.toFixed(2)}`
-                    }}
-                  />
-                  <span id={`commission-${rule.id}`} className="px-3 py-1 bg-white border rounded text-sm font-medium">
-                    Rs 0.00
-                  </span>
-                </div>
+        {/* Booking Completion Summary */}
+        {metrics && (
+          <div className="bg-white rounded-xl p-6 shadow">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Booking Completion Summary</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-3xl font-bold text-gray-900">{metrics.bookings.total.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 mt-1">Total Bookings</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <p className="text-3xl font-bold text-green-600">{metrics.bookings.completed.toLocaleString()}</p>
+                <p className="text-sm text-gray-600 mt-1">Completed (Revenue-Generating)</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -2,107 +2,86 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { 
-  FaCheckCircle, FaTimes, FaEye, FaDownload, FaExclamationTriangle,
-  FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
-  FaFileAlt, FaCertificate, FaIdCard, FaClock, FaSearch, FaSpinner
+import {
+  FaCheckCircle, FaTimes, FaEye,
+  FaClock, FaSearch, FaSpinner, FaExclamationTriangle, FaUsers
 } from 'react-icons/fa'
 
-interface Document {
+interface AccountRecord {
   id: string
-  type: string
-  name: string
-  status: 'verified' | 'pending' | 'rejected'
-  uploadDate: string
-  expiryDate?: string
-  fileUrl: string
-}
-
-interface ValidationRequest {
-  id: string
-  profileId: string
-  name: string
-  category: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
-  submittedDate: string
-  documents: Document[]
-  status: 'pending' | 'approved' | 'rejected' | 'under_review'
-  priority: 'high' | 'medium' | 'low'
-  avatar: string
+  userType: string
+  accountStatus: string
+  profileImage: string | null
+  createdAt: string
 }
 
 export default function AccountValidation() {
-  const [requests, setRequests] = useState<ValidationRequest[]>([])
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [accounts, setAccounts] = useState<AccountRecord[]>([])
+  const [statusFilter, setStatusFilter] = useState('pending')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRequest, setSelectedRequest] = useState<ValidationRequest | null>(null)
   const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchAccounts = async (status: string) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/accounts?status=${status}`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success) setAccounts(json.data || [])
+      } else {
+        setError('Failed to load accounts')
+      }
+    } catch {
+      setError('Failed to load accounts')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const stored = localStorage.getItem('healthwyz_user')
-        if (!stored) return
-        let userId: string
-        try { userId = JSON.parse(stored).id } catch { return }
-        const res = await fetch(`/api/admin/${userId}/validation-requests`)
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success) setRequests(json.data || [])
-        }
-      } catch {
-        // Failed to fetch validation requests
-      } finally {
-        setLoading(false)
+    fetchAccounts(statusFilter)
+  }, [statusFilter])
+
+  const handleAction = async (userId: string, action: 'approve' | 'reject' | 'suspend') => {
+    setActionLoading(userId)
+    try {
+      const res = await fetch('/api/admin/accounts', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action }),
+      })
+      if (res.ok) {
+        setAccounts(prev => prev.filter(a => a.id !== userId))
       }
+    } catch {
+      // Silently ignore — account list will refresh on next filter change
+    } finally {
+      setActionLoading(null)
     }
-    fetchRequests()
-  }, [])
+  }
 
-  const categories = ['All', 'Doctor', 'Nurse', 'Child Care', 'Emergency', 'Pharmacy', 'Lab Tech']
-
-  const filteredRequests = requests.filter(req => {
-    const matchCategory = selectedCategory === 'All' || req.category === selectedCategory
-    const matchSearch = req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        req.email.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchCategory && matchSearch
+  const filteredAccounts = accounts.filter(acc => {
+    const fullName = `${acc.firstName} ${acc.lastName}`.toLowerCase()
+    const matchSearch = fullName.includes(searchTerm.toLowerCase()) ||
+                        acc.email.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchSearch
   })
 
-  const getPriorityBadge = (priority: string) => {
-    const styles = {
-      high: 'bg-red-100 text-red-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-green-100 text-green-800'
-    }
-    return styles[priority as keyof typeof styles]
+  const statusCounts = {
+    pending: accounts.filter(a => statusFilter === 'pending').length,
+    active: 0,
+    suspended: 0,
   }
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: 'bg-orange-100 text-orange-800',
-      under_review: 'bg-blue-100 text-blue-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      verified: 'bg-green-100 text-green-800'
-    }
-    return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'
-  }
-
-  const handleApprove = (id: string) => {
-    setRequests(prev => prev.map(req => 
-      req.id === id ? { ...req, status: 'approved' as const } : req
-    ))
-    setSelectedRequest(null)
-  }
-
-  const handleReject = (id: string) => {
-    setRequests(prev => prev.map(req => 
-      req.id === id ? { ...req, status: 'rejected' as const } : req
-    ))
-    setSelectedRequest(null)
-  }
+  const formatUserType = (userType: string) =>
+    userType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
   if (loading) {
     return (
@@ -130,13 +109,13 @@ export default function AccountValidation() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg p-4 shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-orange-600">{requests.filter(r => r.status === 'pending').length}</p>
-                <p className="text-gray-600 text-sm">Pending Review</p>
+                <p className="text-2xl font-bold text-orange-600">{accounts.length}</p>
+                <p className="text-gray-600 text-sm">Showing {statusFilter} accounts</p>
               </div>
               <FaClock className="text-orange-600 text-2xl" />
             </div>
@@ -144,8 +123,8 @@ export default function AccountValidation() {
           <div className="bg-white rounded-lg p-4 shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-blue-600">{requests.filter(r => r.status === 'under_review').length}</p>
-                <p className="text-gray-600 text-sm">Under Review</p>
+                <p className="text-2xl font-bold text-blue-600">{filteredAccounts.length}</p>
+                <p className="text-gray-600 text-sm">Matching search</p>
               </div>
               <FaEye className="text-blue-600 text-2xl" />
             </div>
@@ -153,19 +132,12 @@ export default function AccountValidation() {
           <div className="bg-white rounded-lg p-4 shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-green-600">{requests.filter(r => r.status === 'approved').length}</p>
-                <p className="text-gray-600 text-sm">Approved Today</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {accounts.filter(a => a.accountStatus === 'active').length}
+                </p>
+                <p className="text-gray-600 text-sm">Active in view</p>
               </div>
               <FaCheckCircle className="text-green-600 text-2xl" />
-            </div>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-red-600">{requests.filter(r => r.priority === 'high').length}</p>
-                <p className="text-gray-600 text-sm">High Priority</p>
-              </div>
-              <FaExclamationTriangle className="text-red-600 text-2xl" />
             </div>
           </div>
         </div>
@@ -174,17 +146,17 @@ export default function AccountValidation() {
         <div className="bg-white rounded-xl p-4 shadow mb-6">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex flex-wrap gap-2">
-              {categories.map(cat => (
+              {['pending', 'active', 'suspended'].map(status => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                    selectedCategory === cat 
-                      ? 'bg-blue-600 text-white' 
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition ${
+                    statusFilter === status
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {cat}
+                  {status}
                 </button>
               ))}
             </div>
@@ -192,7 +164,7 @@ export default function AccountValidation() {
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search requests..."
+                placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border rounded-lg w-64"
@@ -201,148 +173,108 @@ export default function AccountValidation() {
           </div>
         </div>
 
-        {/* Validation Requests Table */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+            <FaExclamationTriangle />
+            {error}
+          </div>
+        )}
+
+        {/* Accounts Table */}
         <div className="bg-white rounded-xl shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Provider</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Category</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Documents</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Priority</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Status</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Submitted</th>
-                <th className="p-4 text-left text-sm font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRequests.map(request => (
-                <tr key={request.id} className="border-t hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Image 
-                        src={request.avatar} 
-                        alt={request.name}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-900">{request.name}</p>
-                        <p className="text-sm text-gray-500">{request.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-gray-700">{request.category}</span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-700">{request.documents.length} files</span>
-                      <span className="text-xs text-gray-500">
-                        ({request.documents.filter(d => d.status === 'verified').length} verified)
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadge(request.priority)}`}>
-                      {request.priority}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}>
-                      {request.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-gray-700">{request.submittedDate}</span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setSelectedRequest(request)}
-                        className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
-                      >
-                        <FaEye />
-                      </button>
-                      {request.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(request.id)}
-                            className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200"
-                          >
-                            <FaCheckCircle />
-                          </button>
-                          <button
-                            onClick={() => handleReject(request.id)}
-                            className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                          >
-                            <FaTimes />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+          {filteredAccounts.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <FaUsers className="text-4xl mx-auto mb-3 text-gray-300" />
+              <p className="text-lg font-medium">No {statusFilter} accounts found</p>
+              <p className="text-sm mt-1">Accounts with &quot;{statusFilter}&quot; status will appear here</p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Provider</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Type</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Phone</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Status</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Registered</th>
+                  <th className="p-4 text-left text-sm font-medium text-gray-700">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredAccounts.map(account => (
+                  <tr key={account.id} className="border-t hover:bg-gray-50">
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {account.firstName} {account.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500">{account.email}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-sm text-gray-700">{formatUserType(account.userType)}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-sm text-gray-700">{account.phone || '—'}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                        account.accountStatus === 'active' ? 'bg-green-100 text-green-800' :
+                        account.accountStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {account.accountStatus}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-sm text-gray-700">
+                        {new Date(account.createdAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        {actionLoading === account.id ? (
+                          <FaSpinner className="animate-spin text-blue-500" />
+                        ) : (
+                          <>
+                            {account.accountStatus === 'pending' && (
+                              <>
+                                <button
+                                  onClick={() => handleAction(account.id, 'approve')}
+                                  className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200"
+                                  title="Approve"
+                                >
+                                  <FaCheckCircle />
+                                </button>
+                                <button
+                                  onClick={() => handleAction(account.id, 'reject')}
+                                  className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                  title="Reject"
+                                >
+                                  <FaTimes />
+                                </button>
+                              </>
+                            )}
+                            {account.accountStatus === 'active' && (
+                              <button
+                                onClick={() => handleAction(account.id, 'suspend')}
+                                className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200"
+                                title="Suspend"
+                              >
+                                <FaTimes />
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
-
-      {/* Document Review Modal */}
-      {selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Document Review: {selectedRequest.name}</h2>
-            <div className="space-y-4">
-              {selectedRequest.documents.map(doc => (
-                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FaFileAlt className="text-gray-600 text-xl" />
-                    <div>
-                      <p className="font-medium">{doc.name}</p>
-                      <p className="text-sm text-gray-500">Type: {doc.type} • Uploaded: {doc.uploadDate}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(doc.status)}`}>
-                      {doc.status}
-                    </span>
-                    <button className="p-2 bg-gray-100 rounded hover:bg-gray-200">
-                      <FaDownload />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setSelectedRequest(null)}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-              >
-                Close
-              </button>
-              {selectedRequest.status === 'pending' && (
-                <>
-                  <button
-                    onClick={() => handleReject(selectedRequest.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleApprove(selectedRequest.id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    Approve All
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

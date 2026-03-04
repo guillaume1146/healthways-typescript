@@ -5,6 +5,8 @@ import { FaSearch, FaAmbulance, FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaExcl
 
 import { IconType } from 'react-icons';
 import AuthBookingLink from '@/components/booking/AuthBookingLink';
+import ConnectButton from '@/components/search/ConnectButton';
+import MessageButton from '@/components/search/MessageButton';
 
 // Category icons mapping
 const categoryIcons: { [key: string]: IconType } = {
@@ -178,7 +180,7 @@ const EmergencyCard = ({ service }: ServiceProps) => {
         </div>
         
         {/* Secondary Contact */}
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-2">
             <FaPhone className="text-xs" />
             <span>{service.alternatePhone}</span>
@@ -193,6 +195,11 @@ const EmergencyCard = ({ service }: ServiceProps) => {
               Email
             </button>
           </div>
+        </div>
+        {/* Message & Connect Actions */}
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+          <MessageButton providerId={service.id} />
+          <ConnectButton providerId={service.id} />
         </div>
       </div>
     </div>
@@ -262,7 +269,7 @@ export default function EmergencyPage() {
       setIsLoading(true)
       const res = await fetch('/api/search/emergency')
       if (!res.ok) throw new Error('Failed to fetch emergency services')
-      const data = await res.json()
+      const json = await res.json()
       interface ApiEmergencyService {
         id: string
         worker?: { name?: string; phone?: string; certifications?: string[]; vehicleType?: string; verified?: boolean; profileImage?: string }
@@ -275,9 +282,9 @@ export default function EmergencyPage() {
         specializations?: string[]
         description?: string
       }
-      const mapped = (data || []).map((s: ApiEmergencyService) => ({
+      const mapped = ((json.data || json) as ApiEmergencyService[]).map((s: ApiEmergencyService) => ({
         id: s.id,
-        name: s.worker?.name || s.serviceName,
+        name: s.worker?.name || s.serviceName || 'Emergency Service',
         type: s.serviceType || 'Emergency Service',
         category: s.serviceType || 'Medical Emergency',
         responseTime: s.responseTime || 'N/A',
@@ -378,31 +385,15 @@ export default function EmergencyPage() {
         </div>
       </div>
       
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-12 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-4xl font-bold mb-4 flex items-center gap-3">
-            <FaExclamationTriangle className="animate-pulse" />
-            Emergency Services Directory
-          </h1>
-          <p className="text-xl text-red-100">
-            AI-powered search to quickly connect you with emergency services in Mauritius
-          </p>
-          <div className="mt-6 bg-yellow-400 text-red-900 p-4 rounded-lg font-semibold">
-            <FaBell className="inline mr-2 animate-pulse" />
-            For life-threatening emergencies, always call 911 immediately
-          </div>
-        </div>
-        {/* Animated background elements */}
-        <div className="absolute top-0 right-0 opacity-10">
-          <FaAmbulance className="text-[200px] transform rotate-12" />
-        </div>
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Emergency Services</h1>
+        <p className="text-gray-500 mt-1">Find emergency services in Mauritius</p>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Search Section */}
-        <div className="max-w-4xl mx-auto -mt-8 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6 mt-10 border-2 border-red-200">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-red-200">
             <div className="flex flex-col gap-4">
               <div className="relative">
                 <input

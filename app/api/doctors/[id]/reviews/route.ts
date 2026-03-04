@@ -32,9 +32,16 @@ export async function GET(
   const offset = Math.max(isNaN(offsetParam) ? 0 : offsetParam, 0)
 
   try {
+    // Resolve doctor profile ID — `id` can be either User.id or DoctorProfile.id
+    const profileByUser = await prisma.doctorProfile.findUnique({
+      where: { userId: id },
+      select: { id: true },
+    })
+    const doctorProfileId = profileByUser?.id ?? id
+
     const [reviews, total, aggregation] = await Promise.all([
       prisma.patientComment.findMany({
-        where: { doctorId: id },
+        where: { doctorId: doctorProfileId },
         select: {
           id: true,
           patientName: true,
@@ -46,9 +53,9 @@ export async function GET(
         take: limit,
         skip: offset,
       }),
-      prisma.patientComment.count({ where: { doctorId: id } }),
+      prisma.patientComment.count({ where: { doctorId: doctorProfileId } }),
       prisma.patientComment.aggregate({
-        where: { doctorId: id },
+        where: { doctorId: doctorProfileId },
         _avg: { rating: true },
       }),
     ])

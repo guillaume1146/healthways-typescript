@@ -55,31 +55,48 @@ export default function InsuranceClaimsPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/insurance/${userId}/dashboard`)
+      const params = new URLSearchParams({ limit: '50' })
+      if (statusFilter) params.set('status', statusFilter)
+      const res = await fetch(`/api/insurance/claims?${params}`)
       if (!res.ok) throw new Error('Failed to fetch claims')
       const json = await res.json()
       if (json.success) {
-        // The dashboard API currently returns plans; claims are sourced from mock data
-        // since the schema does not yet have a Claims model
-        setClaims([])
+        setClaims(json.data.map((c: Record<string, unknown>) => ({
+          ...c,
+          submittedDate: c.submittedDate
+            ? new Date(c.submittedDate as string).toLocaleDateString()
+            : '',
+        })))
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [userId, statusFilter])
 
   useEffect(() => {
     fetchClaims()
   }, [fetchClaims])
 
   const handleUpdateClaim = async (claimId: string, newStatus: string) => {
-    setClaims(prev =>
-      prev.map(c =>
-        c.id === claimId ? { ...c, status: newStatus as InsuranceClaim['status'] } : c
-      )
-    )
+    const action = newStatus === 'approved' ? 'approve' : 'reject'
+    try {
+      const res = await fetch(`/api/insurance/claims/${claimId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        setClaims(prev =>
+          prev.map(c =>
+            c.id === claimId ? { ...c, status: newStatus as InsuranceClaim['status'] } : c
+          )
+        )
+      }
+    } catch {
+      // Silent failure — claim status unchanged in UI
+    }
   }
 
   const filteredClaims = claims.filter(claim => {

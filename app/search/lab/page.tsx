@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
 import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock,FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaHome, FaExclamationTriangle, FaCertificate, FaHeadset,  FaHeart,  FaBaby, FaHandHoldingMedical,  FaVial, FaPercent,  FaUserMd,  FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance,  FaClipboardList } from 'react-icons/fa'
 
 interface ApiLabTest {
@@ -210,22 +212,28 @@ const LabTestCard = ({ test }: LabTestProps) => {
         </div>
         
         {/* Footer with Price and CTA */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-gray-900">{test.price}</p>
-              <span className="text-sm text-gray-500 line-through">{test.originalPrice}</span>
+        <div className="pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold text-gray-900">{test.price}</p>
+                <span className="text-sm text-gray-500 line-through">{test.originalPrice}</span>
+              </div>
+              <p className="text-xs text-green-600 font-medium">{test.discount}</p>
             </div>
-            <p className="text-xs text-green-600 font-medium">{test.discount}</p>
+            <div className="flex gap-2">
+              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
+                Details
+              </button>
+              <AuthBookingLink type="lab-test" providerId={test.id} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
+                <FaShoppingCart />
+                Book Test
+              </AuthBookingLink>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
-              Details
-            </button>
-            <AuthBookingLink type="lab-test" providerId={test.id} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
-              <FaShoppingCart />
-              Book Test
-            </AuthBookingLink>
+          <div className="flex flex-wrap gap-2">
+            <MessageButton providerId={test.id} />
+            <ConnectButton providerId={test.id} />
           </div>
         </div>
       </div>
@@ -349,37 +357,33 @@ export default function LabTestingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Lab Tests & Diagnostics</h1>
-          <p className="text-xl text-purple-100">
-            AI-powered search for accurate lab tests with home collection across Mauritius
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaCheckCircle className="text-green-300" />
-              <span>NABL Certified Labs</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaHome className="text-blue-300" />
-              <span>Home Collection</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaFileAlt className="text-yellow-300" />
-              <span>Digital Reports</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaHeadset className="text-orange-300" />
-              <span>Expert Consultation</span>
-            </div>
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Lab Tests & Diagnostics</h1>
+        <p className="text-gray-500 mt-1">Book lab tests and diagnostic services</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaCheckCircle className="text-green-500" />
+            <span>NABL Certified Labs</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaHome className="text-blue-500" />
+            <span>Home Collection</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaFileAlt className="text-purple-500" />
+            <span>Digital Reports</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaHeadset className="text-orange-500" />
+            <span>Expert Consultation</span>
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
-        <div className="max-w-4xl mx-auto -mt-8 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6">
             <div>
               <div className="flex flex-col gap-4">
                 <div className="relative">

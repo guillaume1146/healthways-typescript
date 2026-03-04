@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { FaUser, FaShieldAlt, FaCreditCard, FaCrown, FaBell, FaFileAlt } from 'react-icons/fa'
 import {
   SettingsLayout,
@@ -7,9 +8,9 @@ import {
   NotificationSettingsTab,
   DocumentsTab,
   SubscriptionTab,
+  BillingSettingsTab,
 } from '@/components/settings'
 import type { SettingsTab } from '@/components/settings'
-import PaymentMethodForm from '@/components/shared/PaymentMethodForm'
 import PatientProfileTab from './PatientProfileTab'
 
 const NOTIFICATION_OPTIONS = [
@@ -33,15 +34,29 @@ const SUBSCRIPTION_PLANS = [
   { id: 'corporate', name: 'Corporate Wellness', price: 0, period: 'yearly' as const, features: ['Covered by Employer', 'Annual Health Screening', 'Wellness Workshops'] },
 ]
 
-const tabs: SettingsTab[] = [
-  { id: 'profile', label: 'Profile', icon: FaUser, component: <PatientProfileTab /> },
-  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
-  { id: 'payment', label: 'Billing & Payments', icon: FaCreditCard, component: <PaymentMethodForm methods={[{ id: 'pm1', type: 'credit_card', label: 'Visa ending in 4242', details: 'John Smith - Exp 12/26', isDefault: true }, { id: 'pm2', type: 'mcb_juice', label: 'MCB Juice', details: '+230 5123 4567', isDefault: false }]} /> },
-  { id: 'subscription', label: 'Subscription', icon: FaCrown, component: <SubscriptionTab plans={SUBSCRIPTION_PLANS} currentPlanId="premium" /> },
-  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ appointmentReminders: true, prescriptionRefills: true, labResults: true, healthTips: false, promotions: false }} /> },
-  { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={PATIENT_DOCUMENTS} /> },
-]
-
 export default function PatientSettingsPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const tabs: SettingsTab[] = [
+    { id: 'profile', label: 'Profile', icon: FaUser, component: <PatientProfileTab /> },
+    { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+    { id: 'billing', label: 'Billing & Payments', icon: FaCreditCard, component: <BillingSettingsTab userId={userId} /> },
+    { id: 'subscription', label: 'Subscription', icon: FaCrown, component: <SubscriptionTab plans={SUBSCRIPTION_PLANS} currentPlanId="premium" /> },
+    { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ appointmentReminders: true, prescriptionRefills: true, labResults: true, healthTips: false, promotions: false }} /> },
+    { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={PATIENT_DOCUMENTS} /> },
+  ]
+
   return <SettingsLayout tabs={tabs} />
 }

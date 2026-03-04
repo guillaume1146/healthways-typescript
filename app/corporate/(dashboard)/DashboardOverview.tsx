@@ -76,7 +76,7 @@ export default function DashboardOverview({
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Employee Additions</h2>
-              <Link href="/corporate/dashboard/employees" className="text-blue-600 hover:underline font-medium">
+              <Link href="/corporate/employees" className="text-blue-600 hover:underline font-medium">
                 Manage All Employees
               </Link>
             </div>
@@ -126,7 +126,7 @@ export default function DashboardOverview({
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Claims Activity</h2>
-              <Link href="/corporate/dashboard/claims" className="text-blue-600 hover:underline font-medium">
+              <Link href="/corporate/claims" className="text-blue-600 hover:underline font-medium">
                 View All Claims
               </Link>
             </div>
@@ -198,7 +198,7 @@ export default function DashboardOverview({
             <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <Link
-                href="/corporate/dashboard/employees"
+                href="/corporate/employees"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function DashboardOverview({
                 </div>
               </Link>
               <Link
-                href="/corporate/dashboard/billing"
+                href="/corporate/billing"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export default function DashboardOverview({
                 </div>
               </Link>
               <Link
-                href="/corporate/dashboard/analytics"
+                href="/corporate/analytics"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">

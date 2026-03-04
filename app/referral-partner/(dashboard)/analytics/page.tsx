@@ -70,9 +70,11 @@ export default function AnalyticsPage() {
             const totalReferrals = stats.totalReferrals || 0
             const totalEarnings = stats.totalEarnings || 0
 
+            const actualConversions = json.data.recentConversions?.length ?? totalReferrals
+
             setAnalytics({
-              conversionRate: totalReferrals > 0 ? Math.round((totalReferrals * 0.65) / totalReferrals * 100) : 0,
-              totalClicks: totalReferrals > 0 ? totalReferrals * 3 : 0,
+              conversionRate: totalReferrals > 0 ? Math.round((actualConversions / totalReferrals) * 100) : 0,
+              totalClicks: totalReferrals,
               totalSignups: totalReferrals,
               earningsPerReferral: totalReferrals > 0 ? Math.round(totalEarnings / totalReferrals) : 0,
               totalReferrals,

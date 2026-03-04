@@ -97,6 +97,19 @@ const DURATION_OPTIONS = [
   { value: 120, label: '2 hours' },
 ]
 
+// Pre-set time slots shown for emergency bookings (no provider ID / slot API)
+const EMERGENCY_TIME_SLOTS = [
+  { value: 'next_available', label: 'Next Available', description: 'Dispatch immediately' },
+  { value: 'within_30min', label: 'Within 30 min', description: 'Arrive in ~30 minutes' },
+  { value: 'within_1hr', label: 'Within 1 hour', description: 'Arrive in ~1 hour' },
+  { value: 'within_2hrs', label: 'Within 2 hours', description: 'Arrive in ~2 hours' },
+]
+
+// Quick lookup map used by formatTime to pretty-print emergency slot values
+const EMERGENCY_TIME_SLOTS_MAP: Record<string, string> = Object.fromEntries(
+  EMERGENCY_TIME_SLOTS.map((s) => [s.value, s.label])
+)
+
 function getInitials(name: string): string {
   return name
     .split(' ')
@@ -122,8 +135,13 @@ function formatDate(dateString: string): string {
 
 function formatTime(timeString: string): string {
   if (!timeString) return 'Not selected'
+  // Emergency preset slot labels
+  const emergencySlot = EMERGENCY_TIME_SLOTS_MAP[timeString]
+  if (emergencySlot) return emergencySlot
+  // Standard HH:MM time
   const [hours, minutes] = timeString.split(':')
   const h = parseInt(hours, 10)
+  if (isNaN(h)) return timeString
   const amPm = h >= 12 ? 'PM' : 'AM'
   const displayHour = h % 12 || 12
   return `${displayHour}:${minutes} ${amPm}`
@@ -178,7 +196,7 @@ export default function BookingForm({
   const [consultationType, setConsultationType] = useState<
     'in_person' | 'home_visit' | 'video' | undefined
   >(undefined)
-  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledDate, setScheduledDate] = useState(providerType === 'emergency' ? todayISO() : '')
   const [scheduledTime, setScheduledTime] = useState('')
   const [reason, setReason] = useState('')
   const [notes, setNotes] = useState('')
@@ -200,6 +218,7 @@ export default function BookingForm({
   const [slotsError, setSlotsError] = useState('')
 
   const useSlotPicker = providerType !== 'emergency' && !!providerId
+  const useEmergencySlots = providerType === 'emergency'
 
   const fetchAvailableSlots = useCallback(async (date: string) => {
     if (!providerId || !date || providerType === 'emergency') return
@@ -581,11 +600,11 @@ export default function BookingForm({
               />
             </div>
 
-            {/* Time — Slot picker or free-form */}
-            <div className={useSlotPicker ? 'sm:col-span-2' : ''}>
+            {/* Time — Slot picker, emergency preset slots, or free-form */}
+            <div className={useSlotPicker || useEmergencySlots ? 'sm:col-span-2' : ''}>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <FaClock className="text-teal-600" />
-                Time <span className="text-red-500">*</span>
+                {useEmergencySlots ? 'Response Time' : 'Time'} <span className="text-red-500">*</span>
               </label>
 
               {useSlotPicker ? (
@@ -620,6 +639,26 @@ export default function BookingForm({
                     </div>
                   ) : null}
                 </>
+              ) : useEmergencySlots ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {EMERGENCY_TIME_SLOTS.map((slot) => (
+                    <button
+                      key={slot.value}
+                      type="button"
+                      onClick={() => setScheduledTime(slot.value)}
+                      className={`flex flex-col items-center p-4 border-2 rounded-xl text-sm font-medium transition-all ${
+                        scheduledTime === slot.value
+                          ? 'bg-red-600 text-white border-red-600 shadow-md'
+                          : 'border-gray-300 text-gray-700 hover:border-red-400 hover:bg-red-50'
+                      }`}
+                    >
+                      <span className="font-semibold">{slot.label}</span>
+                      <span className={`text-xs mt-0.5 ${scheduledTime === slot.value ? 'text-red-100' : 'text-gray-400'}`}>
+                        {slot.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               ) : (
                 <input
                   type="time"
@@ -630,8 +669,8 @@ export default function BookingForm({
               )}
             </div>
 
-            {/* Duration — hidden when using slot picker (always 1h) */}
-            {!useSlotPicker && (
+            {/* Duration — hidden when using slot picker or emergency preset slots */}
+            {!useSlotPicker && !useEmergencySlots && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
                 <select

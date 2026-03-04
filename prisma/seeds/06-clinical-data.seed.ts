@@ -18,6 +18,13 @@ export async function seedClinicalData(prisma: PrismaClient) {
     { id: 'PRE003', patientId: 'PPROF002', doctorId: 'DPROF002', date: new Date('2024-12-01'), diagnosis: 'Asthma', isActive: true, notes: 'Use as needed for symptoms' },
     { id: 'PRE004', patientId: 'PPROF004', doctorId: 'DPROF003', date: new Date('2024-12-05'), diagnosis: 'Hypercholesterolemia', isActive: true, nextRefill: new Date('2025-03-05') },
     { id: 'PRE005', patientId: 'PPROF001', doctorId: 'DPROF002', date: new Date('2024-06-10'), diagnosis: 'Seasonal allergies', isActive: false, notes: 'Completed course' },
+
+    // ── 5 additional prescriptions ──────────────────────────────────────────
+    { id: 'PRE011', patientId: 'PPROF002', doctorId: 'DPROF001', date: new Date('2025-01-08'), diagnosis: 'Migraine with aura', isActive: true, nextRefill: new Date('2025-04-08'), notes: 'Sumatriptan for acute attacks; propranolol for prevention' },
+    { id: 'PRE012', patientId: 'PPROF004', doctorId: 'DPROF001', date: new Date('2025-01-12'), diagnosis: 'Essential hypertension — ongoing management', isActive: true, nextRefill: new Date('2025-04-12'), notes: 'Monitor BP weekly. Reduce sodium intake.' },
+    { id: 'PRE013', patientId: 'PPROF005', doctorId: 'DPROF002', date: new Date('2025-01-15'), diagnosis: 'Vitamin D deficiency', isActive: true, nextRefill: new Date('2025-04-15'), notes: 'High-dose weekly loading then daily maintenance' },
+    { id: 'PRE014', patientId: 'PPROF003', doctorId: 'DPROF002', date: new Date('2025-01-20'), diagnosis: 'NSAID-induced gastritis — maintenance', isActive: true, nextRefill: new Date('2025-02-20'), notes: 'Continue PPI cover while on NSAIDs for back pain' },
+    { id: 'PRE015', patientId: 'PPROF002', doctorId: 'DPROF003', date: new Date('2025-01-22'), diagnosis: 'Cardiac palpitations — rate control', isActive: true, nextRefill: new Date('2025-04-22'), notes: 'Low-dose beta blocker. Monitor heart rate. Avoid caffeine.' },
   ]
   await prisma.prescription.createMany({ data: prescriptions })
 
@@ -29,6 +36,15 @@ export async function seedClinicalData(prisma: PrismaClient) {
     { prescriptionId: 'PRE003', medicineId: 'MED010', dosage: '100mcg', frequency: 'As needed', duration: '6 months', instructions: '2 puffs when needed' },
     { prescriptionId: 'PRE004', medicineId: 'MED003', dosage: '40mg', frequency: 'Once daily', duration: 'Ongoing', instructions: 'Take at bedtime' },
     { prescriptionId: 'PRE005', medicineId: 'MED009', dosage: '10mg', frequency: 'Once daily', duration: '30 days' },
+
+    // Medicines for new prescriptions
+    { prescriptionId: 'PRE011', medicineId: 'MED008', dosage: '400mg', frequency: 'As needed for acute attack', duration: 'Ongoing', instructions: 'Take at first sign of migraine. Do not exceed 1200mg per day.' },
+    { prescriptionId: 'PRE011', medicineId: 'MED004', dosage: '40mg', frequency: 'Once daily', duration: 'Ongoing', instructions: 'Daily preventive medication. Take at the same time each morning.' },
+    { prescriptionId: 'PRE012', medicineId: 'MED002', dosage: '10mg', frequency: 'Once daily', duration: 'Ongoing', instructions: 'Take in the morning with water' },
+    { prescriptionId: 'PRE012', medicineId: 'MED004', dosage: '2.5mg', frequency: 'Once daily', duration: 'Ongoing', instructions: 'Evening dose for additional BP control' },
+    { prescriptionId: 'PRE013', medicineId: 'MED007', dosage: '50,000 IU', frequency: 'Once weekly', duration: '8 weeks then reassess', instructions: 'Take with a fatty meal for best absorption' },
+    { prescriptionId: 'PRE014', medicineId: 'MED005', dosage: '20mg', frequency: 'Once daily', duration: '4 weeks', instructions: 'Take 30 minutes before first meal of the day' },
+    { prescriptionId: 'PRE015', medicineId: 'MED004', dosage: '25mg', frequency: 'Once daily', duration: 'Ongoing', instructions: 'Take at the same time each day. Do not stop suddenly.' },
   ]
   await prisma.prescriptionMedicine.createMany({ data: prescMeds })
 
@@ -63,5 +79,5 @@ export async function seedClinicalData(prisma: PrismaClient) {
   ]
   await prisma.labTestResult.createMany({ data: labResults })
 
-  console.log(`  Seeded ${records.length} medical records, ${prescriptions.length} prescriptions, ${vitals.length} vital signs, ${labTests.length} lab tests`)
+  console.log(`  Seeded ${records.length} medical records, ${prescriptions.length} prescriptions (${prescMeds.length} medicines), ${vitals.length} vital signs, ${labTests.length} lab tests`)
 }

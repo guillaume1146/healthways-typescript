@@ -32,14 +32,30 @@ interface Props {
   patientData: Patient
 }
 
+interface RealClaim {
+  id: string
+  claimId: string
+  policyHolderName: string
+  description: string
+  policyType: string
+  claimAmount: number
+  status: string
+  submittedDate: string
+  resolvedDate: string | null
+  plan: { planName: string; planType: string } | null
+  insuranceRep: { companyName: string; user: { firstName: string; lastName: string } } | null
+}
+
 const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
   const [expandedSection, setExpandedSection] = useState<string>('coverage')
   const [showClaimForm, setShowClaimForm] = useState(false)
   const [selectedBillingMethod, setSelectedBillingMethod] = useState<string>('')
-  
+  const [realClaims, setRealClaims] = useState<RealClaim[]>([])
+  const [claimsLoading, setClaimsLoading] = useState(true)
+
   // Load patient data from localStorage if not passed as prop
   const [localPatientData, setLocalPatientData] = useState<Patient | null>(patientData)
-  
+
   useEffect(() => {
     if (!patientData) {
       try {
@@ -53,14 +69,38 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
     }
   }, [patientData])
 
+  // Fetch real claims from the API
+  useEffect(() => {
+    async function fetchClaims() {
+      try {
+        const meRes = await fetch('/api/auth/me')
+        if (!meRes.ok) return
+        const meData = await meRes.json()
+        const userId = meData.user?.id
+        if (!userId) return
+        const claimsRes = await fetch(`/api/patients/${userId}/claims`)
+        if (!claimsRes.ok) return
+        const claimsData = await claimsRes.json()
+        if (claimsData.success && Array.isArray(claimsData.data)) {
+          setRealClaims(claimsData.data)
+        }
+      } catch {
+        // Non-critical — show empty state
+      } finally {
+        setClaimsLoading(false)
+      }
+    }
+    fetchClaims()
+  }, [])
+
   const patient = localPatientData || patientData
 
-  if (!patient) {
+  if (!patient || !patient.insuranceCoverage) {
     return (
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-gray-200">
         <FaShieldAlt className="text-gray-400 text-3xl sm:text-4xl mx-auto mb-4" />
-        <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">No Insurance Data Available</h3>
-        <p className="text-gray-500 text-sm sm:text-base">Please update your insurance information</p>
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">No Insurance Coverage Found</h3>
+        <p className="text-gray-500 text-sm sm:text-base">Your insurance information is not yet linked to your profile</p>
       </div>
     )
   }
@@ -92,71 +132,12 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
 
   const coverageUsage = calculateCoverageUsage()
 
-  // Mock claims data based on patient's medical history
-  const generateClaims = () => {
-    const claims: { id: string; date: string; type: string; provider: string; amount: number; coveredAmount: number; copay: number; status: string; description: string }[] = []
-    
-    // Generate claims from appointments
-    if (patient.pastAppointments) {
-      patient.pastAppointments.forEach((apt, index) => {
-        claims.push({
-          id: `CLM-${apt.id}`,
-          date: apt.date,
-          type: 'Consultation',
-          provider: apt.doctorName,
-          amount: 1500,
-          coveredAmount: 1200,
-          copay: 300,
-          status: 'approved',
-          description: apt.reason
-        })
-      })
-    }
-    
-    // Generate claims from lab tests
-    if (patient.labTests) {
-      patient.labTests.forEach((test, index) => {
-        claims.push({
-          id: `CLM-LAB-${test.id}`,
-          date: test.date,
-          type: 'Lab Test',
-          provider: test.facility,
-          amount: 2500,
-          coveredAmount: 2000,
-          copay: 500,
-          status: 'approved',
-          description: test.testName
-        })
-      })
-    }
-    
-    // Generate claims from medicine orders
-    if (patient.medicineOrders) {
-      patient.medicineOrders.forEach((order, index) => {
-        if (order.status === 'delivered') {
-          claims.push({
-            id: `CLM-MED-${order.id}`,
-            date: order.orderDate,
-            type: 'Pharmacy',
-            provider: 'Pharmacy Services',
-            amount: order.totalAmount,
-            coveredAmount: order.totalAmount * 0.8,
-            copay: order.totalAmount * 0.2,
-            status: 'approved',
-            description: 'Prescription Medications'
-          })
-        }
-      })
-    }
-    
-    return claims.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-
-  const claims = generateClaims()
-  
-  // Calculate total savings
-  const totalClaimsAmount = claims.reduce((sum, claim) => sum + claim.amount, 0)
-  const totalCoveredAmount = claims.reduce((sum, claim) => sum + claim.coveredAmount, 0)
+  // Totals derived from real claims
+  const totalClaimsAmount = realClaims.reduce((sum, c) => sum + c.claimAmount, 0)
+  // Approved claims represent what the insurer paid (full claim amount when approved)
+  const totalCoveredAmount = realClaims
+    .filter(c => c.status === 'approved')
+    .reduce((sum, c) => sum + c.claimAmount, 0)
   const totalSavings = totalCoveredAmount
 
   const renderCoverageDetails = () => (
@@ -491,7 +472,7 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
           <FaShieldAlt className="text-blue-600 text-lg sm:text-xl mb-2" />
           <p className="text-xs sm:text-sm text-gray-600">Insurance Paid</p>
           <p className="text-lg sm:text-xl font-bold text-gray-900">Rs {totalCoveredAmount.toFixed(0)}</p>
-          <p className="text-xs text-gray-500">Total covered</p>
+          <p className="text-xs text-gray-500">Approved claims</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 border border-purple-200">
@@ -509,56 +490,74 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
             <FaFileInvoice className="mr-2 text-orange-600" />
             Recent Claims
           </h4>
-          <button 
+          <button
             onClick={() => setShowClaimForm(!showClaimForm)}
             className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition text-xs sm:text-sm"
           >
             File New Claim
           </button>
         </div>
-        
-        <div className="space-y-3">
-          {claims.slice(0, 5).map((claim) => (
-            <div key={claim.id} className="bg-white bg-opacity-80 rounded-lg p-3 sm:p-4 border border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-gray-900 text-sm sm:text-base">{claim.description}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      claim.status === 'approved' ? 'bg-green-100 text-green-700' :
-                      claim.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {claim.status}
-                    </span>
+
+        {claimsLoading ? (
+          <div className="text-center py-8">
+            <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-gray-500 text-sm">Loading claims...</p>
+          </div>
+        ) : realClaims.length === 0 ? (
+          <div className="text-center py-8">
+            <FaFileInvoice className="text-gray-300 text-4xl mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">No claims yet</p>
+            <p className="text-gray-400 text-sm mt-1">Your insurance claims will appear here once submitted.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {realClaims.slice(0, 5).map((claim) => (
+              <div key={claim.id} className="bg-white bg-opacity-80 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base">{claim.description}</p>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        claim.status === 'approved' ? 'bg-green-100 text-green-700' :
+                        claim.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {claim.status}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {claim.policyType}
+                      {claim.insuranceRep ? ` • ${claim.insuranceRep.companyName}` : ''}
+                      {' • '}{new Date(claim.submittedDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Claim ID: {claim.claimId}</p>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    {claim.type} • {claim.provider} • {new Date(claim.date).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Claim ID: {claim.id}</p>
-                </div>
-                <div className="flex sm:flex-col gap-4 sm:gap-1 sm:text-right">
-                  <div>
-                    <p className="text-xs text-gray-500">Billed</p>
-                    <p className="text-sm sm:text-base font-semibold text-gray-900">Rs {claim.amount}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Covered</p>
-                    <p className="text-sm sm:text-base font-semibold text-green-600">Rs {claim.coveredAmount}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Your Cost</p>
-                    <p className="text-sm sm:text-base font-semibold text-orange-600">Rs {claim.copay}</p>
+                  <div className="flex sm:flex-col gap-4 sm:gap-1 sm:text-right">
+                    <div>
+                      <p className="text-xs text-gray-500">Claimed</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900">Rs {claim.claimAmount.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Status</p>
+                      <p className={`text-sm sm:text-base font-semibold ${
+                        claim.status === 'approved' ? 'text-green-600' :
+                        claim.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        <button className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 rounded-lg hover:from-orange-200 hover:to-yellow-200 transition text-sm">
-          View All Claims History
-        </button>
+        {realClaims.length > 5 && (
+          <button className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 rounded-lg hover:from-orange-200 hover:to-yellow-200 transition text-sm">
+            View All Claims History
+          </button>
+        )}
       </div>
     </div>
   )
@@ -721,7 +720,7 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
               <p className="text-xs opacity-90">Total Saved</p>
             </div>
             <div className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
-              <p className="text-lg sm:text-xl md:text-2xl font-bold">{claims.length}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">{realClaims.length}</p>
               <p className="text-xs opacity-90">Claims Filed</p>
             </div>
           </div>

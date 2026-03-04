@@ -12,7 +12,7 @@ export default function DoctorFeedPage() {
         <PostFeed currentUserId={user.id} currentUserType="DOCTOR" showCreateButton={true} />
       </div>
       <div className="hidden lg:block w-72 flex-shrink-0">
-        <ChatContactsSidebar currentUserId={user.id} messagesPath="/doctor/dashboard/messages" />
+        <ChatContactsSidebar currentUserId={user.id} messagesPath="/doctor/messages" />
       </div>
     </div>
   )

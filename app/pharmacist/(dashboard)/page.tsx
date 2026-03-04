@@ -136,7 +136,7 @@ export default function PharmacyDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-              <Link href="/pharmacist/dashboard/orders" className="text-green-600 hover:underline font-medium">View All Orders</Link>
+              <Link href="/pharmacist/orders" className="text-green-600 hover:underline font-medium">View All Orders</Link>
             </div>
             {loading ? (
               <div className="flex justify-center py-8">
@@ -176,7 +176,7 @@ export default function PharmacyDashboardPage() {
                               </button>
                             )}
                             {order.status === 'pending' && (
-                              <Link href={`/pharmacist/dashboard/orders?view=${order.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
+                              <Link href={`/pharmacist/orders?view=${order.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
                                 View Order
                               </Link>
                             )}

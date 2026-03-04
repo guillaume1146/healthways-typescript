@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { useState, useEffect, useCallback } from 'react'
 import { type Nanny } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
 import {
   FaSearch, FaBaby, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
    FaGraduationCap,
@@ -17,7 +19,7 @@ interface NannyProps {
 
 const NannyCard = ({ nanny }: NannyProps) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
       <div className="p-6 flex-1 flex flex-col">
         {/* Nanny Header */}
         <div className="flex items-start gap-4 mb-4">
@@ -152,15 +154,17 @@ const NannyCard = ({ nanny }: NannyProps) => {
             )}
           </div>
           
-          <div className="flex gap-2 pt-4 border-t border-gray-100">
-            <Link href={`/search/childcare/${nanny.id}`} className="flex-1">
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+            <Link href={`/search/childcare/${nanny.id}`} className="flex-1 min-w-[80px]">
               <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
                 Details
               </button>
             </Link>
-            <AuthBookingLink type="nanny" providerId={nanny.id} className="flex-1 w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+            <AuthBookingLink type="nanny" providerId={nanny.id} className="flex-1 min-w-[80px] w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">
               Book
             </AuthBookingLink>
+            <MessageButton providerId={nanny.id} />
+            <ConnectButton providerId={nanny.id} />
           </div>
         </div>
       </div>
@@ -244,19 +248,14 @@ export default function NanniesSearchPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Find Your Perfect Nanny</h1>
-          <p className="text-xl text-purple-100">
-            AI-powered search to connect you with the best childcare professionals in Mauritius
-          </p>
-        </div>
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Find Childcare</h1>
+        <p className="text-gray-500 mt-1">Connect with childcare professionals in Mauritius</p>
       </div>
-      
-      <div className="container mx-auto px-4 py-8 mt-15">
+
+      <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
-        <div className="max-w-4xl mx-auto -mt-8 relative z-10">
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <div className="flex flex-col gap-4">
               <div className="relative">

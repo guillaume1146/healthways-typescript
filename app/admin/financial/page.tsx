@@ -2,95 +2,85 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-    FaPercentage, FaSave, FaEdit, FaTrash, FaPlus, FaInfoCircle,
-    FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
-    FaChartBar, FaDollarSign, FaDownload, FaCalendarAlt, FaFilter,
-    FaArrowUp, FaArrowDown, FaFilePdf, FaFileExcel, FaFileCsv, FaSpinner
+import {
+  FaDollarSign, FaArrowUp, FaArrowDown, FaCalendarAlt,
+  FaUserMd, FaUserNurse, FaChild, FaAmbulance, FaPills, FaFlask,
+  FaSpinner
 } from 'react-icons/fa'
-import { IconType } from 'react-icons'
 
-interface CommissionRule {
-  id: string
-  category: string
-  type: 'fixed' | 'percentage' | 'tiered'
-  baseRate: number
-  tiers?: { min: number; max: number; rate: number }[]
-  minAmount?: number
-  maxAmount?: number
-  effectiveDate: string
-  status: 'active' | 'inactive' | 'scheduled'
+interface ServiceRevenue {
+  serviceType: string
+  total: number
 }
 
-interface CategoryRevenue {
-  category: string
-  revenue: number
-  commission: number
-  netPayout: number
-  transactions: number
-  growth: number
+interface MetricsData {
+  revenue: {
+    total: number
+    thisMonth: number
+    lastMonth: number
+    byServiceType: ServiceRevenue[]
+  }
+  bookings: {
+    total: number
+    pending: number
+    upcoming: number
+    completed: number
+    cancelled: number
+  }
+  recentActivity: {
+    bookingsThisWeek: number
+    videoSessionsThisWeek: number
+  }
 }
 
-interface TransactionData {
-  id: string
-  date: string
-  provider: string
-  category: string
-  service: string
-  amount: number
-  commission: number
-  payout: number
-  status: 'completed' | 'pending' | 'refunded'
+const SERVICE_ICON_MAP: Record<string, React.ReactNode> = {
+  doctor: <FaUserMd className="text-blue-600" />,
+  nurse: <FaUserNurse className="text-purple-600" />,
+  nanny: <FaChild className="text-pink-600" />,
+  childcare: <FaChild className="text-pink-600" />,
+  emergency: <FaAmbulance className="text-red-600" />,
+  pharmacy: <FaPills className="text-green-600" />,
+  lab: <FaFlask className="text-orange-600" />,
+}
+
+function getServiceIcon(serviceType: string) {
+  const key = Object.keys(SERVICE_ICON_MAP).find(k =>
+    serviceType.toLowerCase().includes(k)
+  )
+  return key ? SERVICE_ICON_MAP[key] : <FaDollarSign className="text-gray-600" />
+}
+
+function formatServiceLabel(serviceType: string) {
+  return serviceType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 export default function FinancialReporting() {
-  const [selectedPeriod, setSelectedPeriod] = useState('month')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [dateRange, setDateRange] = useState({ start: '2025-08-01', end: '2025-08-31' })
-  const [categoryRevenue, setCategoryRevenue] = useState<CategoryRevenue[]>([])
-  const [transactions, setTransactions] = useState<TransactionData[]>([])
+  const [metrics, setMetrics] = useState<MetricsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchFinancialData = async () => {
+    const fetchMetrics = async () => {
       try {
-        const stored = localStorage.getItem('healthwyz_user')
-        if (!stored) return
-        let userId: string
-        try { userId = JSON.parse(stored).id } catch { return }
-        const res = await fetch(`/api/admin/${userId}/financial`)
+        const res = await fetch('/api/admin/metrics')
         if (res.ok) {
           const json = await res.json()
           if (json.success && json.data) {
-            if (json.data.categoryRevenue) setCategoryRevenue(json.data.categoryRevenue)
-            if (json.data.transactions) setTransactions(json.data.transactions)
+            setMetrics(json.data)
+          } else {
+            setError('Failed to load financial data')
           }
+        } else {
+          setError('Failed to load financial data')
         }
       } catch {
-        // Failed to fetch financial data
+        setError('Failed to load financial data')
       } finally {
         setLoading(false)
       }
     }
-    fetchFinancialData()
+    fetchMetrics()
   }, [])
-
-  const totalRevenue = categoryRevenue.reduce((sum, cat) => sum + cat.revenue, 0)
-  const totalCommission = categoryRevenue.reduce((sum, cat) => sum + cat.commission, 0)
-  const totalPayout = categoryRevenue.reduce((sum, cat) => sum + cat.netPayout, 0)
-  const totalTransactions = categoryRevenue.reduce((sum, cat) => sum + cat.transactions, 0)
-
-  const getCategoryIcon = (category: string): React.JSX.Element => {
-    const icons: Record<string, React.JSX.Element> = {
-      'Doctors': <FaUserMd className="text-blue-600" />,
-      'Nurses': <FaUserNurse className="text-purple-600" />,
-      'Child Care': <FaChild className="text-pink-600" />,
-      'Emergency': <FaAmbulance className="text-red-600" />,
-      'Pharmacy': <FaPills className="text-green-600" />,
-      'Lab Tech': <FaFlask className="text-orange-600" />
-    }
-    return icons[category] || <FaDollarSign className="text-gray-600" />
-  }
 
   if (loading) {
     return (
@@ -100,6 +90,12 @@ export default function FinancialReporting() {
     )
   }
 
+  const totalRevenue = metrics?.revenue.total ?? 0
+  const thisMonth = metrics?.revenue.thisMonth ?? 0
+  const lastMonth = metrics?.revenue.lastMonth ?? 0
+  const monthGrowth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
+  const byServiceType = metrics?.revenue.byServiceType ?? []
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -108,65 +104,21 @@ export default function FinancialReporting() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Financial Reporting</h1>
-              <p className="text-gray-600">Revenue, commissions, and payout analytics</p>
+              <p className="text-gray-600">Revenue analytics and payout summary</p>
             </div>
-            <div className="flex gap-3">
-              <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                Back to Dashboard
-              </Link>
-            </div>
+            <Link href="/admin" className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Period Selector & Export */}
-        <div className="bg-white rounded-xl p-6 shadow mb-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <select 
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 border rounded-lg"
-              >
-                <option value="day">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
-                <option value="custom">Custom Range</option>
-              </select>
-              {selectedPeriod === 'custom' && (
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="date" 
-                    value={dateRange.start}
-                    onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-                    className="px-3 py-2 border rounded-lg"
-                  />
-                  <span className="text-gray-500">to</span>
-                  <input 
-                    type="date" 
-                    value={dateRange.end}
-                    onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-                    className="px-3 py-2 border rounded-lg"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                <FaFileExcel /> Export Excel
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <FaFileCsv /> Export CSV
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <FaFilePdf /> Export PDF
-              </button>
-            </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
           </div>
-        </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -176,132 +128,118 @@ export default function FinancialReporting() {
               <FaDollarSign className="text-green-600" />
             </div>
             <p className="text-2xl font-bold text-gray-900">Rs {totalRevenue.toLocaleString()}</p>
-            <p className="text-sm text-green-600 flex items-center gap-1 mt-2">
-              <FaArrowUp /> 12% from last {selectedPeriod}
+            <p className="text-sm text-gray-600 mt-2">All time</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-600 text-sm">This Month</span>
+              <FaDollarSign className="text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">Rs {thisMonth.toLocaleString()}</p>
+            <p className={`text-sm flex items-center gap-1 mt-2 ${monthGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {monthGrowth >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+              {Math.abs(monthGrowth).toFixed(1)}% vs last month
             </p>
           </div>
           <div className="bg-white rounded-xl p-6 shadow">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Total Commission</span>
-              <FaChartBar className="text-blue-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">Rs {totalCommission.toLocaleString()}</p>
-            <p className="text-sm text-gray-600 mt-2">10% average rate</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Net Payouts</span>
+              <span className="text-gray-600 text-sm">Last Month</span>
               <FaDollarSign className="text-purple-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">Rs {totalPayout.toLocaleString()}</p>
-            <p className="text-sm text-gray-600 mt-2">To providers</p>
+            <p className="text-2xl font-bold text-gray-900">Rs {lastMonth.toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-xl p-6 shadow">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm">Transactions</span>
+              <span className="text-gray-600 text-sm">Completed Bookings</span>
               <FaCalendarAlt className="text-orange-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{totalTransactions.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {(metrics?.bookings.completed ?? 0).toLocaleString()}
+            </p>
             <p className="text-sm text-green-600 flex items-center gap-1 mt-2">
-              <FaArrowUp /> 8% growth
+              <FaArrowUp /> {metrics?.recentActivity.bookingsThisWeek ?? 0} this week
             </p>
           </div>
         </div>
 
-        {/* Revenue by Category */}
+        {/* Revenue by Service Type */}
         <div className="bg-white rounded-xl p-6 shadow mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue by Category</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-3 text-left text-sm font-medium text-gray-700">Category</th>
-                  <th className="p-3 text-right text-sm font-medium text-gray-700">Revenue</th>
-                  <th className="p-3 text-right text-sm font-medium text-gray-700">Commission</th>
-                  <th className="p-3 text-right text-sm font-medium text-gray-700">Net Payout</th>
-                  <th className="p-3 text-right text-sm font-medium text-gray-700">Transactions</th>
-                  <th className="p-3 text-right text-sm font-medium text-gray-700">Growth</th>
-                  <th className="p-3 text-center text-sm font-medium text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categoryRevenue.map((cat, idx) => (
-                  <tr key={idx} className="border-t hover:bg-gray-50">
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        {getCategoryIcon(cat.category)}
-                        <span className="font-medium">{cat.category}</span>
-                      </div>
-                    </td>
-                    <td className="p-3 text-right font-medium">Rs {cat.revenue.toLocaleString()}</td>
-                    <td className="p-3 text-right text-gray-600">Rs {cat.commission.toLocaleString()}</td>
-                    <td className="p-3 text-right text-gray-600">Rs {cat.netPayout.toLocaleString()}</td>
-                    <td className="p-3 text-right">{cat.transactions}</td>
-                    <td className="p-3 text-right">
-                      <span className={`flex items-center justify-end gap-1 ${cat.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {cat.growth >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-                        {Math.abs(cat.growth)}%
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <button className="text-blue-600 hover:underline text-sm">View Details</button>
-                    </td>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue by Service Type</h2>
+          {byServiceType.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <FaDollarSign className="text-4xl mx-auto mb-3 text-gray-300" />
+              <p className="text-lg font-medium">No revenue data yet</p>
+              <p className="text-sm mt-1">Completed transactions will appear here</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-3 text-left text-sm font-medium text-gray-700">Service Type</th>
+                    <th className="p-3 text-right text-sm font-medium text-gray-700">Revenue</th>
+                    <th className="p-3 text-right text-sm font-medium text-gray-700">% of Total</th>
                   </tr>
-                ))}
-                <tr className="border-t bg-gray-50 font-bold">
-                  <td className="p-3">Total</td>
-                  <td className="p-3 text-right">Rs {totalRevenue.toLocaleString()}</td>
-                  <td className="p-3 text-right">Rs {totalCommission.toLocaleString()}</td>
-                  <td className="p-3 text-right">Rs {totalPayout.toLocaleString()}</td>
-                  <td className="p-3 text-right">{totalTransactions}</td>
-                  <td className="p-3"></td>
-                  <td className="p-3"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {byServiceType.map(row => {
+                    const percentage = totalRevenue > 0 ? (row.total / totalRevenue) * 100 : 0
+                    return (
+                      <tr key={row.serviceType} className="border-t hover:bg-gray-50">
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            {getServiceIcon(row.serviceType)}
+                            <span className="font-medium">{formatServiceLabel(row.serviceType)}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-right font-medium">Rs {row.total.toLocaleString()}</td>
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-20 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full"
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-sm text-gray-600 w-12 text-right">
+                              {percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  <tr className="border-t bg-gray-50 font-bold">
+                    <td className="p-3">Total</td>
+                    <td className="p-3 text-right">Rs {totalRevenue.toLocaleString()}</td>
+                    <td className="p-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* Recent Transactions */}
-        <div className="bg-white rounded-xl p-6 shadow">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Transactions</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-3 text-left font-medium text-gray-700">Date</th>
-                  <th className="p-3 text-left font-medium text-gray-700">Provider</th>
-                  <th className="p-3 text-left font-medium text-gray-700">Service</th>
-                  <th className="p-3 text-right font-medium text-gray-700">Amount</th>
-                  <th className="p-3 text-right font-medium text-gray-700">Commission</th>
-                  <th className="p-3 text-right font-medium text-gray-700">Payout</th>
-                  <th className="p-3 text-center font-medium text-gray-700">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((tx, idx) => (
-                  <tr key={idx} className="border-t hover:bg-gray-50">
-                    <td className="p-3">{tx.date}</td>
-                    <td className="p-3 font-medium">{tx.provider}</td>
-                    <td className="p-3 text-gray-600">{tx.service}</td>
-                    <td className="p-3 text-right">Rs {tx.amount.toLocaleString()}</td>
-                    <td className="p-3 text-right">Rs {tx.commission.toLocaleString()}</td>
-                    <td className="p-3 text-right">Rs {tx.payout.toLocaleString()}</td>
-                    <td className="p-3 text-center">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                        tx.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {tx.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Booking Summary */}
+        {metrics && (
+          <div className="bg-white rounded-xl p-6 shadow">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Booking Status Summary</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {[
+                { label: 'Total', value: metrics.bookings.total, color: 'text-gray-900' },
+                { label: 'Pending', value: metrics.bookings.pending, color: 'text-orange-600' },
+                { label: 'Upcoming', value: metrics.bookings.upcoming, color: 'text-blue-600' },
+                { label: 'Completed', value: metrics.bookings.completed, color: 'text-green-600' },
+                { label: 'Cancelled', value: metrics.bookings.cancelled, color: 'text-red-600' },
+              ].map(item => (
+                <div key={item.label} className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className={`text-2xl font-bold ${item.color}`}>{item.value.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600 mt-1">{item.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

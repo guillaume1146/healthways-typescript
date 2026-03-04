@@ -1,0 +1,135 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { DashboardLayout, DashboardLoadingState, DashboardErrorState } from '@/components/dashboard'
+import type { SidebarItem } from '@/components/dashboard/DashboardSidebar'
+
+interface UserData {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  profileImage?: string | null
+  userType: string
+}
+
+interface DashboardLayoutConfig {
+  /** Display label for the user type (e.g. 'Patient', 'Doctor', 'Nurse') */
+  userSubtitle: string
+  /** Sidebar navigation items for this role */
+  sidebarItems: SidebarItem[]
+  /** Function to resolve active sidebar section from pathname */
+  getActiveSectionFromPath: (pathname: string) => string
+  /** Link to settings page (e.g. '/patient/settings') */
+  settingsHref: string
+  /** Optional name prefix (e.g. 'Dr.' for doctors) */
+  namePrefix?: string
+  /** Optional context provider wrapping children (e.g. PatientDashboardProvider) */
+  ContextProvider?: React.ComponentType<{ userData: any; children: React.ReactNode }>
+  /** Optional callback to fetch additional data after auth (e.g. patient appointments) */
+  fetchDashboardData?: (baseData: UserData) => Promise<any>
+}
+
+/**
+ * Factory function that creates a dashboard layout component for any user type.
+ * Eliminates the ~40 lines of boilerplate duplicated across all 12 layout files.
+ *
+ * @example
+ * // app/nurse/(dashboard)/layout.tsx
+ * export default createDashboardLayout({
+ *   userSubtitle: 'Nurse',
+ *   sidebarItems: NURSE_SIDEBAR_ITEMS,
+ *   getActiveSectionFromPath,
+ *   settingsHref: '/nurse/settings',
+ * })
+ */
+export function createDashboardLayout(config: DashboardLayoutConfig) {
+  const {
+    userSubtitle,
+    sidebarItems,
+    getActiveSectionFromPath,
+    settingsHref,
+    namePrefix,
+    ContextProvider,
+    fetchDashboardData,
+  } = config
+
+  return function DashboardLayoutWrapper({ children }: { children: React.ReactNode }) {
+    const [userData, setUserData] = useState<UserData | null>(null)
+    const [contextData, setContextData] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const loadExtraData = useCallback(async (baseData: UserData) => {
+      if (!fetchDashboardData) return
+      try {
+        const extra = await fetchDashboardData(baseData)
+        if (extra) setContextData(extra)
+      } catch {
+        // Silently fall back to base data
+      }
+    }, [])
+
+    useEffect(() => {
+      try {
+        const stored = localStorage.getItem('healthwyz_user')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          setUserData(parsed)
+          setContextData(parsed)
+          setLoading(false)
+          loadExtraData(parsed)
+        } else {
+          setError('Not authenticated')
+          router.push('/login')
+          setLoading(false)
+        }
+      } catch {
+        setError('Failed to load user data')
+        setLoading(false)
+      }
+    }, [router, loadExtraData])
+
+    const handleLogout = () => {
+      localStorage.removeItem('healthwyz_user')
+      localStorage.removeItem('healthwyz_token')
+      localStorage.removeItem('healthwyz_userType')
+      router.push('/login')
+    }
+
+    if (loading) return <DashboardLoadingState />
+    if (error || !userData) return <DashboardErrorState message={error} />
+
+    const displayName = namePrefix
+      ? `${namePrefix} ${userData.firstName} ${userData.lastName}`
+      : `${userData.firstName} ${userData.lastName}`
+
+    const content = (
+      <DashboardLayout
+        userName={displayName}
+        userSubtitle={userSubtitle}
+        userImage={userData.profileImage}
+        sidebarItems={sidebarItems}
+        activeSectionId={getActiveSectionFromPath(pathname)}
+        notificationCount={0}
+        settingsHref={settingsHref}
+        onLogout={handleLogout}
+      >
+        {children}
+      </DashboardLayout>
+    )
+
+    if (ContextProvider) {
+      return (
+        <ContextProvider userData={contextData || userData}>
+          {content}
+        </ContextProvider>
+      )
+    }
+
+    return content
+  }
+}

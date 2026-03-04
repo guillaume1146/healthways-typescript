@@ -1,9 +1,9 @@
 // app/patient/doctor-consultations/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { 
+import {
   FaCalendarAlt,
   FaVideo,
   FaUser,
@@ -18,7 +18,8 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaPrescriptionBottle,
-  FaStar
+  FaStar,
+  FaSpinner
 } from "react-icons/fa"
 
 interface Doctor {
@@ -66,168 +67,83 @@ interface Stats {
   cancelled: number;
 }
 
-const mockAppointments: Appointment[] = [
-  {
-    id: "APT-2024-001",
+function getUserId(): string | null {
+  try {
+    const raw = localStorage.getItem('healthwyz_user')
+    if (!raw) return null
+    return JSON.parse(raw).id ?? null
+  } catch { return null }
+}
+
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+function addMinutes(dateStr: string, mins: number): string {
+  const d = new Date(dateStr)
+  d.setMinutes(d.getMinutes() + mins)
+  return formatTime(d.toISOString())
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiAppointment(apt: any): Appointment {
+  const doc = apt.doctor
+  const docUser = doc?.user
+  const scheduledDate = new Date(apt.scheduledAt)
+  const isUpcoming = apt.status === 'upcoming' || apt.status === 'scheduled'
+  const isCompleted = apt.status === 'completed'
+
+  return {
+    id: apt.id,
     doctor: {
-      id: "D001",
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-      avatar: "👩‍⚕️",
+      id: doc?.id || '',
+      name: docUser ? `Dr. ${docUser.firstName} ${docUser.lastName}` : 'Unknown Doctor',
+      specialty: Array.isArray(doc?.specialty) ? doc.specialty[0] : (apt.specialty || 'General'),
+      avatar: docUser?.profileImage || '👨‍⚕️',
       rating: 4.8,
-      hospital: "Apollo Bramwell Hospital"
+      hospital: doc?.clinicAffiliation || '',
     },
-    date: "2024-01-20",
-    time: "10:00 AM",
-    endTime: "10:30 AM",
-    type: "video",
-    status: "upcoming",
-    location: "Virtual Consultation",
-    reason: "Follow-up consultation",
-    notes: "Please have your recent blood pressure readings ready",
+    date: scheduledDate.toISOString().split('T')[0],
+    time: formatTime(apt.scheduledAt),
+    endTime: addMinutes(apt.scheduledAt, apt.duration || 30),
+    type: apt.type === 'video' ? 'video' : 'in-person',
+    status: isUpcoming ? 'upcoming' : (apt.status as Appointment['status']),
+    location: apt.location || (apt.type === 'video' ? 'Virtual Consultation' : ''),
+    reason: apt.reason || '',
+    notes: apt.notes || '',
     prescription: false,
     followUpRequired: false,
-    amount: 2500,
-    isPaid: true,
+    amount: 0,
+    isPaid: isCompleted,
     rating: null,
-    canCancel: true,
-    canReschedule: true,
-    meetingLink: "doctor-consultations/apt-2024-001"
-  },
-  {
-    id: "APT-2024-002",
-    doctor: {
-      id: "D002",
-      name: "Dr. Michael Chen",
-      specialty: "General Medicine",
-      avatar: "👨‍⚕️",
-      rating: 4.7,
-      hospital: "Wellkin Hospital"
-    },
-    date: "2024-01-18",
-    time: "2:30 PM",
-    endTime: "3:00 PM",
-    type: "in-person",
-    status: "upcoming",
-    location: "Wellkin Hospital, Moka",
-    reason: "Annual checkup",
-    notes: "Fasting required for blood tests",
-    prescription: false,
-    followUpRequired: false,
-    amount: 1500,
-    isPaid: false,
-    rating: null,
-    canCancel: true,
-    canReschedule: true
-  },
-  {
-    id: "APT-2024-003",
-    doctor: {
-      id: "D001",
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-      avatar: "👩‍⚕️",
-      rating: 4.8,
-      hospital: "Apollo Bramwell Hospital"
-    },
-    date: "2024-01-10",
-    time: "11:00 AM",
-    endTime: "11:30 AM",
-    type: "video",
-    status: "completed",
-    location: "Virtual Consultation",
-    reason: "Chest pain evaluation",
-    notes: "ECG normal, prescribed medication for management",
-    prescription: true,
-    followUpRequired: true,
-    amount: 2500,
-    isPaid: true,
-    rating: 5,
-    canCancel: false,
-    canReschedule: false
-  },
-  {
-    id: "APT-2024-004",
-    doctor: {
-      id: "D003",
-      name: "Dr. Priya Sharma",
-      specialty: "Dermatology",
-      avatar: "👩‍⚕️",
-      rating: 4.9,
-      hospital: "Fortis Clinique Darné"
-    },
-    date: "2024-01-05",
-    time: "4:00 PM",
-    endTime: "4:30 PM",
-    type: "in-person",
-    status: "completed",
-    location: "Fortis Clinique Darné, Floreal",
-    reason: "Skin allergy treatment",
-    notes: "Prescribed topical medications, avoid allergens",
-    prescription: true,
-    followUpRequired: false,
-    amount: 2000,
-    isPaid: true,
-    rating: 4,
-    canCancel: false,
-    canReschedule: false
-  },
-  {
-    id: "APT-2024-005",
-    doctor: {
-      id: "D004",
-      name: "Dr. Ahmed Hassan",
-      specialty: "Orthopedics",
-      avatar: "👨‍⚕️",
-      rating: 4.6,
-      hospital: "City Hospital"
-    },
-    date: "2024-01-08",
-    time: "9:00 AM",
-    endTime: "9:30 AM",
-    type: "in-person",
-    status: "cancelled",
-    location: "City Hospital, Port Louis",
-    reason: "Knee pain consultation",
-    notes: "Patient cancelled due to scheduling conflict",
-    prescription: false,
-    followUpRequired: false,
-    amount: 2200,
-    isPaid: false,
-    rating: null,
-    canCancel: false,
-    canReschedule: false
-  },
-  {
-    id: "APT-2024-006",
-    doctor: {
-      id: "D002",
-      name: "Dr. Michael Chen",
-      specialty: "General Medicine",
-      avatar: "👨‍⚕️",
-      rating: 4.7,
-      hospital: "Wellkin Hospital"
-    },
-    date: "2023-12-20",
-    time: "10:30 AM",
-    endTime: "11:00 AM",
-    type: "video",
-    status: "completed",
-    location: "Virtual Consultation",
-    reason: "Flu symptoms",
-    notes: "Viral infection, rest and hydration recommended",
-    prescription: true,
-    followUpRequired: false,
-    amount: 1500,
-    isPaid: true,
-    rating: null,
-    canCancel: false,
-    canReschedule: false
+    canCancel: isUpcoming,
+    canReschedule: isUpcoming,
+    meetingLink: apt.type === 'video' && isUpcoming ? `/patient/video` : undefined,
   }
-]
+}
 
 export default function DoctorConsultationsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchAppointments = useCallback(async () => {
+    const userId = getUserId()
+    if (!userId) { setLoading(false); return }
+    try {
+      const res = await fetch(`/api/patients/${userId}/appointments?limit=50`)
+      const data = await res.json()
+      if (data.data) {
+        setAppointments(data.data.map(mapApiAppointment))
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchAppointments() }, [fetchAppointments])
+
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -339,18 +255,26 @@ export default function DoctorConsultationsPage() {
     setShowRescheduleModal(true)
   }
 
-  const confirmCancel = () => {
-    if (selectedAppointment) {
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === selectedAppointment.id 
+  const confirmCancel = async () => {
+    if (!selectedAppointment) return
+    try {
+      await fetch(`/api/bookings/doctor/${selectedAppointment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel' }),
+      })
+      setAppointments(prev =>
+        prev.map(apt =>
+          apt.id === selectedAppointment.id
             ? { ...apt, status: "cancelled" as const, canCancel: false, canReschedule: false }
             : apt
         )
       )
-      setShowCancelModal(false)
-      setSelectedAppointment(null)
+    } catch {
+      // silent
     }
+    setShowCancelModal(false)
+    setSelectedAppointment(null)
   }
 
   const handleRateAppointment = (appointment: Appointment, rating: number) => {
@@ -499,7 +423,12 @@ export default function DoctorConsultationsPage() {
 
         {/* Appointments List */}
         <div className="space-y-4">
-          {sortedAppointments.length > 0 ? (
+          {loading ? (
+            <div className="bg-white rounded-lg p-12 text-center">
+              <FaSpinner className="animate-spin text-blue-500 text-3xl mx-auto mb-4" />
+              <p className="text-gray-500">Loading appointments...</p>
+            </div>
+          ) : sortedAppointments.length > 0 ? (
             sortedAppointments.map((appointment) => (
               <div key={appointment.id} className="bg-white rounded-lg shadow hover:shadow-lg transition">
                 <div className="p-6">

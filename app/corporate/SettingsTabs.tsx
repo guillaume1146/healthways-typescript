@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { 
-  FaBuilding, 
-  FaUsers, 
-  FaCreditCard, 
+import {
+  FaBuilding,
+  FaUsers,
+  FaCreditCard,
   FaBell,
   FaSave,
   FaTrash,
@@ -50,6 +50,13 @@ const TabButton = ({ icon: Icon, label, tabName, activeTab, setActiveTab }: TabB
   </button>
 )
 
+interface QuickStats {
+  totalEmployees: number
+  activePolicies: number
+  pendingClaims: number
+  coverageRate: number
+}
+
 interface SettingsTabsProps {
   initialTab?: ActiveTab
 }
@@ -62,6 +69,43 @@ export default function SettingsTabs({ initialTab }: SettingsTabsProps) {
   const [paymentMethods] = useState<PaymentMethod[]>([])
   const [notifications, setNotifications] = useState<NotificationSettings>(emptyNotifications)
   const [billingHistory] = useState<BillingHistory[]>([])
+  const [quickStats, setQuickStats] = useState<QuickStats>({
+    totalEmployees: 0,
+    activePolicies: 0,
+    pendingClaims: 0,
+    coverageRate: 0,
+  })
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (!stored) return
+      const parsed = JSON.parse(stored)
+      const userId = parsed.id
+      if (!userId) return
+
+      fetch(`/api/corporate/${userId}/dashboard`)
+        .then(res => res.ok ? res.json() : null)
+        .then(json => {
+          if (json?.success) {
+            const s = json.data.stats
+            const total = s.totalEmployees || 0
+            const approved = s.approvedClaims || 0
+            const pending = s.pendingClaims || 0
+            const coverageRate = total > 0 ? Math.round(((total - pending) / total) * 100) : 0
+            setQuickStats({
+              totalEmployees: total,
+              activePolicies: approved,
+              pendingClaims: pending,
+              coverageRate,
+            })
+          }
+        })
+        .catch(() => { /* silent fail */ })
+    } catch {
+      // Corrupted localStorage
+    }
+  }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -172,19 +216,19 @@ export default function SettingsTabs({ initialTab }: SettingsTabsProps) {
                 <h3 className="font-semibold text-gray-800 mb-3">Quick Stats</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600">245</p>
+                    <p className="text-2xl font-bold text-blue-600">{quickStats.totalEmployees}</p>
                     <p className="text-sm text-gray-600">Total Employees</p>
                   </div>
                   <div className="bg-white p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">230</p>
-                    <p className="text-sm text-gray-600">Active Policies</p>
+                    <p className="text-2xl font-bold text-green-600">{quickStats.activePolicies}</p>
+                    <p className="text-sm text-gray-600">Approved Claims</p>
                   </div>
                   <div className="bg-white p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-yellow-600">15</p>
-                    <p className="text-sm text-gray-600">Pending Verification</p>
+                    <p className="text-2xl font-bold text-yellow-600">{quickStats.pendingClaims}</p>
+                    <p className="text-sm text-gray-600">Pending Claims</p>
                   </div>
                   <div className="bg-white p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">85%</p>
+                    <p className="text-2xl font-bold text-purple-600">{quickStats.coverageRate}%</p>
                     <p className="text-sm text-gray-600">Coverage Rate</p>
                   </div>
                 </div>

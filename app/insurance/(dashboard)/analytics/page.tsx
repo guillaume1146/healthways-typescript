@@ -45,9 +45,15 @@ export default function InsuranceAnalyticsPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/insurance/${userId}/dashboard`)
-      if (!res.ok) throw new Error('Failed to fetch analytics data')
-      const json = await res.json()
+
+      const [dashRes, claimsRes] = await Promise.all([
+        fetch(`/api/insurance/${userId}/dashboard`),
+        fetch('/api/insurance/claims?limit=50'),
+      ])
+
+      if (!dashRes.ok) throw new Error('Failed to fetch analytics data')
+      const json = await dashRes.json()
+
       if (json.success) {
         const apiData = json.data
         const plans = apiData.plans || []
@@ -57,12 +63,28 @@ export default function InsuranceAnalyticsPage() {
           0
         )
 
+        let activeClaims = 0
+        let claimApprovalRate = 0
+
+        if (claimsRes.ok) {
+          const claimsJson = await claimsRes.json()
+          if (claimsJson.success) {
+            const allClaims: { status: string }[] = claimsJson.data || []
+            activeClaims = allClaims.filter(c => c.status === 'pending' || c.status === 'processing').length
+            const resolved = allClaims.filter(c => c.status === 'approved' || c.status === 'rejected')
+            if (resolved.length > 0) {
+              const approved = resolved.filter(c => c.status === 'approved').length
+              claimApprovalRate = Math.round((approved / resolved.length) * 100)
+            }
+          }
+        }
+
         setAnalytics({
           totalPolicies: apiData.stats?.totalPlans || plans.length,
           activePolicies: apiData.stats?.activePolicies || activePlans.length,
-          activeClaims: 0, // Claims model not yet in schema
+          activeClaims,
           monthlyPremium: totalPremium,
-          claimApprovalRate: 0,
+          claimApprovalRate,
           walletBalance: apiData.stats?.walletBalance || 0,
         })
       }

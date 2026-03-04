@@ -63,10 +63,20 @@ export default function DoctorPostsPage() {
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState<string>('')
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem('healthwyz_user_id')
-    if (storedUserId) setCurrentUserId(storedUserId)
+    const stored = localStorage.getItem('healthwyz_user')
+    if (stored) {
+      try {
+        const user = JSON.parse(stored)
+        if (user?.id) setCurrentUserId(user.id)
+      } catch {
+        // Malformed data — ignore
+      }
+    }
   }, [])
 
   const fetchPosts = useCallback(async () => {
@@ -109,6 +119,44 @@ export default function DoctorPostsPage() {
       console.error('Failed to delete post:', error)
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleEdit = (post: Post) => {
+    setEditingId(post.id)
+    setEditContent(post.content)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditContent('')
+  }
+
+  const handleSaveEdit = async (postId: string) => {
+    if (!editContent.trim()) return
+    setSavingId(postId)
+    try {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent.trim() }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setPosts(prev =>
+          prev.map(p =>
+            p.id === postId
+              ? { ...p, content: editContent.trim(), updatedAt: new Date().toISOString() }
+              : p
+          )
+        )
+        setEditingId(null)
+        setEditContent('')
+      }
+    } catch (error) {
+      console.error('Failed to save post edit:', error)
+    } finally {
+      setSavingId(null)
     }
   }
 
@@ -164,73 +212,104 @@ export default function DoctorPostsPage() {
                 key={post.id}
                 className="bg-white rounded-xl shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
               >
-                {/* Post content */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-gray-800 text-sm sm:text-base whitespace-pre-wrap leading-relaxed line-clamp-3">
-                      {post.content}
-                    </p>
+                {editingId === post.id ? (
+                  /* Inline edit mode */
+                  <div className="space-y-3">
+                    <textarea
+                      value={editContent}
+                      onChange={e => setEditContent(e.target.value)}
+                      rows={5}
+                      className="w-full border border-blue-300 rounded-lg p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                      placeholder="Edit your post..."
+                    />
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-4 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSaveEdit(post.id)}
+                        disabled={savingId === post.id || !editContent.trim()}
+                        className="px-4 py-1.5 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                      >
+                        {savingId === post.id ? (
+                          <><FaSpinner className="animate-spin text-xs" /> Saving…</>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {/* Post content */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-800 text-sm sm:text-base whitespace-pre-wrap leading-relaxed line-clamp-3">
+                          {post.content}
+                        </p>
+                      </div>
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        // Navigate to edit — for now, just a placeholder
-                        window.open(`/community?post=${post.id}`, '_blank')
-                      }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="View post"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(post.id)}
-                      disabled={deletingId === post.id}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Delete post"
-                    >
-                      {deletingId === post.id ? (
-                        <FaSpinner className="animate-spin" />
-                      ) : (
-                        <FaTrash />
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleEdit(post)}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit post"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(post.id)}
+                          disabled={deletingId === post.id}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete post"
+                        >
+                          {deletingId === post.id ? (
+                            <FaSpinner className="animate-spin" />
+                          ) : (
+                            <FaTrash />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Meta row */}
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      {post.category && (
+                        <span
+                          className={`text-xs font-medium rounded-full px-3 py-1 ${
+                            categoryColors[post.category] || 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {categoryLabels[post.category] || post.category}
+                        </span>
                       )}
-                    </button>
-                  </div>
-                </div>
+                      {post.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
 
-                {/* Meta row */}
-                <div className="flex flex-wrap items-center gap-2 mt-3">
-                  {post.category && (
-                    <span
-                      className={`text-xs font-medium rounded-full px-3 py-1 ${
-                        categoryColors[post.category] || 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {categoryLabels[post.category] || post.category}
-                    </span>
-                  )}
-                  {post.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Stats row */}
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <FaCheckCircle className="text-xs text-green-500" />
-                    {post.likeCount} likes
-                  </span>
-                  <span>{post._count.comments} comments</span>
-                  <span className="ml-auto text-xs text-gray-400">
-                    {getRelativeTime(post.createdAt)}
-                  </span>
-                </div>
+                    {/* Stats row */}
+                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <FaCheckCircle className="text-xs text-green-500" />
+                        {post.likeCount} likes
+                      </span>
+                      <span>{post._count.comments} comments</span>
+                      <span className="ml-auto text-xs text-gray-400">
+                        {getRelativeTime(post.createdAt)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>

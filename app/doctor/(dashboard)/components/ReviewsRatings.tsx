@@ -386,154 +386,224 @@ const ReviewsRatings: React.FC<Props> = ({ doctorData }) => {
     </div>
   )
 
-  const renderAnalytics = () => (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Trends */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-purple-200">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Rating Trends</h3>
+  const renderAnalytics = () => {
+    // Compute rating trends from actual reviews data
+    const now = new Date()
+    const thisMonthReviews = reviews.filter((r) => {
+      const d = new Date(r.date)
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    })
+    const lastMonthReviews = reviews.filter((r) => {
+      const d = new Date(r.date)
+      const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+      const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear
+    })
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-gray-600 mb-1">This Month</p>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-purple-700">4.8</span>
-              <div className="flex items-center text-green-600">
-                <FaArrowUp className="text-xs" />
-                <span className="text-xs">0.2</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-gray-600 mb-1">Last Month</p>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-700">4.6</span>
-            </div>
-          </div>
-        </div>
+    const avgRating = (list: PatientComment[]) =>
+      list.length > 0
+        ? parseFloat((list.reduce((s, r) => s + r.starRating, 0) / list.length).toFixed(1))
+        : null
 
-        <div className="mt-4 pt-4 border-t border-purple-200">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Average Response Time</span>
-            <span className="font-semibold">{performanceMetrics.responseTime} minutes</span>
-          </div>
-          <div className="flex items-center justify-between text-sm mt-2">
-            <span className="text-gray-600">Response Rate</span>
-            <span className="font-semibold">85%</span>
-          </div>
-        </div>
-      </div>
+    const thisMonthAvg = avgRating(thisMonthReviews)
+    const lastMonthAvg = avgRating(lastMonthReviews)
+    const ratingDiff =
+      thisMonthAvg !== null && lastMonthAvg !== null
+        ? (thisMonthAvg - lastMonthAvg).toFixed(1)
+        : null
 
-      {/* Review Categories */}
-      <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-orange-200">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Common Feedback Themes</h3>
+    // Compute response rate from reviews that have a doctor response
+    const respondedCount = reviews.filter((r) => !!r.response).length
+    const responseRatePct =
+      reviews.length > 0 ? Math.round((respondedCount / reviews.length) * 100) : null
 
-        <div className="space-y-3">
-          {[
-            { theme: 'Professional & Knowledgeable', count: 45, percentage: 85 },
-            { theme: 'Caring & Compassionate', count: 42, percentage: 80 },
-            { theme: 'Clear Communication', count: 38, percentage: 72 },
-            { theme: 'Punctual', count: 35, percentage: 67 },
-            { theme: 'Thorough Examination', count: 33, percentage: 63 }
-          ].map((item, index) => (
-            <div key={index}>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-700">{item.theme}</span>
-                <span className="text-gray-600">{item.count} mentions</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-gradient-to-r from-orange-400 to-yellow-500 h-2 rounded-full" style={{ width: `${item.percentage}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+    // Compute sentiment from star ratings
+    const positiveCount = reviews.filter((r) => r.starRating >= 4).length
+    const neutralCount = reviews.filter((r) => r.starRating === 3).length
+    const negativeCount = reviews.filter((r) => r.starRating <= 2).length
+    const sentimentTotal = reviews.length
+    const positivePct = sentimentTotal > 0 ? Math.round((positiveCount / sentimentTotal) * 100) : null
+    const neutralPct = sentimentTotal > 0 ? Math.round((neutralCount / sentimentTotal) * 100) : null
+    const negativePct = sentimentTotal > 0 ? Math.round((negativeCount / sentimentTotal) * 100) : null
 
-      {/* Sentiment Analysis */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-green-200">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Patient Sentiment</h3>
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        {/* Trends */}
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-purple-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Rating Trends</h3>
 
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <FaSmile className="text-green-500 text-3xl mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-700">75%</p>
-            <p className="text-xs text-gray-600">Positive</p>
-          </div>
-          <div>
-            <FaMeh className="text-yellow-500 text-3xl mx-auto mb-2" />
-            <p className="text-2xl font-bold text-yellow-700">20%</p>
-            <p className="text-xs text-gray-600">Neutral</p>
-          </div>
-          <div>
-            <FaFrown className="text-red-500 text-3xl mx-auto mb-2" />
-            <p className="text-2xl font-bold text-red-700">5%</p>
-            <p className="text-xs text-gray-600">Negative</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderAchievements = () => (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Badges */}
-      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Earned Badges</h3>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {[
-            { icon: FaTrophy, name: 'Top Rated', description: '4.5+ rating', color: 'yellow' },
-            { icon: FaAward, name: 'Patient Choice', description: '100+ reviews', color: 'blue' },
-            { icon: FaMedal, name: 'Quick Responder', description: '<15 min response', color: 'green' },
-            { icon: FaHeart, name: 'Compassionate Care', description: 'High empathy score', color: 'red' },
-            { icon: FaStar, name: 'Excellence', description: '95% satisfaction', color: 'purple' },
-            { icon: FaCheckCircle, name: 'Verified', description: 'Profile verified', color: 'cyan' }
-          ].map((badge, index) => (
-            <div key={index} className="text-center">
-              <div className={`w-16 h-16 bg-gradient-to-r from-${badge.color}-400 to-${badge.color}-600 rounded-full flex items-center justify-center mx-auto mb-2`}>
-                <badge.icon className="text-white text-2xl" />
-              </div>
-              <p className="text-sm font-semibold text-gray-800">{badge.name}</p>
-              <p className="text-xs text-gray-600">{badge.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Milestones */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Milestones</h3>
-
-        <div className="space-y-3">
-          {[
-            { milestone: '1,000 Patients Treated', achieved: true, date: '2023-06-15' },
-            { milestone: '500 5-Star Reviews', achieved: true, date: '2024-01-20' },
-            { milestone: '3 Years of Excellence', achieved: true, date: '2024-03-01' },
-            { milestone: '1,000 Reviews', achieved: false, progress: 342, target: 1000 }
-          ].map((item, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-white/80 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-3">
-                {item.achieved ? (
-                  <FaCheckCircle className="text-green-500 text-xl" />
-                ) : (
-                  <div className="w-5 h-5 border-2 border-gray-400 rounded-full" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">This Month</p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-purple-700">
+                  {thisMonthAvg !== null ? thisMonthAvg : 'N/A'}
+                </span>
+                {ratingDiff !== null && (
+                  <div className={`flex items-center ${parseFloat(ratingDiff) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <FaArrowUp className="text-xs" />
+                    <span className="text-xs">{Math.abs(parseFloat(ratingDiff))}</span>
+                  </div>
                 )}
-                <div>
-                  <p className={`text-sm font-medium ${item.achieved ? 'text-gray-800' : 'text-gray-600'}`}>{item.milestone}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Last Month</p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-gray-700">
+                  {lastMonthAvg !== null ? lastMonthAvg : 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-purple-200">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Average Response Time</span>
+              <span className="font-semibold">
+                {performanceMetrics.responseTime > 0 ? `${performanceMetrics.responseTime} minutes` : 'N/A'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm mt-2">
+              <span className="text-gray-600">Response Rate</span>
+              <span className="font-semibold">
+                {responseRatePct !== null ? `${responseRatePct}%` : 'N/A'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sentiment Analysis — computed from real ratings */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-green-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Patient Sentiment</h3>
+
+          {sentimentTotal === 0 ? (
+            <p className="text-sm text-gray-500">No reviews available to compute sentiment.</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <FaSmile className="text-green-500 text-3xl mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-700">{positivePct}%</p>
+                <p className="text-xs text-gray-600">Positive (4-5 stars)</p>
+              </div>
+              <div>
+                <FaMeh className="text-yellow-500 text-3xl mx-auto mb-2" />
+                <p className="text-2xl font-bold text-yellow-700">{neutralPct}%</p>
+                <p className="text-xs text-gray-600">Neutral (3 stars)</p>
+              </div>
+              <div>
+                <FaFrown className="text-red-500 text-3xl mx-auto mb-2" />
+                <p className="text-2xl font-bold text-red-700">{negativePct}%</p>
+                <p className="text-xs text-gray-600">Negative (1-2 stars)</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Review Categories — coming soon notice since keyword analysis requires NLP */}
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-orange-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Common Feedback Themes</h3>
+          <p className="text-sm text-gray-500">Feedback theme analysis coming soon.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const renderAchievements = () => {
+    // Compute badge eligibility from real data
+    const hasTopRated = rating >= 4.5
+    const hasPatientChoice = totalReviews >= 100
+    const hasQuickResponder = performanceMetrics.responseTime > 0 && performanceMetrics.responseTime < 15
+    const hasExcellence = performanceMetrics.patientSatisfaction >= 95
+
+    const badges: { icon: React.ComponentType<{ className?: string }>; name: string; description: string; color: string; earned: boolean }[] = [
+      { icon: FaTrophy, name: 'Top Rated', description: '4.5+ rating', color: 'yellow', earned: hasTopRated },
+      { icon: FaAward, name: 'Patient Choice', description: '100+ reviews', color: 'blue', earned: hasPatientChoice },
+      { icon: FaMedal, name: 'Quick Responder', description: '<15 min response', color: 'green', earned: hasQuickResponder },
+      { icon: FaStar, name: 'Excellence', description: '95% satisfaction', color: 'purple', earned: hasExcellence }
+    ]
+
+    // Milestones computed from real metrics
+    const fiveStarCount = reviews.filter((r) => r.starRating === 5).length
+    const milestones = [
+      {
+        label: '100 Reviews',
+        achieved: totalReviews >= 100,
+        current: totalReviews,
+        target: 100
+      },
+      {
+        label: '500 Reviews',
+        achieved: totalReviews >= 500,
+        current: totalReviews,
+        target: 500
+      },
+      {
+        label: '50 Five-Star Reviews',
+        achieved: fiveStarCount >= 50,
+        current: fiveStarCount,
+        target: 50
+      },
+      {
+        label: '4.5+ Overall Rating',
+        achieved: rating >= 4.5,
+        current: null,
+        target: null
+      }
+    ]
+
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        {/* Badges */}
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Earned Badges</h3>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {badges.map((badge, index) => (
+              <div key={index} className={`text-center ${badge.earned ? '' : 'opacity-40 grayscale'}`}>
+                <div className={`w-16 h-16 bg-gradient-to-r from-${badge.color}-400 to-${badge.color}-600 rounded-full flex items-center justify-center mx-auto mb-2`}>
+                  <badge.icon className="text-white text-2xl" />
+                </div>
+                <p className="text-sm font-semibold text-gray-800">{badge.name}</p>
+                <p className="text-xs text-gray-600">{badge.description}</p>
+                {!badge.earned && <p className="text-xs text-gray-400 mt-1">Not yet earned</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Milestones */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Milestones</h3>
+
+          <div className="space-y-3">
+            {milestones.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white/80 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3">
                   {item.achieved ? (
-                    <p className="text-xs text-gray-500">Achieved on {item.date}</p>
+                    <FaCheckCircle className="text-green-500 text-xl" />
                   ) : (
-                    <p className="text-xs text-gray-500">
-                      {item.progress}/{item.target}
-                    </p>
+                    <div className="w-5 h-5 border-2 border-gray-400 rounded-full flex-shrink-0" />
                   )}
+                  <div>
+                    <p className={`text-sm font-medium ${item.achieved ? 'text-gray-800' : 'text-gray-600'}`}>
+                      {item.label}
+                    </p>
+                    {!item.achieved && item.current !== null && item.target !== null && (
+                      <p className="text-xs text-gray-500">{item.current} / {item.target}</p>
+                    )}
+                    {item.achieved && (
+                      <p className="text-xs text-green-600">Achieved</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6">

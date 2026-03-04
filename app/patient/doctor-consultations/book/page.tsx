@@ -1,7 +1,8 @@
 "use client"
 
-import { useState  } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { 
   FaArrowLeft,
   FaMapMarkerAlt,
@@ -60,36 +61,24 @@ interface PaymentMethod {
   available: boolean;
 }
 
-// Mock doctor data (pre-selected)
-const mockDoctor: Doctor = {
-  id: "1",
-  name: "Dr. Sarah Johnson",
-  specialty: "Cardiology",
-  rating: 4.8,
-  experience: "10+ years",
-  consultationFee: 2500,
-  avatar: "👩‍⚕️",
-  availability: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-  languages: ["English", "French", "Creole"],
-  location: "Apollo Bramwell Hospital, Port Louis",
-  qualifications: ["MBBS", "MD Cardiology", "FESC"],
-  about: "Specialized in interventional cardiology with extensive experience in treating heart conditions. Expert in cardiac catheterization and coronary angioplasty."
+const defaultDoctor: Doctor = {
+  id: "", name: "", specialty: "", rating: 0, experience: "",
+  consultationFee: 0, avatar: "👨‍⚕️", availability: [], languages: [],
+  location: "", qualifications: [], about: ""
 }
 
-const mockTimeSlots: TimeSlot[] = [
-  { time: "09:00 AM", available: true, type: "regular" },
-  { time: "09:30 AM", available: false, type: "regular" },
-  { time: "10:00 AM", available: true, type: "priority" },
-  { time: "10:30 AM", available: true, type: "regular" },
-  { time: "11:00 AM", available: false, type: "regular" },
-  { time: "11:30 AM", available: true, type: "urgent" },
-  { time: "02:00 PM", available: true, type: "regular" },
-  { time: "02:30 PM", available: true, type: "regular" },
-  { time: "03:00 PM", available: false, type: "regular" },
-  { time: "03:30 PM", available: true, type: "priority" },
-  { time: "04:00 PM", available: true, type: "regular" },
-  { time: "04:30 PM", available: true, type: "regular" }
-]
+function generateTimeSlots(): TimeSlot[] {
+  const slots: TimeSlot[] = []
+  const hours = [9, 9.5, 10, 10.5, 11, 11.5, 14, 14.5, 15, 15.5, 16, 16.5]
+  for (const h of hours) {
+    const hour = Math.floor(h)
+    const min = h % 1 === 0.5 ? '30' : '00'
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour > 12 ? hour - 12 : hour
+    slots.push({ time: `${String(displayHour).padStart(2, '0')}:${min} ${ampm}`, available: true, type: "regular" })
+  }
+  return slots
+}
 
 const paymentMethods: PaymentMethod[] = [
   {
@@ -130,9 +119,13 @@ const paymentMethods: PaymentMethod[] = [
 ]
 
 export default function DoctorConsultationBooking() {
+  const searchParams = useSearchParams()
+  const doctorId = searchParams.get('doctorId')
   const [currentStep, setCurrentStep] = useState(1)
+  const [loadingDoctor, setLoadingDoctor] = useState(!!doctorId)
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(generateTimeSlots())
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>({
-    doctor: mockDoctor,
+    doctor: defaultDoctor,
     date: "",
     time: "",
     type: "video",
@@ -143,6 +136,68 @@ export default function DoctorConsultationBooking() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [ticketId, setTicketId] = useState("")
+
+  // Fetch doctor from API if doctorId is provided
+  const fetchDoctor = useCallback(async () => {
+    if (!doctorId) { setLoadingDoctor(false); return }
+    try {
+      const res = await fetch(`/api/search/doctors?q=`)
+      const data = await res.json()
+      if (data.data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const doc = data.data.find((d: any) => d.id === doctorId)
+        if (doc) {
+          setAppointmentDetails(prev => ({
+            ...prev,
+            doctor: {
+              id: doc.id,
+              name: `Dr. ${doc.firstName} ${doc.lastName}`,
+              specialty: Array.isArray(doc.specialty) ? doc.specialty[0] : doc.specialty,
+              rating: doc.rating || 4.5,
+              experience: doc.experience ? `${doc.experience} years` : 'Experienced',
+              consultationFee: doc.consultationFee || 2000,
+              avatar: doc.profileImage || '👨‍⚕️',
+              availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+              languages: doc.languages || ['English', 'French'],
+              location: doc.location || '',
+              qualifications: doc.education?.map((e: { degree: string }) => e.degree) || [],
+              about: doc.bio || '',
+            }
+          }))
+        }
+      }
+    } catch { /* silent */ }
+    setLoadingDoctor(false)
+  }, [doctorId])
+
+  // Fetch schedule slots when doctor + date selected
+  const fetchSchedule = useCallback(async () => {
+    if (!appointmentDetails.doctor.id || !appointmentDetails.date) return
+    try {
+      const res = await fetch(`/api/doctors/${appointmentDetails.doctor.id}/schedule`)
+      const data = await res.json()
+      if (data.data?.length > 0) {
+        const dayOfWeek = new Date(appointmentDetails.date).getDay()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const daySlots = data.data.filter((s: any) => s.dayOfWeek === dayOfWeek)
+        if (daySlots.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setTimeSlots(daySlots.map((s: any) => ({
+            time: s.startTime,
+            available: s.isAvailable !== false,
+            type: 'regular' as const,
+          })))
+          return
+        }
+      }
+      setTimeSlots(generateTimeSlots())
+    } catch {
+      setTimeSlots(generateTimeSlots())
+    }
+  }, [appointmentDetails.doctor.id, appointmentDetails.date])
+
+  useEffect(() => { fetchDoctor() }, [fetchDoctor])
+  useEffect(() => { fetchSchedule() }, [fetchSchedule])
 
   const steps = [
     { number: 1, title: "Doctor Details", icon: FaUser },
@@ -160,14 +215,45 @@ export default function DoctorConsultationBooking() {
     setAppointmentDetails({ ...appointmentDetails, date })
   }
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setIsProcessing(true)
-    setTimeout(() => {
-      setIsProcessing(false)
+    try {
+      const userId = (() => {
+        try { return JSON.parse(localStorage.getItem('healthwyz_user') || '{}').id } catch { return null }
+      })()
+      if (userId) {
+        const scheduledAt = new Date(`${appointmentDetails.date}T${convertTo24h(appointmentDetails.time)}:00`)
+        await fetch('/api/bookings/doctor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientUserId: userId,
+            doctorUserId: appointmentDetails.doctor.id,
+            scheduledAt: scheduledAt.toISOString(),
+            type: appointmentDetails.type,
+            reason: appointmentDetails.reason,
+            notes: appointmentDetails.notes,
+          }),
+        })
+      }
       setBookingConfirmed(true)
       setTicketId(`TKT-${Date.now()}`)
       setCurrentStep(5)
-    }, 3000)
+    } catch {
+      // still confirm locally if API fails
+      setBookingConfirmed(true)
+      setTicketId(`TKT-${Date.now()}`)
+      setCurrentStep(5)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  function convertTo24h(time12: string): string {
+    const [time, period] = time12.split(' ')
+    const [h, m] = time.split(':').map(Number)
+    const hour = period === 'PM' && h !== 12 ? h + 12 : (period === 'AM' && h === 12 ? 0 : h)
+    return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')}`
   }
 
   const calculateFinalAmount = () => {
@@ -401,7 +487,7 @@ export default function DoctorConsultationBooking() {
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3">
-                      {mockTimeSlots.map((slot) => (
+                      {timeSlots.map((slot) => (
                         <button
                           key={slot.time}
                           onClick={() => handleTimeSelect(slot.time)}

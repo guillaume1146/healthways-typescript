@@ -39,7 +39,11 @@ export default function RecentConversions({ conversions }: RecentConversionsProp
           </div>
         </div>
         <p className="text-green-600 text-xs mt-2">
-          Next payout: September 1, 2025
+          Next payout: {(() => {
+            const now = new Date()
+            const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+            return next.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          })()}
         </p>
       </div>
 

@@ -140,7 +140,7 @@ export default function LabDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
-              <Link href="/lab-technician/dashboard/results" className="text-purple-600 hover:underline font-medium">View All</Link>
+              <Link href="/lab-technician/results" className="text-purple-600 hover:underline font-medium">View All</Link>
             </div>
             {loading ? (
               <div className="flex justify-center py-8">
@@ -181,12 +181,12 @@ export default function LabDashboardPage() {
                               </div>
                             )}
                             {apt.status === 'result-ready' && (
-                              <Link href={`/lab-technician/dashboard/results?send=${apt.id}`} className="bg-purple-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-purple-600 transition-colors inline-flex items-center gap-1">
+                              <Link href={`/lab-technician/results?send=${apt.id}`} className="bg-purple-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-purple-600 transition-colors inline-flex items-center gap-1">
                                 <FaFileUpload /> Send Result
                               </Link>
                             )}
                             {(apt.status === 'upcoming' || apt.status === 'in-progress') && (
-                              <Link href={`/lab-technician/dashboard/appointments?view=${apt.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
+                              <Link href={`/lab-technician/appointments?view=${apt.id}`} className="bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors inline-block">
                                 View Details
                               </Link>
                             )}

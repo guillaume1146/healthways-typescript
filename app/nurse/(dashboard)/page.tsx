@@ -163,7 +163,7 @@ export default function NurseDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
-              <Link href="/nurse/dashboard/appointments" className="text-teal-600 hover:underline font-medium">
+              <Link href="/nurse/appointments" className="text-teal-600 hover:underline font-medium">
                 View All
               </Link>
             </div>

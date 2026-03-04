@@ -17,6 +17,10 @@ export async function GET(
   if (auth.sub !== id) return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
 
   try {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
     const [referralProfile, wallet, creditTransactions] = await Promise.all([
       prisma.referralPartnerProfile.findUnique({
         where: { userId: id },
@@ -34,7 +38,8 @@ export async function GET(
       }),
       prisma.walletTransaction.findMany({
         where: { wallet: { userId: id }, type: 'credit' },
-        select: { amount: true, createdAt: true },
+        select: { amount: true, description: true, createdAt: true, status: true },
+        orderBy: { createdAt: 'desc' },
       }),
     ])
 
@@ -42,13 +47,36 @@ export async function GET(
       return NextResponse.json({ message: 'Referral partner profile not found' }, { status: 404 })
     }
 
-    const totalEarnings = creditTransactions.reduce((sum, t) => sum + t.amount, 0)
+    // Fetch users referred by this partner's code
+    const [referrals, thisMonthReferralCount] = await Promise.all([
+      prisma.user.findMany({
+        where: { referredByCode: referralProfile.referralCode },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          userType: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.user.count({
+        where: {
+          referredByCode: referralProfile.referralCode,
+          createdAt: { gte: startOfMonth },
+        },
+      }),
+    ])
 
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    const recentConversions = referrals.slice(0, 10)
+
+    const totalEarnings = creditTransactions.reduce((sum, t) => sum + t.amount, 0)
     const thisMonthEarnings = creditTransactions
       .filter(t => t.createdAt >= startOfMonth)
+      .reduce((sum, t) => sum + t.amount, 0)
+    const pendingPayouts = creditTransactions
+      .filter(t => t.status === 'pending')
       .reduce((sum, t) => sum + t.amount, 0)
 
     return NextResponse.json({
@@ -61,8 +89,26 @@ export async function GET(
           businessType: referralProfile.businessType,
           totalEarnings,
           thisMonthEarnings,
+          thisMonthReferrals: thisMonthReferralCount,
+          pendingPayouts,
           walletBalance: wallet?.balance ?? 0,
         },
+        referrals,
+        clients: referrals.map(r => ({
+          id: r.id,
+          name: `${r.firstName} ${r.lastName}`,
+          email: r.email,
+          userType: r.userType,
+          joinedAt: r.createdAt,
+        })),
+        leadsBySource: {
+          direct: referralProfile.totalReferrals,
+          social: 0,
+          email: 0,
+          other: 0,
+        },
+        recentConversions,
+        recentTransactions: creditTransactions.slice(0, 10),
       },
     })
   } catch (error) {

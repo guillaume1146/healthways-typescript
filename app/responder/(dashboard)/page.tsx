@@ -160,7 +160,7 @@ export default function ResponderDashboardPage() {
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><FaBroadcastTower className="text-red-500 animate-pulse" /> Incoming Emergency Requests</h2>
-          <Link href="/responder/dashboard/calls" className="text-red-600 hover:underline font-medium">View All</Link>
+          <Link href="/responder/calls" className="text-red-600 hover:underline font-medium">View All</Link>
         </div>
         {loading ? (
           <div className="flex justify-center py-8">

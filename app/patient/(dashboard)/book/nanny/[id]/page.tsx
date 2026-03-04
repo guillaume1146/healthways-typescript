@@ -6,12 +6,6 @@ import { FaCheckCircle, FaArrowLeft, FaCalendarAlt, FaClock, FaBaby, FaWallet } 
 import BookingForm from '@/components/booking/BookingForm'
 import type { BookingSubmitData } from '@/components/booking/BookingForm'
 
-const NANNY_FEES: Record<string, number> = {
-  in_person: 400,
-  home_visit: 350,
-  video: 300,
-}
-
 interface NannyInfo {
   id: string
   firstName: string
@@ -210,7 +204,7 @@ export default function BookNannyPage({ params }: { params: Promise<{ id: string
                 <FaWallet className="text-yellow-100" />
                 <div>
                   <p className="text-yellow-100 text-xs">Fee Paid</p>
-                  <p className="font-semibold">Rs {submitData?.consultationType ? NANNY_FEES[submitData.consultationType] : 400}</p>
+                  <p className="font-semibold">Rs {nanny.hourlyRate.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -238,7 +232,7 @@ export default function BookNannyPage({ params }: { params: Promise<{ id: string
               Back to Dashboard
             </Link>
             <Link
-              href="/patient/dashboard/childcare"
+              href="/patient/childcare"
               className="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
             >
               View Childcare Services
@@ -260,12 +254,9 @@ export default function BookNannyPage({ params }: { params: Promise<{ id: string
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">
         Book Childcare with {nanny.firstName} {nanny.lastName}
       </h1>
-      <p className="text-gray-500 mb-6 text-sm">
-        In-Person: Rs {NANNY_FEES.in_person} | Home Visit: Rs {NANNY_FEES.home_visit} | Video: Rs {NANNY_FEES.video}
-      </p>
 
       <BookingForm
         providerType="nanny"
@@ -275,7 +266,7 @@ export default function BookNannyPage({ params }: { params: Promise<{ id: string
         providerImage={nanny.profileImage}
         providerLocation={nanny.location}
         showConsultationType={true}
-        price={NANNY_FEES.in_person}
+        price={nanny.hourlyRate}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         walletBalance={walletBalance}

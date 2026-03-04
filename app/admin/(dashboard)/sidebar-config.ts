@@ -1,5 +1,6 @@
 import { FaHome, FaNewspaper, FaUser, FaUsers, FaChartLine, FaShieldAlt, FaCog, FaComments, FaVideo, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa'
 import type { SidebarItem } from '@/components/dashboard/DashboardSidebar'
+import { createGetActiveSectionFromPath } from '@/lib/dashboard/getActiveSectionFromPath'
 
 const base = '/admin'
 
@@ -17,10 +18,4 @@ export const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'settings', label: 'Settings', icon: FaCog, color: 'text-gray-600', bgColor: 'bg-gray-50', href: `${base}/settings` },
 ]
 
-export function getActiveSectionFromPath(pathname: string): string {
-  const relative = pathname.replace(base, '').replace(/^\//, '')
-  if (!relative) return 'overview'
-  const segment = relative.split('/')[0]
-  const match = ADMIN_SIDEBAR_ITEMS.find((item) => item.id === segment)
-  return match ? match.id : 'overview'
-}
+export const getActiveSectionFromPath = createGetActiveSectionFromPath(base, ADMIN_SIDEBAR_ITEMS)

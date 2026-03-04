@@ -198,10 +198,22 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200">
           <div className="flex items-center justify-between mb-2">
             <FaMoneyBillWave className="text-green-500 text-lg" />
-            <span className="text-xs text-green-600 flex items-center gap-1">
-              +10%
-              <FaArrowUp />
-            </span>
+            {(() => {
+              const monthsElapsed = new Date().getMonth() + 1
+              const avgPrevMonth =
+                monthsElapsed > 1 && earnings.thisYear > 0
+                  ? (earnings.thisYear - earnings.thisMonth) / (monthsElapsed - 1)
+                  : null
+              if (avgPrevMonth === null || avgPrevMonth === 0) return null
+              const growthPct = (((earnings.thisMonth - avgPrevMonth) / avgPrevMonth) * 100).toFixed(1)
+              const isPos = parseFloat(growthPct) >= 0
+              return (
+                <span className={`text-xs flex items-center gap-1 ${isPos ? 'text-green-600' : 'text-red-600'}`}>
+                  {isPos ? '+' : ''}{growthPct}%
+                  {isPos ? <FaArrowUp /> : <FaArrowDown />}
+                </span>
+              )
+            })()}
           </div>
           <p className="text-xl sm:text-2xl font-bold text-green-700">Rs {earnings.thisMonth.toLocaleString()}</p>
           <p className="text-xs sm:text-sm text-gray-600">Monthly Revenue</p>
@@ -557,34 +569,65 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
         <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Monthly Revenue Trend</h3>
 
         <div className="space-y-3">
-          {[
-            { month: 'Current Month', amount: earnings.thisMonth, growth: 10 },
-            { month: 'Last Month', amount: earnings.thisMonth * 0.9, growth: 5 },
-            { month: '2 Months Ago', amount: earnings.thisMonth * 0.85, growth: 8 }
-          ].map((item, index) => {
-            const base = earnings.thisMonth || 1
-            const pct = ((item.amount || 0) / base) * 100
-            return (
-              <div key={index} className="bg-white/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">{item.month}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">Rs {Math.round(item.amount).toLocaleString()}</span>
-                    <span className={`text-xs flex items-center gap-1 ${item.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {item.growth > 0 ? <FaArrowUp /> : <FaArrowDown />}
-                      {Math.abs(item.growth)}%
-                    </span>
+          {(() => {
+            const monthsElapsed = new Date().getMonth() + 1
+            // Estimate previous months' averages from thisYear total
+            const prevMonthsTotal = earnings.thisYear > 0 && monthsElapsed > 1
+              ? earnings.thisYear - earnings.thisMonth
+              : null
+            const avgPrevMonth = prevMonthsTotal !== null && monthsElapsed > 1
+              ? prevMonthsTotal / (monthsElapsed - 1)
+              : null
+
+            const trendItems: { label: string; amount: number; growthVs: number | null }[] = [
+              {
+                label: 'Current Month',
+                amount: earnings.thisMonth,
+                growthVs: avgPrevMonth
+              },
+              {
+                label: 'Previous Months Avg.',
+                amount: avgPrevMonth ?? 0,
+                growthVs: null
+              }
+            ]
+
+            const base = earnings.thisMonth || avgPrevMonth || 1
+
+            return trendItems.map((item, index) => {
+              const pct = ((item.amount || 0) / base) * 100
+              const growthPct = item.growthVs && item.growthVs > 0
+                ? (((item.amount - item.growthVs) / item.growthVs) * 100).toFixed(1)
+                : null
+
+              return (
+                <div key={index} className="bg-white/50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{item.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">
+                        {item.amount > 0 ? `Rs ${Math.round(item.amount).toLocaleString()}` : 'N/A'}
+                      </span>
+                      {growthPct !== null && (
+                        <span className={`text-xs flex items-center gap-1 ${parseFloat(growthPct) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {parseFloat(growthPct) >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+                          {Math.abs(parseFloat(growthPct))}%
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {item.amount > 0 && (
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(100, pct).toFixed(1)}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
-                    style={{ width: `${pct.toFixed(1)}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
+              )
+            })
+          })()}
         </div>
       </div>
     </div>
@@ -700,7 +743,11 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
                 <FaCheckCircle className="text-green-500" />
                 <span className="text-xs text-gray-600">Success Rate</span>
               </div>
-              <p className="text-lg font-bold text-green-700">95%</p>
+              <p className="text-lg font-bold text-green-700">
+                {performanceMetrics.appointmentCompletionRate > 0
+                  ? `${performanceMetrics.appointmentCompletionRate}%`
+                  : 'N/A'}
+              </p>
             </div>
 
             <div className="bg-white/50 rounded-lg p-3">

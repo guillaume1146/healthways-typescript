@@ -44,11 +44,50 @@ export async function GET(
 
     if (!corporateProfile) return NextResponse.json({ message: 'Corporate profile not found' }, { status: 404 })
 
+    // Compute claim stats from the corporate user's wallet transactions tagged as insurance
+    // and from InsuranceClaims related to patients who have this corporate user as referrer.
+    // Since CorporateAdminProfile has no direct FK to InsuranceClaim in the schema, we derive
+    // stats from wallet transactions (CREDIT = approved, others = pending/contributions).
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    const allTx = await prisma.walletTransaction.findMany({
+      where: { wallet: { userId: id } },
+      select: { type: true, amount: true, description: true, status: true, createdAt: true },
+    })
+
+    // Monthly contribution = sum of DEBIT transactions this month (outgoing payments for claims/premiums)
+    const monthlyContribution = allTx
+      .filter(tx => {
+        const txDate = new Date(tx.createdAt)
+        return (tx.type === 'DEBIT' || tx.type === 'debit') && txDate >= monthStart
+      })
+      .reduce((sum, tx) => sum + tx.amount, 0)
+
+    // Derive claim-like stats from transaction descriptions / statuses
+    // Approved = CREDIT transactions (reimbursements received)
+    const approvedClaims = allTx.filter(tx => tx.type === 'CREDIT' || tx.type === 'credit').length
+    // Pending = DEBIT transactions with status pending
+    const pendingClaims = allTx.filter(
+      tx => tx.status === 'pending' && (tx.type === 'DEBIT' || tx.type === 'debit')
+    ).length
+    // Rejected = DEBIT transactions with status failed
+    const rejectedClaims = allTx.filter(tx => tx.status === 'failed').length
+
+    // Active policy holders = employeeCount from profile (best available approximation)
+    const activePolicyHolders = corporateProfile.employeeCount || 0
+
     return NextResponse.json({
       success: true,
       data: {
         stats: {
           totalEmployees: corporateProfile.employeeCount || 0,
+          activePolicyHolders,
+          pendingClaims,
+          approvedClaims,
+          rejectedClaims,
+          monthlyContribution,
+          totalClaims: approvedClaims + pendingClaims + rejectedClaims,
           companyName: corporateProfile.companyName || '',
           industry: corporateProfile.industry || '',
           registrationNumber: corporateProfile.registrationNumber || '',

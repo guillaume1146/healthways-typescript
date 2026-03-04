@@ -24,9 +24,11 @@ interface VideoCallRoomsListProps {
     lastName: string
     userType: string
   }
+  /** If provided, auto-select the room whose `roomId` field matches this value */
+  initialRoomId?: string | null
 }
 
-export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListProps) {
+export default function VideoCallRoomsList({ currentUser, initialRoomId }: VideoCallRoomsListProps) {
   const [rooms, setRooms] = useState<VideoRoom[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
@@ -43,7 +45,21 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
             const fetchedRooms: VideoRoom[] = json.data || []
             setRooms(fetchedRooms)
 
-            // Auto-select the nearest/soonest upcoming video call
+            // If an initialRoomId was provided via URL query param, prefer that room.
+            // Otherwise fall back to the nearest upcoming video call.
+            if (initialRoomId) {
+              const matchedRoom = fetchedRooms.find(r => r.roomId === initialRoomId)
+              if (matchedRoom) {
+                setSelectedRoomId(matchedRoom.id)
+                // If it's an active/upcoming room, also open the VideoConsultation view directly
+                if (isUpcoming(matchedRoom) || isActive(matchedRoom)) {
+                  setSelectedRoom(matchedRoom.roomId)
+                }
+                return
+              }
+            }
+
+            // Default: auto-select the nearest/soonest upcoming video call
             const upcomingList = fetchedRooms
               .filter(r => isUpcoming(r) || isActive(r))
               .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
@@ -61,7 +77,7 @@ export default function VideoCallRoomsList({ currentUser }: VideoCallRoomsListPr
     }
 
     fetchRooms()
-  }, [currentUser.id])
+  }, [currentUser.id, initialRoomId])
 
   // If a room is selected, show the VideoConsultation component
   if (selectedRoom) {

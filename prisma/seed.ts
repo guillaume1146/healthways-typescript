@@ -18,6 +18,10 @@ import { seedWallets } from './seeds/16-wallets.seed'
 import { seedDoctorPosts } from './seeds/17-doctor-posts.seed'
 import { seedProviderAvailability } from './seeds/18-provider-availability.seed'
 import { seedDocumentsAndEnrichment } from './seeds/19-documents-enrichment.seed'
+import { seedRoleConfig } from './seeds/20-role-config.seed'
+import { seedRequiredDocuments } from './seeds/21-required-documents.seed'
+import { seedProviderReviews } from './seeds/22-provider-reviews.seed'
+import { seedConnections } from './seeds/23-connections.seed'
 
 const prisma = new PrismaClient()
 
@@ -25,6 +29,13 @@ async function main() {
   console.log('Cleaning database...')
 
   // Delete in reverse dependency order
+  // 0. Config + Reviews tables (no FK dependencies)
+  await prisma.roleFeatureConfig.deleteMany()
+  await prisma.requiredDocumentConfig.deleteMany()
+  await prisma.providerReview.deleteMany()
+  await prisma.userConnection.deleteMany()
+  await prisma.insuranceClaim.deleteMany()
+
   // 0a. Doctor Posts (children before parents)
   await prisma.postLike.deleteMany()
   await prisma.postComment.deleteMany()
@@ -73,6 +84,7 @@ async function main() {
 
   // 4. Scheduling + Provider Availability
   await prisma.providerAvailability.deleteMany()
+  await prisma.emergencyBooking.deleteMany()
   await prisma.labTestBooking.deleteMany()
   await prisma.childcareBooking.deleteMany()
   await prisma.nurseBooking.deleteMany()
@@ -125,6 +137,10 @@ async function main() {
   await seedDoctorPosts(prisma)
   await seedProviderAvailability(prisma)
   await seedDocumentsAndEnrichment(prisma)
+  await seedRoleConfig(prisma)
+  await seedRequiredDocuments(prisma)
+  await seedProviderReviews(prisma)
+  await seedConnections(prisma)
 
   console.log('Database seeded successfully!')
 }

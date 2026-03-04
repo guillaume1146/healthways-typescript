@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
   FaPrescriptionBottle,
@@ -47,94 +47,59 @@ interface Prescription {
   notes: string;
 }
 
-const mockPrescriptions: Prescription[] = [
-  {
-    id: "RX-2024-001",
+function getUserId(): string | null {
+  try {
+    const raw = localStorage.getItem('healthwyz_user')
+    if (!raw) return null
+    return JSON.parse(raw).id ?? null
+  } catch { return null }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiPrescription(p: any): Prescription {
+  const doc = p.doctor
+  const docUser = doc?.user
+  return {
+    id: p.id,
     doctor: {
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-      avatar: "👩‍⚕️",
-      regNumber: "MD-12345-MU"
+      name: docUser ? `Dr. ${docUser.firstName} ${docUser.lastName}` : 'Unknown',
+      specialty: '',
+      avatar: '👨‍⚕️',
+      regNumber: '',
     },
-    date: "2024-01-14",
-    diagnosis: "Hypertension",
-    medications: [
-      {
-        name: "Lisinopril",
-        dosage: "10mg",
-        frequency: "Once daily",
-        duration: "30 days",
-        instructions: "Take in the morning with water",
-        quantity: 30
-      },
-      {
-        name: "Metoprolol",
-        dosage: "50mg",
-        frequency: "Twice daily",
-        duration: "30 days",
-        instructions: "Take with food",
-        quantity: 60
-      }
-    ],
-    status: "active",
-    validUntil: "2024-02-14",
-    refillsRemaining: 2,
-    notes: "Monitor blood pressure daily. Follow up in 1 month."
-  },
-  {
-    id: "RX-2024-002",
-    doctor: {
-      name: "Dr. Michael Chen",
-      specialty: "General Medicine",
-      avatar: "👨‍⚕️",
-      regNumber: "MD-67890-MU"
-    },
-    date: "2024-01-10",
-    diagnosis: "Type 2 Diabetes",
-    medications: [
-      {
-        name: "Metformin",
-        dosage: "500mg",
-        frequency: "Twice daily",
-        duration: "30 days",
-        instructions: "Take with meals",
-        quantity: 60
-      }
-    ],
-    status: "active",
-    validUntil: "2024-02-10",
-    refillsRemaining: 3,
-    notes: "Check blood sugar levels regularly. Maintain diet control."
-  },
-  {
-    id: "RX-2023-089",
-    doctor: {
-      name: "Dr. Priya Sharma",
-      specialty: "Dermatology",
-      avatar: "👩‍⚕️",
-      regNumber: "MD-54321-MU"
-    },
-    date: "2023-12-15",
-    diagnosis: "Seasonal Allergies",
-    medications: [
-      {
-        name: "Cetirizine",
-        dosage: "10mg",
-        frequency: "Once daily",
-        duration: "14 days",
-        instructions: "Take at bedtime",
-        quantity: 14
-      }
-    ],
-    status: "completed",
-    validUntil: "2023-12-29",
+    date: new Date(p.date).toISOString().split('T')[0],
+    diagnosis: p.diagnosis || '',
+    medications: (p.medicines || []).map((m: { dosage: string; frequency: string; duration: string; instructions: string; medicine?: { name: string } }) => ({
+      name: m.medicine?.name || 'Medicine',
+      dosage: m.dosage || '',
+      frequency: m.frequency || '',
+      duration: m.duration || '',
+      instructions: m.instructions || '',
+      quantity: 0,
+    })),
+    status: p.isActive ? 'active' : 'completed',
+    validUntil: p.nextRefill ? new Date(p.nextRefill).toISOString().split('T')[0] : '',
     refillsRemaining: 0,
-    notes: "Avoid allergens. Use as needed during allergy season."
+    notes: p.notes || '',
   }
-]
+}
 
 export default function PrescriptionManagementPage() {
-  const [prescriptions] = useState<Prescription[]>(mockPrescriptions)
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
+
+  const fetchPrescriptions = useCallback(async () => {
+    const userId = getUserId()
+    if (!userId) return
+    try {
+      const res = await fetch(`/api/patients/${userId}/prescriptions?limit=50`)
+      const data = await res.json()
+      if (data.data) {
+        setPrescriptions(data.data.map(mapApiPrescription))
+      }
+    } catch { /* silent */ }
+  }, [])
+
+  useEffect(() => { fetchPrescriptions() }, [fetchPrescriptions])
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null)
   const [filterStatus, setFilterStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")

@@ -112,9 +112,9 @@ export default function AppointmentsPage() {
       doctorData={data}
       onVideoCall={(apt) => {
         if (apt?.roomId) {
-          router.push(`/doctor/dashboard/video?roomId=${apt.roomId}`)
+          router.push(`/doctor/video?roomId=${apt.roomId}`)
         } else {
-          router.push('/doctor/dashboard/video')
+          router.push('/doctor/video')
         }
       }}
     />

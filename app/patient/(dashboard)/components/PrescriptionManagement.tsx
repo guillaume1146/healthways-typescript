@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Patient, Prescription } from '@/lib/data/patients'
 import { 
@@ -82,49 +82,68 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   const [showReminders, setShowReminders] = useState(true)
   const [expandedSection, setExpandedSection] = useState<string>('active')
 
-  // Mock pill reminders data
-  const mockReminders: PillReminder[] = [
-    {
-      id: 'REM001',
-      medicineId: 'MED001',
-      medicineName: 'Metformin 500mg',
-      dosage: '1 tablet',
-      times: ['08:00', '20:00'],
-      taken: [true, false],
-      nextDose: '20:00',
-      frequency: 'Twice daily'
-    },
-    {
-      id: 'REM002', 
-      medicineId: 'MED002',
-      medicineName: 'Lisinopril 10mg',
-      dosage: '1 tablet',
-      times: ['08:00'],
-      taken: [true],
-      nextDose: 'Tomorrow 08:00',
-      frequency: 'Once daily'
-    }
-  ]
+  const [reminders, setReminders] = useState<PillReminder[]>([])
+  const [currentOrder, setCurrentOrder] = useState<MedicineOrder | null>(null)
 
-  // Mock order data
-  const mockOrder: MedicineOrder = {
-    id: 'ORD001',
-    medicines: [
-      { id: 'MED001', name: 'Metformin 500mg', dosage: '60 tablets', quantity: 1, price: 450, inStock: true },
-      { id: 'MED002', name: 'Lisinopril 10mg', dosage: '30 tablets', quantity: 1, price: 380, inStock: true }
-    ],
-    pharmacy: {
-      name: 'Apollo Pharmacy',
-      address: 'Rose Hill, Mauritius',
-      phone: '+230 401-3000',
-      rating: 4.8,
-      deliveryTime: '2-4 hours'
-    },
-    totalAmount: 830,
-    deliveryFee: 50,
-    estimatedDelivery: 'Today by 6:00 PM',
-    paymentMethod: 'insurance'
-  }
+  // Fetch pill reminders from API
+  const fetchReminders = useCallback(async () => {
+    try {
+      const raw = localStorage.getItem('healthwyz_user')
+      if (!raw) return
+      const userId = JSON.parse(raw).id
+      if (!userId) return
+      const res = await fetch(`/api/patients/${userId}/pill-reminders`)
+      const data = await res.json()
+      if (data.data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setReminders(data.data.map((r: any) => ({
+          id: r.id,
+          medicineId: r.medicineId || r.id,
+          medicineName: r.medicineName || 'Medicine',
+          dosage: r.dosage || '1 tablet',
+          times: r.times || ['08:00'],
+          taken: r.taken || [false],
+          nextDose: r.nextDose || 'Pending',
+          frequency: r.frequency || 'Daily',
+        })))
+      }
+    } catch { /* silent */ }
+  }, [])
+
+  // Fetch current orders
+  const fetchOrders = useCallback(async () => {
+    try {
+      const raw = localStorage.getItem('healthwyz_user')
+      if (!raw) return
+      const userId = JSON.parse(raw).id
+      if (!userId) return
+      const res = await fetch(`/api/patients/${userId}/bookings?type=pharmacy&limit=1`)
+      const data = await res.json()
+      if (data.data?.[0]) {
+        const order = data.data[0]
+        setCurrentOrder({
+          id: order.id,
+          medicines: (order.items || []).map((i: { id: string; name: string; dosage: string; quantity: number; price: number }) => ({
+            id: i.id, name: i.name, dosage: i.dosage || '', quantity: i.quantity || 1, price: i.price || 0, inStock: true,
+          })),
+          pharmacy: {
+            name: order.pharmacyName || 'Pharmacy',
+            address: order.pharmacyAddress || '',
+            phone: '',
+            rating: 4.5,
+            deliveryTime: '2-4 hours',
+          },
+          totalAmount: order.totalAmount || 0,
+          deliveryFee: 50,
+          estimatedDelivery: 'Pending',
+          paymentMethod: 'card',
+        })
+      }
+    } catch { /* silent */ }
+  }, [])
+
+  useEffect(() => { fetchReminders() }, [fetchReminders])
+  useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const allPrescriptions = [
     ...(patientData.activePrescriptions || []),
@@ -182,7 +201,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
 
   const sections = [
     { id: 'active', label: 'Active Prescriptions', icon: FaCheckCircle, color: 'green', count: patientData.activePrescriptions?.length },
-    { id: 'reminders', label: 'Reminders', icon: FaBell, color: 'blue', count: mockReminders.length },
+    { id: 'reminders', label: 'Reminders', icon: FaBell, color: 'blue', count: reminders.length },
     { id: 'order', label: 'Order Medicines', icon: FaShoppingCart, color: 'purple' },
     { id: 'history', label: 'History', icon: FaHistory, color: 'orange', count: allPrescriptions.length }
   ]
@@ -498,7 +517,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
         </div>
 
         <div className="space-y-3 sm:space-y-4">
-          {mockReminders.map((reminder) => (
+          {reminders.map((reminder) => (
             <div key={reminder.id} className="bg-gradient-to-r from-white/70 to-blue-50/70 border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div className="flex items-start gap-3 sm:gap-4">
@@ -636,6 +655,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
       )}
 
       {/* Current Order */}
+      {currentOrder && (
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-blue-200">
         <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
           <FaTruck className="mr-2 text-blue-500" />
@@ -643,7 +663,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
         </h3>
 
         <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-          {mockOrder.medicines.map((medicine) => (
+          {currentOrder.medicines.map((medicine) => (
             <div key={medicine.id} className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-white/70 to-blue-50/70 border border-gray-200 rounded-lg sm:rounded-xl">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
@@ -675,22 +695,22 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
             <div>
               <h4 className="font-semibold text-blue-900 mb-2 flex items-center text-sm sm:text-base">
                 <FaMapMarkerAlt className="mr-2" />
-                {mockOrder.pharmacy.name}
+                {currentOrder.pharmacy.name}
               </h4>
               <div className="text-xs sm:text-sm text-blue-800 space-y-1">
-                <p>{mockOrder.pharmacy.address}</p>
+                <p>{currentOrder.pharmacy.address}</p>
                 <p className="flex items-center gap-2">
                   <FaPhone />
-                  {mockOrder.pharmacy.phone}
+                  {currentOrder.pharmacy.phone}
                 </p>
                 <div className="flex flex-wrap gap-3 sm:gap-4">
                   <div className="flex items-center gap-1">
                     <FaStar className="text-yellow-500" />
-                    <span>{mockOrder.pharmacy.rating}</span>
+                    <span>{currentOrder.pharmacy.rating}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <FaClock />
-                    <span>Delivery: {mockOrder.pharmacy.deliveryTime}</span>
+                    <span>Delivery: {currentOrder.pharmacy.deliveryTime}</span>
                   </div>
                 </div>
               </div>
@@ -703,22 +723,22 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
           <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>Rs {mockOrder.totalAmount}</span>
+              <span>Rs {currentOrder.totalAmount}</span>
             </div>
             <div className="flex justify-between">
               <span>Delivery Fee:</span>
-              <span>Rs {mockOrder.deliveryFee}</span>
+              <span>Rs {currentOrder.deliveryFee}</span>
             </div>
             <div className="flex justify-between font-bold text-base sm:text-lg border-t pt-2">
               <span>Total:</span>
-              <span>Rs {mockOrder.totalAmount + mockOrder.deliveryFee}</span>
+              <span>Rs {currentOrder.totalAmount + currentOrder.deliveryFee}</span>
             </div>
           </div>
 
           <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
             <p className="text-xs sm:text-sm text-green-800">
               <FaTruck className="inline mr-2" />
-              Estimated delivery: {mockOrder.estimatedDelivery}
+              Estimated delivery: {currentOrder.estimatedDelivery}
             </p>
           </div>
 
@@ -732,6 +752,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 
@@ -929,7 +950,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
               <p className="text-xs opacity-90">Total</p>
             </div>
             <div className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-              <p className="text-lg sm:text-xl md:text-2xl font-bold">{mockReminders.length}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">{reminders.length}</p>
               <p className="text-xs opacity-90">Reminders</p>
             </div>
           </div>

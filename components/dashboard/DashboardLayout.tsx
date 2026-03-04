@@ -30,7 +30,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   onLogout,
   sidebarFooter,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [userId, setUserId] = useState<string | undefined>(undefined)
 
@@ -38,7 +38,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const handleResize = () => {
       const mobile = window.innerWidth < 768
       setIsMobile(mobile)
-      if (!mobile) setSidebarOpen(false)
+      // On mobile: always close the sidebar on resize; on desktop: keep current state
+      if (mobile) setSidebarOpen(false)
     }
 
     handleResize()
@@ -131,7 +132,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <main
         id="dashboard-main-content"
         role="main"
-        className="pt-14 sm:pt-14 md:pt-16 lg:pt-16 md:ml-64 lg:ml-72 xl:ml-80 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden"
+        className={`pt-14 sm:pt-14 md:pt-16 lg:pt-16 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden transition-all duration-300 ease-in-out ${
+          !isMobile && sidebarOpen
+            ? 'md:ml-64 lg:ml-72 xl:ml-80'
+            : !isMobile
+            ? 'md:ml-16'
+            : ''
+        }`}
       >
         {children}
       </main>

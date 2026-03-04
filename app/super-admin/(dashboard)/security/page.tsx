@@ -6,10 +6,11 @@ import { FaShieldAlt, FaExclamationTriangle, FaCheckCircle, FaLock, FaUserShield
 interface SecurityEvent {
   id: string
   type: 'login_failed' | 'account_locked' | 'suspicious_activity' | 'password_reset'
+  eventType?: string
   message: string
   ip: string
   timestamp: string
-  severity: 'low' | 'medium' | 'high'
+  severity: 'low' | 'medium' | 'high' | 'critical'
 }
 
 export default function SuperAdminSecurityPage() {
@@ -34,6 +35,9 @@ export default function SuperAdminSecurityPage() {
     fetchSecurity()
   }, [])
 
+  const failedLogins = events.filter(e => e.type === 'login_failed' || e.eventType === 'login_failed').length
+  const activeAlerts = events.filter(e => e.severity === 'high' || e.severity === 'critical').length
+
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-100 text-red-800'
@@ -52,8 +56,8 @@ export default function SuperAdminSecurityPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { title: 'Security Status', value: 'Healthy', icon: FaCheckCircle, color: 'bg-green-500' },
-          { title: 'Failed Logins (24h)', value: '0', icon: FaLock, color: 'bg-red-500' },
-          { title: 'Active Alerts', value: '0', icon: FaExclamationTriangle, color: 'bg-yellow-500' },
+          { title: 'Failed Logins (24h)', value: String(failedLogins), icon: FaLock, color: 'bg-red-500' },
+          { title: 'Active Alerts', value: String(activeAlerts), icon: FaExclamationTriangle, color: 'bg-yellow-500' },
           { title: 'Protected Accounts', value: '100%', icon: FaUserShield, color: 'bg-blue-500' },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white rounded-xl p-6 shadow-lg">

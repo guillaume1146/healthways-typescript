@@ -61,343 +61,6 @@ const quickPrompts = [
   }
 ]
 
-// Simulated AI responses based on common medical support queries
-const getAIResponse = (userMessage: string): string => {
-  const message = userMessage.toLowerCase()
-  
-  if (message.includes('emergency') || message.includes('urgent') || message.includes('ambulance')) {
-    return `**Emergency Procedure Steps:**
-
-🚨 **Immediate Actions:**
-1. **Stay Calm** - Take a deep breath and assess the situation
-2. **Call Emergency Services** - Dial **114** for ambulance in Mauritius
-3. **Provide Clear Information** - Give your exact location, nature of emergency, and patient details
-
-📞 **Emergency Contacts:**
-• **Ambulance**: 114
-• **Police**: 999
-• **Fire Services**: 995
-• **SAMU Emergency**: 114
-
-🏥 **While Waiting for Help:**
-- Keep the patient comfortable and still
-- Do not move someone with potential spinal injuries
-- Apply pressure to bleeding wounds with clean cloth
-- Monitor breathing and consciousness
-
-**Important**: If someone is unconscious, having chest pain, difficulty breathing, or severe bleeding, this is a medical emergency requiring immediate professional help.
-
-Would you like specific guidance for any particular type of emergency?`
-  }
-  
-  if (message.includes('doctor') && (message.includes('book') || message.includes('appointment'))) {
-    return `**How to Book a Doctor Appointment:**
-
-🩺 **Step-by-Step Process:**
-
-1. **Choose Your Method:**
-   - Visit our Doctors page on the website
-   - Use the AI search to find specialists
-   - Call the clinic directly
-
-2. **Find the Right Doctor:**
-   - Select your medical concern/specialty
-   - Check doctor availability and ratings
-   - Consider location and consultation fees
-
-3. **Booking Process:**
-   - Select preferred date and time slot
-   - Choose consultation type (in-person/video)
-   - Provide patient details and contact info
-   - Upload insurance card if applicable
-
-4. **Preparation for Appointment:**
-   - Prepare list of symptoms and questions
-   - Bring medical history and current medications
-   - Arrive 15 minutes early for paperwork
-
-📱 **Quick Booking**: Use our website's doctor search feature or call our helpline at **+230 xxx xxxx**
-
-Need help finding a specific type of doctor or have questions about the booking process?`
-  }
-  
-  if (message.includes('insurance') && (message.includes('claim') || message.includes('cover'))) {
-    return `**Health Insurance Claim Process:**
-
-📋 **Required Documents:**
-- Original bills and receipts
-- Discharge summary (for hospitalization)
-- Doctor's prescription and reports
-- Insurance card and policy documents
-- Claim form (filled and signed)
-
-📝 **Step-by-Step Filing:**
-
-1. **Immediate Steps (within 24-48 hours):**
-   - Inform your insurance company
-   - Get pre-authorization for planned treatments
-   - Keep all original documents safe
-
-2. **Document Collection:**
-   - Collect all medical bills and reports
-   - Get detailed breakdown of charges
-   - Obtain doctor's certificate if required
-
-3. **Claim Submission:**
-   - Fill claim form completely
-   - Attach all required documents
-   - Submit within policy time limit (usually 30-90 days)
-
-4. **Follow-up:**
-   - Track claim status online or via phone
-   - Provide additional documents if requested
-
-💡 **Pro Tips:**
-- Keep copies of all documents
-- Take photos of bills as backup
-- Maintain a claim tracking file
-
-Which specific aspect of insurance claims do you need more help with?`
-  }
-  
-  if (message.includes('medicine') || message.includes('medication') || message.includes('prescription')) {
-    return `**Medication Guidance & Safety:**
-
-💊 **Prescription Management:**
-
-**How to Read Prescriptions:**
-- Drug name (generic and brand)
-- Dosage strength and frequency
-- Duration of treatment
-- Special instructions (with/without food)
-
-**Taking Medications Safely:**
-1. **Follow Exact Dosage** - Never exceed or skip doses
-2. **Timing Matters** - Take at prescribed intervals
-3. **Food Instructions** - Some need food, others don't
-4. **Complete the Course** - Especially for antibiotics
-
-⚠️ **Important Safety Tips:**
-- Check expiry dates before taking
-- Store medications properly (cool, dry place)
-- Never share prescription medicines
-- Report side effects to your doctor
-
-🛒 **Ordering Medicines:**
-- Upload prescription on our Medicines page
-- Choose home delivery or pharmacy pickup
-- Check medicine authenticity and expiry
-- Keep prescription for future reference
-
-📞 **Pharmacist Consultation**: Available for questions about drug interactions, side effects, or proper usage.
-
-Do you have specific questions about a particular medication or need help with prescription management?`
-  }
-  
-  if (message.includes('lab test') || message.includes('blood test') || message.includes('diagnostic')) {
-    return `**Lab Test Booking & Preparation:**
-
-🔬 **Booking Process:**
-
-1. **Choose Tests:**
-   - Browse by category or search specific tests
-   - Consider health packages for multiple tests
-   - Check if doctor's prescription is required
-
-2. **Preparation Instructions:**
-   - **Fasting Tests**: No food/drink 8-12 hours before
-   - **Regular Tests**: No special preparation needed
-   - **Urine Tests**: Mid-stream sample, clean collection
-   - **Special Tests**: Follow specific instructions provided
-
-3. **Scheduling:**
-   - Select home collection or lab visit
-   - Choose convenient time slot
-   - Confirm address for home collection
-
-📋 **What to Expect:**
-- Sample collection takes 5-15 minutes
-- Results available digitally within specified time
-- Reports can be shared with your doctor
-- Follow-up consultation available if needed
-
-🏠 **Home Collection Benefits:**
-- Trained phlebotomists visit your home
-- Safe and hygienic sample collection
-- No need to travel, especially for elderly/sick patients
-- Same day results for most tests
-
-💰 **Cost Savings**: Health packages offer better value than individual tests.
-
-Which specific tests are you interested in, or do you need help understanding test preparation requirements?`
-  }
-  
-  if (message.includes('nurse') || message.includes('nursing') || message.includes('home care')) {
-    return `**When to Call a Nurse - Guidelines:**
-
-🏥 **Situations Requiring Nursing Care:**
-
-**Immediate Nursing Needs:**
-- Post-surgery wound care and dressing
-- IV medication administration
-- Catheter care and management
-- Injection administration (insulin, vaccines)
-
-**Chronic Condition Management:**
-- Diabetes monitoring and insulin administration
-- Blood pressure monitoring for hypertension
-- Medication management for elderly
-- Physical therapy and rehabilitation
-
-⚠️ **Warning Signs to Call a Nurse:**
-- Difficulty breathing or chest pain
-- High fever that won't reduce
-- Severe pain or discomfort
-- Signs of infection (redness, swelling, discharge)
-- Confusion or disorientation
-- Inability to take medications
-
-🔄 **Regular Nursing Services:**
-- Daily medication reminders
-- Vital signs monitoring
-- Mobility assistance
-- Personal hygiene support
-- Companionship for elderly
-
-📞 **How to Request Nursing Care:**
-1. Assess the patient's needs
-2. Contact our nursing services
-3. Provide medical history and current condition
-4. Schedule appropriate care level (hourly/daily/live-in)
-
-**Emergency vs. Routine Care**: For emergencies, call **114** first, then arrange nursing follow-up care.
-
-What specific nursing care situation are you dealing with?`
-  }
-  
-  if (message.includes('childcare') || message.includes('nanny') || message.includes('babysitter')) {
-    return `**Childcare Services Guidance:**
-
-👶 **Types of Childcare Available:**
-
-**Professional Options:**
-- **Nannies**: Full-time professional childcare in your home
-- **Au Pairs**: Live-in childcare with cultural exchange
-- **Babysitters**: Flexible evening and weekend care
-- **Childminders**: Registered home-based childcare
-
-🔍 **How to Choose the Right Caregiver:**
-
-1. **Assess Your Needs:**
-   - Age of children and specific requirements
-   - Hours needed (full-time/part-time/occasional)
-   - Special needs (newborn care, special education)
-   - Budget considerations
-
-2. **Vetting Process:**
-   - Check background verification
-   - Review references and past experience
-   - Verify certifications (CPR, First Aid)
-   - Conduct in-person interviews
-
-3. **Safety Considerations:**
-   - Ensure caregiver has emergency contacts
-   - Verify first aid training
-   - Check identification and work permits
-   - Establish clear communication protocols
-
-👥 **Booking Process:**
-- Use our Childcare search feature
-- Filter by location, experience, and specialties
-- Read reviews and ratings
-- Contact caregivers directly
-- Arrange trial sessions before committing
-
-🚨 **Emergency Protocols**: Ensure your childcare provider knows emergency numbers, your child's medical information, and has written authorization for medical decisions if needed.
-
-What specific type of childcare arrangement are you looking for?`
-  }
-  
-  if (message.includes('navigation') || message.includes('website') || message.includes('app') || message.includes('how to use')) {
-    return `**Website Navigation Guide:**
-
-🗺️ **Main Service Categories:**
-
-**Healthcare Services:**
-- **Doctors**: Find and book consultations with specialists
-- **Medicines**: Order prescriptions with home delivery
-- **Lab Tests**: Book diagnostic tests with home collection
-- **Insurance**: Compare and purchase health insurance plans
-
-**Support Services:**
-- **Nursing Care**: Professional home nursing services
-- **Childcare**: Nannies, babysitters, and childminders
-- **Emergency**: Ambulance and urgent care services
-
-📱 **How to Use Each Section:**
-
-1. **Finding Services:**
-   - Use the search bar or browse categories
-   - Apply filters (location, price, ratings)
-   - Read reviews and compare options
-
-2. **Booking Process:**
-   - Select your preferred service provider
-   - Choose date and time
-   - Provide necessary details
-   - Confirm booking and payment
-
-3. **Account Management:**
-   - Track your bookings and history
-   - Manage insurance and payments
-   - Access digital reports and prescriptions
-
-💡 **Quick Tips:**
-- Use the AI Assistant (that's me!) for instant help
-- Save frequently used services to favorites
-- Enable notifications for important updates
-- Keep your profile and insurance info updated
-
-🔍 **Search Features**:
-- AI-powered search understands natural language
-- Voice search available on mobile
-- Barcode scanner for medicines
-- Symptom checker for doctor recommendations
-
-Which specific feature or service would you like help navigating?`
-  }
-  
-  // Default response for general queries
-  return `I understand you are looking for medical support guidance. I can help you with:
-
-🏥 **Emergency & Urgent Care**
-- Emergency procedure steps
-- When to call an ambulance
-- First aid guidance
-
-👩‍⚕️ **Healthcare Services**
-- Booking doctors and specialists
-- Understanding lab tests and results
-- Medication management and safety
-
-💰 **Insurance & Administrative**
-- Filing insurance claims
-- Understanding coverage
-- Required documentation
-
-🏠 **Home Care Services**
-- When to request nursing care
-- Childcare safety guidelines
-- Home health management
-
-Could you please provide more specific details about what you need help with? For example:
-- "How do I book a cardiologist?"
-- "What should I do if someone is having chest pain?"
-- "How do I file an insurance claim?"
-- "What documents do I need for lab tests?"
-
-I'm here to provide step-by-step guidance for any healthcare-related procedure or question you have.`
-}
 
 export default function AIMedicalChatbot() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
@@ -424,21 +87,50 @@ export default function AIMedicalChatbot() {
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, userMessage])
+    const currentMessages = [...messages, userMessage]
+    setMessages(currentMessages)
     setInputMessage('')
     setIsTyping(true)
 
-    setTimeout(() => {
+    try {
+      const history = currentMessages
+        .slice(-20)
+        .filter(m => m.id !== '1')
+        .map(m => ({
+          role: m.type === 'user' ? 'user' as const : 'assistant' as const,
+          content: m.content,
+        }))
+
+      const res = await fetch('/api/ai/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputMessage, history }),
+      })
+
+      const json = await res.json()
+      const responseText = res.ok && json.success
+        ? json.data.response
+        : 'Sorry, I could not process your request at this time. Please try again or contact support.'
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: getAIResponse(inputMessage),
+        content: responseText,
         timestamp: new Date()
       }
-      
+
       setMessages(prev => [...prev, aiResponse])
+    } catch {
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I am unable to connect to the AI service right now. Please try again later or call emergency services directly at 114 for urgent matters.',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorResponse])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleQuickPrompt = (prompt: string) => {

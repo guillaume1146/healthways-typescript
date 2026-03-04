@@ -31,8 +31,14 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Emergency worker profile not found' }, { status: 404 })
     }
 
+    // Show all pending bookings (broadcast model) + this responder's active bookings
     const bookings = await prisma.emergencyBooking.findMany({
-      where: { responderId: emergencyWorkerProfile.id, status: 'pending' },
+      where: {
+        OR: [
+          { status: 'pending', responderId: null },
+          { responderId: emergencyWorkerProfile.id },
+        ],
+      },
       include: {
         patient: {
           select: {

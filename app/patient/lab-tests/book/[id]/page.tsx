@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useParams } from "next/navigation"
 import Link from "next/link"
-import { 
+import {
   FaArrowLeft,
   FaMapMarkerAlt,
   FaCheck,
@@ -89,21 +90,7 @@ interface PaymentMethod {
   available: boolean;
 }
 
-// Mock lab facility data (pre-selected)
-const mockLabFacility: LabFacility = {
-  id: "1",
-  name: "MediLab Diagnostics",
-  location: "Ebène Cybercity, Mauritius",
-  rating: 4.7,
-  reviews: 234,
-  certifications: ["ISO 15189", "CAP Accredited", "NABL Certified"],
-  equipment: ["Automated Analyzers", "PCR Machines", "Flow Cytometry", "Mass Spectrometry"],
-  specializations: ["Clinical Chemistry", "Hematology", "Microbiology", "Molecular Diagnostics"],
-  operatingHours: "Monday - Saturday: 6:00 AM - 6:00 PM, Sunday: 7:00 AM - 2:00 PM",
-  homeCollection: true,
-  avatar: "🔬"
-}
-
+// Static test catalog (no per-lab test API exists; these are standard tests offered at every lab)
 const availableTests: LabTest[] = [
   {
     id: "cbc",
@@ -188,21 +175,6 @@ const availableTests: LabTest[] = [
   }
 ]
 
-const mockTimeSlots: TimeSlot[] = [
-  { time: "06:00 AM", available: true, type: "early-morning" },
-  { time: "06:30 AM", available: true, type: "early-morning" },
-  { time: "07:00 AM", available: true, type: "regular" },
-  { time: "07:30 AM", available: false, type: "regular" },
-  { time: "08:00 AM", available: true, type: "regular" },
-  { time: "08:30 AM", available: true, type: "regular" },
-  { time: "09:00 AM", available: true, type: "regular" },
-  { time: "09:30 AM", available: false, type: "regular" },
-  { time: "10:00 AM", available: true, type: "priority" },
-  { time: "10:30 AM", available: true, type: "regular" },
-  { time: "11:00 AM", available: true, type: "regular" },
-  { time: "11:30 AM", available: true, type: "regular" }
-]
-
 const paymentMethods: PaymentMethod[] = [
   {
     id: "mcb-juice",
@@ -242,10 +214,30 @@ const paymentMethods: PaymentMethod[] = [
 ]
 
 export default function LabTestingBooking() {
+  const params = useParams()
+  const labTechId = params?.id as string
+
   const [currentStep, setCurrentStep] = useState(1)
+  const [labFacility, setLabFacility] = useState<LabFacility | null>(null)
+  const [facilityLoading, setFacilityLoading] = useState(true)
+  const [facilityError, setFacilityError] = useState<string | null>(null)
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [slotsLoading, setSlotsLoading] = useState(false)
   const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails>({
-    labFacility: mockLabFacility,
-    selectedTests: [availableTests[0]], // Pre-selected test
+    labFacility: {
+      id: "",
+      name: "",
+      location: "",
+      rating: 0,
+      reviews: 0,
+      certifications: [],
+      equipment: [],
+      specializations: [],
+      operatingHours: "",
+      homeCollection: false,
+      avatar: "🔬",
+    },
+    selectedTests: [availableTests[0]],
     date: "",
     time: "",
     collectionMethod: "lab",
@@ -260,6 +252,78 @@ export default function LabTestingBooking() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [ticketId, setTicketId] = useState("")
+
+  // Fetch lab facility info from search API using the lab tech user ID
+  const fetchLabFacility = useCallback(async () => {
+    if (!labTechId) return
+    try {
+      setFacilityLoading(true)
+      const res = await fetch("/api/search/lab-tests")
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        // Find a test offered by this lab tech to get facility info
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const match = data.data.find((t: any) => t.labTechnician?.id === labTechId)
+        if (match) {
+          const facility: LabFacility = {
+            id: match.labTechnician.id,
+            name: match.lab || match.labTechnician.name,
+            location: "Mauritius",
+            rating: 0,
+            reviews: 0,
+            certifications: [],
+            equipment: [],
+            specializations: [],
+            operatingHours: "Monday - Saturday: 7:00 AM - 5:00 PM",
+            homeCollection: true,
+            avatar: "🔬",
+          }
+          setLabFacility(facility)
+          setAppointmentDetails(prev => ({ ...prev, labFacility: facility }))
+        } else {
+          setFacilityError("Lab facility not found.")
+        }
+      } else {
+        setFacilityError("Failed to load lab facility information.")
+      }
+    } catch {
+      setFacilityError("An error occurred loading the lab facility.")
+    } finally {
+      setFacilityLoading(false)
+    }
+  }, [labTechId])
+
+  // Fetch real available time slots when date changes
+  const fetchTimeSlots = useCallback(async (date: string) => {
+    if (!labTechId || !date) return
+    try {
+      setSlotsLoading(true)
+      const res = await fetch(
+        `/api/bookings/available-slots?providerId=${labTechId}&date=${date}&providerType=lab-test`
+      )
+      const data = await res.json()
+      if (data.success && Array.isArray(data.slots)) {
+        const slots: TimeSlot[] = data.slots.map((time: string) => {
+          const [hourStr] = time.split(":")
+          const hour = parseInt(hourStr, 10)
+          const period = hour < 12 ? "AM" : "PM"
+          const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+          const displayTime = `${displayHour.toString().padStart(2, "0")}:00 ${period}`
+          const slotType: TimeSlot["type"] = hour < 8 ? "early-morning" : hour >= 10 ? "priority" : "regular"
+          return { time: displayTime, available: true, type: slotType }
+        })
+        setTimeSlots(slots)
+      } else {
+        setTimeSlots([])
+      }
+    } catch {
+      setTimeSlots([])
+    } finally {
+      setSlotsLoading(false)
+    }
+  }, [labTechId])
+
+  useEffect(() => { fetchLabFacility() }, [fetchLabFacility])
 
   const steps = [
     { number: 1, title: "Lab & Tests", icon: FaFlask },
@@ -290,7 +354,8 @@ export default function LabTestingBooking() {
   }
 
   const handleDateChange = (date: string) => {
-    setAppointmentDetails({ ...appointmentDetails, date })
+    setAppointmentDetails({ ...appointmentDetails, date, time: "" })
+    fetchTimeSlots(date)
   }
 
   const handleCollectionMethodChange = (method: "home" | "lab") => {
@@ -343,18 +408,44 @@ export default function LabTestingBooking() {
     .map(test => test.fastingHours || 0)
   )
 
+  if (facilityLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading lab facility information...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (facilityError || !labFacility) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <FaExclamationTriangle className="text-yellow-500 text-5xl mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Lab Facility Not Found</h2>
+          <p className="text-gray-600 mb-6">{facilityError ?? "The lab facility could not be loaded."}</p>
+          <Link href="/search/lab" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Search Lab Facilities
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/patient" className="text-gray-600 hover:text-blue-600">
+            <Link href="/search/lab" className="text-gray-600 hover:text-blue-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Book Lab Tests</h1>
-              <p className="text-gray-600">Schedule laboratory testing at {appointmentDetails.labFacility.name}</p>
+              <p className="text-gray-600">Schedule laboratory testing at {labFacility.name}</p>
             </div>
           </div>
         </div>
@@ -784,8 +875,19 @@ export default function LabTestingBooking() {
                       </div>
                     </div>
                     
+                    {slotsLoading ? (
+                      <div className="text-center py-8">
+                        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <p className="text-gray-500 text-sm">Loading available slots...</p>
+                      </div>
+                    ) : timeSlots.length === 0 ? (
+                      <div className="text-center py-8">
+                        <FaClock className="text-gray-300 text-3xl mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">No available slots for this date.</p>
+                      </div>
+                    ) : (
                     <div className="grid grid-cols-3 gap-3 mb-6">
-                      {mockTimeSlots.map((slot) => (
+                      {timeSlots.map((slot) => (
                         <button
                           key={slot.time}
                           onClick={() => handleTimeSelect(slot.time)}
@@ -796,6 +898,7 @@ export default function LabTestingBooking() {
                         </button>
                       ))}
                     </div>
+                    )}
 
                     {appointmentDetails.time && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">

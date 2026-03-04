@@ -82,7 +82,7 @@ export const createEmergencyBookingSchema = z.object({
 })
 
 export const bookingActionSchema = z.object({
-  action: z.enum(['accept', 'deny', 'cancel']),
+  action: z.enum(['accept', 'deny', 'cancel', 'en_route', 'complete']),
   reason: z.string().max(500).optional(),
 })
 

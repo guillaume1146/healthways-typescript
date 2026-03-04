@@ -32,7 +32,15 @@
       "Bash(python3:*)",
       "Bash(netstat:*)",
       "Bash(npm run:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(docker exec:*)",
+      "Bash(ss:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(PGPASSWORD=healthwyz_secret psql:*)",
+      "Bash(docker port:*)",
+      "Bash(docker:*)",
+      "Bash(__NEW_LINE_52182f0e14a62e93__ head:*)"
     ]
   }
 }

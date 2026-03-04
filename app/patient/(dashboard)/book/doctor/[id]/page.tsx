@@ -225,7 +225,7 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
               Back to Dashboard
             </Link>
             <Link
-              href="/patient/dashboard/consultations"
+              href="/patient/consultations"
               className="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
             >
               View Appointments

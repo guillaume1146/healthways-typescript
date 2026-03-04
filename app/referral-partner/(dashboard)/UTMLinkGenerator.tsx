@@ -9,8 +9,10 @@ interface UTMLinkGeneratorProps {
 export default function UTMLinkGenerator({ promoCode }: UTMLinkGeneratorProps) {
   const [copiedLink, setCopiedLink] = useState<string | null>(null)
   
-  const baseUrl = "https://healthwyz.mu/signup"
-  
+  const baseUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/signup`
+    : 'https://healthwyz.mu/signup'
+
   const generateUTMLink = (platform: string) => {
     const utmParams = new URLSearchParams({
       utm_source: platform,

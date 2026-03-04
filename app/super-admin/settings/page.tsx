@@ -1,10 +1,12 @@
 'use client'
 
-import { FaUser, FaShieldAlt, FaBell } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaUser, FaShieldAlt, FaCreditCard, FaBell } from 'react-icons/fa'
 import {
   SettingsLayout,
   SecuritySettingsTab,
   NotificationSettingsTab,
+  BillingSettingsTab,
 } from '@/components/settings'
 import type { SettingsTab } from '@/components/settings'
 import SuperAdminProfileTab from './SuperAdminProfileTab'
@@ -17,12 +19,27 @@ const NOTIFICATION_OPTIONS = [
   { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive updates via email' },
 ]
 
-const tabs: SettingsTab[] = [
-  { id: 'profile', label: 'Profile', icon: FaUser, component: <SuperAdminProfileTab /> },
-  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
-  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ systemHealth: true, securityIncidents: true, newRegions: true, adminActions: true, emailNotifications: true }} /> },
-]
-
 export default function SuperAdminSettingsPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const tabs: SettingsTab[] = [
+    { id: 'profile', label: 'Profile', icon: FaUser, component: <SuperAdminProfileTab /> },
+    { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+    { id: 'billing', label: 'Billing', icon: FaCreditCard, component: <BillingSettingsTab userId={userId} /> },
+    { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ systemHealth: true, securityIncidents: true, newRegions: true, adminActions: true, emailNotifications: true }} /> },
+  ]
+
   return <SettingsLayout tabs={tabs} />
 }

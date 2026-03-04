@@ -146,12 +146,12 @@ function SearchResultsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-green-500 text-white py-6 sm:py-8">
+      <div className="bg-white border-b border-gray-200 py-6 sm:py-8">
         <div className="container mx-auto px-4">
-          <Link href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-3 text-sm">
+          <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-3 text-sm">
             <FaArrowLeft /> Back to Home
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
             Search Healthcare Services
           </h1>
 
@@ -165,7 +165,7 @@ function SearchResultsContent() {
                 onFocus={() => setShowHistory(true)}
                 onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                 placeholder="Search doctors, nurses, medicines..."
-                className="w-full px-5 py-3.5 pr-12 rounded-xl text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg"
+                className="w-full px-5 py-3.5 pr-12 rounded-xl text-gray-800 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm"
                 autoComplete="off"
               />
               {query && (

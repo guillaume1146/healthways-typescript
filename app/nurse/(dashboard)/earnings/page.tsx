@@ -158,34 +158,100 @@ export default function NurseEarningsPage() {
         </div>
       </div>
 
-      {/* Earnings Chart Placeholder */}
+      {/* Earnings Bar Chart — grouped by month */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <FaChartLine className="text-teal-600" />
           Earnings Overview
         </h2>
-        <div className="bg-gray-50 rounded-xl p-8 text-center border border-dashed border-gray-300">
-          <FaChartLine className="text-4xl text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">
-            Earnings chart will display here as you complete more services.
-          </p>
-          <div className="mt-4 grid grid-cols-3 gap-4">
+        {(() => {
+          // Group credit transactions by month
+          const credits = (wallet?.transactions || []).filter(
+            t => t.type === 'credit' || t.type === 'CREDIT'
+          )
+          if (credits.length === 0) {
+            return (
+              <div className="bg-gray-50 rounded-xl p-8 text-center border border-dashed border-gray-300">
+                <FaChartLine className="text-4xl text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">
+                  Earnings chart will display here as you complete more services.
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-xs">Total Completed</p>
+                    <p className="text-xl font-bold text-gray-800">{stats?.completedServices || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">This Month</p>
+                    <p className="text-xl font-bold text-teal-600">{stats?.monthlyCompletedServices || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Avg Per Service</p>
+                    <p className="text-xl font-bold text-green-600">Rs 0</p>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          // Build month buckets for the last 6 months
+          const now = new Date()
+          const months: { label: string; key: string; amount: number }[] = []
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+            months.push({ label, key, amount: 0 })
+          }
+          credits.forEach(t => {
+            const d = new Date(t.createdAt)
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            const bucket = months.find(m => m.key === key)
+            if (bucket) bucket.amount += t.amount
+          })
+          const maxAmount = Math.max(...months.map(m => m.amount), 1)
+
+          return (
             <div>
-              <p className="text-gray-500 text-xs">Total Completed</p>
-              <p className="text-xl font-bold text-gray-800">{stats?.completedServices || 0}</p>
+              <div className="flex items-end gap-3 h-40">
+                {months.map(m => {
+                  const heightPct = Math.round((m.amount / maxAmount) * 100)
+                  return (
+                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-xs text-gray-500 font-medium">
+                        {m.amount > 0 ? `Rs ${m.amount.toLocaleString()}` : ''}
+                      </span>
+                      <div className="w-full flex items-end" style={{ height: '96px' }}>
+                        <div
+                          className="w-full bg-teal-500 rounded-t-md transition-all hover:bg-teal-600"
+                          style={{ height: `${Math.max(heightPct, m.amount > 0 ? 4 : 0)}%` }}
+                          title={`Rs ${m.amount.toLocaleString()}`}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400">{m.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                <div>
+                  <p className="text-gray-500 text-xs">Total Completed</p>
+                  <p className="text-xl font-bold text-gray-800">{stats?.completedServices || 0}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">This Month</p>
+                  <p className="text-xl font-bold text-teal-600">{stats?.monthlyCompletedServices || 0}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">Avg Per Service</p>
+                  <p className="text-xl font-bold text-green-600">
+                    Rs {stats?.completedServices ? Math.round(totalCredits / stats.completedServices).toLocaleString() : '0'}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-500 text-xs">This Month</p>
-              <p className="text-xl font-bold text-teal-600">{stats?.monthlyCompletedServices || 0}</p>
-            </div>
-            <div>
-              <p className="text-gray-500 text-xs">Avg Per Service</p>
-              <p className="text-xl font-bold text-green-600">
-                Rs {stats?.completedServices ? Math.round(totalCredits / stats.completedServices).toLocaleString() : '0'}
-              </p>
-            </div>
-          </div>
-        </div>
+          )
+        })()}
       </div>
 
       {/* Recent Transactions */}

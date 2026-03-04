@@ -1,9 +1,8 @@
-// app/doctor/availability/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { 
+import {
   FaArrowLeft,
   FaSave,
   FaPlus,
@@ -13,9 +12,33 @@ import {
   FaToggleOn,
   FaToggleOff,
   FaCalendarTimes,
-  FaUmbrellaBeach
+  FaUmbrellaBeach,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaSpinner
 } from 'react-icons/fa'
 import { useDoctorStore } from '../lib/data-store'
+
+// Day-of-week mapping: 0=Sunday, 1=Monday, ..., 6=Saturday
+const DAY_OF_WEEK_MAP: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+}
+
+const DAY_FROM_INDEX: Record<number, string> = {
+  0: 'Sunday',
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday',
+}
 
 interface TimeSlot {
   id: string
@@ -45,65 +68,149 @@ interface Vacation {
   reason: string
 }
 
-export default function DynamicAvailabilityPage() {
-  const { updateAvailability, addException, addVacation } = useDoctorStore()
-  
-  // State for managing UI
-  const [activeTab, setActiveTab] = useState<'regular' | 'exceptions' | 'vacations'>('regular')
-  const [showAddException, setShowAddException] = useState(false)
-  const [showAddVacation, setShowAddVacation] = useState(false)
-  
-  // Initialize regular schedule
-  const [regularSchedule, setRegularSchedule] = useState<DaySchedule[]>([
+interface ApiSlot {
+  id: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  isActive: boolean
+}
+
+function buildDefaultSchedule(): DaySchedule[] {
+  return [
     { day: 'Monday', isWorkingDay: true, slots: [
       { id: '1', start: '09:00', end: '12:00', isAvailable: true },
-      { id: '2', start: '14:00', end: '18:00', isAvailable: true }
+      { id: '2', start: '14:00', end: '18:00', isAvailable: true },
     ]},
     { day: 'Tuesday', isWorkingDay: true, slots: [
       { id: '3', start: '09:00', end: '12:00', isAvailable: true },
-      { id: '4', start: '14:00', end: '18:00', isAvailable: true }
+      { id: '4', start: '14:00', end: '18:00', isAvailable: true },
     ]},
     { day: 'Wednesday', isWorkingDay: true, slots: [
       { id: '5', start: '09:00', end: '12:00', isAvailable: true },
-      { id: '6', start: '14:00', end: '18:00', isAvailable: true }
+      { id: '6', start: '14:00', end: '18:00', isAvailable: true },
     ]},
     { day: 'Thursday', isWorkingDay: true, slots: [
       { id: '7', start: '09:00', end: '12:00', isAvailable: true },
-      { id: '8', start: '14:00', end: '18:00', isAvailable: true }
+      { id: '8', start: '14:00', end: '18:00', isAvailable: true },
     ]},
     { day: 'Friday', isWorkingDay: true, slots: [
       { id: '9', start: '09:00', end: '12:00', isAvailable: true },
-      { id: '10', start: '14:00', end: '17:00', isAvailable: true }
+      { id: '10', start: '14:00', end: '17:00', isAvailable: true },
     ]},
     { day: 'Saturday', isWorkingDay: true, slots: [
-      { id: '11', start: '09:00', end: '13:00', isAvailable: true }
+      { id: '11', start: '09:00', end: '13:00', isAvailable: true },
     ]},
-    { day: 'Sunday', isWorkingDay: false, slots: [] }
-  ])
+    { day: 'Sunday', isWorkingDay: false, slots: [] },
+  ]
+}
 
-  const [exceptions, setExceptions] = useState<ExceptionDate[]>([
-    { id: '1', date: '2024-02-14', reason: 'Public Holiday - Valentine\'s Day', isAvailable: false },
-    { id: '2', date: '2024-03-01', reason: 'Medical Conference', isAvailable: false }
-  ])
+function apiSlotsToSchedule(apiSlots: ApiSlot[]): DaySchedule[] {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  return days.map(day => {
+    const dayIndex = DAY_OF_WEEK_MAP[day]
+    const daySlots = apiSlots.filter(s => s.dayOfWeek === dayIndex && s.isActive)
+    return {
+      day,
+      isWorkingDay: daySlots.length > 0,
+      slots: daySlots.map((s, i) => ({
+        id: s.id || `${dayIndex}-${i}`,
+        start: s.startTime,
+        end: s.endTime,
+        isAvailable: s.isActive,
+      })),
+    }
+  })
+}
 
-  const [vacations, setVacations] = useState<Vacation[]>([
-    { id: '1', startDate: '2024-04-01', endDate: '2024-04-07', reason: 'Annual Leave' }
-  ])
+function scheduleToApiSlots(schedule: DaySchedule[]) {
+  const slots: { dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[] = []
+  for (const day of schedule) {
+    if (!day.isWorkingDay) continue
+    const dayOfWeek = DAY_OF_WEEK_MAP[day.day]
+    for (const slot of day.slots) {
+      if (slot.start && slot.end && slot.start < slot.end) {
+        slots.push({
+          dayOfWeek,
+          startTime: slot.start,
+          endTime: slot.end,
+          isActive: slot.isAvailable,
+        })
+      }
+    }
+  }
+  return slots
+}
 
-  // Form state for adding new exception
+export default function DynamicAvailabilityPage() {
+  const { updateAvailability, addException, addVacation } = useDoctorStore()
+
+  const [activeTab, setActiveTab] = useState<'regular' | 'exceptions' | 'vacations'>('regular')
+  const [showAddException, setShowAddException] = useState(false)
+  const [showAddVacation, setShowAddVacation] = useState(false)
+  const [regularSchedule, setRegularSchedule] = useState<DaySchedule[]>(buildDefaultSchedule())
+  const [exceptions, setExceptions] = useState<ExceptionDate[]>([])
+  const [vacations, setVacations] = useState<Vacation[]>([])
+  const [pageLoading, setPageLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+
   const [newException, setNewException] = useState({
     date: '',
     reason: '',
     isAvailable: false,
-    customSlots: [] as TimeSlot[]
+    customSlots: [] as TimeSlot[],
   })
 
-  // Form state for adding new vacation
   const [newVacation, setNewVacation] = useState({
     startDate: '',
     endDate: '',
-    reason: ''
+    reason: '',
   })
+
+  // Load userId and fetch existing availability on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('healthwyz_user')
+    if (!stored) {
+      setPageLoading(false)
+      return
+    }
+    let uid: string
+    try {
+      uid = JSON.parse(stored).id
+    } catch {
+      setPageLoading(false)
+      return
+    }
+    setUserId(uid)
+
+    const fetchAvailability = async () => {
+      try {
+        const res = await fetch(`/api/users/${uid}/availability`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setRegularSchedule(apiSlotsToSchedule(json.data as ApiSlot[]))
+          }
+          // If no data returned, keep the default schedule
+        }
+      } catch {
+        // Keep default schedule on fetch failure
+      } finally {
+        setPageLoading(false)
+      }
+    }
+
+    fetchAvailability()
+  }, [])
+
+  const addHours = (time: string, hours: number): string => {
+    const [h, m] = time.split(':').map(Number)
+    const newHour = (h + hours) % 24
+    return `${newHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+  }
 
   const toggleDayAvailability = (dayIndex: number) => {
     const updated = [...regularSchedule]
@@ -111,9 +218,8 @@ export default function DynamicAvailabilityPage() {
     if (!updated[dayIndex].isWorkingDay) {
       updated[dayIndex].slots = []
     } else {
-      // Add default slot when enabling day
       updated[dayIndex].slots = [
-        { id: Date.now().toString(), start: '09:00', end: '17:00', isAvailable: true }
+        { id: Date.now().toString(), start: '09:00', end: '17:00', isAvailable: true },
       ]
     }
     setRegularSchedule(updated)
@@ -126,7 +232,7 @@ export default function DynamicAvailabilityPage() {
       id: Date.now().toString(),
       start: lastSlot ? lastSlot.end : '09:00',
       end: lastSlot ? addHours(lastSlot.end, 1) : '10:00',
-      isAvailable: true
+      isAvailable: true,
     }
     updated[dayIndex].slots.push(newSlot)
     setRegularSchedule(updated)
@@ -144,24 +250,11 @@ export default function DynamicAvailabilityPage() {
     setRegularSchedule(updated)
   }
 
-  const addHours = (time: string, hours: number): string => {
-    const [h, m] = time.split(':').map(Number)
-    const newHour = (h + hours) % 24
-    return `${newHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
-  }
-
   const handleAddException = () => {
     if (newException.date && newException.reason) {
-      const exception: ExceptionDate = {
-        id: Date.now().toString(),
-        ...newException
-      }
+      const exception: ExceptionDate = { id: Date.now().toString(), ...newException }
       setExceptions([...exceptions, exception])
-      addException({
-        date: newException.date,
-        reason: newException.reason,
-        isAvailable: newException.isAvailable
-      })
+      addException({ date: newException.date, reason: newException.reason, isAvailable: newException.isAvailable })
       setNewException({ date: '', reason: '', isAvailable: false, customSlots: [] })
       setShowAddException(false)
     }
@@ -169,10 +262,7 @@ export default function DynamicAvailabilityPage() {
 
   const handleAddVacation = () => {
     if (newVacation.startDate && newVacation.endDate && newVacation.reason) {
-      const vacation: Vacation = {
-        id: Date.now().toString(),
-        ...newVacation
-      }
+      const vacation: Vacation = { id: Date.now().toString(), ...newVacation }
       setVacations([...vacations, vacation])
       addVacation(newVacation)
       setNewVacation({ startDate: '', endDate: '', reason: '' })
@@ -180,36 +270,81 @@ export default function DynamicAvailabilityPage() {
     }
   }
 
-  const removeException = (id: string) => {
-    setExceptions(exceptions.filter(e => e.id !== id))
-  }
+  const removeException = (id: string) => setExceptions(exceptions.filter(e => e.id !== id))
+  const removeVacation = (id: string) => setVacations(vacations.filter(v => v.id !== id))
 
-  const removeVacation = (id: string) => {
-    setVacations(vacations.filter(v => v.id !== id))
-  }
+  const handleSaveSchedule = useCallback(async () => {
+    setSaving(true)
+    setSaveStatus('idle')
+    setSaveError(null)
 
-  const handleSaveSchedule = () => {
-    // Convert regularSchedule to the store format
+    // Also update Zustand store as a local cache
     const scheduleForStore = regularSchedule.reduce((acc, day) => {
       acc[day.day.toLowerCase()] = {
         date: day.day.toLowerCase(),
         slots: day.slots,
-        isWorkingDay: day.isWorkingDay
+        isWorkingDay: day.isWorkingDay,
       }
       return acc
     }, {} as Record<string, { date: string; slots: TimeSlot[]; isWorkingDay: boolean }>)
 
     updateAvailability({
       regularHours: scheduleForStore,
-      exceptions: exceptions.map(e => ({
-        date: e.date,
-        reason: e.reason,
-        isAvailable: e.isAvailable
-      })),
-      vacations: vacations
+      exceptions: exceptions.map(e => ({ date: e.date, reason: e.reason, isAvailable: e.isAvailable })),
+      vacations,
     })
 
-    alert('Schedule saved successfully!')
+    if (!userId) {
+      setSaveStatus('error')
+      setSaveError('Not authenticated. Please log in again.')
+      setSaving(false)
+      return
+    }
+
+    const slots = scheduleToApiSlots(regularSchedule)
+
+    try {
+      const res = await fetch(`/api/users/${userId}/availability`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots }),
+      })
+
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success) {
+          setSaveStatus('success')
+          // Refresh local state from API response
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            setRegularSchedule(apiSlotsToSchedule(json.data as ApiSlot[]))
+          }
+        } else {
+          setSaveStatus('error')
+          setSaveError(json.error || 'Failed to save schedule')
+        }
+      } else {
+        const json = await res.json().catch(() => ({}))
+        setSaveStatus('error')
+        setSaveError((json as { error?: string }).error || `Server error (${res.status})`)
+      }
+    } catch {
+      setSaveStatus('error')
+      setSaveError('Network error. Please check your connection and try again.')
+    } finally {
+      setSaving(false)
+      // Auto-clear success message after 4 seconds
+      if (saveStatus !== 'error') {
+        setTimeout(() => setSaveStatus('idle'), 4000)
+      }
+    }
+  }, [userId, regularSchedule, exceptions, vacations, updateAvailability, saveStatus])
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-3xl text-blue-600" />
+      </div>
+    )
   }
 
   return (
@@ -229,12 +364,33 @@ export default function DynamicAvailabilityPage() {
             </div>
             <button
               onClick={handleSaveSchedule}
-              className="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm md:text-base"
+              disabled={saving}
+              className="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm md:text-base disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <FaSave />
-              <span className="hidden md:inline">Save Changes</span>
+              {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
+              <span className="hidden md:inline">{saving ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>
+
+          {/* Save feedback */}
+          {saveStatus === 'success' && (
+            <div className="mt-3 flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm">
+              <FaCheckCircle />
+              Schedule saved successfully!
+            </div>
+          )}
+          {saveStatus === 'error' && (
+            <div className="mt-3 flex items-center gap-2 text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm">
+              <FaExclamationTriangle />
+              {saveError}
+              <button
+                onClick={() => setSaveStatus('idle')}
+                className="ml-auto text-red-500 hover:text-red-700 font-bold"
+              >
+                &times;
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -284,6 +440,7 @@ export default function DynamicAvailabilityPage() {
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
                   <p className="text-sm text-blue-800">
                     Set your regular working hours for each day of the week. You can add multiple time slots per day.
+                    Changes are saved to the database when you click &quot;Save Changes&quot;.
                   </p>
                 </div>
 
@@ -295,6 +452,7 @@ export default function DynamicAvailabilityPage() {
                         <button
                           onClick={() => toggleDayAvailability(dayIndex)}
                           className="text-2xl"
+                          aria-label={`Toggle ${day.day}`}
                         >
                           {day.isWorkingDay ? (
                             <FaToggleOn className="text-green-500" />
@@ -320,7 +478,10 @@ export default function DynamicAvailabilityPage() {
                     {day.isWorkingDay && (
                       <div className="space-y-2">
                         {day.slots.map((slot, slotIndex) => (
-                          <div key={slot.id} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-gray-50 p-3 rounded">
+                          <div
+                            key={slot.id}
+                            className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-gray-50 p-3 rounded"
+                          >
                             <div className="flex flex-1 gap-2 items-center">
                               <input
                                 type="time"
@@ -335,17 +496,23 @@ export default function DynamicAvailabilityPage() {
                                 onChange={(e) => updateSlot(dayIndex, slotIndex, 'end', e.target.value)}
                                 className="px-3 py-1 border rounded text-sm"
                               />
+                              {slot.start >= slot.end && slot.start && slot.end && (
+                                <span className="text-xs text-red-600">End must be after start</span>
+                              )}
                             </div>
                             <button
                               onClick={() => removeSlot(dayIndex, slotIndex)}
                               className="text-red-500 hover:text-red-700"
+                              aria-label="Remove slot"
                             >
                               <FaTrash />
                             </button>
                           </div>
-                        )                        )}
+                        ))}
                         {day.slots.length === 0 && (
-                          <p className="text-gray-500 text-sm">No time slots added. Click &quot;Add Slot&quot; to add working hours.</p>
+                          <p className="text-gray-500 text-sm">
+                            No time slots added. Click &quot;Add Slot&quot; to add working hours.
+                          </p>
                         )}
                       </div>
                     )}
@@ -377,7 +544,7 @@ export default function DynamicAvailabilityPage() {
                             weekday: 'long',
                             year: 'numeric',
                             month: 'long',
-                            day: 'numeric'
+                            day: 'numeric',
                           })}
                         </p>
                         <p className="text-sm text-gray-600">{exception.reason}</p>
@@ -389,15 +556,12 @@ export default function DynamicAvailabilityPage() {
                           {exception.isAvailable ? 'Available with custom hours' : 'Not Available'}
                         </span>
                       </div>
-                      <button
-                        onClick={() => removeException(exception.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
+                      <button onClick={() => removeException(exception.id)} className="text-red-500 hover:text-red-700">
                         <FaTrash />
                       </button>
                     </div>
                   ))}
-                  
+
                   {exceptions.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <FaCalendarAlt className="text-4xl mx-auto mb-3 text-gray-300" />
@@ -434,15 +598,12 @@ export default function DynamicAvailabilityPage() {
                           Duration: {Math.ceil((new Date(vacation.endDate).getTime() - new Date(vacation.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
                         </p>
                       </div>
-                      <button
-                        onClick={() => removeVacation(vacation.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
+                      <button onClick={() => removeVacation(vacation.id)} className="text-red-500 hover:text-red-700">
                         <FaTrash />
                       </button>
                     </div>
                   ))}
-                  
+
                   {vacations.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <FaUmbrellaBeach className="text-4xl mx-auto mb-3 text-gray-300" />
@@ -466,7 +627,7 @@ export default function DynamicAvailabilityPage() {
                   <input
                     type="date"
                     value={newException.date}
-                    onChange={(e) => setNewException({...newException, date: e.target.value})}
+                    onChange={(e) => setNewException({ ...newException, date: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -475,7 +636,7 @@ export default function DynamicAvailabilityPage() {
                   <input
                     type="text"
                     value={newException.reason}
-                    onChange={(e) => setNewException({...newException, reason: e.target.value})}
+                    onChange={(e) => setNewException({ ...newException, reason: e.target.value })}
                     placeholder="e.g., Public Holiday, Conference"
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                   />
@@ -485,7 +646,7 @@ export default function DynamicAvailabilityPage() {
                     <input
                       type="checkbox"
                       checked={newException.isAvailable}
-                      onChange={(e) => setNewException({...newException, isAvailable: e.target.checked})}
+                      onChange={(e) => setNewException({ ...newException, isAvailable: e.target.checked })}
                       className="rounded"
                     />
                     <span className="text-sm text-gray-700">Available with custom hours</span>
@@ -521,7 +682,7 @@ export default function DynamicAvailabilityPage() {
                   <input
                     type="date"
                     value={newVacation.startDate}
-                    onChange={(e) => setNewVacation({...newVacation, startDate: e.target.value})}
+                    onChange={(e) => setNewVacation({ ...newVacation, startDate: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -530,7 +691,7 @@ export default function DynamicAvailabilityPage() {
                   <input
                     type="date"
                     value={newVacation.endDate}
-                    onChange={(e) => setNewVacation({...newVacation, endDate: e.target.value})}
+                    onChange={(e) => setNewVacation({ ...newVacation, endDate: e.target.value })}
                     min={newVacation.startDate}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                   />
@@ -540,7 +701,7 @@ export default function DynamicAvailabilityPage() {
                   <input
                     type="text"
                     value={newVacation.reason}
-                    onChange={(e) => setNewVacation({...newVacation, reason: e.target.value})}
+                    onChange={(e) => setNewVacation({ ...newVacation, reason: e.target.value })}
                     placeholder="e.g., Annual Leave, Medical Leave"
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                   />

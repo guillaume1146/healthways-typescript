@@ -1,11 +1,13 @@
 'use client'
 
-import { FaUser, FaShieldAlt, FaBell, FaFileAlt } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaUser, FaShieldAlt, FaCreditCard, FaBell, FaFileAlt } from 'react-icons/fa'
 import {
   SettingsLayout,
   SecuritySettingsTab,
   NotificationSettingsTab,
   DocumentsTab,
+  BillingSettingsTab,
 } from '@/components/settings'
 import type { SettingsTab } from '@/components/settings'
 import ResponderProfileTab from './ResponderProfileTab'
@@ -25,13 +27,28 @@ const RESPONDER_DOCUMENTS = [
   { key: 'additionalCerts', title: 'Additional Certifications', description: 'ALS, PALS, Hazmat, or other certifications', required: false, acceptedFormats: '.pdf, .jpg, .png' },
 ]
 
-const tabs: SettingsTab[] = [
-  { id: 'profile', label: 'Profile', icon: FaUser, component: <ResponderProfileTab /> },
-  { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
-  { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ emergencyDispatch: true, statusUpdates: true, shiftReminders: true, emailNotifications: true, smsNotifications: true }} /> },
-  { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={RESPONDER_DOCUMENTS} /> },
-]
-
 export default function ResponderSettingsPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const user = JSON.parse(stored)
+        setUserId(user.id)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
+
+  const tabs: SettingsTab[] = [
+    { id: 'profile', label: 'Profile', icon: FaUser, component: <ResponderProfileTab /> },
+    { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
+    { id: 'billing', label: 'Billing', icon: FaCreditCard, component: <BillingSettingsTab userId={userId} /> },
+    { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ emergencyDispatch: true, statusUpdates: true, shiftReminders: true, emailNotifications: true, smsNotifications: true }} /> },
+    { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={RESPONDER_DOCUMENTS} /> },
+  ]
+
   return <SettingsLayout tabs={tabs} />
 }

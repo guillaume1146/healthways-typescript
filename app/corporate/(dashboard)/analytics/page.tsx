@@ -45,10 +45,22 @@ export default function CorporateAnalyticsPage() {
         if (res.ok) {
           const json = await res.json()
           if (json.success) {
-            setData(prev => ({
-              ...prev,
-              totalEmployees: json.data.stats.totalEmployees || 0,
-            }))
+            const s = json.data.stats
+            const totalClaims = s.totalClaims || 0
+            const approvedClaims = s.approvedClaims || 0
+            const claimApprovalRate = totalClaims > 0 ? Math.round((approvedClaims / totalClaims) * 100) : 0
+            // Average claim amount derived from monthly contribution spread across total claims
+            const averageClaimAmount = totalClaims > 0
+              ? Math.round((s.monthlyContribution || 0) / totalClaims)
+              : 0
+            setData({
+              totalEmployees: s.totalEmployees || 0,
+              activePolicies: s.activePolicyHolders || 0,
+              totalClaims,
+              monthlySpend: s.monthlyContribution || 0,
+              claimApprovalRate,
+              averageClaimAmount,
+            })
           }
         }
       } catch {

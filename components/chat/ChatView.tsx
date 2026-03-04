@@ -37,6 +37,15 @@ interface ConversationSummary {
   lastMessage: { id: string; content: string; senderId: string; createdAt: string } | null
   unreadCount: number
   updatedAt: string
+  isNewConnection?: boolean
+}
+
+interface AcceptedConnection {
+  id: string
+  status: string
+  sender: { id: string; firstName: string; lastName: string; userType: string; profileImage?: string | null }
+  receiver: { id: string; firstName: string; lastName: string; userType: string; profileImage?: string | null }
+  updatedAt: string
 }
 
 interface Message {
@@ -179,7 +188,11 @@ function ConversationListItem({ conversation, currentUserId, isSelected, onSelec
   const displayName = others.map(participantDisplayName).join(', ')
   const primaryOther = others[0]
 
-  const preview = conversation.lastMessage
+  const isNewConnection = conversation.isNewConnection === true
+
+  const preview = isNewConnection
+    ? 'New connection — click to start chatting'
+    : conversation.lastMessage
     ? truncate(conversation.lastMessage.content, 50)
     : 'No messages yet'
 
@@ -192,15 +205,20 @@ function ConversationListItem({ conversation, currentUserId, isSelected, onSelec
       onClick={() => onSelect(conversation.id)}
       className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors hover:bg-blue-50 focus:outline-none ${
         isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-      }`}
+      } ${isNewConnection ? 'bg-green-50 hover:bg-green-100' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="font-semibold text-sm text-gray-900 truncate">{displayName}</span>
             {primaryOther && <UserTypeBadge userType={primaryOther.userType} />}
+            {isNewConnection && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                New
+              </span>
+            )}
           </div>
-          <p className="text-xs text-gray-500 truncate">{preview}</p>
+          <p className={`text-xs truncate ${isNewConnection ? 'text-green-600 italic' : 'text-gray-500'}`}>{preview}</p>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           {timeLabel && <span className="text-xs text-gray-400 whitespace-nowrap">{timeLabel}</span>}
@@ -307,11 +325,63 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
 
     async function fetchConversations() {
       try {
-        const res = await fetch('/api/conversations', { credentials: 'include' })
-        if (!res.ok) return
-        const json = await res.json()
-        if (!cancelled && json.success) {
-          setConversations(json.data)
+        // Fetch conversations and accepted connections in parallel
+        const [convRes, connRes] = await Promise.all([
+          fetch('/api/conversations', { credentials: 'include' }),
+          fetch('/api/connections?status=accepted', { credentials: 'include' }),
+        ])
+
+        if (cancelled) return
+
+        const convJson = convRes.ok ? await convRes.json() : { success: false, data: [] }
+        const connJson = connRes.ok ? await connRes.json() : { success: false, data: [] }
+
+        const existingConversations: ConversationSummary[] = convJson.success ? convJson.data : []
+
+        // Build a set of user IDs that already have a conversation
+        const participantUserIds = new Set<string>()
+        for (const conv of existingConversations) {
+          for (const p of conv.participants) {
+            if (p.userId !== currentUser.id) {
+              participantUserIds.add(p.userId)
+            }
+          }
+        }
+
+        // Map accepted connections without an existing conversation into synthetic ConversationSummary entries
+        const newConnectionEntries: ConversationSummary[] = []
+        if (connJson.success && Array.isArray(connJson.data)) {
+          for (const conn of connJson.data as AcceptedConnection[]) {
+            // Determine which side is the other person
+            const other = conn.sender.id === currentUser.id ? conn.receiver : conn.sender
+            if (participantUserIds.has(other.id)) continue
+
+            newConnectionEntries.push({
+              id: `connection:${conn.id}`,
+              type: 'direct',
+              participants: [
+                {
+                  userId: other.id,
+                  firstName: other.firstName,
+                  lastName: other.lastName,
+                  userType: other.userType,
+                  avatarUrl: other.profileImage ?? null,
+                },
+              ],
+              lastMessage: null,
+              unreadCount: 0,
+              updatedAt: conn.updatedAt,
+              isNewConnection: true,
+            })
+          }
+        }
+
+        if (!cancelled) {
+          // Sort connections by updatedAt and place existing conversations first, then new connections
+          newConnectionEntries.sort(
+            (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )
+          setConversations([...existingConversations, ...newConnectionEntries])
         }
       } catch {
         // Network error — silently ignore
@@ -322,7 +392,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
 
     fetchConversations()
     return () => { cancelled = true }
-  }, [])
+  }, [currentUser.id])
 
   // ---- Auto-select initial conversation if provided ----
   useEffect(() => {
@@ -515,10 +585,44 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   )
 
   // ---- Conversation selection ----
-  const handleSelectConversation = useCallback((id: string) => {
+  const handleSelectConversation = useCallback(async (id: string) => {
+    // If this is a synthetic "new connection" entry, create a real conversation first
+    if (id.startsWith('connection:')) {
+      const syntheticConv = conversations.find((c) => c.id === id)
+      if (!syntheticConv) return
+      const otherId = syntheticConv.participants[0]?.userId
+      if (!otherId) return
+
+      try {
+        const res = await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ participantIds: [otherId] }),
+        })
+        const json = await res.json()
+        if (res.ok && json.success) {
+          const realConv: ConversationSummary = {
+            ...json.data,
+            participants: json.data.participants ?? syntheticConv.participants,
+          }
+          setConversations((prev) => [
+            realConv,
+            ...prev.filter((c) => c.id !== id),
+          ])
+          setSelectedId(realConv.id)
+          setMobileShowMessages(true)
+          return
+        }
+      } catch {
+        // Fall through — let user retry
+      }
+      return
+    }
+
     setSelectedId(id)
     setMobileShowMessages(true)
-  }, [])
+  }, [conversations])
 
   const handleMobileBack = useCallback(() => {
     setMobileShowMessages(false)

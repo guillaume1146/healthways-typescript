@@ -80,6 +80,12 @@ export async function acceptBooking(
       })
       if (!booking) throw new Error('NOT_FOUND')
       if (booking.status !== 'pending') throw new Error('NOT_PENDING')
+      // Verify caller is an emergency worker
+      const responderProfile = await prisma.emergencyWorkerProfile.findUnique({
+        where: { userId: providerUserId },
+        select: { id: true },
+      })
+      if (!responderProfile) throw new Error('NOT_FOUND')
       patientUserId = booking.patient.userId
       amount = 0 // Free
       description = 'Emergency service'
@@ -104,9 +110,18 @@ export async function acceptBooking(
       case 'lab-test':
         await tx.labTestBooking.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
         break
-      case 'emergency':
-        await tx.emergencyBooking.update({ where: { id: bookingId }, data: { status: 'dispatched' } })
+      case 'emergency': {
+        // Resolve responder profile ID for assignment
+        const responder = await tx.emergencyWorkerProfile.findUnique({
+          where: { userId: providerUserId },
+          select: { id: true },
+        })
+        await tx.emergencyBooking.update({
+          where: { id: bookingId },
+          data: { status: 'dispatched', responderId: responder?.id },
+        })
         break
+      }
     }
 
     // Debit patient wallet if amount > 0
@@ -263,6 +278,13 @@ export async function denyBooking(
       break
     }
     case 'emergency': {
+      // Verify the caller is an emergency worker
+      const responderForDeny = await prisma.emergencyWorkerProfile.findUnique({
+        where: { userId: providerUserId },
+        select: { id: true },
+      })
+      if (!responderForDeny) throw new Error('NOT_FOUND')
+
       const booking = await prisma.emergencyBooking.findUnique({
         where: { id: bookingId },
         include: { patient: { select: { userId: true } } },

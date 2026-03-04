@@ -7,8 +7,6 @@ import {
   FaUsers,
   FaChartLine,
   FaTrophy,
-  FaRocket,
-  FaGift,
   FaSpinner
 } from 'react-icons/fa'
 import { ReferralPartnerData } from '../types'
@@ -18,11 +16,27 @@ import LeadPerformance from './LeadPerformance'
 import RecentConversions from './RecentConversions'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+function computeNextPayoutDate(): string {
+  const now = new Date()
+  const day = now.getDate()
+  let payoutDate: Date
+
+  if (day < 15) {
+    // Next payout is the 15th of this month
+    payoutDate = new Date(now.getFullYear(), now.getMonth(), 15)
+  } else {
+    // Next payout is the 1st of next month
+    payoutDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  }
+
+  return payoutDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+}
+
 export default function ReferralPartnerDashboard() {
   const [partnerData, setPartnerData] = useState<ReferralPartnerData>({
     name: '', email: '', avatar: '', memberSince: '', partnerLevel: 'Bronze', promoCode: '',
     stats: { totalEarnings: 0, totalReferrals: 0, conversionRate: 0, thisMonthEarnings: 0, thisMonthReferrals: 0, pendingPayouts: 0 },
-    earnings: { totalRevenue: 0, paidOut: 0, pending: 0, nextPayoutDate: '' },
+    earnings: { totalRevenue: 0, paidOut: 0, pending: 0, nextPayoutDate: computeNextPayoutDate() },
     leadsBySource: [],
     recentConversions: [],
   })
@@ -50,19 +64,32 @@ export default function ReferralPartnerDashboard() {
         if (res.ok) {
           const json = await res.json()
           if (json.success) {
-            const apiData = json.data
+            const { stats, recentConversions: conversions = [] } = json.data
             setPartnerData(prev => ({
               ...prev,
-              promoCode: apiData.stats.referralCode || prev.promoCode,
+              promoCode: stats.referralCode || prev.promoCode,
               stats: {
-                ...prev.stats,
-                totalEarnings: apiData.stats.totalEarnings || prev.stats.totalEarnings,
-                thisMonthEarnings: apiData.stats.thisMonthEarnings || prev.stats.thisMonthEarnings,
+                totalEarnings: stats.totalEarnings ?? 0,
+                totalReferrals: stats.totalReferrals ?? 0,
+                conversionRate: stats.totalReferrals > 0
+                  ? Math.round((conversions.length / stats.totalReferrals) * 100)
+                  : 0,
+                thisMonthEarnings: stats.thisMonthEarnings ?? 0,
+                thisMonthReferrals: stats.thisMonthReferrals ?? 0,
+                pendingPayouts: stats.pendingPayouts ?? 0,
               },
               earnings: {
-                ...prev.earnings,
-                totalRevenue: apiData.stats.totalEarnings || prev.earnings.totalRevenue,
+                totalRevenue: stats.totalEarnings ?? 0,
+                paidOut: (stats.totalEarnings ?? 0) - (stats.pendingPayouts ?? 0),
+                pending: stats.pendingPayouts ?? 0,
+                nextPayoutDate: prev.earnings.nextPayoutDate || computeNextPayoutDate(),
               },
+              recentConversions: conversions.map((c: { id: string; firstName: string; lastName: string; userType: string; createdAt: string }) => ({
+                id: c.id,
+                name: `${c.firstName} ${c.lastName}`,
+                type: c.userType,
+                date: new Date(c.createdAt).toLocaleDateString(),
+              })),
             }))
           }
         }
@@ -91,7 +118,7 @@ export default function ReferralPartnerDashboard() {
           value={loading ? '...' : `Rs ${partnerData.stats.totalEarnings.toLocaleString()}`}
           subtitle="Lifetime commission"
           color="bg-green-500"
-          trend={18}
+          trend={0}
         />
         <StatCard
           icon={FaUsers}
@@ -99,7 +126,7 @@ export default function ReferralPartnerDashboard() {
           value={partnerData.stats.totalReferrals}
           subtitle="People referred"
           color="bg-blue-500"
-          trend={12}
+          trend={0}
         />
         <StatCard
           icon={FaChartLine}
@@ -107,7 +134,7 @@ export default function ReferralPartnerDashboard() {
           value={`${partnerData.stats.conversionRate}%`}
           subtitle="Visitors to customers"
           color="bg-purple-500"
-          trend={3}
+          trend={0}
         />
         <StatCard
           icon={FaDollarSign}
@@ -115,7 +142,7 @@ export default function ReferralPartnerDashboard() {
           value={loading ? '...' : `Rs ${partnerData.stats.thisMonthEarnings.toLocaleString()}`}
           subtitle={`${partnerData.stats.thisMonthReferrals} new referrals`}
           color="bg-orange-500"
-          trend={25}
+          trend={0}
         />
       </div>
 
@@ -145,7 +172,7 @@ export default function ReferralPartnerDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Earnings Summary</h3>
-              <Link href="/referral-partner/dashboard/earnings" className="text-purple-600 text-sm hover:underline">
+              <Link href="/referral-partner/earnings" className="text-purple-600 text-sm hover:underline">
                 View Details
               </Link>
             </div>
@@ -201,46 +228,6 @@ export default function ReferralPartnerDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FaRocket />
-              Marketing Tips
-            </h3>
-            <div className="space-y-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-800 text-sm mb-1">Tip #1</h4>
-                <p className="text-blue-700 text-xs">Share your success story with HealthWyz to build trust with potential customers.</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-800 text-sm mb-1">Tip #2</h4>
-                <p className="text-green-700 text-xs">Use WhatsApp for personal referrals - it has the highest conversion rate!</p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-800 text-sm mb-1">Tip #3</h4>
-                <p className="text-purple-700 text-xs">Create comparison posts showing HealthWyz vs traditional healthcare costs.</p>
-              </div>
-            </div>
-            <Link href="/referral-partner/dashboard/analytics" className="text-purple-600 text-sm hover:underline mt-4 block">
-              View More Tips
-            </Link>
-          </div>
-
-          <div className="bg-gradient-to-br from-pink-50 to-red-50 border border-pink-200 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-pink-800 mb-2 flex items-center gap-2">
-              <FaGift />
-              Special Promotion
-            </h3>
-            <p className="text-pink-700 text-sm mb-4">
-              Earn <strong>50% bonus commission</strong> on all referrals this month! Limited time offer.
-            </p>
-            <div className="bg-pink-100 rounded-lg p-3">
-              <p className="text-pink-800 text-xs">
-                <strong>Ends:</strong> End of this month
-                <br />
-                <strong>Progress:</strong> Keep referring for max bonus
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </>

@@ -442,6 +442,112 @@ Use Chrome DevTools > Toggle Device Toolbar (Ctrl+Shift+M)
 | M4 | Weekend booking | Select a Saturday or Sunday in booking form | "No available slots" (default availability is Mon-Fri only) |
 | M5 | Insufficient balance | Book expensive services until wallet runs out | Error: "Insufficient balance" on acceptance |
 
+## N. Provider Reviews (End-to-End)
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| N1 | View doctor reviews | Login as patient `emma.johnson@healthwyz.mu` / `Patient123!` > Navigate to any doctor's review page | Reviews page loads with rating summary and review list |
+| N2 | Submit review for doctor | After completing a consultation, navigate to doctor reviews > Rate 5 stars > Comment "Excellent consultation" > Submit | Review appears in the list |
+| N3 | View nurse reviews | Login as nurse `priya.ramgoolam@healthwyz.mu` / `Nurse123!` > Click "Reviews" in sidebar | Reviews page shows seeded reviews with rating distribution |
+| N4 | View nanny reviews | Login as nanny `anita.beeharry@healthwyz.mu` / `Nanny123!` > Click "Reviews" in sidebar | Reviews page loads with seeded reviews |
+| N5 | Provider responds to review | As doctor/nurse/nanny, click "Reply" on a review > Type response > Submit | Response appears under the review |
+| N6 | Mark review helpful | Click "Helpful" on any review | Helpful count increments |
+| N7 | Filter reviews | Use rating filter (e.g., "5 Stars Only") | Only 5-star reviews shown |
+| N8 | Search reviews | Type patient name in search box | Reviews filtered to matches |
+
+## O. Super Admin - Role Configuration
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| O1 | View role config page | Login as super admin `hassan.doorgakant@healthways.mu` / `Admin123!` > Click "Role Config" in sidebar | Matrix of user types vs features with toggles |
+| O2 | Disable a feature | Toggle "video" OFF for NURSE > Click "Save Changes" | Success message. When nurse logs in, video may be hidden if sidebar filtering is active |
+| O3 | Re-enable feature | Toggle "video" ON for NURSE > Save | Feature re-enabled |
+| O4 | View required docs | Click "Documents Config" in sidebar | Document requirements per role with checkboxes |
+| O5 | Add new document | Select "DOCTOR" from dropdown > Type "Continuing Education Certificate" > Click Add | New document appears under DOCTOR |
+| O6 | Remove document | Click trash icon on a document | Document removed from the list |
+| O7 | Save doc config | Make changes > Click "Save Changes" | Configuration saved to database |
+
+## P. Insurance Claims Flow
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| P1 | View claims page | Login as insurance rep `vikram.doorgakant@healthways.mu` / `Insurance123!` > Click "Claims" in sidebar | Claims list page loads |
+| P2 | Create new claim | Click "New Claim" > Fill form with patient info, claim amount, description > Submit | Claim created with "Pending" status |
+| P3 | Approve claim | Click "Approve" on a pending claim | Status changes to "Approved", resolvedDate set |
+| P4 | Reject claim | Click "Reject" on a pending claim | Status changes to "Rejected" |
+
+## Q. Emergency Booking Flow (End-to-End)
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| Q1 | Patient requests emergency | Login as patient > Click "Emergency Services" > Select emergency type > Request | Emergency booking created with "Pending" status |
+| Q2 | Responder sees request | Login as emergency worker `jeanmarc.lafleur@healthways.mu` / `Emergency123!` > Click "Booking Requests" | Pending emergency request visible |
+| Q3 | Responder accepts | Click "Accept" on the emergency request | Status changes to "Dispatched", responder assigned |
+| Q4 | Status updates | Responder updates status: dispatched → en_route → resolved | Status updates reflected for both patient and responder |
+
+## R. Referral Partner Flow
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| R1 | Dashboard stats | Login as referral partner `sophie.leclerc@healthways.mu` / `Referral123!` | Dashboard shows total referrals, earnings, commission rate |
+| R2 | Referral code visible | Check dashboard or profile | Referral code displayed, can be shared |
+| R3 | Track conversions | View "Recent Conversions" section | Shows users who signed up with the referral code |
+| R4 | View analytics | Click "Analytics" in sidebar | Conversion rate, earnings charts |
+| R5 | View earnings | Click "Earnings" in sidebar | Wallet balance, transaction history |
+
+## S. Messaging Flow (Cross-Role)
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| S1 | Patient sends message to doctor | Login as patient > Click "Messages" > Find Dr. Sarah Johnson > Type "Hello Doctor" > Send | Message appears in chat |
+| S2 | Doctor receives message | Login as doctor `sarah.johnson@healthwyz.mu` / `Doctor123!` > Click "Messages" | Conversation with patient visible, message "Hello Doctor" shown |
+| S3 | Doctor replies | Type "Hello, how can I help?" > Send | Message appears in chat |
+| S4 | Patient sees reply | Login as patient > Messages | Doctor's reply visible |
+| S5 | Patient messages nurse | As patient > Messages > Find a nurse > Send message | Message delivered |
+
+## T. Video Call Flow (Cross-Role)
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| T1 | Patient joins video room | Login as patient > Click "Video Call" > Select an appointment with a doctor > Join | Video call interface loads, camera/mic requested |
+| T2 | Doctor joins same room | In another browser/tab, login as the doctor > Video Call > Join same appointment | Both peers connected, video/audio flowing |
+| T3 | Screen sharing | During call, click screen share button | Screen shared to other peer |
+| T4 | End call | Click "End Call" | Call ended, both returned to dashboard |
+
+## U. Prescription Flow (Doctor writes, Patient views)
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| U1 | Doctor writes prescription | Login as doctor > Go to a patient's profile > Click "Write Prescription" > Add medicines, dosage, instructions > Save | Prescription created |
+| U2 | Patient views prescription | Login as patient > Click "Prescriptions" in sidebar | New prescription visible with medicine details |
+| U3 | Prescription management | Click on a prescription | Shows medication schedule, refill status |
+
+## V. Pharmacy Order Flow
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| V1 | Browse medicines | Navigate to /search/medicines | Medicine catalog with search and filters |
+| V2 | Add to cart | Click "Add to Cart" on multiple medicines | Cart icon shows item count |
+| V3 | Place order | Checkout > Confirm > Place Order | Order created, wallet debited |
+| V4 | Pharmacist sees order | Login as pharmacist > Click "Orders" | New order visible with items list |
+| V5 | Pharmacist updates status | Change order status: Preparing → Delivering → Completed | Status updates reflected |
+
+## W. Corporate Admin Portal
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| W1 | Dashboard loads | Login as corporate admin `anil.doobur@healthways.mu` / `Corporate123!` | Dashboard with employee stats |
+| W2 | Company profile | Click "Company" in sidebar | Company info form, can edit and save |
+| W3 | Employees list | Click "Employees" in sidebar | List of employees (if any) |
+
+## X. Lab Technician Portal
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| X1 | Dashboard loads | Login as lab tech `david.ahkee@healthways.mu` / `Lab123!` | Dashboard with test request stats |
+| X2 | View test requests | Click "Test Requests" in sidebar | List of pending lab test bookings |
+| X3 | View results | Click "Results" in sidebar | Completed test results |
+
 ---
 
 ## Quick Start Test Sequence
@@ -488,3 +594,103 @@ npm run dev
 ### Round 5: Community
 1. Login as doctor > My Posts > Create a post
 2. Login as patient > /community > Comment on the post > Like it
+
+### Round 6: Provider Reviews
+1. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+2. Click "Reviews" in sidebar > See seeded reviews with rating distribution
+3. Reply to a review
+
+### Round 7: Admin Role Config
+1. Login as super admin: `hassan.doorgakant@healthways.mu` / `Admin123!`
+2. Click "Role Config" in sidebar > Toggle a feature > Save
+3. Click "Documents Config" > Add a document requirement > Save
+
+### Round 8: Cross-Role Messaging
+1. Login as patient: `emma.johnson@healthwyz.mu` / `Patient123!`
+2. Messages > Send "Hello Doctor" to Dr. Sarah Johnson
+3. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+4. Messages > Find conversation > Reply "Hello, how can I help you?"
+
+### Round 9: Insurance Claims
+1. Login as insurance rep: `vikram.doorgakant@healthways.mu` / `Insurance123!`
+2. Claims > Create new claim > Approve it
+
+### Round 10: Connect & Message on Search Pages
+1. Login as patient: `emma.johnson@healthwyz.mu` / `Patient123!`
+2. Navigate to /search/doctors
+3. Click "Connect" on Dr. Sarah Johnson > Button changes to "Requested"
+4. Click "Message" on Dr. Sarah Johnson > Redirected to chat page with new conversation
+5. Navigate to /search/nurses > Verify "Connect" and "Message" buttons present
+6. Navigate to /search/childcare > Verify buttons present
+7. Navigate to /search/emergency > Verify buttons present
+8. Navigate to /search/lab > Verify buttons present
+
+### Round 11: AI Support Chat
+1. Navigate to /search/ai (no login required)
+2. Type "What are common symptoms of dengue fever in Mauritius?"
+3. Verify: Real AI response (not hardcoded keyword match), loading spinner while waiting
+4. Send a follow-up: "How is it treated?"
+5. Verify: Context-aware response referencing previous message
+
+### Round 12: Connection Acceptance
+1. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+2. Go to Messages > See "New Connection" entry for the patient who sent connect request
+3. The connection shows in chat contacts after acceptance
+
+### Round 13: Emergency Worker Calls
+1. Login as emergency worker: `jeanmarc.lafleur@healthways.mu` / `Emergency123!`
+2. Click "Calls" in sidebar > Call history loads from API (not empty)
+
+### Round 14: Lab Technician Results
+1. Login as lab tech: `david.ahkee@healthways.mu` / `Lab123!`
+2. Click "Results" in sidebar > Results page loads from API
+
+### Round 15: Patient Insurance Info
+1. Login as patient: `emma.johnson@healthwyz.mu` / `Patient123!`
+2. Navigate to Insurance section
+3. Verify: Claims show real data from API (no fabricated amounts)
+4. If no claims exist, shows "No claims yet" message
+
+### Round 16: Doctor Dashboard Dynamic Data
+1. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+2. Check BillingEarnings > Revenue breakdown computed from transactions (not hardcoded 60/25/10/5%)
+3. Check Statistics > Growth rate and success rate computed from real data
+4. Check Reviews > Analytics tab shows computed averages, Achievements show earned/unearned badges
+
+### Round 17: Corporate Analytics
+1. Login as corporate admin: `anil.doobur@healthways.mu` / `Corporate123!`
+2. Click "Analytics" > All 6 fields populated from API (not zeros)
+3. Settings > Quick stats show real employee/claims data
+
+### Round 18: Admin Backup
+1. Login as super admin: `hassan.doorgakant@healthways.mu` / `Admin123!`
+2. Navigate to Backup page
+3. Click "Create Backup" > New entry appears with progress
+4. Refresh page > Backup persists (stored in localStorage)
+
+### Round 19: Sidebar Collapsed Mode (Desktop)
+1. Login as any user on desktop
+2. Click hamburger/toggle to collapse sidebar
+3. Verify: Icons only visible (no text labels), sidebar width shrinks to icon-only
+4. Hover over icon > Tooltip shows label
+5. Notification badge shows as small dot when collapsed
+6. Click toggle again > Sidebar expands with full labels
+
+### Round 20: Billing in Settings
+1. Login as any user type
+2. Go to Settings > Click "Billing" tab
+3. Verify: Wallet balance card + Payment method form displayed
+4. Verify: "All payments are currently simulated using your trial credits" banner shown
+
+### Round 21: Referral Partner UTM Links
+1. Login as referral partner: `sophie.leclerc@healthways.mu` / `Referral123!`
+2. Click UTM Link Generator > Select a social platform
+3. Verify: Generated link uses current domain (not hardcoded healthwyz.mu)
+4. Copy link > Open in incognito > Verify redirects to signup with promo param
+
+### Round 22: Doctor Prescriptions Flow
+1. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+2. Go to Video Call > During/after a call, click "Write Prescription"
+3. Add medicines with dosage and instructions > Save
+4. Login as patient: `emma.johnson@healthwyz.mu` / `Patient123!`
+5. Go to Prescriptions > Verify new prescription appears in the list

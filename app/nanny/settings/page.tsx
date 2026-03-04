@@ -1,6 +1,6 @@
 'use client'
 
-import { FaUser, FaShieldAlt, FaCalendarAlt, FaBell, FaFileAlt } from 'react-icons/fa'
+import { FaUser, FaShieldAlt, FaCalendarAlt, FaCreditCard, FaBell, FaFileAlt } from 'react-icons/fa'
 import { useState, useEffect } from 'react'
 import {
   SettingsLayout,
@@ -8,6 +8,7 @@ import {
   NotificationSettingsTab,
   DocumentsTab,
   AvailabilitySettingsTab,
+  BillingSettingsTab,
 } from '@/components/settings'
 import type { SettingsTab } from '@/components/settings'
 import NannyProfileTab from './NannyProfileTab'
@@ -46,6 +47,7 @@ export default function NannySettingsPage() {
     { id: 'profile', label: 'Profile', icon: FaUser, component: <NannyProfileTab /> },
     { id: 'security', label: 'Security', icon: FaShieldAlt, component: <SecuritySettingsTab /> },
     { id: 'availability', label: 'Availability', icon: FaCalendarAlt, component: userId ? <AvailabilitySettingsTab userId={userId} /> : <div className="text-gray-500 py-8 text-center">Loading...</div> },
+    { id: 'billing', label: 'Billing', icon: FaCreditCard, component: <BillingSettingsTab userId={userId} /> },
     { id: 'notifications', label: 'Notifications', icon: FaBell, component: <NotificationSettingsTab options={NOTIFICATION_OPTIONS} defaults={{ bookings: true, familyMessages: true, scheduleChanges: true, emailNotifications: true, promotions: false }} /> },
     { id: 'documents', label: 'Documents', icon: FaFileAlt, component: <DocumentsTab documents={NANNY_DOCUMENTS} /> },
   ]

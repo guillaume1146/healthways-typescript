@@ -4,6 +4,7 @@ export { default as NotificationSettingsTab } from './tabs/NotificationSettingsT
 export { default as DocumentsTab } from './tabs/DocumentsTab'
 export { default as SubscriptionTab } from './tabs/SubscriptionTab'
 export { default as AvailabilitySettingsTab } from './tabs/AvailabilitySettingsTab'
+export { default as BillingSettingsTab } from './tabs/BillingSettingsTab'
 
 export type { SettingsTab } from './SettingsLayout'
 export type { NotificationOption } from './tabs/NotificationSettingsTab'

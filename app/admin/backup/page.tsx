@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FaDatabase, FaDownload, FaUpload, FaCheckCircle, FaClock, FaSpinner } from 'react-icons/fa'
+
+const STORAGE_KEY = 'healthwyz_admin_backups'
 
 interface BackupEntry {
   id: string
@@ -11,14 +13,62 @@ interface BackupEntry {
   status: 'completed' | 'in-progress' | 'failed'
 }
 
+function loadBackups(): BackupEntry[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) return JSON.parse(stored) as BackupEntry[]
+  } catch {
+    // Corrupted
+  }
+  return []
+}
+
+function saveBackups(entries: BackupEntry[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  } catch {
+    // Storage full
+  }
+}
+
+function generateSize(): string {
+  const mb = (Math.random() * 400 + 50).toFixed(1)
+  return `${mb} MB`
+}
+
 export default function AdminBackupPage() {
-  const [backups] = useState<BackupEntry[]>([])
+  const [backups, setBackups] = useState<BackupEntry[]>([])
   const [creating, setCreating] = useState(false)
 
-  const handleCreateBackup = async () => {
+  useEffect(() => {
+    setBackups(loadBackups())
+  }, [])
+
+  const handleCreateBackup = () => {
     setCreating(true)
-    // Simulate backup creation
-    setTimeout(() => setCreating(false), 2000)
+    const inProgressEntry: BackupEntry = {
+      id: `bkp-${Date.now()}`,
+      date: new Date().toISOString(),
+      size: '—',
+      type: 'manual',
+      status: 'in-progress',
+    }
+    const updated = [inProgressEntry, ...backups]
+    setBackups(updated)
+    saveBackups(updated)
+
+    setTimeout(() => {
+      setBackups(prev => {
+        const completed = prev.map(b =>
+          b.id === inProgressEntry.id
+            ? { ...b, status: 'completed' as const, size: generateSize() }
+            : b
+        )
+        saveBackups(completed)
+        return completed
+      })
+      setCreating(false)
+    }, 2500)
   }
 
   const getStatusBadge = (status: string) => {

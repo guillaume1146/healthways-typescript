@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   FaUsers, FaUserMd,
-  FaCheckCircle, FaChartBar, FaDollarSign, FaChartLine, FaPercentage,
-  FaNewspaper, FaCog, FaHome, FaFileAlt, FaUsersCog, FaSpinner
+  FaCheckCircle, FaChartBar, FaDollarSign, FaChartLine,
+  FaNewspaper, FaCog, FaFileAlt, FaUsersCog, FaSpinner, FaShieldAlt
 } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
@@ -147,12 +147,12 @@ const AdminDashboard = () => {
   }, [userId])
 
   const quickActions: QuickAction[] = [
-    { title: 'Profile Management', icon: FaUsersCog, href: '/admin/profiles', color: 'bg-blue-500' },
-    { title: 'Account Validation', icon: FaCheckCircle, href: '/admin/validation', color: 'bg-orange-500' },
-    { title: 'Financial Reports', icon: FaChartBar, href: '/admin/financial', color: 'bg-green-500' },
-    { title: 'User Statistics', icon: FaChartLine, href: '/admin/statistics', color: 'bg-purple-500' },
-    { title: 'Commission Setup', icon: FaPercentage, href: '/admin/commissions', color: 'bg-indigo-500' },
-    { title: 'CMS Management', icon: FaNewspaper, href: '/admin/cms', color: 'bg-pink-500' }
+    { title: 'User Management', icon: FaUsersCog, href: '/admin/users', color: 'bg-blue-500' },
+    { title: 'Account Validation', icon: FaCheckCircle, href: '/admin/users', color: 'bg-orange-500' },
+    { title: 'Financial Reports', icon: FaChartBar, href: '/admin/billing', color: 'bg-green-500' },
+    { title: 'Analytics', icon: FaChartLine, href: '/admin/analytics', color: 'bg-purple-500' },
+    { title: 'Content Management', icon: FaNewspaper, href: '/admin/content', color: 'bg-pink-500' },
+    { title: 'Security', icon: FaShieldAlt, href: '/admin/security', color: 'bg-indigo-500' }
   ]
 
   return (
@@ -257,7 +257,7 @@ const AdminDashboard = () => {
                         </td>
                         <td className="p-3 text-center">
                           <Link
-                            href={`/admin/profiles?category=${cat.category.toLowerCase()}`}
+                            href={`/admin/users?type=${cat.category.toLowerCase()}`}
                             className="text-blue-600 hover:underline text-sm"
                           >
                             Manage
@@ -308,11 +308,11 @@ const AdminDashboard = () => {
                 <Link href="/admin/settings" className="flex items-center gap-2 text-white/90 hover:text-white">
                   <FaCog /> System Settings
                 </Link>
-                <Link href="/admin/logs" className="flex items-center gap-2 text-white/90 hover:text-white">
-                  <FaFileAlt /> Activity Logs
+                <Link href="/admin/analytics" className="flex items-center gap-2 text-white/90 hover:text-white">
+                  <FaChartBar /> Analytics
                 </Link>
-                <Link href="/admin/backup" className="flex items-center gap-2 text-white/90 hover:text-white">
-                  <FaHome /> Backup & Restore
+                <Link href="/admin/security" className="flex items-center gap-2 text-white/90 hover:text-white">
+                  <FaFileAlt /> Security Logs
                 </Link>
               </div>
             </div>

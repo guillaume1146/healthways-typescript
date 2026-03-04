@@ -7,5 +7,5 @@ import NurseServices from '../components/NurseServices'
 export default function NurseServicesPage() {
   const patientData = usePatientData()
   const router = useRouter()
-  return <NurseServices patientData={patientData} onVideoCall={() => router.push('/patient/dashboard/video')} />
+  return <NurseServices patientData={patientData} onVideoCall={() => router.push('/patient/video')} />
 }

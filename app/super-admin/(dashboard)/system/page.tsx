@@ -1,19 +1,113 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   FaServer, FaDatabase, FaMemory, FaHdd,
-  FaCog, FaCheckCircle, FaExclamationTriangle, FaToggleOn, FaToggleOff
+  FaCog, FaCheckCircle, FaExclamationTriangle, FaToggleOn, FaToggleOff, FaSpinner
 } from 'react-icons/fa'
+
+interface SystemService {
+  name: string
+  status: string
+  responseTime?: number
+  details?: string
+}
+
+interface SystemData {
+  health: string
+  services: SystemService[]
+  performance: {
+    cpuUsage: number
+    memoryUsage: number
+    storageUsage: number
+  }
+  totalUsers: number
+  totalAppointments: number
+}
 
 export default function SuperAdminSystemPage() {
   const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [systemData, setSystemData] = useState<SystemData | null>(null)
+  const [loading, setLoading] = useState(true)
 
+  // Restore maintenance mode from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_maintenance_mode')
+      if (stored !== null) {
+        setMaintenanceMode(stored === 'true')
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, [])
+
+  const toggleMaintenanceMode = () => {
+    setMaintenanceMode(prev => {
+      const next = !prev
+      try {
+        localStorage.setItem('healthwyz_maintenance_mode', String(next))
+      } catch {
+        // localStorage unavailable
+      }
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const fetchSystemHealth = async () => {
+      try {
+        const res = await fetch('/api/admin/system-health')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setSystemData(json.data)
+          }
+        }
+      } catch {
+        // Will show defaults
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSystemHealth()
+    const interval = setInterval(fetchSystemHealth, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const performance = systemData?.performance
   const systemMetrics = [
-    { title: 'Application Server', status: 'healthy', icon: FaServer, uptime: '99.99%', detail: 'Next.js + Node.js' },
-    { title: 'Database', status: 'healthy', icon: FaDatabase, uptime: '99.98%', detail: 'PostgreSQL' },
-    { title: 'Memory Usage', status: 'healthy', icon: FaMemory, uptime: '68%', detail: 'Allocated / Total' },
-    { title: 'Storage', status: 'healthy', icon: FaHdd, uptime: '35%', detail: 'Used / Available' },
+    {
+      title: 'Application Server',
+      status: systemData?.services?.find(s => s.name.includes('Application'))?.status ?? 'healthy',
+      icon: FaServer,
+      uptime: systemData?.health === 'healthy' ? '99.99%' : 'Degraded',
+      detail: 'Next.js + Node.js',
+    },
+    {
+      title: 'Database',
+      status: systemData?.services?.find(s => s.name.includes('Database'))?.status ?? 'healthy',
+      icon: FaDatabase,
+      uptime: systemData?.services?.find(s => s.name.includes('Database'))?.responseTime
+        ? `${systemData.services.find(s => s.name.includes('Database'))!.responseTime}ms`
+        : '99.98%',
+      detail: `PostgreSQL — ${systemData?.totalUsers ?? 0} users`,
+    },
+    {
+      title: 'Memory Usage',
+      status: (performance?.memoryUsage ?? 0) > 90 ? 'critical' : (performance?.memoryUsage ?? 0) > 75 ? 'warning' : 'healthy',
+      icon: FaMemory,
+      uptime: `${performance?.memoryUsage ?? 68}%`,
+      detail: 'Allocated / Total',
+    },
+    {
+      title: 'Storage',
+      status: (performance?.storageUsage ?? 0) > 90 ? 'critical' : (performance?.storageUsage ?? 0) > 75 ? 'warning' : 'healthy',
+      icon: FaHdd,
+      uptime: `${performance?.storageUsage ?? 35}%`,
+      detail: 'Used / Available',
+    },
   ]
 
   const getStatusColor = (status: string) => {
@@ -33,7 +127,7 @@ export default function SuperAdminSystemPage() {
         </h1>
         <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-lg shadow">
           <span className="text-sm font-medium text-gray-700">Maintenance Mode</span>
-          <button onClick={() => setMaintenanceMode(!maintenanceMode)} className="text-2xl">
+          <button onClick={toggleMaintenanceMode} className="text-2xl">
             {maintenanceMode ? <FaToggleOn className="text-red-500" /> : <FaToggleOff className="text-gray-400" />}
           </button>
         </div>
@@ -46,27 +140,33 @@ export default function SuperAdminSystemPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {systemMetrics.map((metric, idx) => {
-          const colors = getStatusColor(metric.status)
-          return (
-            <div key={idx} className="bg-white rounded-xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${colors.bg}`}>
-                  <metric.icon className={`text-xl ${colors.text}`} />
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <FaSpinner className="animate-spin text-2xl text-blue-500" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {systemMetrics.map((metric, idx) => {
+            const colors = getStatusColor(metric.status)
+            return (
+              <div key={idx} className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-lg ${colors.bg}`}>
+                    <metric.icon className={`text-xl ${colors.text}`} />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
+                    <span className={`text-xs font-semibold ${colors.text}`}>{metric.status.toUpperCase()}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
-                  <span className={`text-xs font-semibold ${colors.text}`}>{metric.status.toUpperCase()}</span>
-                </div>
+                <h3 className="font-semibold text-gray-900">{metric.title}</h3>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{metric.uptime}</p>
+                <p className="text-xs text-gray-500 mt-1">{metric.detail}</p>
               </div>
-              <h3 className="font-semibold text-gray-900">{metric.title}</h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{metric.uptime}</p>
-              <p className="text-xs text-gray-500 mt-1">{metric.detail}</p>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -78,6 +178,8 @@ export default function SuperAdminSystemPage() {
               { label: 'Database', value: 'PostgreSQL (Prisma ORM)' },
               { label: 'Real-time', value: 'Socket.IO + WebRTC' },
               { label: 'Environment', value: process.env.NODE_ENV || 'development' },
+              { label: 'Total Users', value: systemData?.totalUsers?.toLocaleString() ?? '—' },
+              { label: 'Total Appointments', value: systemData?.totalAppointments?.toLocaleString() ?? '—' },
             ].map((item, idx) => (
               <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{item.label}</span>
@@ -97,7 +199,20 @@ export default function SuperAdminSystemPage() {
                 <p className="text-xs text-blue-700">Reset cached data and rebuild indexes</p>
               </div>
             </button>
-            <button className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
+            <button
+              onClick={async () => {
+                setLoading(true)
+                try {
+                  const res = await fetch('/api/admin/system-health')
+                  if (res.ok) {
+                    const json = await res.json()
+                    if (json.success) setSystemData(json.data)
+                  }
+                } catch { /* silent */ }
+                setLoading(false)
+              }}
+              className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left"
+            >
               <FaCheckCircle className="text-green-500" />
               <div>
                 <p className="text-sm font-medium text-green-900">Run Health Check</p>

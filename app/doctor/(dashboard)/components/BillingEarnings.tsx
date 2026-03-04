@@ -533,41 +533,81 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
 
   const renderAnalytics = () => {
     const month = earnings.thisMonth ?? 0
+
+    // Compute revenue breakdown from actual transactions
+    const totalAmount = transactions.reduce((sum, t) => sum + (t.amount ?? 0), 0)
+    const consultationAmount = transactions
+      .filter((t) => t.type === 'consultation')
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
+    const videoAmount = transactions
+      .filter((t) => t.type === 'video_consultation')
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
+    const procedureAmount = transactions
+      .filter((t) => t.type === 'procedure')
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
+    const emergencyAmount = transactions
+      .filter((t) => t.type === 'emergency')
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
+
+    const toPct = (amount: number) =>
+      totalAmount > 0 ? Math.round((amount / totalAmount) * 100) : 0
+
+    const consultationPct = toPct(consultationAmount)
+    const videoPct = toPct(videoAmount)
+    const procedurePct = toPct(procedureAmount)
+    const emergencyPct = toPct(emergencyAmount)
+
+    // Monthly comparison: use thisWeek as a proxy for last-month estimate if no explicit prev-month field
+    const thisYear = earnings.thisYear ?? 0
+    const monthsElapsed = new Date().getMonth() + 1
+    const avgMonthlyFromYear = monthsElapsed > 1 && thisYear > 0
+      ? Math.round((thisYear - month) / (monthsElapsed - 1))
+      : null
+    const lastMonthEstimate = avgMonthlyFromYear ?? null
+    const monthGrowth =
+      lastMonthEstimate && lastMonthEstimate > 0
+        ? (((month - lastMonthEstimate) / lastMonthEstimate) * 100).toFixed(1)
+        : null
+
     return (
       <div className="space-y-4">
         {/* Revenue Breakdown */}
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg sm:rounded-xl p-4 sm:p-5 border border-indigo-200">
           <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">Revenue Breakdown</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                <span className="text-xs sm:text-sm">Consultations</span>
+          {transactions.length === 0 ? (
+            <p className="text-sm text-gray-500">No transaction data available for breakdown.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full" />
+                  <span className="text-xs sm:text-sm">Consultations</span>
+                </div>
+                <span className="font-medium text-sm">{consultationPct}%</span>
               </div>
-              <span className="font-medium text-sm">60%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full" />
-                <span className="text-xs sm:text-sm">Video Consultations</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full" />
+                  <span className="text-xs sm:text-sm">Video Consultations</span>
+                </div>
+                <span className="font-medium text-sm">{videoPct}%</span>
               </div>
-              <span className="font-medium text-sm">25%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                <span className="text-xs sm:text-sm">Procedures</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                  <span className="text-xs sm:text-sm">Procedures</span>
+                </div>
+                <span className="font-medium text-sm">{procedurePct}%</span>
               </div>
-              <span className="font-medium text-sm">10%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full" />
-                <span className="text-xs sm:text-sm">Emergency</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full" />
+                  <span className="text-xs sm:text-sm">Emergency</span>
+                </div>
+                <span className="font-medium text-sm">{emergencyPct}%</span>
               </div>
-              <span className="font-medium text-sm">5%</span>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Monthly Comparison */}
@@ -579,16 +619,26 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
               <p className="text-lg sm:text-xl font-bold text-orange-700">Rs {month.toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">Last Month</p>
-              <p className="text-lg sm:text-xl font-bold text-gray-700">Rs {((month || 0) * 0.9).toFixed(0)}</p>
+              <p className="text-xs text-gray-600">Last Month (est.)</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-700">
+                {lastMonthEstimate !== null ? `Rs ${lastMonthEstimate.toLocaleString()}` : 'N/A'}
+              </p>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-orange-200">
-            <div className="flex items-center gap-2">
-              <FaArrowUp className="text-green-500" />
-              <span className="text-sm text-green-600">+10% from last month</span>
+          {monthGrowth !== null && (
+            <div className="mt-3 pt-3 border-t border-orange-200">
+              <div className="flex items-center gap-2">
+                {parseFloat(monthGrowth) >= 0 ? (
+                  <FaArrowUp className="text-green-500" />
+                ) : (
+                  <FaArrowDown className="text-red-500" />
+                )}
+                <span className={`text-sm ${parseFloat(monthGrowth) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(monthGrowth) >= 0 ? '+' : ''}{monthGrowth}% from last month (est.)
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Export Options */}

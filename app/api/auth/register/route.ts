@@ -279,6 +279,55 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      // Process referral code if provided
+      if (data.referralCode) {
+        const referrer = await tx.referralPartnerProfile.findUnique({
+          where: { referralCode: data.referralCode },
+          select: { id: true, userId: true, commissionRate: true },
+        })
+
+        if (referrer) {
+          // Store referral code on the new user
+          await tx.user.update({
+            where: { id: newUser.id },
+            data: { referredByCode: data.referralCode },
+          })
+
+          // Increment referrer's total referrals
+          await tx.referralPartnerProfile.update({
+            where: { id: referrer.id },
+            data: { totalReferrals: { increment: 1 } },
+          })
+
+          // Credit referrer's wallet with signup bonus (Rs 100)
+          const REFERRAL_SIGNUP_BONUS = 100
+          const referrerWallet = await tx.userWallet.findUnique({
+            where: { userId: referrer.userId },
+            select: { id: true, balance: true },
+          })
+
+          if (referrerWallet) {
+            await tx.userWallet.update({
+              where: { id: referrerWallet.id },
+              data: { balance: referrerWallet.balance + REFERRAL_SIGNUP_BONUS },
+            })
+            await tx.walletTransaction.create({
+              data: {
+                walletId: referrerWallet.id,
+                type: 'credit',
+                amount: REFERRAL_SIGNUP_BONUS,
+                description: `Referral signup bonus — ${firstName} ${lastName}`,
+                serviceType: 'referral',
+                referenceId: newUser.id,
+                balanceBefore: referrerWallet.balance,
+                balanceAfter: referrerWallet.balance + REFERRAL_SIGNUP_BONUS,
+                status: 'completed',
+              },
+            })
+          }
+        }
+      }
+
       return newUser
     })
 

@@ -13,7 +13,7 @@ export default function NannyFeedPage() {
         <PostFeed currentUserId={user.id} currentUserType={user.userType} showCreateButton={false} />
       </div>
       <div className="hidden lg:block w-72 flex-shrink-0">
-        <ChatContactsSidebar currentUserId={user.id} messagesPath="/nanny/dashboard/messages" />
+        <ChatContactsSidebar currentUserId={user.id} messagesPath="/nanny/messages" />
       </div>
     </div>
   )

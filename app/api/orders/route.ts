@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Execute the entire order flow inside a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Fetch all pharmacy medicines
+      // Fetch all pharmacy medicines (include pharmacist userId for crediting)
       const medicines = await Promise.all(
         items.map((item) =>
           tx.pharmacyMedicine.findUnique({
@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
               quantity: true,
               inStock: true,
               isActive: true,
-              pharmacist: { select: { pharmacyName: true } },
+              requiresPrescription: true,
+              pharmacist: { select: { pharmacyName: true, userId: true } },
             },
           })
         )
@@ -164,6 +165,43 @@ export async function POST(request: NextRequest) {
           })
         )
       )
+
+      // Credit pharmacist wallets — group items by pharmacist
+      const pharmacistTotals = new Map<string, number>()
+      for (let i = 0; i < items.length; i++) {
+        const pharmacistUserId = medicines[i]!.pharmacist.userId
+        const subtotal = medicines[i]!.price * items[i].quantity
+        pharmacistTotals.set(
+          pharmacistUserId,
+          (pharmacistTotals.get(pharmacistUserId) ?? 0) + subtotal
+        )
+      }
+
+      for (const [pharmacistUserId, amount] of pharmacistTotals) {
+        const pharmacistWallet = await tx.userWallet.findUnique({
+          where: { userId: pharmacistUserId },
+          select: { id: true, balance: true },
+        })
+        if (pharmacistWallet) {
+          await tx.userWallet.update({
+            where: { id: pharmacistWallet.id },
+            data: { balance: pharmacistWallet.balance + amount },
+          })
+          await tx.walletTransaction.create({
+            data: {
+              walletId: pharmacistWallet.id,
+              type: 'credit',
+              amount,
+              description: `Medicine sale — Order #${order.id.slice(0, 8)}`,
+              serviceType: 'medicine',
+              referenceId: order.id,
+              balanceBefore: pharmacistWallet.balance,
+              balanceAfter: pharmacistWallet.balance + amount,
+              status: 'completed',
+            },
+          })
+        }
+      }
 
       return {
         orderId: order.id,

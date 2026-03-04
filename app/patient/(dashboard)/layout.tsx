@@ -1,60 +1,70 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { DashboardLayout, DashboardLoadingState, DashboardErrorState } from '@/components/dashboard'
+import { createDashboardLayout } from '@/lib/dashboard/createDashboardLayout'
 import { PATIENT_SIDEBAR_ITEMS, getActiveSectionFromPath } from './sidebar-config'
 import { PatientDashboardProvider } from './context'
-import type { Patient } from '@/lib/data/patients'
 
-export default function PatientDashboardLayout({ children }: { children: React.ReactNode }) {
-  const [patientData, setPatientData] = useState<Patient | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const pathname = usePathname()
-
-  useEffect(() => {
-    try {
-      const userData = localStorage.getItem('healthwyz_user')
-      if (userData) {
-        setPatientData(JSON.parse(userData) as Patient)
-      } else {
-        setError('No patient data found')
-        router.push('/login')
-      }
-    } catch {
-      setError('Failed to load patient data')
-    } finally {
-      setLoading(false)
-    }
-  }, [router])
-
-  const handleLogout = () => {
-    localStorage.removeItem('healthwyz_user')
-    localStorage.removeItem('healthwyz_token')
-    localStorage.removeItem('healthwyz_userType')
-    router.push('/login')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizePrescription(p: any) {
+  return {
+    id: p.id,
+    date: p.date,
+    time: '',
+    doctorName: p.doctor ? `${p.doctor.user.firstName} ${p.doctor.user.lastName}` : 'Unknown',
+    doctorId: p.doctor?.id ?? '',
+    diagnosis: p.diagnosis,
+    isActive: p.isActive,
+    nextRefill: p.nextRefill ?? null,
+    notes: p.notes ?? '',
+    medicines: (p.medicines ?? []).map((m: any) => ({
+      name: m.medicine?.name ?? m.name ?? '',
+      dosage: m.dosage ?? '',
+      quantity: m.quantity ?? 0,
+      frequency: m.frequency ?? '',
+      duration: m.duration ?? '',
+      instructions: m.instructions ?? '',
+      beforeFood: false,
+    })),
   }
-
-  if (loading) return <DashboardLoadingState />
-  if (error || !patientData) return <DashboardErrorState message={error} />
-
-  const activeSectionId = getActiveSectionFromPath(pathname)
-
-  return (
-    <PatientDashboardProvider userData={patientData}>
-      <DashboardLayout
-        userName={`${patientData.firstName} ${patientData.lastName}`}
-        userSubtitle="Patient"
-        sidebarItems={PATIENT_SIDEBAR_ITEMS}
-        activeSectionId={activeSectionId}
-        notificationCount={0}
-        settingsHref="/patient/settings"
-        onLogout={handleLogout}
-      >
-        {children}
-      </DashboardLayout>
-    </PatientDashboardProvider>
-  )
 }
+
+async function fetchPatientData(baseData: { id: string }) {
+  const userId = baseData.id
+
+  const [appointmentsRes, activePrescriptionsRes, allPrescriptionsRes, recordsRes, labTestsRes] = await Promise.all([
+    fetch(`/api/patients/${userId}/appointments?status=upcoming`).catch(() => null),
+    fetch(`/api/patients/${userId}/prescriptions?active=true`).catch(() => null),
+    fetch(`/api/patients/${userId}/prescriptions`).catch(() => null),
+    fetch(`/api/patients/${userId}/medical-records`).catch(() => null),
+    fetch(`/api/patients/${userId}/lab-tests`).catch(() => null),
+  ])
+
+  const [appointments, activePrescriptions, allPrescriptions, records] = await Promise.all([
+    appointmentsRes?.ok ? appointmentsRes.json() : null,
+    activePrescriptionsRes?.ok ? activePrescriptionsRes.json() : null,
+    allPrescriptionsRes?.ok ? allPrescriptionsRes.json() : null,
+    recordsRes?.ok ? recordsRes.json() : null,
+    labTestsRes?.ok ? labTestsRes.json() : null,
+  ])
+
+  const activeList = (activePrescriptions?.data ?? []).map(normalizePrescription)
+  const allList = (allPrescriptions?.data ?? []).map(normalizePrescription)
+  const historyList = allList.filter((p: ReturnType<typeof normalizePrescription>) => !p.isActive)
+
+  return {
+    ...baseData,
+    upcomingAppointments: appointments?.data ?? [],
+    activePrescriptions: activeList,
+    prescriptionHistory: historyList,
+    medicalRecords: records?.data ?? [],
+  }
+}
+
+export default createDashboardLayout({
+  userSubtitle: 'Patient',
+  sidebarItems: PATIENT_SIDEBAR_ITEMS,
+  getActiveSectionFromPath,
+  settingsHref: '/patient/settings',
+  ContextProvider: PatientDashboardProvider,
+  fetchDashboardData: fetchPatientData,
+})

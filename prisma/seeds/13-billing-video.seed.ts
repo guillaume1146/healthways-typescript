@@ -152,5 +152,82 @@ export async function seedBillingAndVideo(prisma: PrismaClient) {
   ]
   await prisma.notification.createMany({ data: notifications, skipDuplicates: true })
 
-  console.log(`  Seeded ${billingRecords.length} billing records, ${videoRooms.length} video rooms, ${participants.length} participants, ${sessions.length} video sessions, ${notifications.length} notifications`)
+  // ─── 4. Additional Video Rooms (VR016–VR023) — mixed provider pairings ──────
+
+  const extraVideoRooms = [
+    { id: 'VR016', roomCode: 'ROOM-NUR001-PAT002', name: 'Nurse Ramgoolam - Jean Pierre (Asthma Home Visit)', creatorId: 'NUR001', status: 'ended' },
+    { id: 'VR017', roomCode: 'ROOM-NAN001-PAT004', name: 'Nanny Beeharry - Vikash Doorgakant (Childcare Consult)', creatorId: 'NAN001', status: 'ended' },
+    { id: 'VR018', roomCode: 'ROOM-LAB001-PAT001', name: 'Lab Tech Ah-Kee - Emma Johnson (Test Instructions)', creatorId: 'LAB001', status: 'ended' },
+    { id: 'VR019', roomCode: 'ROOM-NUR002-PAT004', name: 'Nurse Laurent - Vikash Doorgakant (Hypertension Monitoring)', creatorId: 'NUR002', status: 'ended' },
+    { id: 'VR020', roomCode: 'ROOM-NAN002-PAT003', name: 'Nanny Morel - Aisha Khan (Childcare Review)', creatorId: 'NAN002', status: 'ended' },
+    { id: 'VR021', roomCode: 'ROOM-EMW001-PAT004', name: 'EMW Lafleur - Vikash Doorgakant (Emergency Follow-up)', creatorId: 'EMW001', status: 'ended' },
+    { id: 'VR022', roomCode: 'ROOM-DOC002-PAT005', name: 'Dr. Patel - Nadia Soobramanien (Back Pain Consult)', creatorId: 'DOC002', status: 'active' },
+    { id: 'VR023', roomCode: 'ROOM-PHARM002-PAT003', name: 'Pharmacist Doobur - Aisha Khan (Hypothyroid Medication Query)', creatorId: 'PHARM002', status: 'active' },
+  ]
+
+  for (const room of extraVideoRooms) {
+    await prisma.videoRoom.upsert({
+      where: { id: room.id },
+      update: {},
+      create: room,
+    })
+  }
+
+  const extraParticipants = [
+    // VR016: NUR001 + PAT002
+    { roomId: 'VR016', userId: 'NUR001', role: 'host' },
+    { roomId: 'VR016', userId: 'PAT002', role: 'participant' },
+    // VR017: NAN001 + PAT004
+    { roomId: 'VR017', userId: 'NAN001', role: 'host' },
+    { roomId: 'VR017', userId: 'PAT004', role: 'participant' },
+    // VR018: LAB001 + PAT001
+    { roomId: 'VR018', userId: 'LAB001', role: 'host' },
+    { roomId: 'VR018', userId: 'PAT001', role: 'participant' },
+    // VR019: NUR002 + PAT004
+    { roomId: 'VR019', userId: 'NUR002', role: 'host' },
+    { roomId: 'VR019', userId: 'PAT004', role: 'participant' },
+    // VR020: NAN002 + PAT003
+    { roomId: 'VR020', userId: 'NAN002', role: 'host' },
+    { roomId: 'VR020', userId: 'PAT003', role: 'participant' },
+    // VR021: EMW001 + PAT004
+    { roomId: 'VR021', userId: 'EMW001', role: 'host' },
+    { roomId: 'VR021', userId: 'PAT004', role: 'participant' },
+    // VR022: DOC002 + PAT005 (active)
+    { roomId: 'VR022', userId: 'DOC002', role: 'host' },
+    { roomId: 'VR022', userId: 'PAT005', role: 'participant' },
+    // VR023: PHARM002 + PAT003 (active)
+    { roomId: 'VR023', userId: 'PHARM002', role: 'host' },
+    { roomId: 'VR023', userId: 'PAT003', role: 'participant' },
+  ]
+  await prisma.videoRoomParticipant.createMany({ data: extraParticipants, skipDuplicates: true })
+
+  const extraSessions = [
+    // VR016: PAT002 + NUR001 — asthma home visit, 20 min, good
+    { roomId: 'VR016', userId: 'PAT002', startedAt: new Date('2025-01-05T10:00:00'), endedAt: new Date('2025-01-05T10:20:00'), duration: 20, callQuality: 'good', status: 'ended', notes: 'Nurse reviewed asthma action plan. Peak flow readings acceptable.' },
+    { roomId: 'VR016', userId: 'NUR001', startedAt: new Date('2025-01-05T10:00:00'), endedAt: new Date('2025-01-05T10:20:00'), duration: 20, callQuality: 'good', status: 'ended', notes: 'Nurse reviewed asthma action plan. Peak flow readings acceptable.' },
+    // VR017: PAT004 + NAN001 — childcare consult, 15 min, excellent
+    { roomId: 'VR017', userId: 'PAT004', startedAt: new Date('2025-01-08T14:00:00'), endedAt: new Date('2025-01-08T14:15:00'), duration: 15, callQuality: 'excellent', status: 'ended', notes: 'Childcare routine discussion. Children settling well with nanny.' },
+    { roomId: 'VR017', userId: 'NAN001', startedAt: new Date('2025-01-08T14:00:00'), endedAt: new Date('2025-01-08T14:15:00'), duration: 15, callQuality: 'excellent', status: 'ended', notes: 'Childcare routine discussion. Children settling well with nanny.' },
+    // VR018: PAT001 + LAB001 — pre-test instructions, 10 min, good
+    { roomId: 'VR018', userId: 'PAT001', startedAt: new Date('2025-01-10T08:00:00'), endedAt: new Date('2025-01-10T08:10:00'), duration: 10, callQuality: 'good', status: 'ended', notes: 'Fasting instructions confirmed. Appointment details reviewed with patient.' },
+    { roomId: 'VR018', userId: 'LAB001', startedAt: new Date('2025-01-10T08:00:00'), endedAt: new Date('2025-01-10T08:10:00'), duration: 10, callQuality: 'good', status: 'ended', notes: 'Fasting instructions confirmed. Appointment details reviewed with patient.' },
+    // VR019: PAT004 + NUR002 — hypertension monitoring, 25 min, excellent
+    { roomId: 'VR019', userId: 'PAT004', startedAt: new Date('2025-01-12T09:30:00'), endedAt: new Date('2025-01-12T09:55:00'), duration: 25, callQuality: 'excellent', status: 'ended', notes: 'BP log reviewed. Readings improving on Lisinopril. Continue current dose.' },
+    { roomId: 'VR019', userId: 'NUR002', startedAt: new Date('2025-01-12T09:30:00'), endedAt: new Date('2025-01-12T09:55:00'), duration: 25, callQuality: 'excellent', status: 'ended', notes: 'BP log reviewed. Readings improving on Lisinopril. Continue current dose.' },
+    // VR020: PAT003 + NAN002 — childcare review, 18 min, fair
+    { roomId: 'VR020', userId: 'PAT003', startedAt: new Date('2025-01-15T11:00:00'), endedAt: new Date('2025-01-15T11:18:00'), duration: 18, callQuality: 'fair', status: 'ended', notes: 'Routine check-in. Minor audio issues but call completed successfully.' },
+    { roomId: 'VR020', userId: 'NAN002', startedAt: new Date('2025-01-15T11:00:00'), endedAt: new Date('2025-01-15T11:18:00'), duration: 18, callQuality: 'fair', status: 'ended', notes: 'Routine check-in. Minor audio issues but call completed successfully.' },
+    // VR021: PAT004 + EMW001 — emergency follow-up, 12 min, good
+    { roomId: 'VR021', userId: 'PAT004', startedAt: new Date('2025-01-18T16:00:00'), endedAt: new Date('2025-01-18T16:12:00'), duration: 12, callQuality: 'good', status: 'ended', notes: 'Post-hypertensive crisis follow-up. Patient stable. Referred to GP for ongoing management.' },
+    { roomId: 'VR021', userId: 'EMW001', startedAt: new Date('2025-01-18T16:00:00'), endedAt: new Date('2025-01-18T16:12:00'), duration: 12, callQuality: 'good', status: 'ended', notes: 'Post-hypertensive crisis follow-up. Patient stable. Referred to GP for ongoing management.' },
+    // VR022: PAT005 + DOC002 — active session (no end time)
+    { roomId: 'VR022', userId: 'PAT005', startedAt: new Date(Date.now() - 600000), endedAt: null, duration: null, callQuality: null, status: 'active', notes: 'Back pain consultation in progress.' },
+    { roomId: 'VR022', userId: 'DOC002', startedAt: new Date(Date.now() - 600000), endedAt: null, duration: null, callQuality: null, status: 'active', notes: 'Back pain consultation in progress.' },
+    // VR023: PAT003 + PHARM002 — active session (no end time)
+    { roomId: 'VR023', userId: 'PAT003', startedAt: new Date(Date.now() - 300000), endedAt: null, duration: null, callQuality: null, status: 'active', notes: 'Medication query call in progress.' },
+    { roomId: 'VR023', userId: 'PHARM002', startedAt: new Date(Date.now() - 300000), endedAt: null, duration: null, callQuality: null, status: 'active', notes: 'Medication query call in progress.' },
+  ]
+  await prisma.videoCallSession.createMany({ data: extraSessions, skipDuplicates: true })
+
+  console.log(`  Seeded ${billingRecords.length} billing records, ${videoRooms.length + extraVideoRooms.length} video rooms, ${participants.length + extraParticipants.length} participants, ${sessions.length + extraSessions.length} video sessions, ${notifications.length} notifications`)
 }

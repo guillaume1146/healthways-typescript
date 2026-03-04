@@ -175,6 +175,7 @@ A full-stack healthcare platform built with **Next.js 15**, **TypeScript**, **Po
 │   ├── booking/                       # Booking flow (6 generic components)
 │   ├── forms/                         # Contact, Login, Signup forms
 │   ├── shared/                        # Reusable UI (DashboardStatCard, PageHeader, etc.)
+│   │   ├── ProviderReviews.tsx        # Shared review/rating component for all provider types
 │   └── ui/                            # Utility components
 ├── hooks/
 │   ├── useAuth.ts                     # Auth state management
@@ -193,6 +194,9 @@ A full-stack healthcare platform built with **Next.js 15**, **TypeScript**, **Po
 │   │   ├── nurses.ts                 # Nurse interface
 │   │   ├── nannies.ts                # Nanny interface
 │   │   └── index.ts                  # Re-exports all types
+│   ├── dashboard/
+│   │   ├── createDashboardLayout.tsx  # Shared HOC for all 12 layouts
+│   │   └── getActiveSectionFromPath.ts # Shared sidebar active section resolver
 │   ├── db.ts                          # Prisma singleton
 │   ├── db-utils.ts                    # getPatientDashboardSummary()
 │   └── constants.ts                   # Static content (services, stats)
@@ -376,6 +380,17 @@ The database is **fully normalized** — no JSON columns. All data is stored in 
 | `PatientComment` | Doctor reviews |
 | `PatientEmergencyContact` | Personal emergency contact |
 | `EmergencyServiceContact` | Emergency services (ambulance, ER) |
+| `ProviderReview` | Generic reviews for any provider type |
+| `UserConnection` | Social connections between users (pending/accepted/rejected) |
+
+### Configuration Tables
+
+| Table | Description |
+|-------|-------------|
+| `ProviderReview` | Generic reviews for all provider types (rating, comment, response, helpful) |
+| `RoleFeatureConfig` | Admin-configurable feature visibility per user role |
+| `RequiredDocumentConfig` | Admin-configurable required documents per user role |
+| `InsuranceClaim` | Insurance claim lifecycle (pending → approved/rejected) |
 
 ---
 
@@ -415,6 +430,57 @@ All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) requ
 |--------|------|-------------|
 | GET | `/api/health` | Database connectivity check |
 | GET | `/api/config` | App name, tagline |
+
+### Provider Reviews
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/providers/[id]/reviews` | Paginated reviews for any provider (public) |
+| POST | `/api/providers/[id]/reviews` | Submit review (auth required) |
+| PATCH | `/api/providers/[id]/reviews/[reviewId]` | Provider responds or mark helpful |
+
+### Connections
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/connections` | List connections (filter by status, direction) |
+| POST | `/api/connections` | Send connection request |
+| PATCH | `/api/connections/[id]` | Accept or reject connection (receiver only) |
+| DELETE | `/api/connections/[id]` | Remove connection |
+
+### AI Support
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/ai/support` | Chat with AI health assistant (Groq LLM, rate limited) |
+
+### Insurance
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/insurance/claims` | List insurance claims (filter by status) |
+| POST | `/api/insurance/claims` | Create new insurance claim |
+| PATCH | `/api/insurance/claims/[id]` | Approve or reject claim |
+| GET | `/api/insurance/[id]/dashboard` | Insurance rep dashboard stats |
+| GET | `/api/patients/[id]/claims` | Patient's insurance claims |
+
+### Emergency & Lab Tech
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/responders/[id]/calls` | Emergency worker call history |
+| GET | `/api/lab-techs/[id]/results` | Lab technician test results |
+
+### Corporate
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/corporate/[id]/dashboard` | Corporate admin stats (employees, claims, contributions) |
+| GET | `/api/corporate/[id]/employees` | Employee list |
+| GET | `/api/corporate/[id]/claims` | Corporate claims |
+
+### Admin Configuration
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/role-config` | All role feature configs |
+| PUT | `/api/admin/role-config` | Upsert role feature configs |
+| GET | `/api/admin/required-documents` | All required document configs |
+| PUT | `/api/admin/required-documents` | Upsert required document configs |
+| GET | `/api/role-config/[userType]` | Public: enabled features for a role |
 
 ---
 
@@ -516,6 +582,17 @@ After running `npx prisma db seed`, these accounts are available:
 | Nurse | sophie.laurent@healthwyz.mu | Nurse123! |
 | Nanny | anita.beeharry@healthwyz.mu | Nanny123! |
 | Nanny | claire.morel@healthwyz.mu | Nanny123! |
+| Pharmacist | rajesh.doorgakant@healthways.mu | Pharma123! |
+| Pharmacist | anushka.doobur@healthways.mu | Pharma123! |
+| Lab Technician | david.ahkee@healthways.mu | Lab123! |
+| Lab Technician | priya.doorgakant@healthways.mu | Lab123! |
+| Emergency Worker | jeanmarc.lafleur@healthways.mu | Emergency123! |
+| Emergency Worker | fatima.joomun@healthways.mu | Emergency123! |
+| Insurance Rep | vikram.doorgakant@healthways.mu | Insurance123! |
+| Insurance Rep | marie.genave@healthways.mu | Insurance123! |
+| Corporate Admin | anil.doobur@healthways.mu | Corporate123! |
+| Referral Partner | sophie.leclerc@healthways.mu | Referral123! |
+| Super Admin | hassan.doorgakant@healthways.mu | Admin123! |
 
 All passwords are hashed with bcrypt in the database.
 
@@ -544,3 +621,19 @@ All passwords are hashed with bcrypt in the database.
 - **Multi-role dashboards** — Patient, Doctor, Nurse, Nanny, Admin
 - **Per-page data loading** — Each page fetches only what it needs via dedicated API endpoints
 - **Pagination** — All list endpoints support `limit` and `offset`
+- **Provider reviews** — Generic review/rating system for all provider types (doctors, nurses, nannies, pharmacists, lab techs, emergency workers) via unified `/api/providers/{id}/reviews` API
+- **Admin role configuration** — Super admin can toggle feature visibility per user role from the Role Config page, stored in database (`RoleFeatureConfig`)
+- **Required documents config** — Super admin can configure which documents are required during registration per role (`RequiredDocumentConfig`)
+- **Unified dashboard architecture** — All 12 user type dashboards use a shared `createDashboardLayout` HOC and `createGetActiveSectionFromPath` utility, eliminating code duplication
+- **Insurance claims** — Full create/approve/reject flow with `InsuranceClaim` model
+- **Wallet system** — Trial credits (Rs 4,500) for all users, debit on booking acceptance, credit for providers
+- **Referral tracking** — Referral codes tracked at signup, referrer gets commission credits
+- **Emergency dispatch** — Broadcast-based emergency booking with responder accept/dispatch/en-route/resolved flow
+- **AI health assistant** — Groq-powered LLM with dietary tracking, date-aware insight extraction (Llama 3.1)
+- **AI support chat** — Public AI-powered health Q&A at `/search/ai` via Groq API (no login required)
+- **Social connections** — LinkedIn/Facebook-style Connect + Message buttons on all search result cards, with `UserConnection` model (pending/accepted/rejected)
+- **Unified booking UI** — Shared `BookingForm` component with time-slot grid for all 5 provider types (doctor, nurse, nanny, lab-test, emergency)
+- **Collapsible sidebar** — Icon-only mode on desktop when collapsed, with tooltips and notification dots
+- **Billing in settings** — Shared `BillingSettingsTab` available in all 11 user type settings pages
+- **i18n** — English, French, and Mauritian Creole with language switcher
+- **PWA** — Service worker + manifest for mobile app-like experience

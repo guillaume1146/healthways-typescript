@@ -11,6 +11,7 @@ import {
   FaCheckDouble,
 } from 'react-icons/fa'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
+import { useTranslation } from '@/lib/i18n'
 
 interface NotificationItem {
   id: string
@@ -57,6 +58,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onLogout,
   userId,
 }) => {
+  const { t } = useTranslation()
   const [showDropdown, setShowDropdown] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loadingNotifs, setLoadingNotifs] = useState(false)
@@ -131,10 +133,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       try {
         const res = await fetch(`/api/users/${userId}/notifications?unread=true&limit=1`)
         const data = await res.json()
-        if (data.metadata?.unreadCount != null) {
-          setAutoUnreadCount(data.metadata.unreadCount)
-        } else if (data.metadata?.total != null) {
-          setAutoUnreadCount(data.metadata.total)
+        if (data.meta?.unreadCount != null) {
+          setAutoUnreadCount(data.meta.unreadCount)
+        } else if (data.meta?.total != null) {
+          setAutoUnreadCount(data.meta.total)
         }
       } catch {
         // silent
@@ -274,7 +276,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             >
               <FaSignOutAlt className="text-xs sm:text-sm md:text-sm" aria-hidden="true" />
               <span className="hidden sm:inline text-xs sm:text-xs md:text-sm">
-                Logout
+                {t('common.logout')}
               </span>
             </button>
           </div>

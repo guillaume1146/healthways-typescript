@@ -318,8 +318,8 @@ export default function DoctorDetailsPage() {
               </div>
 
               {/* Book Button */}
-              <Link 
-                href={`/booking/doctors/${doctor.id}`}
+              <Link
+                href={`/patient/book/doctor/${doctor.id}`}
                 className="w-full bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <FaCalendarAlt />

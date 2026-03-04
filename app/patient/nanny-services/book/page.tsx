@@ -1,7 +1,7 @@
 // app/patient/nanny-booking/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
   FaArrowLeft,
@@ -75,146 +75,58 @@ interface Review {
   date: string;
 }
 
-const mockNannies: NannyProfile[] = [
-  {
-    id: "NN001",
-    name: "Sarah Williams",
-    avatar: "👩",
-    age: 28,
-    experience: "5+ years",
-    rating: 4.9,
-    reviews: 87,
-    specializations: ["Infant Care", "Toddler Care", "Special Needs"],
-    languages: ["English", "French", "Creole"],
-    education: "Early Childhood Education Diploma",
-    hourlyRate: 300,
-    dailyRate: 2000,
-    monthlyRate: 35000,
-    availability: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    verified: true,
-    backgroundCheck: true,
-    bio: "Passionate childcare professional with extensive experience in infant and toddler care. Certified in first aid and child development.",
-    certifications: ["First Aid", "CPR", "Child Development"],
-    skills: ["Meal Preparation", "Educational Activities", "Sleep Training"],
-    preferredAgeGroup: ["0-1 year", "1-3 years"]
-  },
-  {
-    id: "NN002",
-    name: "Marie Joseph",
-    avatar: "👩",
-    age: 35,
-    experience: "10+ years",
-    rating: 4.8,
-    reviews: 156,
-    specializations: ["Multiple Children", "Homework Help", "Household Management"],
-    languages: ["English", "Creole", "Hindi"],
-    education: "Bachelor in Child Psychology",
-    hourlyRate: 350,
-    dailyRate: 2500,
-    monthlyRate: 40000,
-    availability: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    verified: true,
-    backgroundCheck: true,
-    bio: "Experienced nanny specializing in caring for multiple children. Expert in child psychology and educational development.",
-    certifications: ["Child Psychology", "Montessori Training", "First Aid"],
-    skills: ["Tutoring", "Behavior Management", "Creative Play"],
-    preferredAgeGroup: ["3-6 years", "6-10 years"]
-  },
-  {
-    id: "NN003",
-    name: "Lisa Chen",
-    avatar: "👩",
-    age: 26,
-    experience: "3+ years",
-    rating: 4.7,
-    reviews: 42,
-    specializations: ["Newborn Care", "Night Nanny", "Sleep Training"],
-    languages: ["English", "Mandarin", "French"],
-    education: "Nursing Assistant Certificate",
-    hourlyRate: 400,
-    dailyRate: 3000,
-    monthlyRate: 45000,
-    availability: ["Mon", "Wed", "Fri", "Sat", "Sun"],
-    verified: true,
-    backgroundCheck: true,
-    bio: "Specialized newborn care nanny with nursing background. Expert in establishing sleep routines and infant care.",
-    certifications: ["Newborn Care Specialist", "Lactation Support", "CPR"],
-    skills: ["Newborn Care", "Breastfeeding Support", "Sleep Routines"],
-    preferredAgeGroup: ["0-6 months", "6-12 months"]
-  }
-]
-
-const mockServiceTypes: ServiceType[] = [
-  {
-    id: "ST001",
-    name: "Regular Childcare",
-    description: "Daily childcare during working hours",
-    icon: "👶",
-    priceType: "daily"
-  },
-  {
-    id: "ST002",
-    name: "Night Nanny",
-    description: "Overnight childcare support",
-    icon: "🌙",
-    priceType: "hourly"
-  },
-  {
-    id: "ST003",
-    name: "Weekend Care",
-    description: "Weekend babysitting services",
-    icon: "📅",
-    priceType: "hourly"
-  },
-  {
-    id: "ST004",
-    name: "Full-Time Nanny",
-    description: "Full-time live-in or live-out nanny",
-    icon: "🏠",
-    priceType: "monthly"
-  },
-  {
-    id: "ST005",
-    name: "Emergency Care",
-    description: "Last-minute childcare services",
-    icon: "🚨",
-    priceType: "hourly"
-  },
-  {
-    id: "ST006",
-    name: "Special Needs Care",
-    description: "Specialized care for children with special needs",
-    icon: "💝",
-    priceType: "hourly"
-  }
-]
-
-const mockReviews: Review[] = [
-  {
-    id: "R001",
-    parentName: "Jennifer M.",
-    rating: 5,
-    comment: "Sarah has been amazing with our 6-month-old. She is professional, caring, and very knowledgeable about infant care.",
-    date: "2024-01-10"
-  },
-  {
-    id: "R002",
-    parentName: "Michael R.",
-    rating: 5,
-    comment: "Marie helped us manage our three kids wonderfully. She kept them engaged with educational activities all day.",
-    date: "2024-01-05"
-  }
+const serviceTypes: ServiceType[] = [
+  { id: "ST001", name: "Regular Childcare", description: "Daily childcare during working hours", icon: "👶", priceType: "daily" },
+  { id: "ST002", name: "Night Nanny", description: "Overnight childcare support", icon: "🌙", priceType: "hourly" },
+  { id: "ST003", name: "Weekend Care", description: "Weekend babysitting services", icon: "📅", priceType: "hourly" },
+  { id: "ST004", name: "Full-Time Nanny", description: "Full-time live-in or live-out nanny", icon: "🏠", priceType: "monthly" },
+  { id: "ST005", name: "Emergency Care", description: "Last-minute childcare services", icon: "🚨", priceType: "hourly" },
+  { id: "ST006", name: "Special Needs Care", description: "Specialized care for children with special needs", icon: "💝", priceType: "hourly" },
 ]
 
 export default function NannyBookingPage() {
-  // const [activeTab, setActiveTab] = useState<"search" | "favorites" | "bookings">("search")
+  const [nannies, setNannies] = useState<NannyProfile[]>([])
   const [selectedNanny, setSelectedNanny] = useState<NannyProfile | null>(null)
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [filterAgeGroup, setFilterAgeGroup] = useState("all")
-  // const [filterAvailability, setFilterAvailability] = useState("all")
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [showNannyDetails, setShowNannyDetails] = useState(false)
+
+  // Fetch nannies from API
+  const fetchNannies = useCallback(async () => {
+    try {
+      const res = await fetch('/api/search/nannies?q=')
+      const data = await res.json()
+      if (data.data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setNannies(data.data.map((n: any) => ({
+          id: n.id,
+          name: `${n.firstName} ${n.lastName}`,
+          avatar: n.profileImage || '👩',
+          age: n.age || 28,
+          experience: n.experience || '2+ years',
+          rating: n.rating || 4.5,
+          reviews: n.reviews || 0,
+          specializations: n.specialization || ['Child Care'],
+          languages: n.languages || ['English', 'French'],
+          education: n.education?.[0] || 'Early Childhood Education',
+          hourlyRate: n.hourlyRate || 300,
+          dailyRate: (n.hourlyRate || 300) * 8,
+          monthlyRate: (n.hourlyRate || 300) * 8 * 22,
+          availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          verified: n.verified || false,
+          backgroundCheck: n.backgroundCheck || false,
+          bio: n.bio || '',
+          certifications: n.certifications || [],
+          skills: n.services || [],
+          preferredAgeGroup: n.ageGroups || ['0-1 year', '1-3 years'],
+        })))
+      }
+    } catch { /* silent */ }
+  }, [])
+
+  useEffect(() => { fetchNannies() }, [fetchNannies])
   const [bookingDetails, setBookingDetails] = useState<BookingDetails>({
     nanny: null,
     serviceType: null,
@@ -237,7 +149,7 @@ export default function NannyBookingPage() {
 
   const ageGroups = ["all", "0-1 year", "1-3 years", "3-6 years", "6-10 years", "10+ years"]
 
-  const filteredNannies = mockNannies.filter(nanny => {
+  const filteredNannies = nannies.filter(nanny => {
     const matchesSearch = nanny.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          nanny.bio.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesAge = filterAgeGroup === "all" || nanny.preferredAgeGroup.includes(filterAgeGroup)
@@ -302,7 +214,7 @@ export default function NannyBookingPage() {
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-4">What type of care do you need?</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {mockServiceTypes.map((service) => (
+                {serviceTypes.map((service) => (
                   <button
                     key={service.id}
                     onClick={() => setSelectedService(service)}
@@ -716,7 +628,7 @@ export default function NannyBookingPage() {
                 <div>
                   <h3 className="font-semibold mb-2">Recent Reviews</h3>
                   <div className="space-y-3">
-                    {mockReviews.map((review) => (
+                    {([] as Review[]).map((review) => (
                       <div key={review.id} className="border-b pb-3">
                         <div className="flex items-center justify-between mb-1">
                           <p className="font-medium">{review.parentName}</p>

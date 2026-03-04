@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   FaShieldAlt, FaClock, FaDollarSign, FaUsers,
-  FaExclamationTriangle, FaChartLine, FaSpinner
+  FaExclamationTriangle, FaChartLine
 } from 'react-icons/fa'
-import { InsuranceDashboardData } from './types'
+import { InsuranceDashboardData, InsuranceClaim } from './types'
 import StatCard from './StatCard'
 import ClaimsTable from './ClaimsTable'
 import PolicyHoldersTable from './PolicyHoldersTable'
@@ -39,6 +39,7 @@ export default function InsuranceDashboardPage() {
   const [insuranceData, setInsuranceData] = useState<InsuranceDashboardData>(emptyDashboard)
   const [userId, setUserId] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [claimError, setClaimError] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -55,9 +56,13 @@ export default function InsuranceDashboardPage() {
   const fetchDashboard = useCallback(async () => {
     if (!userId) return
     try {
-      const res = await fetch(`/api/insurance/${userId}/dashboard`)
-      if (res.ok) {
-        const json = await res.json()
+      const [dashRes, claimsRes] = await Promise.all([
+        fetch(`/api/insurance/${userId}/dashboard`),
+        fetch('/api/insurance/claims?status=pending&limit=5'),
+      ])
+
+      if (dashRes.ok) {
+        const json = await dashRes.json()
         if (json.success) {
           const apiData = json.data
           // Map plans to policy holders for display
@@ -76,14 +81,48 @@ export default function InsuranceDashboardPage() {
 
           const activePlans = policyHolders.filter((p: { status: string }) => p.status === 'active').length
 
+          let recentClaims: InsuranceDashboardData['recentClaims'] = []
+          let pendingClaimsCount = 0
+
+          if (claimsRes.ok) {
+            const claimsJson = await claimsRes.json()
+            if (claimsJson.success) {
+              pendingClaimsCount = claimsJson.pagination?.total ?? claimsJson.data?.length ?? 0
+              recentClaims = (claimsJson.data || []).map((c: {
+                id: string
+                claimId: string
+                policyHolderName: string
+                policyType: string
+                claimAmount: number
+                status: string
+                submittedDate: string
+                description?: string
+              }) => ({
+                id: c.id,
+                claimId: c.claimId,
+                policyHolderName: c.policyHolderName,
+                policyType: c.policyType,
+                claimAmount: c.claimAmount,
+                status: c.status as InsuranceClaim['status'],
+                submittedDate: c.submittedDate,
+                description: c.description ?? '',
+              }))
+            }
+          }
+
           setInsuranceData(prev => ({
             ...prev,
             stats: {
               ...prev.stats,
               activePolicies: apiData.stats?.activePolicies || activePlans,
               policyHolders: apiData.stats?.totalPlans || policyHolders.length,
+              pendingClaims: pendingClaimsCount,
+              monthlyCommission: apiData.stats?.monthlyCommission || 0,
+              expiringPolicies: apiData.stats?.expiringPolicies || 0,
+              claimApprovalRate: apiData.stats?.claimApprovalRate || 0,
             },
             policyHolders,
+            recentClaims,
           }))
         }
       }
@@ -99,12 +138,27 @@ export default function InsuranceDashboardPage() {
   }, [fetchDashboard])
 
   const handleUpdateClaim = async (claimId: string, status: string) => {
-    // No claims model in schema — show feedback
-    alert(`Claim ${claimId} marked as ${status}. (Claims API not yet available)`)
+    const action = status === 'approved' ? 'approve' : 'reject'
+    setClaimError(null)
+    try {
+      const res = await fetch(`/api/insurance/claims/${claimId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        fetchDashboard()
+      } else {
+        const json = await res.json().catch(() => ({}))
+        setClaimError(json.message || 'Failed to update claim. Please try again.')
+      }
+    } catch {
+      setClaimError('Failed to update claim. Please check your connection and try again.')
+    }
   }
 
   const handleEditPolicyHolder = (policyHolderId: string) => {
-    window.location.href = `/insurance/dashboard/plans?edit=${policyHolderId}`
+    window.location.href = `/insurance/plans?edit=${policyHolderId}`
   }
 
   const handleDeletePolicyHolder = async (policyHolderId: string) => {
@@ -120,11 +174,11 @@ export default function InsuranceDashboardPage() {
   }
 
   const handleViewPolicyHolder = (policyHolderId: string) => {
-    window.location.href = `/insurance/dashboard/plans?view=${policyHolderId}`
+    window.location.href = `/insurance/plans?view=${policyHolderId}`
   }
 
   const handleAddPolicyHolder = () => {
-    window.location.href = '/insurance/dashboard/plans?add=true'
+    window.location.href = '/insurance/plans?add=true'
   }
 
   return (
@@ -132,6 +186,22 @@ export default function InsuranceDashboardPage() {
       {userId && (
         <div className="mb-8">
           <WalletBalanceCard userId={userId} />
+        </div>
+      )}
+
+      {claimError && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-red-700 text-sm font-medium">{claimError}</p>
+          </div>
+          <button
+            onClick={() => setClaimError(null)}
+            className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0"
+            aria-label="Dismiss error"
+          >
+            &times;
+          </button>
         </div>
       )}
 
@@ -175,7 +245,7 @@ export default function InsuranceDashboardPage() {
             <div className="ml-3">
               <p className="text-sm text-orange-700">
                 <strong>Action Required:</strong> {insuranceData.stats.expiringPolicies} policies are expiring within 30 days.
-                <Link href="/insurance/dashboard/clients" className="font-medium underline hover:text-orange-800 ml-1">
+                <Link href="/insurance/clients" className="font-medium underline hover:text-orange-800 ml-1">
                   Review and renew policies
                 </Link>
               </p>
@@ -204,6 +274,8 @@ export default function InsuranceDashboardPage() {
             totalCommission={insuranceData.earnings.totalCommission}
             platformFee={insuranceData.earnings.platformFee}
             netPayout={insuranceData.earnings.netPayout}
+            claimApprovalRate={insuranceData.stats.claimApprovalRate}
+            expiringPolicies={insuranceData.stats.expiringPolicies}
           />
         </div>
       </div>
@@ -212,28 +284,28 @@ export default function InsuranceDashboardPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link
-            href="/insurance/dashboard/clients"
+            href="/insurance/clients"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 hover:bg-blue-50 transition group"
           >
             <FaUsers className="text-2xl text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Add Policy Holder</p>
           </Link>
           <Link
-            href="/insurance/dashboard/claims"
+            href="/insurance/claims"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-green-500 hover:bg-green-50 transition group"
           >
             <FaClock className="text-2xl text-green-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Process Claims</p>
           </Link>
           <Link
-            href="/insurance/dashboard/clients"
+            href="/insurance/clients"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-purple-500 hover:bg-purple-50 transition group"
           >
             <FaShieldAlt className="text-2xl text-purple-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <p className="text-sm font-medium">Policy Renewals</p>
           </Link>
           <Link
-            href="/insurance/dashboard/analytics"
+            href="/insurance/analytics"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-orange-500 hover:bg-orange-50 transition group"
           >
             <FaChartLine className="text-2xl text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />

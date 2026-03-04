@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaBuilding, FaSpinner, FaSave } from 'react-icons/fa'
+import { FaBuilding, FaSpinner, FaSave, FaCheck } from 'react-icons/fa'
 
 interface CompanyProfile {
   companyName: string
@@ -18,6 +18,8 @@ export default function CorporateCompanyPage() {
     employeeCount: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [userId, setUserId] = useState('')
 
   useEffect(() => {
@@ -74,8 +76,35 @@ export default function CorporateCompanyPage() {
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <FaBuilding className="text-indigo-500" /> Company Profile
         </h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <FaSave /> Save Changes
+        <button
+          onClick={async () => {
+            if (!userId || saving) return
+            setSaving(true)
+            setSaved(false)
+            try {
+              const res = await fetch(`/api/users/${userId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  profileData: {
+                    companyName: profile.companyName,
+                    registrationNumber: profile.registrationNumber,
+                    employeeCount: profile.employeeCount,
+                  },
+                }),
+              })
+              if (res.ok) setSaved(true)
+            } catch {
+              // Save failed silently
+            } finally {
+              setSaving(false)
+            }
+          }}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+        >
+          {saving ? <FaSpinner className="animate-spin" /> : saved ? <FaCheck /> : <FaSave />}
+          {saving ? 'Saving...' : saved ? 'Saved' : 'Save Changes'}
         </button>
       </div>
 

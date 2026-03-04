@@ -418,36 +418,32 @@ export default function InsurancePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Health Insurance Plans</h1>
-          <p className="text-xl text-blue-100">
-            AI-powered search to find the perfect health insurance coverage for you and your family
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaCheckCircle className="text-green-300" />
-              <span>IRDAI Approved</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaLock className="text-yellow-300" />
-              <span>Secure Platform</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaCalculator className="text-blue-300" />
-              <span>Instant Quotes</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <FaHeadset className="text-orange-300" />
-              <span>Expert Guidance</span>
-            </div>
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Health Insurance Plans</h1>
+        <p className="text-gray-500 mt-1">Compare and find the right coverage for you</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaCheckCircle className="text-green-500" />
+            <span>IRDAI Approved</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaLock className="text-blue-500" />
+            <span>Secure Platform</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaCalculator className="text-blue-500" />
+            <span>Instant Quotes</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <FaHeadset className="text-orange-500" />
+            <span>Expert Guidance</span>
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto -mt-8 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6">
             <div>
               <div className="flex flex-col gap-4">
                 <div className="relative">

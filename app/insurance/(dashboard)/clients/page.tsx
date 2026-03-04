@@ -103,11 +103,11 @@ export default function InsuranceClientsPage() {
   }
 
   const handleEdit = (policyHolderId: string) => {
-    window.location.href = `/insurance/dashboard/plans?edit=${policyHolderId}`
+    window.location.href = `/insurance/plans?edit=${policyHolderId}`
   }
 
   const handleView = (policyHolderId: string) => {
-    window.location.href = `/insurance/dashboard/plans?view=${policyHolderId}`
+    window.location.href = `/insurance/plans?view=${policyHolderId}`
   }
 
   const filteredClients = clients.filter(client => {

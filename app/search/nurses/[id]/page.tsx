@@ -419,8 +419,8 @@ export default function NurseDetailsPage() {
               </div>
 
               {/* Book Button */}
-              <Link 
-                href={`/booking/nurses/${nurse.id}`}
+              <Link
+                href={`/patient/book/nurse/${nurse.id}`}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <FaCalendarAlt />

@@ -686,45 +686,56 @@ const DoctorSettings: React.FC<Props> = ({ doctorData, setDoctorData }) => {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200">
         <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Usage Statistics</h3>
         <div className="space-y-3">
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span>Consultations</span>
-              <span>
-                {settings.subscription.usage?.consultations?.used ?? 0} /{' '}
-                {settings.subscription.usage?.consultations?.limit === -1
-                  ? '∞'
-                  : settings.subscription.usage?.consultations?.limit ?? 0}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style={{ width: '60%' }} />
-            </div>
-          </div>
+          {(() => {
+            const consultUsed = settings.subscription.usage?.consultations?.used ?? 0
+            const consultLimit = settings.subscription.usage?.consultations?.limit ?? 0
+            const consultPct = consultLimit === -1 ? 0 : consultLimit > 0 ? Math.min(100, Math.round((consultUsed / consultLimit) * 100)) : 0
 
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span>Storage</span>
-              <span>
-                {settings.subscription.usage?.storage?.used ?? 0} GB / {settings.subscription.usage?.storage?.limit ?? 0} GB
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style={{ width: '25%' }} />
-            </div>
-          </div>
+            const storageUsed = settings.subscription.usage?.storage?.used ?? 0
+            const storageLimit = settings.subscription.usage?.storage?.limit ?? 0
+            const storagePct = storageLimit > 0 ? Math.min(100, Math.round((storageUsed / storageLimit) * 100)) : 0
 
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span>SMS Notifications</span>
-              <span>
-                {settings.subscription.usage?.smsNotifications?.used ?? 0} /{' '}
-                {settings.subscription.usage?.smsNotifications?.limit ?? 0}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full" style={{ width: '45%' }} />
-            </div>
-          </div>
+            const smsUsed = settings.subscription.usage?.smsNotifications?.used ?? 0
+            const smsLimit = settings.subscription.usage?.smsNotifications?.limit ?? 0
+            const smsPct = smsLimit > 0 ? Math.min(100, Math.round((smsUsed / smsLimit) * 100)) : 0
+
+            return (
+              <>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Consultations</span>
+                    <span>
+                      {consultUsed} /{' '}
+                      {consultLimit === -1 ? '∞' : consultLimit}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style={{ width: `${consultPct}%` }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Storage</span>
+                    <span>{storageUsed} GB / {storageLimit} GB</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style={{ width: `${storagePct}%` }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>SMS Notifications</span>
+                    <span>{smsUsed} / {smsLimit}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full" style={{ width: `${smsPct}%` }} />
+                  </div>
+                </div>
+              </>
+            )
+          })()}
         </div>
       </div>
 

@@ -107,15 +107,15 @@ export default function PatientsPage() {
       })
       const data = await res.json()
       if (data.roomId) {
-        router.push(`/doctor/dashboard/video?roomId=${data.roomId}`)
+        router.push(`/doctor/video?roomId=${data.roomId}`)
       }
     } catch {
-      router.push('/doctor/dashboard/video')
+      router.push('/doctor/video')
     }
   }
 
   const handlePrescribe = (patientId: string) => {
-    router.push(`/doctor/dashboard/prescriptions?patientId=${patientId}`)
+    router.push(`/doctor/prescriptions?patientId=${patientId}`)
   }
 
   const handleMessage = async (userId: string) => {
@@ -127,12 +127,12 @@ export default function PatientsPage() {
       })
       const data = await res.json()
       if (data.id) {
-        router.push(`/doctor/dashboard/messages?conversationId=${data.id}`)
+        router.push(`/doctor/messages?conversationId=${data.id}`)
       } else {
-        router.push('/doctor/dashboard/messages')
+        router.push('/doctor/messages')
       }
     } catch {
-      router.push('/doctor/dashboard/messages')
+      router.push('/doctor/messages')
     }
   }
 

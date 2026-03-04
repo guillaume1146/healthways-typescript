@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import Link from "next/link"
-import { 
+import {
   FaVideo,
   FaVideoSlash,
   FaMicrophone,
@@ -26,18 +27,15 @@ interface ConsultationData {
   id: string;
   doctor: {
     name: string;
-    specialty: string;
-    avatar: string;
+    specialty: string[];
+    avatar: string | null;
   };
   patient: {
     name: string;
-    age: number;
-    avatar: string;
   };
   scheduledTime: string;
-  duration: number;
-  status: "waiting" | "ongoing" | "completed";
-  notes: string;
+  status: string;
+  notes: string | null;
 }
 
 interface Message {
@@ -47,56 +45,102 @@ interface Message {
   time: string;
 }
 
-const mockConsultation: ConsultationData = {
-  id: "CONS-001",
-  doctor: {
-    name: "Dr. Sarah Johnson",
-    specialty: "Cardiology",
-    avatar: "👩‍⚕️"
-  },
-  patient: {
-    name: "John Smith",
-    age: 35,
-    avatar: "👨"
-  },
-  scheduledTime: "10:00 AM",
-  duration: 30,
-  status: "ongoing",
-  notes: ""
-}
-
-const mockMessages: Message[] = [
-  { id: 1, sender: "doctor", text: "Hello Mr. Smith, how are you feeling today?", time: "10:00 AM" },
-  { id: 2, sender: "patient", text: "Hi Doctor, I've been having chest pain for the past 2 days", time: "10:01 AM" },
-  { id: 3, sender: "doctor", text: "Can you describe the pain? Is it sharp or dull?", time: "10:02 AM" },
-  { id: 4, sender: "patient", text: "It's more of a dull ache, especially when I breathe deeply", time: "10:03 AM" }
-]
-
 export default function PatientTeleconsultationPage() {
+  const params = useParams()
+  const appointmentId = params?.id as string
+
   const [isVideoOn, setIsVideoOn] = useState(true)
   const [isMicOn, setIsMicOn] = useState(true)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
-  const [messages, setMessages] = useState<Message[]>(mockMessages)
+  const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [showChat, setShowChat] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting")
   const [callDuration, setCallDuration] = useState(0)
   const [showEndCallConfirm, setShowEndCallConfirm] = useState(false)
+  const [consultation, setConsultation] = useState<ConsultationData | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Fetch real appointment data
   useEffect(() => {
-    // Simulate connection
-    setTimeout(() => {
-      setConnectionStatus("connected")
-    }, 2000)
+    async function fetchConsultation() {
+      try {
+        // Get the current user first
+        const meRes = await fetch("/api/auth/me")
+        if (!meRes.ok) {
+          setLoadError("Unable to verify identity. Please log in again.")
+          setConnectionStatus("disconnected")
+          return
+        }
+        const meData = await meRes.json()
+        const patientId = meData.user?.id
+        if (!patientId) {
+          setLoadError("No user session found.")
+          setConnectionStatus("disconnected")
+          return
+        }
 
-    // Call duration timer
+        // Fetch the patient's appointments to find this one
+        const apptRes = await fetch(`/api/patients/${patientId}/appointments`)
+        if (!apptRes.ok) {
+          setLoadError("Failed to load consultation data.")
+          setConnectionStatus("disconnected")
+          return
+        }
+        const apptData = await apptRes.json()
+        const appointments = apptData.data ?? []
+
+        // Find the appointment matching the URL param
+        const appt = appointments.find((a: { id: string }) => a.id === appointmentId)
+
+        if (!appt) {
+          setLoadError("Consultation not found.")
+          setConnectionStatus("disconnected")
+          return
+        }
+
+        const doctorName = appt.doctor?.user
+          ? `Dr. ${appt.doctor.user.firstName} ${appt.doctor.user.lastName}`
+          : "Doctor"
+
+        setConsultation({
+          id: appt.id,
+          doctor: {
+            name: doctorName,
+            specialty: appt.doctor?.specialty ?? [],
+            avatar: appt.doctor?.user?.profileImage ?? null,
+          },
+          patient: {
+            name: `${meData.user.firstName} ${meData.user.lastName}`,
+          },
+          scheduledTime: new Date(appt.scheduledAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          status: appt.status,
+          notes: appt.notes ?? null,
+        })
+
+        // Simulate connection established after data loads
+        setTimeout(() => setConnectionStatus("connected"), 1500)
+      } catch {
+        setLoadError("An unexpected error occurred.")
+        setConnectionStatus("disconnected")
+      }
+    }
+
+    fetchConsultation()
+  }, [appointmentId])
+
+  // Call duration timer (only runs when connected)
+  useEffect(() => {
+    if (connectionStatus !== "connected") return
     const timer = setInterval(() => {
       setCallDuration(prev => prev + 1)
     }, 1000)
-
     return () => clearInterval(timer)
-  }, [])
+  }, [connectionStatus])
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -119,7 +163,7 @@ export default function PatientTeleconsultationPage() {
 
   const handleEndCall = () => {
     setShowEndCallConfirm(false)
-    window.location.href = "/patient"
+    window.location.href = "/patient/appointments"
   }
 
   if (connectionStatus === "connecting") {
@@ -134,6 +178,25 @@ export default function PatientTeleconsultationPage() {
     )
   }
 
+  if (loadError || !consultation) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <FaExclamationTriangle className="text-yellow-400 text-5xl mx-auto mb-4" />
+          <h2 className="text-white text-xl font-semibold mb-2">Unable to load consultation</h2>
+          <p className="text-gray-400 mb-6">{loadError ?? "The consultation could not be found."}</p>
+          <Link href="/patient/appointments" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Back to Appointments
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const doctorSpecialty = consultation.doctor.specialty.length > 0
+    ? consultation.doctor.specialty[0]
+    : "Specialist"
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
@@ -143,14 +206,16 @@ export default function PatientTeleconsultationPage() {
             <FaArrowLeft />
           </Link>
           <div className="flex items-center gap-3">
-            <div className="text-2xl">{mockConsultation.doctor.avatar}</div>
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+              {consultation.doctor.name.charAt(0)}
+            </div>
             <div>
-              <h3 className="text-white font-semibold">{mockConsultation.doctor.name}</h3>
-              <p className="text-gray-400 text-sm">{mockConsultation.doctor.specialty}</p>
+              <h3 className="text-white font-semibold">{consultation.doctor.name}</h3>
+              <p className="text-gray-400 text-sm">{doctorSpecialty}</p>
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${connectionStatus === "connected" ? "bg-green-500" : "bg-red-500"}`}></div>
@@ -169,8 +234,10 @@ export default function PatientTeleconsultationPage() {
         <div className="h-full bg-gray-800 flex items-center justify-center">
           {isVideoOn ? (
             <div className="text-center">
-              <div className="text-9xl mb-4">{mockConsultation.doctor.avatar}</div>
-              <p className="text-white text-xl">{mockConsultation.doctor.name}</p>
+              <div className="w-32 h-32 rounded-full bg-blue-700 flex items-center justify-center text-white text-5xl font-bold mx-auto mb-4">
+                {consultation.doctor.name.charAt(0)}
+              </div>
+              <p className="text-white text-xl">{consultation.doctor.name}</p>
             </div>
           ) : (
             <div className="text-center">
@@ -185,7 +252,9 @@ export default function PatientTeleconsultationPage() {
           {isVideoOn ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <div className="text-4xl">{mockConsultation.patient.avatar}</div>
+                <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white font-bold mx-auto">
+                  {consultation.patient.name.charAt(0)}
+                </div>
                 <p className="text-white text-xs mt-1">You</p>
               </div>
             </div>
@@ -208,8 +277,11 @@ export default function PatientTeleconsultationPage() {
                 ×
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-4 h-[calc(100%-8rem)]">
+              {messages.length === 0 && (
+                <p className="text-gray-400 text-sm text-center mt-8">No messages yet. Start the conversation.</p>
+              )}
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -230,7 +302,7 @@ export default function PatientTeleconsultationPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="p-4 border-t">
               <div className="flex gap-2">
                 <button className="p-2 text-gray-500 hover:text-gray-700">
@@ -281,7 +353,7 @@ export default function PatientTeleconsultationPage() {
             >
               {isVideoOn ? <FaVideo /> : <FaVideoSlash />}
             </button>
-            
+
             <button
               onClick={() => setIsMicOn(!isMicOn)}
               className={`p-3 rounded-full ${
@@ -290,7 +362,7 @@ export default function PatientTeleconsultationPage() {
             >
               {isMicOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
             </button>
-            
+
             <button
               onClick={() => setIsScreenSharing(!isScreenSharing)}
               className={`p-3 rounded-full ${
@@ -299,7 +371,7 @@ export default function PatientTeleconsultationPage() {
             >
               <FaDesktop />
             </button>
-            
+
             <button
               onClick={() => setShowChat(!showChat)}
               className={`p-3 rounded-full ${
@@ -313,7 +385,7 @@ export default function PatientTeleconsultationPage() {
                 </span>
               )}
             </button>
-            
+
             <button
               onClick={() => setIsFullScreen(!isFullScreen)}
               className="p-3 rounded-full bg-gray-700 text-white hover:opacity-80"
@@ -321,7 +393,7 @@ export default function PatientTeleconsultationPage() {
               {isFullScreen ? <FaCompress /> : <FaExpand />}
             </button>
           </div>
-          
+
           <button
             onClick={() => setShowEndCallConfirm(true)}
             className="px-6 py-3 bg-red-500 text-white rounded-full hover:bg-red-600 flex items-center gap-2"

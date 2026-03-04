@@ -135,7 +135,7 @@ export default function CaregiverDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
-              <Link href="/nanny/dashboard/bookings" className="text-purple-600 hover:underline font-medium">View All</Link>
+              <Link href="/nanny/bookings" className="text-purple-600 hover:underline font-medium">View All</Link>
             </div>
             {loading ? (
               <div className="flex justify-center py-8">

@@ -38,9 +38,10 @@ model User {
   gender        String?
   address       String?
   verified      Boolean   @default(false)
-  accountStatus String    @default("active") // active, suspended, pending
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  accountStatus  String    @default("active") // active, suspended, pending
+  referredByCode String?   // Referral code used at signup
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // 1:1 optional profile relations (only one will be non-null per user)
   patientProfile         PatientProfile?
@@ -73,6 +74,14 @@ model User {
   // AI Chat relations
   aiChatSessions    AiChatSession[]
   aiPatientInsights AiPatientInsight[]
+
+  // Provider reviews
+  reviewsReceived   ProviderReview[] @relation("ReviewsReceived")
+  reviewsGiven      ProviderReview[] @relation("ReviewsGiven")
+
+  // Connection relations
+  connectionsSent     UserConnection[] @relation("ConnectionsSent")
+  connectionsReceived UserConnection[] @relation("ConnectionsReceived")
 
   @@index([email])
   @@index([userType])
@@ -107,6 +116,7 @@ model PatientProfile {
   medicineOrders     MedicineOrder[]
   labTestBookings    LabTestBooking[]
   emergencyBookings  EmergencyBooking[]
+  insuranceClaims    InsuranceClaim[]
 
   @@index([userId])
 }
@@ -238,7 +248,8 @@ model InsuranceRepProfile {
   licenseNumber String?
   coverageTypes String[] // health, dental, vision, life
 
-  planListings InsurancePlanListing[]
+  planListings    InsurancePlanListing[]
+  insuranceClaims InsuranceClaim[]
 
   @@index([userId])
 }
@@ -951,8 +962,34 @@ model InsurancePlanListing {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
+  claims InsuranceClaim[]
+
   @@index([insuranceRepId])
   @@index([planType])
+}
+
+model InsuranceClaim {
+  id               String               @id @default(uuid())
+  claimId          String               @unique @default(uuid())
+  insuranceRepId   String
+  insuranceRep     InsuranceRepProfile  @relation(fields: [insuranceRepId], references: [id], onDelete: Cascade)
+  patientId        String
+  patient          PatientProfile       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  planId           String?
+  plan             InsurancePlanListing? @relation(fields: [planId], references: [id])
+  policyHolderName String
+  description      String
+  policyType       String
+  claimAmount      Float
+  status           String               @default("pending") // pending, approved, rejected
+  submittedDate    DateTime             @default(now())
+  resolvedDate     DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([insuranceRepId])
+  @@index([patientId])
+  @@index([status])
 }
 
 // ─── Trial Wallet & Transactions ─────────────────────────────────────────────
@@ -1137,4 +1174,72 @@ model AiPatientInsight {
   @@index([userId, date])
   @@index([userId, category])
   @@index([createdAt])
+}
+
+// ─── Generic Provider Reviews ───────────────────────────────────────────────
+
+model ProviderReview {
+  id             String    @id @default(uuid())
+  providerUserId String
+  providerUser   User      @relation("ReviewsReceived", fields: [providerUserId], references: [id])
+  reviewerUserId String
+  reviewerUser   User      @relation("ReviewsGiven", fields: [reviewerUserId], references: [id])
+  providerType   String    // DOCTOR, NURSE, NANNY, PHARMACIST, LAB_TECHNICIAN, EMERGENCY_WORKER
+  rating         Int
+  comment        String
+  verified       Boolean   @default(false)
+  helpfulCount   Int       @default(0)
+  response       String?
+  respondedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([providerUserId])
+  @@index([providerType])
+  @@index([createdAt])
+}
+
+// ─── Role Feature Configuration (admin-configurable) ────────────────────────
+
+model RoleFeatureConfig {
+  id         String   @id @default(uuid())
+  userType   String
+  featureKey String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userType, featureKey])
+  @@index([userType])
+}
+
+// ─── Required Document Configuration (admin-configurable) ───────────────────
+
+model RequiredDocumentConfig {
+  id           String   @id @default(uuid())
+  userType     String
+  documentName String
+  required     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userType, documentName])
+  @@index([userType])
+}
+
+// ─── User Connections ────────────────────────────────────────────────────────
+
+model UserConnection {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     User     @relation("ConnectionsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ConnectionsReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId])
+  @@index([status])
 }

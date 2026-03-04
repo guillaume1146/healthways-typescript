@@ -51,6 +51,7 @@ const chartOptions = {
 export default function RevenueAnalytics({ timeRange, region }: { timeRange: string; region: string }) {
   const [revenueStreams, setRevenueStreams] = useState<RevenueStream[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [revenueGrowth, setRevenueGrowth] = useState(0);
   const [selectedCurrency, setSelectedCurrency] = useState('MUR');
 
   const currentCurrency = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
@@ -65,6 +66,15 @@ export default function RevenueAnalytics({ timeRange, region }: { timeRange: str
         const revenue = json.data.revenue
 
         setTotalRevenue(revenue.total)
+
+        // Calculate month-over-month growth
+        const thisMonth = revenue.thisMonth ?? revenue.total
+        const lastMonth = revenue.lastMonth ?? 0
+        if (lastMonth > 0) {
+          setRevenueGrowth(Math.round(((thisMonth - lastMonth) / lastMonth) * 100 * 10) / 10)
+        } else if (thisMonth > 0) {
+          setRevenueGrowth(100)
+        }
 
         // Build streams from byServiceType
         const total = revenue.total || 1
@@ -117,7 +127,7 @@ export default function RevenueAnalytics({ timeRange, region }: { timeRange: str
         <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <FaWallet className="text-3xl opacity-80" />
-            <span className="text-sm bg-white/20 px-2 py-1 rounded">+23.4%</span>
+            <span className="text-sm bg-white/20 px-2 py-1 rounded">{revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}%</span>
           </div>
           <p className="text-blue-100 text-sm mb-1">Total Revenue ({timeRange})</p>
           <p className="text-4xl font-bold mb-2">

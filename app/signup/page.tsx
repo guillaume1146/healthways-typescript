@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { userTypes, documentRequirements } from './constants'
 import { SignupFormData, Document } from './types'
 import ProgressSteps from './ProgressSteps'
@@ -21,6 +21,7 @@ export default function RegistrationForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionSuccess, setSubmissionSuccess] = useState(false)
+  const [submissionError, setSubmissionError] = useState<string | null>(null)
   const [documents, setDocuments] = useState<Document[]>(documentRequirements.patient)
 
   // Modal states
@@ -29,6 +30,7 @@ export default function RegistrationForm() {
   const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [formData, setFormData] = useState<SignupFormData>({
     fullName: '',
@@ -40,7 +42,7 @@ export default function RegistrationForm() {
     gender: '',
     address: '',
     userType: 'patient',
-    referralCode: '',
+    referralCode: searchParams.get('promo') || '',
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelation: '',
@@ -172,6 +174,7 @@ export default function RegistrationForm() {
     e.preventDefault()
 
     setIsSubmitting(true)
+    setSubmissionError(null)
 
     try {
       // Build document verification summary
@@ -209,7 +212,7 @@ export default function RegistrationForm() {
     } catch (error) {
       console.error('Registration error:', error)
       const message = error instanceof Error ? error.message : 'Registration failed. Please try again later or contact support.'
-      alert(message)
+      setSubmissionError(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -322,8 +325,29 @@ export default function RegistrationForm() {
                     />
                   )}
 
+                  {/* Inline submission error */}
+                  {submissionError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-red-700 text-sm font-medium">Registration failed</p>
+                        <p className="text-red-600 text-sm mt-0.5">{submissionError}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSubmissionError(null)}
+                        className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0"
+                        aria-label="Dismiss error"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  )}
+
                   {/* Navigation Buttons */}
-                  <NavigationButtons 
+                  <NavigationButtons
                     currentStep={currentStep}
                     isSubmitting={isSubmitting}
                     canProceed={validateStep(currentStep)}
