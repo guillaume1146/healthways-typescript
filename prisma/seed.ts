@@ -5,7 +5,7 @@ import { seedNurses } from './seeds/03-nurses.seed'
 import { seedNannies } from './seeds/04-nannies.seed'
 import { seedPatients } from './seeds/05-patients.seed'
 import { seedClinicalData } from './seeds/06-clinical-data.seed'
-import { seedAppointments } from './seeds/07-appointments.seed'
+import { seedAppointments, seedExtendedBookings } from './seeds/07-appointments.seed'
 import { seedVideoRooms } from './seeds/08-video-rooms.seed'
 import { seedSupportingData } from './seeds/09-supporting-data.seed'
 import { seedNewUserTypes } from './seeds/10-new-user-types.seed'
@@ -128,6 +128,7 @@ async function main() {
   await seedVideoRooms(prisma)
   await seedSupportingData(prisma)
   await seedNewUserTypes(prisma)
+  await seedExtendedBookings(prisma)
   await seedConversations(prisma)
   await seedEnrichedData(prisma)
   await seedBillingAndVideo(prisma)

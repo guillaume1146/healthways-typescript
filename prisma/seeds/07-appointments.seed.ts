@@ -55,6 +55,13 @@ export async function seedAppointments(prisma: PrismaClient) {
   ]
   await prisma.childcareBooking.createMany({ data: childcareBookings, skipDuplicates: true })
 
+  console.log(`  Seeded ${appointments.length} appointments, ${nurseBookings.length} nurse bookings, ${childcareBookings.length} childcare bookings`)
+}
+
+// Separate function for bookings that depend on user types seeded later (lab techs, emergency workers)
+export async function seedExtendedBookings(prisma: PrismaClient) {
+  const now = new Date()
+
   // ── Lab test bookings ────────────────────────────────────────────────────
   const labTestBookings = [
     { patientId: 'PPROF001', labTechId: 'LTPROF001', testName: 'HbA1c + Fasting Glucose Panel', scheduledAt: new Date(now.getTime() + 3 * 86400000), status: 'upcoming', sampleType: 'blood', notes: 'Fasting required for 8 hours prior', price: 850 },
@@ -73,5 +80,5 @@ export async function seedAppointments(prisma: PrismaClient) {
   ]
   await prisma.emergencyBooking.createMany({ data: emergencyBookings, skipDuplicates: true })
 
-  console.log(`  Seeded ${appointments.length} appointments, ${nurseBookings.length} nurse bookings, ${childcareBookings.length} childcare bookings, ${labTestBookings.length} lab test bookings, ${emergencyBookings.length} emergency bookings`)
+  console.log(`  Seeded ${labTestBookings.length} lab test bookings, ${emergencyBookings.length} emergency bookings`)
 }
