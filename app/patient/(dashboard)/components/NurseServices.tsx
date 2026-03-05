@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
@@ -32,8 +32,22 @@ interface AvailableNurse {
   specializations: string[]
 }
 
+interface NurseBookingData {
+  id: string
+  nurseId: string
+  nurseName: string
+  date: string
+  time: string
+  type: string
+  service: string
+  status: string
+  notes?: string
+}
+
 const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookings, setBookings] = useState<NurseBookingData[]>([])
+  const [loadingBookings, setLoadingBookings] = useState(true)
 
   // Booking form state
   const [availableNurses, setAvailableNurses] = useState<AvailableNurse[]>([])
@@ -60,6 +74,38 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     'Health education',
     'Vital signs monitoring'
   ]
+
+  // Fetch nurse bookings for this patient
+  const fetchBookings = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/patients/${patientData.id}/bookings`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const nurseItems = json.data.filter((b: any) => b.type === 'nurse').map((b: any) => ({
+            id: b.id,
+            nurseId: '',
+            nurseName: b.providerName,
+            date: new Date(b.scheduledAt).toISOString().split('T')[0],
+            time: new Date(b.scheduledAt).toTimeString().slice(0, 5),
+            type: b.consultationType || 'home_visit',
+            service: b.detail || 'Nursing Service',
+            status: b.status,
+          }))
+          setBookings(nurseItems)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch nurse bookings:', error)
+    } finally {
+      setLoadingBookings(false)
+    }
+  }, [patientData.id])
+
+  useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
 
   // Fetch available nurses
   useEffect(() => {
@@ -117,8 +163,8 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
-          window.location.reload()
-        }, 2000)
+          fetchBookings()
+        }, 1500)
       } else {
         setSubmitError(data.message || 'Booking failed. Please try again.')
       }
@@ -130,11 +176,10 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   }
 
   const selectedNurse = availableNurses.find(n => n.id === selectedNurseId || n.userId === selectedNurseId)
-
   const canSubmit = selectedNurseId && selectedService && scheduledDate && scheduledTime && !isSubmitting
 
   // Map nurse bookings to BookingItem format
-  const bookingItems: BookingItem[] = (patientData.nurseBookings || []).map((b) => ({
+  const bookingItems: BookingItem[] = bookings.map((b) => ({
     id: b.id,
     providerName: b.nurseName,
     date: b.date,
@@ -144,8 +189,8 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     service: b.service,
     notes: b.notes,
     details: [
-      { label: 'Nurse ID', value: b.nurseId },
-      { label: 'Service Type', value: (b.type || '').replace('_', ' ') },
+      { label: 'Service', value: b.service },
+      { label: 'Visit Type', value: (b.type || '').replace('_', ' ') },
     ],
   }))
 
@@ -322,48 +367,10 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     </div>
   )
 
-  if (!patientData.nurseBookings || patientData.nurseBookings.length === 0) {
+  if (loadingBookings) {
     return (
-      <div className="space-y-4 sm:space-y-5 md:space-y-6">
-        {/* Empty State */}
-        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-pink-200">
-          <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4">
-            <FaUserNurse className="text-pink-500 text-2xl sm:text-3xl" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Nurse Services</h3>
-          <p className="text-gray-500 mb-6 text-sm sm:text-base">Professional nursing care at your home or clinic</p>
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center gap-2 justify-center text-sm sm:text-base"
-          >
-            <FaPlus />
-            Book Nurse Service
-          </button>
-        </div>
-
-        {/* Available Services */}
-        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-pink-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-5 md:mb-6 flex items-center">
-            <FaMedkit className="mr-2 text-pink-500" />
-            Available Nursing Services
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {nurseServices.map((service, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-white/70 to-pink-50/70 border border-pink-200 rounded-lg sm:rounded-xl hover:border-pink-300 hover:from-pink-100 hover:to-purple-100 transition cursor-pointer">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg flex items-center justify-center">
-                  <FaStethoscope className="text-pink-600 text-sm sm:text-base" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 text-xs sm:text-sm">{service}</p>
-                  <p className="text-xs text-gray-600">Professional nursing care</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {showBookingForm && renderBookingForm()}
+      <div className="flex items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-pink-500 text-2xl" />
       </div>
     )
   }
@@ -379,7 +386,6 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         bookLabel="Book Service"
       />
 
-      {/* Bookings List (Reusable Component) */}
       <BookingsList
         bookings={bookingItems}
         providerLabel="Nurse"
@@ -387,41 +393,6 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         onVideoCall={() => onVideoCall()}
         emptyMessage="No nurse bookings yet."
       />
-
-      {/* Nurse Chat Messages */}
-      {patientData.chatHistory?.nurses && patientData.chatHistory.nurses.length > 0 && (
-        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-pink-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-            <FaComments className="mr-2 text-pink-500" />
-            Recent Nurse Communications
-          </h3>
-          <div className="space-y-2.5 sm:space-y-3">
-            {patientData.chatHistory.nurses.map((nurseChat) => (
-              <div key={nurseChat.nurseId} className="bg-gradient-to-r from-white/70 to-pink-50/70 border border-pink-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-pink-500 to-rose-600 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
-                      {(nurseChat.nurseName || 'N').split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900 text-sm sm:text-base">{nurseChat.nurseName}</h4>
-                      <p className="text-xs text-gray-500">{nurseChat.lastMessageTime}</p>
-                    </div>
-                  </div>
-                  {nurseChat.unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 sm:py-1 rounded-full">
-                      {nurseChat.unreadCount} unread
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-700 bg-gradient-to-r from-white to-pink-50 rounded-lg p-2.5 sm:p-3 border border-pink-100">
-                  {nurseChat.lastMessage}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {showBookingForm && renderBookingForm()}
     </div>

@@ -31,20 +31,16 @@ function normalizePrescription(p: any) {
 async function fetchPatientData(baseData: { id: string }) {
   const userId = baseData.id
 
-  const [appointmentsRes, activePrescriptionsRes, allPrescriptionsRes, recordsRes, labTestsRes] = await Promise.all([
-    fetch(`/api/patients/${userId}/appointments?status=upcoming`).catch(() => null),
+  const [activePrescriptionsRes, allPrescriptionsRes, recordsRes] = await Promise.all([
     fetch(`/api/patients/${userId}/prescriptions?active=true`).catch(() => null),
     fetch(`/api/patients/${userId}/prescriptions`).catch(() => null),
     fetch(`/api/patients/${userId}/medical-records`).catch(() => null),
-    fetch(`/api/patients/${userId}/lab-tests`).catch(() => null),
   ])
 
-  const [appointments, activePrescriptions, allPrescriptions, records] = await Promise.all([
-    appointmentsRes?.ok ? appointmentsRes.json() : null,
+  const [activePrescriptions, allPrescriptions, records] = await Promise.all([
     activePrescriptionsRes?.ok ? activePrescriptionsRes.json() : null,
     allPrescriptionsRes?.ok ? allPrescriptionsRes.json() : null,
     recordsRes?.ok ? recordsRes.json() : null,
-    labTestsRes?.ok ? labTestsRes.json() : null,
   ])
 
   const activeList = (activePrescriptions?.data ?? []).map(normalizePrescription)
@@ -53,7 +49,6 @@ async function fetchPatientData(baseData: { id: string }) {
 
   return {
     ...baseData,
-    upcomingAppointments: appointments?.data ?? [],
     activePrescriptions: activeList,
     prescriptionHistory: historyList,
     medicalRecords: records?.data ?? [],
@@ -64,7 +59,7 @@ export default createDashboardLayout({
   userSubtitle: 'Patient',
   sidebarItems: PATIENT_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/patient/settings',
+  profileHref: '/patient/profile',
   ContextProvider: PatientDashboardProvider,
   fetchDashboardData: fetchPatientData,
 })

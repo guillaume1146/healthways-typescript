@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
@@ -112,8 +112,19 @@ const availableTests: LabTest[] = [
   },
 ]
 
+interface LabBookingData {
+  id: string
+  testName: string
+  date: string
+  facility: string
+  status: string
+  notes?: string
+}
+
 const LabResults: React.FC<Props> = ({ patientData }) => {
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [labBookings, setLabBookings] = useState<LabBookingData[]>([])
+  const [loadingBookings, setLoadingBookings] = useState(true)
 
   // Booking form state
   const [selectedTests, setSelectedTests] = useState<string[]>([])
@@ -129,6 +140,35 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
   const [showFilters, setShowFilters] = useState(false)
   const [expandedTest, setExpandedTest] = useState<string | null>(null)
   const [expandedResultId, setExpandedResultId] = useState<string | null>(null)
+
+  // Fetch lab test bookings for this patient
+  const fetchBookings = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/patients/${patientData.id}/bookings`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const labItems = json.data.filter((b: any) => b.type === 'lab-test').map((b: any) => ({
+            id: b.id,
+            testName: b.detail || b.testName || 'Lab Test',
+            date: new Date(b.scheduledAt).toISOString().split('T')[0],
+            facility: b.providerName || 'Lab',
+            status: b.status,
+          }))
+          setLabBookings(labItems)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch lab bookings:', error)
+    } finally {
+      setLoadingBookings(false)
+    }
+  }, [patientData.id])
+
+  useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
 
   const categories = ['all', ...Array.from(new Set(availableTests.map(t => t.category)))]
 
@@ -190,8 +230,8 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
-          window.location.reload()
-        }, 2000)
+          fetchBookings()
+        }, 1500)
       } else {
         setSubmitError(data.message || 'Booking failed. Please try again.')
       }
@@ -204,27 +244,20 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
 
   const canSubmit = selectedTests.length > 0 && scheduledDate && scheduledTime && !isSubmitting
 
-  // Map lab tests to BookingItem format
-  const bookingItems: BookingItem[] = (patientData.labTests || []).map((test) => {
-    const hasAbnormal = test.results.some(r => r.status === 'abnormal')
-    return {
-      id: test.id,
-      providerName: test.facility,
-      date: test.date,
-      time: '',
-      status: hasAbnormal ? 'pending' : 'completed',
-      service: test.testName,
-      notes: test.notes || `Ordered by: ${test.orderedBy}`,
-      details: [
-        { label: 'Test Name', value: test.testName },
-        { label: 'Facility', value: test.facility },
-        { label: 'Ordered By', value: test.orderedBy },
-        { label: 'Parameters', value: `${test.results.length} tested` },
-        { label: 'Normal', value: `${test.results.filter(r => r.status === 'normal').length}` },
-        { label: 'Abnormal', value: `${test.results.filter(r => r.status === 'abnormal').length}` },
-      ],
-    }
-  })
+  // Map lab test bookings to BookingItem format
+  const bookingItems: BookingItem[] = labBookings.map((b) => ({
+    id: b.id,
+    providerName: b.facility,
+    date: b.date,
+    time: '',
+    status: b.status,
+    service: b.testName,
+    notes: b.notes,
+    details: [
+      { label: 'Test Name', value: b.testName },
+      { label: 'Facility', value: b.facility },
+    ],
+  }))
 
   // Generate available dates (next 14 days)
   const getAvailableDates = () => {
@@ -571,7 +604,15 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
     </div>
   )
 
-  if (!patientData.labTests || patientData.labTests.length === 0) {
+  if (loadingBookings) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-cyan-500 text-2xl" />
+      </div>
+    )
+  }
+
+  if (labBookings.length === 0 && (!patientData.labTests || patientData.labTests.length === 0)) {
     return (
       <div className="space-y-4">
         <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-cyan-200">

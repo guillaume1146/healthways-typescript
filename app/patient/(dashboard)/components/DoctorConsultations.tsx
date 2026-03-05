@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
@@ -16,35 +16,25 @@ import {
   FaHospital,
 } from 'react-icons/fa'
 
-/** Shared appointment fields */
-type AppointmentBase = {
+interface Appointment {
   id: string
-  doctorId: string
   doctorName: string
+  doctorId: string
   specialty: string
   date: string
   time: string
   duration: number
-  status: 'upcoming' | 'completed' | 'cancelled'
+  type: string
+  status: string
   reason: string
+  location?: string
+  roomId?: string
   notes?: string
 }
 
-type VideoAppointment = AppointmentBase & {
-  type: 'video'
-  roomId: string
-}
-
-type InPersonAppointment = AppointmentBase & {
-  type: 'in-person'
-  location: string
-}
-
-type Appointment = VideoAppointment | InPersonAppointment
-
 interface Props {
   patientData: Patient
-  onVideoCall: (appointment?: VideoAppointment) => void
+  onVideoCall: (appointment?: Appointment) => void
 }
 
 interface AvailableDoctor {
@@ -58,8 +48,30 @@ interface AvailableDoctor {
   location: string | null
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeAppointment(a: any): Appointment {
+  const dt = a.scheduledAt ? new Date(a.scheduledAt) : null
+  return {
+    id: a.id,
+    date: dt ? dt.toISOString().split('T')[0] : '',
+    time: dt ? dt.toTimeString().slice(0, 5) : '',
+    type: a.type === 'in_person' ? 'in-person' : a.type,
+    status: a.status,
+    doctorName: a.doctor ? `Dr. ${a.doctor.user.firstName} ${a.doctor.user.lastName}` : 'Unknown',
+    doctorId: a.doctor?.id ?? '',
+    specialty: a.specialty || '',
+    reason: a.reason || '',
+    duration: a.duration || 30,
+    location: a.location || undefined,
+    roomId: a.roomId || undefined,
+    notes: a.notes || undefined,
+  }
+}
+
 const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loadingBookings, setLoadingBookings] = useState(true)
 
   // Booking form state
   const [availableDoctors, setAvailableDoctors] = useState<AvailableDoctor[]>([])
@@ -74,9 +86,26 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const upcoming = (patientData.upcomingAppointments ?? []) as Appointment[]
-  const past = (patientData.pastAppointments ?? []) as Appointment[]
-  const allAppointments: Appointment[] = [...upcoming, ...past]
+  // Fetch appointments for this patient
+  const fetchAppointments = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/patients/${patientData.id}/appointments`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          setAppointments(json.data.map(normalizeAppointment))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch appointments:', error)
+    } finally {
+      setLoadingBookings(false)
+    }
+  }, [patientData.id])
+
+  useEffect(() => {
+    fetchAppointments()
+  }, [fetchAppointments])
 
   // Fetch available doctors when booking form opens
   useEffect(() => {
@@ -134,8 +163,8 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
-          window.location.reload()
-        }, 2000)
+          fetchAppointments()
+        }, 1500)
       } else {
         setSubmitError(data.message || 'Booking failed. Please try again.')
       }
@@ -149,17 +178,8 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const selectedDoctor = availableDoctors.find(d => d.id === selectedDoctorId || d.userId === selectedDoctorId)
   const canSubmit = selectedDoctorId && scheduledDate && scheduledTime && reason.trim() && !isSubmitting
 
-  const handleVideoCall = (appointment: VideoAppointment) => {
-    if (appointment.roomId) {
-      localStorage.setItem(`current_video_appointment`, JSON.stringify(appointment))
-      onVideoCall(appointment)
-    } else {
-      alert('This appointment does not have a room ID for video consultation')
-    }
-  }
-
   // Map appointments to BookingItem format
-  const bookingItems: BookingItem[] = allAppointments.map((apt) => ({
+  const bookingItems: BookingItem[] = appointments.map((apt) => ({
     id: apt.id,
     providerName: apt.doctorName,
     date: apt.date,
@@ -172,15 +192,16 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
       { label: 'Specialty', value: apt.specialty },
       { label: 'Duration', value: `${apt.duration} minutes` },
       { label: 'Type', value: apt.type === 'video' ? 'Video Consultation' : 'In-Person Visit' },
-      ...(apt.type === 'in-person' ? [{ label: 'Location', value: apt.location }] : []),
-      ...(apt.type === 'video' && apt.roomId ? [{ label: 'Room ID', value: apt.roomId }] : []),
+      ...(apt.location ? [{ label: 'Location', value: apt.location }] : []),
+      ...(apt.roomId ? [{ label: 'Room ID', value: apt.roomId }] : []),
     ],
   }))
 
   const handleBookingVideoCall = (booking: BookingItem) => {
-    const apt = allAppointments.find(a => a.id === booking.id)
-    if (apt && apt.type === 'video' && 'roomId' in apt) {
-      handleVideoCall(apt as VideoAppointment)
+    const apt = appointments.find(a => a.id === booking.id)
+    if (apt && apt.type === 'video' && apt.roomId) {
+      localStorage.setItem('current_video_appointment', JSON.stringify(apt))
+      onVideoCall(apt)
     }
   }
 
@@ -354,24 +375,10 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     </div>
   )
 
-  if (allAppointments.length === 0) {
+  if (loadingBookings) {
     return (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-blue-200">
-          <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4">
-            <FaUserMd className="text-blue-500 text-2xl sm:text-3xl" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Consultations Found</h3>
-          <p className="text-gray-500 mb-6 text-sm sm:text-base">You have not booked any consultations yet. Start your health journey today!</p>
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto text-sm sm:text-base w-fit"
-          >
-            <FaPlus />
-            Book Your First Consultation
-          </button>
-        </div>
-        {showBookingForm && renderBookingForm()}
+      <div className="flex items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
       </div>
     )
   }
@@ -387,7 +394,6 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
         bookLabel="Book Appointment"
       />
 
-      {/* Bookings List (Reusable Component) */}
       <BookingsList
         bookings={bookingItems}
         providerLabel="Doctor"

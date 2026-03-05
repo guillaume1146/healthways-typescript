@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
@@ -8,7 +8,6 @@ import {
   FaBaby,
   FaMoon,
   FaVideo,
-  FaComments,
   FaPlus,
   FaCheckCircle,
   FaTimes,
@@ -46,8 +45,23 @@ interface AvailableNanny {
   certifications: string[]
 }
 
+interface ChildcareBookingData {
+  id: string
+  nannyId: string
+  nannyName: string
+  date: string
+  time: string
+  duration: number
+  type: string
+  children: string[]
+  specialInstructions?: string
+  status: string
+}
+
 const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookings, setBookings] = useState<ChildcareBookingData[]>([])
+  const [loadingBookings, setLoadingBookings] = useState(true)
 
   // Booking form state
   const [availableNannies, setAvailableNannies] = useState<AvailableNanny[]>([])
@@ -75,8 +89,42 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     { icon: FaLanguage, name: 'Language Development', description: 'Multilingual exposure and communication skills' }
   ]
 
-  // Fetch available nannies
+  // Fetch childcare bookings for this patient
+  const fetchBookings = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/patients/${patientData.id}/bookings`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const nannyItems = json.data.filter((b: any) => b.type === 'nanny').map((b: any) => ({
+            id: b.id,
+            nannyId: '',
+            nannyName: b.providerName,
+            date: new Date(b.scheduledAt).toISOString().split('T')[0],
+            time: new Date(b.scheduledAt).toTimeString().slice(0, 5),
+            duration: 2,
+            type: 'regular',
+            children: [],
+            status: b.status,
+          }))
+          setBookings(nannyItems)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch childcare bookings:', error)
+    } finally {
+      setLoadingBookings(false)
+    }
+  }, [patientData.id])
+
   useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
+
+  // Fetch available nannies when booking form opens
+  useEffect(() => {
+    if (!showBookingForm) return
     const fetchNannies = async () => {
       setLoadingNannies(true)
       try {
@@ -94,7 +142,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
       }
     }
     fetchNannies()
-  }, [])
+  }, [showBookingForm])
 
   const resetBookingForm = () => {
     setSelectedNannyId('')
@@ -135,8 +183,8 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
-          window.location.reload()
-        }, 2000)
+          fetchBookings()
+        }, 1500)
       } else {
         setSubmitError(data.message || 'Booking failed. Please try again.')
       }
@@ -152,19 +200,18 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const canSubmit = selectedNannyId && scheduledDate && scheduledTime && validChildren.length > 0 && !isSubmitting
 
   // Map childcare bookings to BookingItem format
-  const bookingItems: BookingItem[] = (patientData.childcareBookings || []).map((b) => ({
+  const bookingItems: BookingItem[] = bookings.map((b) => ({
     id: b.id,
     providerName: b.nannyName,
     date: b.date,
     time: b.time,
     status: b.status,
     type: b.type,
-    service: `${b.type === 'overnight' ? 'Overnight' : 'Regular'} Care - ${b.children.length} ${b.children.length === 1 ? 'child' : 'children'}`,
+    service: `${b.type === 'overnight' ? 'Overnight' : 'Regular'} Care`,
     notes: b.specialInstructions,
     details: [
-      { label: 'Children', value: b.children.join(', ') },
+      ...(b.children.length > 0 ? [{ label: 'Children', value: b.children.join(', ') }] : []),
       { label: 'Duration', value: `${b.duration} hours` },
-      { label: 'Nanny ID', value: b.nannyId },
       { label: 'Care Type', value: b.type === 'overnight' ? 'Overnight' : 'Regular' },
     ],
   }))
@@ -415,7 +462,15 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     </div>
   )
 
-  if (!patientData.childcareBookings || patientData.childcareBookings.length === 0) {
+  if (loadingBookings) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-purple-500 text-2xl" />
+      </div>
+    )
+  }
+
+  if (bookings.length === 0) {
     return (
       <div className="space-y-4 sm:space-y-5 md:space-y-6">
         {/* Empty State */}
@@ -455,50 +510,6 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
             ))}
           </div>
         </div>
-
-        {/* Featured Nannies */}
-        {availableNannies.length > 0 && (
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-yellow-200">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-5 md:mb-6 flex items-center">
-              <FaAward className="mr-2 text-yellow-500" />
-              Our Certified Nannies
-            </h3>
-
-            <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4 md:gap-6">
-              {availableNannies.map((nanny) => (
-                <div key={nanny.id} className="bg-gradient-to-br from-white/70 to-orange-50/70 border border-orange-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition">
-                  <div className="text-center mb-3 sm:mb-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base md:text-lg mx-auto mb-2 sm:mb-3">
-                      {nanny.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{nanny.name}</h4>
-                    <p className="text-xs sm:text-sm text-gray-600">{nanny.experience} experience</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 mb-1">Certifications:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {nanny.certifications.slice(0, 2).map((cert, index) => (
-                          <span key={index} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded text-xs">
-                            {cert}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => { setSelectedNannyId(nanny.userId); setShowBookingForm(true) }}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition text-xs sm:text-sm"
-                    >
-                      Book with {nanny.name.split(' ')[0]}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Safety Features */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
@@ -541,7 +552,6 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         bookLabel="Book Service"
       />
 
-      {/* Bookings List (Reusable Component) */}
       <BookingsList
         bookings={bookingItems}
         providerLabel="Nanny"
@@ -549,41 +559,6 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
         onVideoCall={() => onVideoCall()}
         emptyMessage="No childcare bookings yet."
       />
-
-      {/* Nanny Chat Messages */}
-      {patientData.chatHistory?.nannies && patientData.chatHistory.nannies.length > 0 && (
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-purple-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-            <FaComments className="mr-2 text-purple-500" />
-            Recent Nanny Communications
-          </h3>
-          <div className="space-y-2.5 sm:space-y-3">
-            {patientData.chatHistory.nannies.map((nannyChat) => (
-              <div key={nannyChat.nannyId} className="bg-gradient-to-r from-white/70 to-purple-50/70 border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
-                      {(nannyChat.nannyName || 'N').split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900 text-sm sm:text-base">{nannyChat.nannyName}</h4>
-                      <p className="text-xs text-gray-500">{nannyChat.lastMessageTime}</p>
-                    </div>
-                  </div>
-                  {nannyChat.unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 sm:py-1 rounded-full">
-                      {nannyChat.unreadCount} unread
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-700 bg-gradient-to-r from-white to-purple-50 rounded-lg p-2.5 sm:p-3 border">
-                  {nannyChat.lastMessage}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {showBookingForm && renderBookingForm()}
     </div>
