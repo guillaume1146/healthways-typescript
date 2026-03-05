@@ -40,7 +40,9 @@
       "Bash(PGPASSWORD=healthwyz_secret psql:*)",
       "Bash(docker port:*)",
       "Bash(docker:*)",
-      "Bash(__NEW_LINE_52182f0e14a62e93__ head:*)"
+      "Bash(__NEW_LINE_52182f0e14a62e93__ head:*)",
+      "Bash(DATABASE_URL=\"postgresql://healthwyz:healthwyz_secret@127.0.0.1:5432/healthwyz\" npx prisma:*)",
+      "Bash(sed:*)"
     ]
   }
 }

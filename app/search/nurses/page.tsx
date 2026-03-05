@@ -337,11 +337,6 @@ function NursesSearchContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Find a Nurse</h1>
-        <p className="text-gray-500 mt-1">Connect with nursing professionals in Mauritius</p>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
         <div className="max-w-4xl mx-auto relative z-10">

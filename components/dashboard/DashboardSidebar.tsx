@@ -76,7 +76,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         </div>
 
-        <div className={`h-full overflow-y-auto pt-16 md:pt-16 lg:pt-16 ${isCollapsedDesktop ? 'p-2' : 'p-3 sm:p-4 md:p-5 lg:p-6'}`}>
+        <div className={`h-full overflow-y-auto pt-4 md:pt-20 lg:pt-20 ${isCollapsedDesktop ? 'p-2' : 'p-3 sm:p-4 md:p-5 lg:p-6'}`}>
           {/* Navigation items */}
           <nav className="space-y-1.5 sm:space-y-2" aria-label="Dashboard menu" aria-hidden={isMobile && !isOpen ? true : undefined}>
             {items.map((item) => {

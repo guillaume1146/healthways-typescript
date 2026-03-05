@@ -417,30 +417,6 @@ export default function InsurancePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <div className="container mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Health Insurance Plans</h1>
-        <p className="text-gray-500 mt-1">Compare and find the right coverage for you</p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaCheckCircle className="text-green-500" />
-            <span>IRDAI Approved</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaLock className="text-blue-500" />
-            <span>Secure Platform</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaCalculator className="text-blue-500" />
-            <span>Instant Quotes</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaHeadset className="text-orange-500" />
-            <span>Expert Guidance</span>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6">

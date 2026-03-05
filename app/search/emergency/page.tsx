@@ -385,11 +385,6 @@ export default function EmergencyPage() {
         </div>
       </div>
       
-      <div className="container mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Emergency Services</h1>
-        <p className="text-gray-500 mt-1">Find emergency services in Mauritius</p>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Search Section */}
         <div className="max-w-4xl mx-auto relative z-10">

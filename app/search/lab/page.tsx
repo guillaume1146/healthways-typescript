@@ -356,30 +356,6 @@ export default function LabTestingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      {/* Header */}
-      <div className="container mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Lab Tests & Diagnostics</h1>
-        <p className="text-gray-500 mt-1">Book lab tests and diagnostic services</p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaCheckCircle className="text-green-500" />
-            <span>NABL Certified Labs</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaHome className="text-blue-500" />
-            <span>Home Collection</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaFileAlt className="text-purple-500" />
-            <span>Digital Reports</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaHeadset className="text-orange-500" />
-            <span>Expert Consultation</span>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
         <div className="max-w-4xl mx-auto">

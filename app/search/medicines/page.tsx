@@ -547,29 +547,6 @@ function MedicinesContent() {
       {/* Floating Cart */}
       <FloatingCart />
 
-      <div className="container mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Medicine Store</h1>
-        <p className="text-gray-500 mt-1">Browse and order medicines online</p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaCheckCircle className="text-green-500" />
-            <span>Authentic Medicines</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaTruck className="text-blue-500" />
-            <span>Fast Delivery</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaLock className="text-green-500" />
-            <span>Licensed Pharmacies</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
-            <FaHeadset className="text-orange-500" />
-            <span>24/7 Support</span>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-6">
