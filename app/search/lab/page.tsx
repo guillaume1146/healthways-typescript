@@ -358,8 +358,8 @@ export default function LabTestingPage() {
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+        <div>
+          <div className="bg-white rounded-xl shadow-xl p-4">
             <div>
               <div className="flex flex-col gap-4">
                 <div className="relative">
@@ -368,7 +368,7 @@ export default function LabTestingPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search lab tests by name, condition, or symptoms (e.g., 'diabetes test', 'cholesterol check')"
-                    className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-lg"
+                    className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
                   />
                   <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
@@ -394,7 +394,7 @@ export default function LabTestingPage() {
                   <select 
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 transition-colors"
+                    className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 transition-colors"
                   >
                     <option value="all">All Categories</option>
                     <option value="hematology">Blood Tests</option>
@@ -409,13 +409,13 @@ export default function LabTestingPage() {
                   <button 
                     type="button"
                     onClick={handleSearch}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px]"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-2.5 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px]"
                   >
                     <FaSearch />
                     Find Tests
                   </button>
                   
-                  <button className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-teal-700 transition-all duration-200 font-medium flex items-center gap-2">
+                  <button className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-2.5 rounded-xl hover:from-green-700 hover:to-teal-700 transition-all duration-200 font-medium flex items-center gap-2">
                     <FaShoppingCart />
                     Cart ({cartCount})
                   </button>

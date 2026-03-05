@@ -339,8 +339,8 @@ function NursesSearchContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 py-8">
         {/* Search Form */}
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+        <div className="relative z-10">
+          <div className="bg-white rounded-xl shadow-xl p-4">
             <form onSubmit={handleSearch} className="flex flex-col gap-4">
               <div className="relative">
                 <input
@@ -350,7 +350,7 @@ function NursesSearchContent() {
                   onFocus={() => !searchQuery && setShowHistory(true)}
                   onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                   placeholder="Describe what you are looking for (e.g., 'elderly care nurse', 'post-surgery care', 'pediatric nurse')"
-                  className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-lg"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-base"
                 />
                 <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
 
@@ -402,7 +402,7 @@ function NursesSearchContent() {
                 <select
                   value={filters.specialty}
                   onChange={(e) => handleFilterChange('specialty', e.target.value)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                 >
                   {NURSE_SPECIALTIES.map(s => (
                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -413,7 +413,7 @@ function NursesSearchContent() {
                   id="nurse-search-btn"
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg disabled:opacity-50"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>

@@ -387,8 +387,8 @@ export default function EmergencyPage() {
       
       <div className="container mx-auto px-4 py-8">
         {/* Search Section */}
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-red-200">
+        <div className="relative z-10">
+          <div className="bg-white rounded-xl shadow-xl p-4 border-2 border-red-200">
             <div className="flex flex-col gap-4">
               <div className="relative">
                 <input
@@ -396,7 +396,7 @@ export default function EmergencyPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Describe your emergency or search for services (e.g., 'chest pain', 'fire', 'poison')"
-                  className="w-full px-5 py-4 pr-12 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors text-lg"
+                  className="w-full px-4 py-3 pr-12 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors text-base"
                 />
                 <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-red-400" />
               </div>
@@ -422,7 +422,7 @@ export default function EmergencyPage() {
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="flex-1 px-4 py-3 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors"
+                  className="flex-1 px-4 py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors"
                 >
                   <option value="all">All Emergency Services</option>
                   <option value="medical">Medical Emergency</option>
@@ -436,7 +436,7 @@ export default function EmergencyPage() {
                 <button 
                   type="button"
                   onClick={handleSearch}
-                  className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-3 rounded-xl hover:from-red-700 hover:to-orange-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg"
+                  className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-2.5 rounded-xl hover:from-red-700 hover:to-orange-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg"
                 >
                   <FaSearch />
                   Find Service

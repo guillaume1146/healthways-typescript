@@ -548,8 +548,8 @@ function MedicinesContent() {
       <FloatingCart />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+        <div>
+          <div className="bg-white rounded-xl shadow-xl p-4">
             <form onSubmit={handleSearch}>
               <div className="flex flex-col gap-4">
                 <div className="relative">
@@ -560,7 +560,7 @@ function MedicinesContent() {
                     onFocus={() => !searchQuery && setShowHistory(true)}
                     onBlur={() => setTimeout(() => setShowHistory(false), 200)}
                     placeholder="Search medicines by name, condition, or symptoms (e.g., 'headache medicine', 'diabetes pills')"
-                    className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors text-lg"
+                    className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors text-base"
                   />
                   <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
 
@@ -629,7 +629,7 @@ function MedicinesContent() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors"
+                    className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 transition-colors"
                   >
                     <option value="all">All Categories</option>
                     <option value="pain relief">Pain Relief</option>
@@ -644,7 +644,7 @@ function MedicinesContent() {
                   <button
                     id="medicine-search-btn"
                     type="submit"
-                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px]"
+                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-2.5 rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px]"
                   >
                     <FaSearch />
                     Find Medicine

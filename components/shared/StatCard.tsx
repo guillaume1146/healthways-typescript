@@ -12,6 +12,15 @@ function useCountUp(target: number, duration: number = 2000) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
   const hasAnimated = useRef(false)
+  const lastTarget = useRef(target)
+
+  // Reset animation when target changes significantly
+  useEffect(() => {
+    if (lastTarget.current !== target) {
+      lastTarget.current = target
+      hasAnimated.current = false
+    }
+  }, [target])
 
   useEffect(() => {
     if (!ref.current || hasAnimated.current) return
@@ -24,7 +33,6 @@ function useCountUp(target: number, duration: number = 2000) {
           const animate = () => {
             const elapsed = Date.now() - startTime
             const progress = Math.min(elapsed / duration, 1)
-            // Ease-out cubic
             const eased = 1 - Math.pow(1 - progress, 3)
             setCount(Math.floor(eased * target))
             if (progress < 1) {
