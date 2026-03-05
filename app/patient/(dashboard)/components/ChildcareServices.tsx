@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
+import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
 import {
   FaBaby,
-  FaChild,
   FaMoon,
   FaVideo,
   FaComments,
@@ -32,7 +31,6 @@ import {
   FaHome,
   FaUserCheck,
   FaCameraRetro,
-  FaExternalLinkAlt,
   FaSpinner,
   FaHospital,
 } from 'react-icons/fa'
@@ -464,22 +462,13 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           </div>
           <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Childcare Services</h3>
           <p className="text-gray-500 mb-6 text-sm sm:text-base">Professional childcare services for your peace of mind</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => setShowBookingForm(true)}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-purple-600 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center gap-2 justify-center text-sm sm:text-base"
-            >
-              <FaPlus />
-              Book Childcare Service
-            </button>
-            <Link
-              href="/search/childcare"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all flex items-center gap-2 justify-center text-sm sm:text-base"
-            >
-              <FaExternalLinkAlt />
-              Find & Book a Nanny
-            </Link>
-          </div>
+          <button
+            onClick={() => setShowBookingForm(true)}
+            className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-purple-600 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center gap-2 justify-center text-sm sm:text-base"
+          >
+            <FaPlus />
+            Book Childcare Service
+          </button>
         </div>
 
         {/* Service Features */}
@@ -580,34 +569,14 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
 
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 flex items-center">
-              <FaBaby className="mr-2 sm:mr-3" />
-              Childcare Services
-            </h2>
-            <p className="opacity-90 text-xs sm:text-sm">Professional childcare for your little ones</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowBookingForm(true)}
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition flex items-center gap-2 text-sm"
-            >
-              <FaPlus />
-              Book Service
-            </button>
-            <Link
-              href="/search/childcare"
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition flex items-center gap-2 text-sm"
-            >
-              <FaExternalLinkAlt />
-              Find Nanny
-            </Link>
-          </div>
-        </div>
-      </div>
+      <ProviderPageHeader
+        icon={FaBaby}
+        title="Childcare Services"
+        subtitle="Professional childcare for your little ones"
+        gradient="from-purple-500 via-pink-500 to-purple-600"
+        onBook={() => setShowBookingForm(true)}
+        bookLabel="Book Service"
+      />
 
       {/* Bookings List (Reusable Component) */}
       <BookingsList

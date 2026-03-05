@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
+import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
 import {
   FaUserNurse,
   FaHome,
@@ -13,7 +13,6 @@ import {
   FaPlus,
   FaCheckCircle,
   FaTimes,
-  FaExternalLinkAlt,
   FaSpinner,
   FaMedkit,
   FaCalendarPlus,
@@ -369,22 +368,13 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           </div>
           <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Nurse Services</h3>
           <p className="text-gray-500 mb-6 text-sm sm:text-base">Professional nursing care at your home or clinic</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => setShowBookingForm(true)}
-              className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center gap-2 justify-center text-sm sm:text-base"
-            >
-              <FaPlus />
-              Book Nurse Service
-            </button>
-            <Link
-              href="/search/nurses"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all flex items-center gap-2 justify-center text-sm sm:text-base"
-            >
-              <FaExternalLinkAlt />
-              Find & Book a Nurse
-            </Link>
-          </div>
+          <button
+            onClick={() => setShowBookingForm(true)}
+            className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:from-pink-600 hover:to-pink-700 transition-all transform hover:scale-105 flex items-center gap-2 justify-center text-sm sm:text-base"
+          >
+            <FaPlus />
+            Book Nurse Service
+          </button>
         </div>
 
         {/* Available Services */}
@@ -416,34 +406,14 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
 
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 flex items-center">
-              <FaUserNurse className="mr-2 sm:mr-3" />
-              Nurse Services
-            </h2>
-            <p className="opacity-90 text-xs sm:text-sm">Professional nursing care and health support</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowBookingForm(true)}
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition flex items-center gap-2 text-sm"
-            >
-              <FaPlus />
-              Book Service
-            </button>
-            <Link
-              href="/search/nurses"
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition flex items-center gap-2 text-sm"
-            >
-              <FaExternalLinkAlt />
-              Find Nurse
-            </Link>
-          </div>
-        </div>
-      </div>
+      <ProviderPageHeader
+        icon={FaUserNurse}
+        title="Nurse Services"
+        subtitle="Professional nursing care and health support"
+        gradient="from-pink-500 via-rose-500 to-purple-600"
+        onBook={() => setShowBookingForm(true)}
+        bookLabel="Book Service"
+      />
 
       {/* Bookings List (Reusable Component) */}
       <BookingsList

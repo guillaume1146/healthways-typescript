@@ -48,23 +48,23 @@ const baseBookingSchema = z.object({
 })
 
 export const createDoctorBookingSchema = baseBookingSchema.extend({
-  doctorId: z.string().uuid(),
+  doctorId: z.string().min(1, 'Doctor ID is required'),
   consultationType: z.enum(['in_person', 'home_visit', 'video']),
 })
 
 export const createNurseBookingSchema = baseBookingSchema.extend({
-  nurseId: z.string().uuid(),
+  nurseId: z.string().min(1, 'Nurse ID is required'),
   consultationType: z.enum(['in_person', 'home_visit', 'video']),
 })
 
 export const createNannyBookingSchema = baseBookingSchema.extend({
-  nannyId: z.string().uuid(),
+  nannyId: z.string().min(1, 'Nanny ID is required'),
   consultationType: z.enum(['in_person', 'home_visit', 'video']),
   children: z.array(z.string()).optional(),
 })
 
 export const createLabTestBookingSchema = z.object({
-  labTechId: z.string().uuid().optional(),
+  labTechId: z.string().min(1).optional(),
   testName: z.string().min(1, 'Test name is required'),
   scheduledDate: z.string().min(1),
   scheduledTime: z.string().min(1),
