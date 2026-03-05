@@ -635,7 +635,7 @@ async function startServer() {
   // ─── Start ──────────────────────────────────────────────────────────────────
 
   const actualPort = process.env.PORT || port
-  server.listen(actualPort, () => {
+  server.listen(actualPort, '0.0.0.0', () => {
     console.log(`Server ready on port ${actualPort} (${dev ? 'development' : 'production'})`)
     console.log('WebRTC signaling active | Database sessions enabled')
   })

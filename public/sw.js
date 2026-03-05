@@ -1,7 +1,9 @@
 // Healthwyz Service Worker
-const CACHE_NAME = 'healthwyz-v1'
-const STATIC_CACHE = 'healthwyz-static-v1'
-const API_CACHE = 'healthwyz-api-v1'
+// In development, use network-only to avoid stale cache issues
+const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1'
+const CACHE_NAME = 'healthwyz-v2'
+const STATIC_CACHE = 'healthwyz-static-v2'
+const API_CACHE = 'healthwyz-api-v2'
 
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [
@@ -12,6 +14,11 @@ const PRECACHE_URLS = [
 
 // Install event — pre-cache static assets
 self.addEventListener('install', (event) => {
+  if (IS_DEV) {
+    // In dev, skip caching entirely
+    self.skipWaiting()
+    return
+  }
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll(PRECACHE_URLS).catch((err) => {
@@ -25,12 +32,12 @@ self.addEventListener('install', (event) => {
 
 // Activate event — clean up old caches
 self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME, STATIC_CACHE, API_CACHE]
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!currentCaches.includes(cacheName)) {
+          // In dev, delete ALL caches. In prod, keep current versions.
+          if (IS_DEV || ![CACHE_NAME, STATIC_CACHE, API_CACHE].includes(cacheName)) {
             return caches.delete(cacheName)
           }
         })
@@ -41,7 +48,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
-// Fetch event — network-first for API, cache-first for static assets
+// Fetch event
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
@@ -55,6 +62,11 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http(s) requests
   if (!url.protocol.startsWith('http')) return
 
+  // In development: always go to network, never cache
+  if (IS_DEV) return
+
+  // --- Production caching below ---
+
   // API requests: network-first with cache fallback
   if (url.pathname.startsWith('/api/')) {
     // Don't cache auth endpoints
@@ -63,7 +75,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Only cache successful responses
           if (response.ok) {
             const responseClone = response.clone()
             caches.open(API_CACHE).then((cache) => {
