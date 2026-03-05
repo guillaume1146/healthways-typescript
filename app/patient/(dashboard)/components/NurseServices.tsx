@@ -3,6 +3,7 @@ import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
+import ProviderSearchSelect, { ProviderOption } from '@/components/booking/ProviderSearchSelect'
 import {
   FaUserNurse,
   FaHome,
@@ -15,10 +16,6 @@ import {
   FaTimes,
   FaSpinner,
   FaMedkit,
-  FaCalendarPlus,
-  FaUserClock,
-  FaClipboardList,
-  FaHistory,
 } from 'react-icons/fa'
 
 interface Props {
@@ -201,55 +198,22 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
               </div>
 
               {/* Step 2: Select Nurse */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
-                  Select Nurse <span className="text-red-500">*</span>
-                </h4>
-                {loadingNurses ? (
-                  <div className="flex items-center gap-2 py-4 text-gray-500">
-                    <FaSpinner className="animate-spin" />
-                    <span className="text-sm">Loading available nurses...</span>
-                  </div>
-                ) : availableNurses.length === 0 ? (
-                  <p className="text-gray-500 text-sm py-4">No nurses available at the moment.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {availableNurses.map((nurse) => (
-                      <button
-                        key={nurse.id}
-                        onClick={() => setSelectedNurseId(nurse.userId)}
-                        className={`w-full p-3 sm:p-4 border rounded-lg sm:rounded-xl text-left transition ${
-                          selectedNurseId === nurse.userId
-                            ? 'bg-pink-100 border-pink-500 ring-2 ring-pink-300'
-                            : 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200 hover:border-pink-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-pink-400 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
-                            {nurse.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-semibold text-gray-900 text-sm sm:text-base">{nurse.name}</h5>
-                            <p className="text-xs sm:text-sm text-gray-600">{nurse.experience} experience</p>
-                            {nurse.specializations.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {nurse.specializations.slice(0, 3).map((spec, i) => (
-                                  <span key={i} className="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-xs">
-                                    {spec}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {selectedNurseId === nurse.userId && (
-                            <FaCheckCircle className="text-pink-500 text-lg flex-shrink-0" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ProviderSearchSelect
+                providers={availableNurses.map((n): ProviderOption => ({
+                  id: n.id,
+                  userId: n.userId,
+                  name: n.name,
+                  subtitle: `${n.experience} experience`,
+                  tags: n.specializations.slice(0, 3),
+                }))}
+                selectedId={selectedNurseId}
+                onSelect={setSelectedNurseId}
+                loading={loadingNurses}
+                label="Select Nurse"
+                placeholder="Search nurses by name, specialization..."
+                accentColor="pink"
+                avatarGradient="from-pink-400 to-pink-600"
+              />
 
               {/* Step 3: Consultation Type */}
               <div>
@@ -458,39 +422,6 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           </div>
         </div>
       )}
-
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-br from-pink-400/20 to-purple-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-pink-400/30 hover:to-purple-400/30 transition text-left"
-          >
-            <FaCalendarPlus className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Book Service</p>
-            <p className="text-xs opacity-80">Schedule visit</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-red-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-red-400/30 hover:to-pink-400/30 transition text-left">
-            <FaUserClock className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Emergency</p>
-            <p className="text-xs opacity-80">24/7 available</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-blue-400/20 to-indigo-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-blue-400/30 hover:to-indigo-400/30 transition text-left">
-            <FaClipboardList className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Care Plans</p>
-            <p className="text-xs opacity-80">View plans</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left">
-            <FaHistory className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">History</p>
-            <p className="text-xs opacity-80">Past services</p>
-          </button>
-        </div>
-      </div>
 
       {showBookingForm && renderBookingForm()}
     </div>

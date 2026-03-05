@@ -3,20 +3,17 @@ import { Patient } from '@/lib/data/patients'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
+import ProviderSearchSelect, { ProviderOption } from '@/components/booking/ProviderSearchSelect'
 import {
   FaVideo,
   FaPlus,
   FaStethoscope,
-  FaFileAlt,
   FaUserMd,
-  FaDownload,
-  FaPrescriptionBottle,
   FaCheckCircle,
   FaTimes,
   FaSpinner,
   FaHome,
   FaHospital,
-  FaStar,
 } from 'react-icons/fa'
 
 /** Shared appointment fields */
@@ -214,59 +211,26 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
           ) : (
             <>
               {/* Step 1: Select Doctor */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
-                  Select Doctor <span className="text-red-500">*</span>
-                </h4>
-                {loadingDoctors ? (
-                  <div className="flex items-center gap-2 py-4 text-gray-500">
-                    <FaSpinner className="animate-spin" />
-                    <span className="text-sm">Loading available doctors...</span>
-                  </div>
-                ) : availableDoctors.length === 0 ? (
-                  <p className="text-gray-500 text-sm py-4">No doctors available at the moment.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {availableDoctors.map((doctor) => (
-                      <button
-                        key={doctor.id}
-                        onClick={() => setSelectedDoctorId(doctor.userId)}
-                        className={`w-full p-3 sm:p-4 border rounded-lg sm:rounded-xl text-left transition ${
-                          selectedDoctorId === doctor.userId
-                            ? 'bg-blue-100 border-blue-500 ring-2 ring-blue-300'
-                            : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-blue-400 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
-                            {doctor.name.replace('Dr. ', '').split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-semibold text-gray-900 text-sm sm:text-base">{doctor.name}</h5>
-                            <p className="text-xs sm:text-sm text-gray-600">{doctor.specialty.join(', ')}</p>
-                            <div className="mt-1 flex flex-wrap items-center gap-2">
-                              {doctor.rating && (
-                                <span className="flex items-center gap-1 text-xs text-yellow-600">
-                                  <FaStar /> {doctor.rating}
-                                </span>
-                              )}
-                              {doctor.consultationFee && (
-                                <span className="text-xs text-green-600 font-medium">Rs {doctor.consultationFee}</span>
-                              )}
-                              {doctor.location && (
-                                <span className="text-xs text-gray-500">{doctor.location}</span>
-                              )}
-                            </div>
-                          </div>
-                          {selectedDoctorId === doctor.userId && (
-                            <FaCheckCircle className="text-blue-500 text-lg flex-shrink-0" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ProviderSearchSelect
+                providers={availableDoctors.map((d): ProviderOption => ({
+                  id: d.id,
+                  userId: d.userId,
+                  name: d.name,
+                  subtitle: d.specialty.join(', '),
+                  tags: [
+                    ...(d.rating ? [`★ ${d.rating}`] : []),
+                    ...(d.consultationFee ? [`Rs ${d.consultationFee}`] : []),
+                    ...(d.location ? [d.location] : []),
+                  ],
+                }))}
+                selectedId={selectedDoctorId}
+                onSelect={setSelectedDoctorId}
+                loading={loadingDoctors}
+                label="Select Doctor"
+                placeholder="Search doctors by name, specialty..."
+                accentColor="blue"
+                avatarGradient="from-blue-400 to-indigo-600"
+              />
 
               {/* Step 2: Consultation Type */}
               <div>
@@ -431,107 +395,6 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
         onVideoCall={handleBookingVideoCall}
         emptyMessage="No doctor consultations yet."
       />
-
-      {/* Video Call History */}
-      {patientData.videoCallHistory && patientData.videoCallHistory.length > 0 && (
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-green-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-            <FaVideo className="mr-2 text-green-500" />
-            Video Call History
-          </h3>
-          <div className="space-y-2.5 sm:space-y-3">
-            {patientData.videoCallHistory.map((call) => (
-              <div key={call.id} className="bg-gradient-to-r from-white/70 to-green-50/70 border border-green-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FaVideo className="text-green-600 text-sm sm:text-base" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{call.withName}</p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {new Date(call.date).toLocaleDateString()} • {call.startTime} - {call.endTime}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-500">Duration: {call.duration} minutes</p>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
-                      call.callQuality === 'excellent' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800' :
-                      call.callQuality === 'good' ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800' :
-                      call.callQuality === 'fair' ? 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800' :
-                      'bg-gradient-to-r from-red-100 to-pink-100 text-red-800'
-                    }`}>
-                      {call.callQuality} quality
-                    </span>
-                    {call.recording && (
-                      <div className="mt-1">
-                        <button className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                          <FaDownload />
-                          Recording
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {call.notes && (
-                  <div className="mt-2 sm:mt-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50 to-green-50 rounded-lg">
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      <strong>Notes:</strong> {call.notes}
-                    </p>
-                  </div>
-                )}
-                {call.prescription && (
-                  <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                    <p className="text-xs text-purple-700">
-                      <FaPrescriptionBottle className="inline mr-1" />
-                      Prescription issued during this call
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-br from-indigo-400/20 to-purple-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-indigo-400/30 hover:to-purple-400/30 transition text-left"
-          >
-            <FaPlus className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Book Appointment</p>
-            <p className="text-xs opacity-90">Schedule with doctor</p>
-          </button>
-
-          <button
-            onClick={() => {
-              const nextVideoAppointment = (patientData.upcomingAppointments as Appointment[] | undefined)
-                ?.find((apt): apt is VideoAppointment => apt.type === 'video' && 'roomId' in apt && Boolean(apt.roomId))
-              if (nextVideoAppointment) {
-                handleVideoCall(nextVideoAppointment)
-              } else {
-                alert('No upcoming video consultations found')
-              }
-            }}
-            className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left"
-          >
-            <FaVideo className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Join Video Call</p>
-            <p className="text-xs opacity-90">Connect to consultation</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-blue-400/20 to-cyan-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-blue-400/30 hover:to-cyan-400/30 transition text-left">
-            <FaFileAlt className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">View Records</p>
-            <p className="text-xs opacity-90">Medical history</p>
-          </button>
-        </div>
-      </div>
 
       {showBookingForm && renderBookingForm()}
     </div>

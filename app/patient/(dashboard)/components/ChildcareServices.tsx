@@ -3,6 +3,7 @@ import { Patient } from '@/lib/data/patients'
 import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
+import ProviderSearchSelect, { ProviderOption } from '@/components/booking/ProviderSearchSelect'
 import {
   FaBaby,
   FaMoon,
@@ -21,10 +22,6 @@ import {
   FaShieldAlt,
   FaFirstAid,
   FaLanguage,
-  FaHandsHelping,
-  FaCalendarPlus,
-  FaHistory,
-  FaImage,
   FaSun,
   FaUtensils,
   FaBed,
@@ -237,56 +234,22 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
               </div>
 
               {/* Choose Nanny */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">
-                  Choose Your Nanny <span className="text-red-500">*</span>
-                </h4>
-                {loadingNannies ? (
-                  <div className="flex items-center gap-2 py-4 text-gray-500">
-                    <FaSpinner className="animate-spin" />
-                    <span className="text-sm">Loading available nannies...</span>
-                  </div>
-                ) : availableNannies.length === 0 ? (
-                  <p className="text-gray-500 text-sm py-4">No nannies available at the moment.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {availableNannies.map((nanny) => (
-                      <button
-                        key={nanny.id}
-                        onClick={() => setSelectedNannyId(nanny.userId)}
-                        className={`w-full p-3 sm:p-4 border rounded-lg sm:rounded-xl text-left transition ${
-                          selectedNannyId === nanny.userId
-                            ? 'bg-purple-100 border-purple-500 ring-2 ring-purple-300'
-                            : 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200 hover:border-purple-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-purple-400 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0">
-                            {nanny.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-semibold text-gray-900 text-sm sm:text-base">{nanny.name}</h5>
-                            <p className="text-xs sm:text-sm text-gray-600">{nanny.experience} experience</p>
-                            {nanny.certifications.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {nanny.certifications.slice(0, 3).map((cert, i) => (
-                                  <span key={i} className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs flex items-center gap-1">
-                                    <FaCertificate className="text-xs" />
-                                    {cert}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {selectedNannyId === nanny.userId && (
-                            <FaCheckCircle className="text-purple-500 text-lg flex-shrink-0" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ProviderSearchSelect
+                providers={availableNannies.map((n): ProviderOption => ({
+                  id: n.id,
+                  userId: n.userId,
+                  name: n.name,
+                  subtitle: `${n.experience} experience`,
+                  tags: n.certifications.slice(0, 3),
+                }))}
+                selectedId={selectedNannyId}
+                onSelect={setSelectedNannyId}
+                loading={loadingNannies}
+                label="Choose Your Nanny"
+                placeholder="Search nannies by name, certification..."
+                accentColor="purple"
+                avatarGradient="from-purple-400 to-pink-600"
+              />
 
               {/* Visit Type */}
               <div>
@@ -621,39 +584,6 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           </div>
         </div>
       )}
-
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-pink-400/30 transition text-left"
-          >
-            <FaCalendarPlus className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Book New Service</p>
-            <p className="text-xs opacity-90">Schedule childcare</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-pink-400/30 transition text-left">
-            <FaHandsHelping className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Emergency Care</p>
-            <p className="text-xs opacity-90">Urgent childcare needs</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-pink-400/30 transition text-left">
-            <FaImage className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Activity Gallery</p>
-            <p className="text-xs opacity-90">View all photos</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-pink-400/30 transition text-left">
-            <FaHistory className="text-xl sm:text-2xl mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Care History</p>
-            <p className="text-xs opacity-90">All past services</p>
-          </button>
-        </div>
-      </div>
 
       {showBookingForm && renderBookingForm()}
     </div>
