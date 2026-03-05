@@ -42,31 +42,72 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     return item.label
   }
 
-  // On desktop: open = full width, collapsed = w-16 (icon-only)
-  // On mobile: open = full width slide-out, closed = w-0 (hidden)
-  const sidebarWidth = isMobile
-    ? isOpen ? 'w-full sm:w-72' : 'w-0'
-    : isOpen ? 'md:w-64 lg:w-72 xl:w-80' : 'md:w-16'
-
   const isCollapsedDesktop = !isOpen && !isMobile
 
-  return (
-    <>
-      {/* Sidebar panel */}
+  const renderNavItems = (closeSidebar?: boolean) => (
+    <nav className="space-y-1.5 md:space-y-2" aria-label="Dashboard menu">
+      {items.map((item) => {
+        const Icon = item.icon
+        const isActive = activeItemId === item.id
+        const label = getLabel(item)
+
+        return (
+          <Link
+            key={item.id}
+            href={item.href}
+            title={isCollapsedDesktop ? label : undefined}
+            onClick={closeSidebar ? onClose : undefined}
+            aria-current={isActive ? 'page' : undefined}
+            className={`block w-full text-left rounded-lg md:rounded-xl transition-all transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              isCollapsedDesktop
+                ? 'px-0 py-2.5 flex items-center justify-center'
+                : 'px-3 md:px-4 lg:px-5 py-2.5 md:py-3.5'
+            } ${
+              isActive
+                ? `${item.bgColor} ${item.color} shadow-md`
+                : 'hover:bg-gray-100 text-gray-700'
+            }`}
+          >
+            <div className={`flex items-center ${isCollapsedDesktop ? 'justify-center' : 'gap-2.5 md:gap-3.5'}`}>
+              <Icon className="text-base md:text-xl lg:text-2xl flex-shrink-0" aria-hidden="true" />
+              {!isCollapsedDesktop && (
+                <>
+                  <span className="font-medium text-sm md:text-base lg:text-lg">
+                    {label}
+                  </span>
+                  {item.count != null && item.count > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" aria-label={`${item.count} notifications`}>
+                      {item.count}
+                    </span>
+                  )}
+                </>
+              )}
+              {isCollapsedDesktop && item.count != null && item.count > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label={`${item.count} notifications`} />
+              )}
+            </div>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+
+  // Mobile: fixed overlay sidebar
+  if (isMobile) {
+    return (
       <aside
         role="navigation"
         aria-label="Dashboard sidebar navigation"
         className={`
-          fixed inset-y-0 left-0
-          ${isMobile && isOpen ? 'z-[60]' : 'z-40'}
-          ${sidebarWidth}
-          bg-white shadow-2xl md:shadow-lg
+          fixed inset-y-0 left-0 z-[60]
+          ${isOpen ? 'w-full sm:w-72' : 'w-0'}
+          bg-white shadow-2xl
           transform transition-all duration-300 ease-in-out
           overflow-hidden
         `}
       >
-        {/* Mobile close button — fixed above scroll area */}
-        <div className="md:hidden flex items-center justify-end px-3 sm:px-4 pt-20 pb-2" style={{ paddingTop: 'max(5rem, env(safe-area-inset-top, 5rem))' }}>
+        {/* Close button */}
+        <div className="flex items-center justify-end px-3 sm:px-4 pt-4 pb-2">
           <button
             onClick={onClose}
             className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -76,74 +117,42 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         </div>
 
-        <div className={`h-full overflow-y-auto pt-4 md:pt-20 lg:pt-20 ${isCollapsedDesktop ? 'p-2' : 'p-3 sm:p-4 md:p-5 lg:p-6'}`}>
-          {/* Navigation items */}
-          <nav className="space-y-1.5 sm:space-y-2" aria-label="Dashboard menu" aria-hidden={isMobile && !isOpen ? true : undefined}>
-            {items.map((item) => {
-              const Icon = item.icon
-              const isActive = activeItemId === item.id
-              const label = getLabel(item)
+        <div className="h-full overflow-y-auto p-3 sm:p-4">
+          {renderNavItems(true)}
 
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  title={isCollapsedDesktop ? label : undefined}
-                  onClick={() => {
-                    if (isMobile) onClose()
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`block w-full text-left rounded-lg sm:rounded-xl transition-all transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                    isCollapsedDesktop
-                      ? 'px-0 py-2.5 flex items-center justify-center'
-                      : 'px-3 sm:px-3.5 md:px-4 lg:px-5 py-2.5 sm:py-3 md:py-3.5'
-                  } ${
-                    isActive
-                      ? `${item.bgColor} ${item.color} shadow-md`
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <div className={`flex items-center ${isCollapsedDesktop ? 'justify-center' : 'gap-2.5 sm:gap-3 md:gap-3.5'}`}>
-                    <Icon className="text-base sm:text-lg md:text-xl lg:text-2xl flex-shrink-0" aria-hidden="true" />
-                    {!isCollapsedDesktop && (
-                      <>
-                        <span className="font-medium text-sm sm:text-sm md:text-base lg:text-lg">
-                          {label}
-                        </span>
-                        {item.count != null && item.count > 0 && (
-                          <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 sm:py-1 rounded-full" aria-label={`${item.count} notifications`}>
-                            {item.count}
-                          </span>
-                        )}
-                      </>
-                    )}
-                    {isCollapsedDesktop && item.count != null && item.count > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label={`${item.count} notifications`} />
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Optional footer — hidden when collapsed on desktop */}
-          {footer && !isCollapsedDesktop && (
-            <div className="mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-5 md:pt-6 border-t">
+          {footer && (
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-5 border-t">
               {footer}
             </div>
           )}
         </div>
       </aside>
+    )
+  }
 
-      {/* Mobile overlay backdrop */}
-      {isMobile && isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-      )}
-    </>
+  // Desktop: in-flow sidebar (not fixed — part of flex layout)
+  return (
+    <aside
+      role="navigation"
+      aria-label="Dashboard sidebar navigation"
+      className={`
+        flex-shrink-0
+        ${isOpen ? 'w-64 lg:w-72 xl:w-80' : 'w-16'}
+        bg-white shadow-lg border-r border-gray-200
+        transition-all duration-300 ease-in-out
+        overflow-hidden
+      `}
+    >
+      <div className={`h-full overflow-y-auto ${isCollapsedDesktop ? 'p-2' : 'p-3 md:p-5 lg:p-6'}`}>
+        {renderNavItems()}
+
+        {footer && !isCollapsedDesktop && (
+          <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t">
+            {footer}
+          </div>
+        )}
+      </div>
+    </aside>
   )
 }
 

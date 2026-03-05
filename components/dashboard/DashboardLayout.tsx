@@ -18,6 +18,8 @@ interface DashboardLayoutProps {
   sidebarFooter?: React.ReactNode
 }
 
+const HEADER_HEIGHT = 56 // px — matches header h-14
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
   userName,
@@ -38,7 +40,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const handleResize = () => {
       const mobile = window.innerWidth < 768
       setIsMobile(mobile)
-      // On mobile: always close the sidebar on resize; on desktop: keep current state
       if (mobile) setSidebarOpen(false)
     }
 
@@ -73,7 +74,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>,
         { autoClose: 5000 }
       )
-      // Dispatch custom event so DashboardHeader can add it to the dropdown
       window.dispatchEvent(new CustomEvent('notification:new', { detail: data }))
     })
     return () => {
@@ -95,9 +95,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setSidebarOpen(false)
   }
 
+  // Sidebar widths (must match DashboardSidebar classes)
+  const sidebarWidth = isMobile
+    ? 0
+    : sidebarOpen
+    ? 256 // md:w-64
+    : 64  // md:w-16
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Skip to content link — visible only on focus */}
+    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
+      {/* Skip to content link */}
       <a
         href="#dashboard-main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -105,7 +112,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         Skip to main content
       </a>
 
-      {/* Fixed header */}
+      {/* Row 1: Fixed header — takes its natural height, never scrolls */}
       <DashboardHeader
         userName={userName}
         userImage={userImage}
@@ -118,30 +125,39 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         userId={userId}
       />
 
-      {/* Sidebar (fixed) */}
-      <DashboardSidebar
-        items={sidebarItems}
-        activeItemId={activeSectionId}
-        isOpen={sidebarOpen}
-        isMobile={isMobile}
-        onClose={handleCloseSidebar}
-        footer={sidebarFooter}
-      />
+      {/* Row 2: Sidebar + Main content — fills remaining height */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar — fixed height, own scroll */}
+        <DashboardSidebar
+          items={sidebarItems}
+          activeItemId={activeSectionId}
+          isOpen={sidebarOpen}
+          isMobile={isMobile}
+          onClose={handleCloseSidebar}
+          footer={sidebarFooter}
+        />
 
-      {/* Main content area — offset for fixed header + fixed sidebar */}
-      <main
-        id="dashboard-main-content"
-        role="main"
-        className={`pt-14 sm:pt-14 md:pt-16 lg:pt-16 flex-1 min-w-0 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 max-w-full overflow-x-hidden transition-all duration-300 ease-in-out ${
-          !isMobile && sidebarOpen
-            ? 'md:ml-64 lg:ml-72 xl:ml-80'
-            : !isMobile
-            ? 'md:ml-16'
-            : ''
-        }`}
-      >
-        {children}
-      </main>
+        {/* Main content — scrollable, takes remaining width */}
+        <main
+          id="dashboard-main-content"
+          role="main"
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8"
+          style={{
+            marginLeft: isMobile ? 0 : undefined,
+          }}
+        >
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile overlay backdrop */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={handleCloseSidebar}
+          aria-hidden="true"
+        />
+      )}
     </div>
   )
 }
