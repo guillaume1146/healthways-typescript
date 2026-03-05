@@ -135,8 +135,8 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
             </div>
           </div>
           <button 
-            onClick={() => initiateEmergencyCall(emergencyServices[0])}
-            disabled={isEmergencyCall}
+            onClick={() => emergencyServices[0] && initiateEmergencyCall(emergencyServices[0])}
+            disabled={isEmergencyCall || emergencyServices.length === 0}
             className="bg-white text-red-600 px-4 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg hover:bg-red-50 transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <FaPhone className={isEmergencyCall ? 'animate-bounce' : ''} />
@@ -251,7 +251,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
           </div>
 
           <div className="mt-4 pt-4 border-t border-red-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <p className="text-xs sm:text-sm text-gray-700">Emergency Contact: {patientData.emergencyContact.name}</p>
+            <p className="text-xs sm:text-sm text-gray-700">Emergency Contact: {patientData.emergencyContact?.name || 'Not set'}</p>
             <div className="flex gap-2">
               <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs sm:text-sm hover:bg-blue-200 transition">
                 <FaShare className="inline mr-1" />
@@ -479,7 +479,8 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
           <FaUserNurse className="mr-2 text-pink-500" />
           Personal Emergency Contact
         </h3>
-        
+
+        {patientData.emergencyContact ? (
         <div className="bg-pink-100 bg-opacity-70 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-pink-200">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="flex items-start gap-3 sm:gap-4">
@@ -514,6 +515,11 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
             </div>
           </div>
         </div>
+        ) : (
+        <div className="bg-pink-100 bg-opacity-70 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-pink-200 text-center">
+          <p className="text-pink-700 text-sm">No emergency contact set. Please update your profile.</p>
+        </div>
+        )}
       </div>
 
       {/* Medical Information for Emergencies */}

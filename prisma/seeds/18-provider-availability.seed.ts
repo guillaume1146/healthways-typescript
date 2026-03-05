@@ -7,16 +7,11 @@ const PROVIDER_USER_TYPES: UserType[] = [
   UserType.LAB_TECHNICIAN,
 ]
 
-// Monday–Friday (1–5), 7 one-hour slots per day
+// Monday–Friday (1–5), two time windows per day
 const WEEKDAYS = [1, 2, 3, 4, 5]
-const TIME_SLOTS = [
-  { startTime: '09:00', endTime: '10:00' },
-  { startTime: '10:00', endTime: '11:00' },
-  { startTime: '11:00', endTime: '12:00' },
-  { startTime: '13:00', endTime: '14:00' },
-  { startTime: '14:00', endTime: '15:00' },
-  { startTime: '15:00', endTime: '16:00' },
-  { startTime: '16:00', endTime: '17:00' },
+const TIME_WINDOWS = [
+  { startTime: '09:00', endTime: '12:00' }, // Morning block
+  { startTime: '13:00', endTime: '17:00' }, // Afternoon block
 ]
 
 export async function seedProviderAvailability(prisma: PrismaClient) {
@@ -33,23 +28,28 @@ export async function seedProviderAvailability(prisma: PrismaClient) {
     return
   }
 
-  // Build availability records for every provider × weekday × time slot
+  // Build availability records for every provider × weekday × time window
   const records: {
     userId: string
     dayOfWeek: number
     startTime: string
     endTime: string
+    slotDuration: number
     isActive: boolean
   }[] = []
 
   for (const provider of providers) {
+    // Doctors use 30-min slots, nurses/nannies/lab techs use 60-min slots
+    const slotDuration = provider.userType === UserType.DOCTOR ? 30 : 60
+
     for (const day of WEEKDAYS) {
-      for (const slot of TIME_SLOTS) {
+      for (const window of TIME_WINDOWS) {
         records.push({
           userId: provider.id,
           dayOfWeek: day,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
+          startTime: window.startTime,
+          endTime: window.endTime,
+          slotDuration,
           isActive: true,
         })
       }
@@ -62,6 +62,6 @@ export async function seedProviderAvailability(prisma: PrismaClient) {
   })
 
   console.log(
-    `  Seeded ${result.count} provider availability slots for ${providers.length} providers (${WEEKDAYS.length} days x ${TIME_SLOTS.length} slots each)`
+    `  Seeded ${result.count} provider availability windows for ${providers.length} providers (${WEEKDAYS.length} days x ${TIME_WINDOWS.length} windows each)`
   )
 }

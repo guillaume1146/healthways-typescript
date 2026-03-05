@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
+import WeeklySlotPicker from '@/components/booking/WeeklySlotPicker'
 import {
   FaHospital,
   FaHome,
@@ -212,46 +213,8 @@ export default function BookingForm({
   const [contactNumber, setContactNumber] = useState('')
   const [priority, setPriority] = useState('medium')
 
-  // Available slots from provider availability
-  const [availableSlots, setAvailableSlots] = useState<string[]>([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [slotsError, setSlotsError] = useState('')
-
   const useSlotPicker = providerType !== 'emergency' && !!providerId
   const useEmergencySlots = providerType === 'emergency'
-
-  const fetchAvailableSlots = useCallback(async (date: string) => {
-    if (!providerId || !date || providerType === 'emergency') return
-    setLoadingSlots(true)
-    setSlotsError('')
-    setScheduledTime('')
-    try {
-      const res = await fetch(
-        `/api/bookings/available-slots?providerId=${providerId}&date=${date}&providerType=${providerType}`
-      )
-      const data = await res.json()
-      if (data.success) {
-        setAvailableSlots(data.slots || [])
-        if ((data.slots || []).length === 0) {
-          setSlotsError('No available slots for this date. Please choose another date.')
-        }
-      } else {
-        setSlotsError(data.message || 'Failed to load available slots')
-        setAvailableSlots([])
-      }
-    } catch {
-      setSlotsError('Failed to fetch available slots')
-      setAvailableSlots([])
-    } finally {
-      setLoadingSlots(false)
-    }
-  }, [providerId, providerType])
-
-  useEffect(() => {
-    if (scheduledDate && useSlotPicker) {
-      fetchAvailableSlots(scheduledDate)
-    }
-  }, [scheduledDate, useSlotPicker, fetchAvailableSlots])
 
   const totalSteps = 3
   const stepLabels = getStepLabels(providerType)
@@ -310,8 +273,15 @@ export default function BookingForm({
     return data
   }
 
+  const [submitError, setSubmitError] = useState('')
+
   async function handleSubmit() {
-    await onSubmit(buildSubmitData())
+    setSubmitError('')
+    try {
+      await onSubmit(buildSubmitData())
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Booking failed. Please try again.')
+    }
   }
 
   // ── Navigation ──────────────────────────────────────────────────────────────
@@ -584,111 +554,91 @@ export default function BookingForm({
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Schedule Appointment</h2>
 
-          <div className="grid sm:grid-cols-2 gap-6">
-            {/* Date */}
+          <div className="space-y-6">
+            {/* Weekly Slot Picker or Emergency Slots */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <FaCalendarAlt className="text-blue-600" />
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                min={todayISO()}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors"
-              />
-            </div>
-
-            {/* Time — Slot picker, emergency preset slots, or free-form */}
-            <div className={useSlotPicker || useEmergencySlots ? 'sm:col-span-2' : ''}>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                 <FaClock className="text-teal-600" />
-                {useEmergencySlots ? 'Response Time' : 'Time'} <span className="text-red-500">*</span>
+                {useEmergencySlots ? 'Response Time' : 'Select a Time Slot'} <span className="text-red-500">*</span>
               </label>
 
-              {useSlotPicker ? (
-                <>
-                  {loadingSlots ? (
-                    <div className="flex items-center gap-2 py-4 text-gray-500">
-                      <FaSpinner className="animate-spin" />
-                      <span className="text-sm">Loading available slots...</span>
-                    </div>
-                  ) : slotsError ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-                      {slotsError}
-                    </div>
-                  ) : !scheduledDate ? (
-                    <p className="text-sm text-gray-400 py-3">Select a date first to see available times</p>
-                  ) : availableSlots.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                      {availableSlots.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setScheduledTime(slot)}
-                          className={`px-3 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
-                            scheduledTime === slot
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                              : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
-                          }`}
-                        >
-                          {formatTime(slot)}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              ) : useEmergencySlots ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {EMERGENCY_TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot.value}
-                      type="button"
-                      onClick={() => setScheduledTime(slot.value)}
-                      className={`flex flex-col items-center p-4 border-2 rounded-xl text-sm font-medium transition-all ${
-                        scheduledTime === slot.value
-                          ? 'bg-red-600 text-white border-red-600 shadow-md'
-                          : 'border-gray-300 text-gray-700 hover:border-red-400 hover:bg-red-50'
-                      }`}
-                    >
-                      <span className="font-semibold">{slot.label}</span>
-                      <span className={`text-xs mt-0.5 ${scheduledTime === slot.value ? 'text-red-100' : 'text-gray-400'}`}>
-                        {slot.description}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type="time"
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors"
+              {useSlotPicker && providerId ? (
+                <WeeklySlotPicker
+                  providerId={providerId}
+                  providerType={providerType as 'doctor' | 'nurse' | 'nanny' | 'lab-test'}
+                  onSelect={(date, time) => { setScheduledDate(date); setScheduledTime(time) }}
+                  selectedDate={scheduledDate}
+                  selectedTime={scheduledTime}
+                  accentColor="blue"
                 />
+              ) : useEmergencySlots ? (
+                <>
+                  <div className="mb-4">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <FaCalendarAlt className="text-blue-600" />
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      min={todayISO()}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {EMERGENCY_TIME_SLOTS.map((slot) => (
+                      <button
+                        key={slot.value}
+                        type="button"
+                        onClick={() => setScheduledTime(slot.value)}
+                        className={`flex flex-col items-center p-4 border-2 rounded-xl text-sm font-medium transition-all ${
+                          scheduledTime === slot.value
+                            ? 'bg-red-600 text-white border-red-600 shadow-md'
+                            : 'border-gray-300 text-gray-700 hover:border-red-400 hover:bg-red-50'
+                        }`}
+                      >
+                        <span className="font-semibold">{slot.label}</span>
+                        <span className={`text-xs mt-0.5 ${scheduledTime === slot.value ? 'text-red-100' : 'text-gray-400'}`}>
+                          {slot.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <FaCalendarAlt className="text-blue-600" />
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      min={todayISO()}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <FaClock className="text-teal-600" />
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors"
+                    />
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Duration — hidden when using slot picker or emergency preset slots */}
-            {!useSlotPicker && !useEmergencySlots && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors bg-white"
-                >
-                  {DURATION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             {/* Reason */}
-            <div className="sm:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Reason for Visit{isReasonRequired && <span className="text-red-500"> *</span>}
               </label>
@@ -854,6 +804,17 @@ export default function BookingForm({
               placeholder="Any additional information for the provider..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors resize-none"
             />
+          </div>
+        </div>
+      )}
+
+      {/* ── Submission Error ──────────────────────────────────────────────── */}
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <span className="text-red-500 text-lg font-bold leading-none mt-0.5">!</span>
+          <div>
+            <p className="text-red-800 font-medium text-sm">Booking Failed</p>
+            <p className="text-red-700 text-sm mt-0.5">{submitError}</p>
           </div>
         </div>
       )}

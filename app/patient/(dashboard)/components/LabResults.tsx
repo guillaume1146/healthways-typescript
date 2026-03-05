@@ -426,6 +426,53 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
   const [showFilters, setShowFilters] = useState(false)
   const [expandedTest, setExpandedTest] = useState<string | null>(null)
   const [expandedResult, setExpandedResult] = useState<string | null>(null)
+  const [isBooking, setIsBooking] = useState(false)
+  const [bookingError, setBookingError] = useState('')
+  const [bookingSuccess, setBookingSuccess] = useState(false)
+
+  const handleConfirmBooking = async () => {
+    if (!selectedSlot || (selectedTests.length === 0 && !selectedPackage)) return
+    setIsBooking(true)
+    setBookingError('')
+
+    const testNames = selectedPackage
+      ? healthPackages.find(p => p.id === selectedPackage)?.name || 'Health Package'
+      : selectedTests.map(id => availableTests.find(t => t.id === id)?.name).filter(Boolean).join(', ')
+
+    const sampleTypes = selectedTests.map(id => availableTests.find(t => t.id === id)?.sampleType).filter(Boolean).join(', ')
+
+    try {
+      const res = await fetch('/api/bookings/lab-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testName: testNames,
+          scheduledDate: selectedSlot.date,
+          scheduledTime: selectedSlot.time,
+          sampleType: sampleTypes || 'Blood',
+          notes: `Collection: ${collectionType === 'home' ? 'Home Collection' : 'Lab Visit'}. Lab: ${selectedLab}`,
+          price: calculateTotal(),
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBookingSuccess(true)
+        setTimeout(() => {
+          setBookingSuccess(false)
+          setSelectedTests([])
+          setSelectedPackage(null)
+          setSelectedSlot(null)
+          window.location.reload()
+        }, 2000)
+      } else {
+        setBookingError(data.message || 'Booking failed. Please try again.')
+      }
+    } catch {
+      setBookingError('Network error. Please try again.')
+    } finally {
+      setIsBooking(false)
+    }
+  }
 
   const handleTestSelection = (testId: string) => {
     setSelectedTests(prev => 
@@ -1076,17 +1123,35 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
             <span className="text-2xl font-bold text-blue-600">Rs {calculateTotal()}</span>
           </div>
           
+          {bookingSuccess && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 text-center">
+              Booking submitted successfully! You will be notified when the lab confirms.
+            </div>
+          )}
+
+          {bookingError && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+              {bookingError}
+            </div>
+          )}
+
           <button
-            disabled={!selectedSlot}
-            className={`w-full mt-4 py-3 rounded-xl font-semibold transition-all ${
-              selectedSlot
+            onClick={handleConfirmBooking}
+            disabled={!selectedSlot || isBooking}
+            className={`w-full mt-4 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              selectedSlot && !isBooking
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            {selectedSlot ? `Confirm Booking - Rs ${calculateTotal()}` : 'Select Date & Time'}
+            {isBooking ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Booking...
+              </>
+            ) : selectedSlot ? `Confirm Booking - Rs ${calculateTotal()}` : 'Select Date & Time'}
           </button>
-          
+
           <p className="text-xs text-gray-600 mt-2 text-center">
             Secure payment • Free cancellation • 24/7 support
           </p>
