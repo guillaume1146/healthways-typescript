@@ -51,6 +51,52 @@ export async function seedCatalogData(prisma: PrismaClient) {
   }
   console.log(`  Seeded ${labTests.length} lab test catalog entries`)
 
+  // ── Nurse Service Catalog ──────────────────────────────────────────────────
+
+  const nurseServices = [
+    // Nurse 1 (NPROF001)
+    { nurseId: 'NPROF001', serviceName: 'Blood Pressure Monitoring', category: 'Monitoring', description: 'Regular blood pressure checks with detailed logging and trend analysis.', price: 300, duration: '30 minutes' },
+    { nurseId: 'NPROF001', serviceName: 'Wound Care & Dressing', category: 'Wound Care', description: 'Professional wound cleaning, dressing, and healing assessment.', price: 500, duration: '45 minutes' },
+    { nurseId: 'NPROF001', serviceName: 'Injection Administration', category: 'Injection', description: 'Intramuscular and subcutaneous injection services including insulin.', price: 250, duration: '15 minutes' },
+    { nurseId: 'NPROF001', serviceName: 'Post-Surgery Home Care', category: 'Post-Surgery', description: 'Comprehensive post-operative care including wound monitoring, medication management, and recovery assessment.', price: 1200, duration: '2 hours' },
+    { nurseId: 'NPROF001', serviceName: 'Diabetes Management', category: 'Chronic Care', description: 'Blood glucose monitoring, insulin management, and lifestyle counseling for diabetic patients.', price: 600, duration: '1 hour' },
+    { nurseId: 'NPROF001', serviceName: 'Health Assessment', category: 'Assessment', description: 'Full health assessment including vital signs, physical examination, and health report.', price: 800, duration: '1 hour' },
+    // Nurse 2 (NPROF002)
+    { nurseId: 'NPROF002', serviceName: 'Medication Administration', category: 'Medication', description: 'Safe administration of prescribed medications with dosage verification.', price: 350, duration: '30 minutes' },
+    { nurseId: 'NPROF002', serviceName: 'Elderly Care Assistance', category: 'Chronic Care', description: 'Comprehensive elderly care including mobility assistance, medication reminders, and wellness checks.', price: 900, duration: '2 hours' },
+    { nurseId: 'NPROF002', serviceName: 'Vital Signs Monitoring', category: 'Monitoring', description: 'Complete vital signs check: temperature, pulse, respiration, blood pressure, and oxygen saturation.', price: 400, duration: '30 minutes' },
+    { nurseId: 'NPROF002', serviceName: 'IV Therapy', category: 'Medication', description: 'Intravenous fluid administration and IV medication management at home.', price: 1500, duration: '1-2 hours' },
+    { nurseId: 'NPROF002', serviceName: 'Health Education Session', category: 'Education', description: 'Personalized health education on chronic disease management, nutrition, and preventive care.', price: 500, duration: '45 minutes' },
+  ]
+
+  for (const svc of nurseServices) {
+    await prisma.nurseServiceCatalog.create({ data: svc })
+  }
+  console.log(`  Seeded ${nurseServices.length} nurse service catalog entries`)
+
+  // ── Nanny Service Catalog ─────────────────────────────────────────────────
+
+  const nannyServiceList = [
+    // Nanny 1 (NAPROF001)
+    { nannyId: 'NAPROF001', serviceName: 'Reading & Storytelling', category: 'Educational', description: 'Age-appropriate books and interactive stories to develop literacy and imagination.', price: 400, ageRange: '2-8 years' },
+    { nannyId: 'NAPROF001', serviceName: 'Arts & Crafts', category: 'Creative', description: 'Creative activities to develop fine motor skills and artistic expression.', price: 450, ageRange: '3-10 years' },
+    { nannyId: 'NAPROF001', serviceName: 'Meal Preparation', category: 'Daily Care', description: 'Healthy meal planning and preparation tailored to dietary needs and preferences.', price: 350, ageRange: 'All ages' },
+    { nannyId: 'NAPROF001', serviceName: 'Sleep Routine Management', category: 'Daily Care', description: 'Establishing and maintaining healthy sleep patterns and bedtime routines.', price: 500, ageRange: '0-5 years' },
+    { nannyId: 'NAPROF001', serviceName: 'Safety & First Aid', category: 'Health & Safety', description: 'Comprehensive child safety supervision with certified first aid training.', price: 600, ageRange: 'All ages' },
+    { nannyId: 'NAPROF001', serviceName: 'Language Development', category: 'Language', description: 'Multilingual exposure and communication skills development in English, French, and Creole.', price: 550, ageRange: '1-6 years' },
+    // Nanny 2 (NAPROF002)
+    { nannyId: 'NAPROF002', serviceName: 'Music & Dancing', category: 'Music', description: 'Musical activities for cognitive development including singing, rhythm, and movement.', price: 400, ageRange: '2-8 years' },
+    { nannyId: 'NAPROF002', serviceName: 'Educational Games', category: 'Educational', description: 'Learning through play with age-appropriate structured activities and puzzles.', price: 350, ageRange: '3-10 years' },
+    { nannyId: 'NAPROF002', serviceName: 'Outdoor Activities', category: 'Physical Activity', description: 'Supervised outdoor play, nature walks, and physical exercise for healthy development.', price: 450, ageRange: '3-12 years' },
+    { nannyId: 'NAPROF002', serviceName: 'Homework Help', category: 'Educational', description: 'Academic support and homework assistance for school-age children.', price: 500, ageRange: '5-14 years' },
+    { nannyId: 'NAPROF002', serviceName: 'Special Needs Care', category: 'Special Needs', description: 'Specialized care for children with special needs, adapted activities and routines.', price: 800, ageRange: 'All ages' },
+  ]
+
+  for (const svc of nannyServiceList) {
+    await prisma.nannyServiceCatalog.create({ data: svc })
+  }
+  console.log(`  Seeded ${nannyServiceList.length} nanny service catalog entries`)
+
   // ── Emergency Service Listings ──────────────────────────────────────────────
 
   const emergencyServices = [
@@ -72,15 +118,15 @@ export async function seedCatalogData(prisma: PrismaClient) {
 
   const insurancePlans = [
     // Swan Life Ltd (IRPROF001)
-    { insuranceRepId: 'IRPROF001', planName: 'Swan Health Essential', planType: 'Health', description: 'Comprehensive health insurance covering hospitalization, outpatient care, and specialist consultations.', monthlyPremium: 2500, annualPremium: 27000, coverageAmount: 500000, deductible: 5000, coverageDetails: ['Hospitalization', 'Outpatient care', 'Specialist consultations', 'Prescription drugs', 'Lab tests'], eligibility: 'Ages 18-65' },
-    { insuranceRepId: 'IRPROF001', planName: 'Swan Family Care Plus', planType: 'Family', description: 'Family health plan covering spouse and up to 3 children with maternity benefits.', monthlyPremium: 5500, annualPremium: 60000, coverageAmount: 1000000, deductible: 3000, coverageDetails: ['Family hospitalization', 'Maternity care', 'Pediatric care', 'Dental (basic)', 'Vision check-ups', 'Vaccination'], eligibility: 'Family with children under 21' },
-    { insuranceRepId: 'IRPROF001', planName: 'Swan Life Assurance', planType: 'Life', description: 'Term life insurance with death benefit and optional critical illness rider.', monthlyPremium: 1500, annualPremium: 16500, coverageAmount: 2000000, deductible: 0, coverageDetails: ['Death benefit', 'Critical illness cover', 'Accidental death benefit', 'Terminal illness benefit'], eligibility: 'Ages 21-60' },
-    { insuranceRepId: 'IRPROF001', planName: 'Swan Dental Care', planType: 'Dental', description: 'Dental insurance covering preventive, basic, and major dental procedures.', monthlyPremium: 800, annualPremium: 8800, coverageAmount: 100000, deductible: 1000, coverageDetails: ['Preventive checkups', 'Fillings', 'Root canals', 'Crowns', 'Orthodontics (partial)'], eligibility: 'Ages 5-70' },
+    { id: 'INSPLAN001', insuranceRepId: 'IRPROF001', planName: 'Swan Health Essential', planType: 'Health', description: 'Comprehensive health insurance covering hospitalization, outpatient care, and specialist consultations.', monthlyPremium: 2500, annualPremium: 27000, coverageAmount: 500000, deductible: 5000, coverageDetails: ['Hospitalization', 'Outpatient care', 'Specialist consultations', 'Prescription drugs', 'Lab tests'], eligibility: 'Ages 18-65' },
+    { id: 'INSPLAN002', insuranceRepId: 'IRPROF001', planName: 'Swan Family Care Plus', planType: 'Family', description: 'Family health plan covering spouse and up to 3 children with maternity benefits.', monthlyPremium: 5500, annualPremium: 60000, coverageAmount: 1000000, deductible: 3000, coverageDetails: ['Family hospitalization', 'Maternity care', 'Pediatric care', 'Dental (basic)', 'Vision check-ups', 'Vaccination'], eligibility: 'Family with children under 21' },
+    { id: 'INSPLAN003', insuranceRepId: 'IRPROF001', planName: 'Swan Life Assurance', planType: 'Life', description: 'Term life insurance with death benefit and optional critical illness rider.', monthlyPremium: 1500, annualPremium: 16500, coverageAmount: 2000000, deductible: 0, coverageDetails: ['Death benefit', 'Critical illness cover', 'Accidental death benefit', 'Terminal illness benefit'], eligibility: 'Ages 21-60' },
+    { id: 'INSPLAN004', insuranceRepId: 'IRPROF001', planName: 'Swan Dental Care', planType: 'Dental', description: 'Dental insurance covering preventive, basic, and major dental procedures.', monthlyPremium: 800, annualPremium: 8800, coverageAmount: 100000, deductible: 1000, coverageDetails: ['Preventive checkups', 'Fillings', 'Root canals', 'Crowns', 'Orthodontics (partial)'], eligibility: 'Ages 5-70' },
     // MUA Insurance (IRPROF002)
-    { insuranceRepId: 'IRPROF002', planName: 'MUA Health Shield', planType: 'Health', description: 'Affordable health insurance with focus on hospital and surgery coverage.', monthlyPremium: 1800, annualPremium: 19800, coverageAmount: 300000, deductible: 7500, coverageDetails: ['Hospitalization', 'Surgery', 'Emergency care', 'Ambulance services'], eligibility: 'Ages 18-60' },
-    { insuranceRepId: 'IRPROF002', planName: 'MUA Vision Plus', planType: 'Vision', description: 'Vision care plan covering eye exams, glasses, and contact lenses.', monthlyPremium: 450, annualPremium: 5000, coverageAmount: 50000, deductible: 500, coverageDetails: ['Annual eye exams', 'Prescription glasses', 'Contact lenses', 'Laser surgery (partial)'], eligibility: 'All ages' },
-    { insuranceRepId: 'IRPROF002', planName: 'MUA Corporate Health', planType: 'Health', description: 'Group health insurance for businesses with 10+ employees. Customizable coverage options.', monthlyPremium: 1200, annualPremium: 13200, coverageAmount: 400000, deductible: 5000, coverageDetails: ['Group hospitalization', 'Outpatient care', 'Mental health support', 'Wellness programs', 'Annual health screenings'], eligibility: 'Businesses with 10+ employees' },
-    { insuranceRepId: 'IRPROF002', planName: 'MUA Senior Care', planType: 'Health', description: 'Specialized health plan for seniors covering chronic conditions and home healthcare.', monthlyPremium: 3500, annualPremium: 38000, coverageAmount: 750000, deductible: 2500, coverageDetails: ['Chronic disease management', 'Home healthcare', 'Physiotherapy', 'Medical devices', 'Palliative care'], eligibility: 'Ages 55-80' },
+    { id: 'INSPLAN005', insuranceRepId: 'IRPROF002', planName: 'MUA Health Shield', planType: 'Health', description: 'Affordable health insurance with focus on hospital and surgery coverage.', monthlyPremium: 1800, annualPremium: 19800, coverageAmount: 300000, deductible: 7500, coverageDetails: ['Hospitalization', 'Surgery', 'Emergency care', 'Ambulance services'], eligibility: 'Ages 18-60' },
+    { id: 'INSPLAN006', insuranceRepId: 'IRPROF002', planName: 'MUA Vision Plus', planType: 'Vision', description: 'Vision care plan covering eye exams, glasses, and contact lenses.', monthlyPremium: 450, annualPremium: 5000, coverageAmount: 50000, deductible: 500, coverageDetails: ['Annual eye exams', 'Prescription glasses', 'Contact lenses', 'Laser surgery (partial)'], eligibility: 'All ages' },
+    { id: 'INSPLAN007', insuranceRepId: 'IRPROF002', planName: 'MUA Corporate Health', planType: 'Health', description: 'Group health insurance for businesses with 10+ employees. Customizable coverage options.', monthlyPremium: 1200, annualPremium: 13200, coverageAmount: 400000, deductible: 5000, coverageDetails: ['Group hospitalization', 'Outpatient care', 'Mental health support', 'Wellness programs', 'Annual health screenings'], eligibility: 'Businesses with 10+ employees' },
+    { id: 'INSPLAN008', insuranceRepId: 'IRPROF002', planName: 'MUA Senior Care', planType: 'Health', description: 'Specialized health plan for seniors covering chronic conditions and home healthcare.', monthlyPremium: 3500, annualPremium: 38000, coverageAmount: 750000, deductible: 2500, coverageDetails: ['Chronic disease management', 'Home healthcare', 'Physiotherapy', 'Medical devices', 'Palliative care'], eligibility: 'Ages 55-80' },
   ]
 
   for (const plan of insurancePlans) {

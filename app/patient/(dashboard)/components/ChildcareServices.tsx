@@ -11,19 +11,9 @@ import {
   FaPlus,
   FaCheckCircle,
   FaTimes,
-  FaHeart,
-  FaGamepad,
-  FaBook,
-  FaPaintBrush,
-  FaMusic,
-  FaCertificate,
-  FaAward,
   FaShieldAlt,
   FaFirstAid,
-  FaLanguage,
   FaSun,
-  FaUtensils,
-  FaBed,
   FaHome,
   FaUserCheck,
   FaCameraRetro,
@@ -78,16 +68,8 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const childcareActivities = [
-    { icon: FaBook, name: 'Reading & Storytelling', description: 'Age-appropriate books and interactive stories' },
-    { icon: FaPaintBrush, name: 'Arts & Crafts', description: 'Creative activities to develop fine motor skills' },
-    { icon: FaMusic, name: 'Music & Dancing', description: 'Musical activities for cognitive development' },
-    { icon: FaGamepad, name: 'Educational Games', description: 'Learning through play and structured activities' },
-    { icon: FaUtensils, name: 'Meal Preparation', description: 'Healthy meal planning and preparation' },
-    { icon: FaBed, name: 'Sleep Routines', description: 'Establishing healthy sleep patterns' },
-    { icon: FaFirstAid, name: 'Safety & First Aid', description: 'Comprehensive safety and emergency care' },
-    { icon: FaLanguage, name: 'Language Development', description: 'Multilingual exposure and communication skills' }
-  ]
+  const [nannyServices, setNannyServices] = useState<{ id: string; serviceName: string; category: string; description: string; price: number; currency: string; ageRange: string | null }[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
 
   // Fetch childcare bookings for this patient
   const fetchBookings = useCallback(async () => {
@@ -143,6 +125,31 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     }
     fetchNannies()
   }, [showBookingForm])
+
+  // Fetch services for selected nanny
+  useEffect(() => {
+    if (!selectedNannyId) {
+      setNannyServices([])
+      return
+    }
+    const fetchServices = async () => {
+      setLoadingServices(true)
+      try {
+        const res = await fetch(`/api/nannies/${selectedNannyId}/services`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setNannyServices(json.data)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch nanny services:', error)
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [selectedNannyId])
 
   const resetBookingForm = () => {
     setSelectedNannyId('')
@@ -297,6 +304,36 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 accentColor="purple"
                 avatarGradient="from-purple-400 to-pink-600"
               />
+
+              {/* Available Services from this Nanny */}
+              {selectedNannyId && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">
+                    Available Services
+                  </h4>
+                  {loadingServices ? (
+                    <div className="flex items-center gap-2 py-3">
+                      <FaSpinner className="animate-spin text-purple-500" />
+                      <span className="text-sm text-gray-500">Loading services...</span>
+                    </div>
+                  ) : nannyServices.length === 0 ? (
+                    <p className="text-sm text-gray-400 py-3">No services listed by this nanny yet</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      {nannyServices.map((service) => (
+                        <div key={service.id} className="p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                          <p className="font-medium text-gray-900 text-xs sm:text-sm">{service.serviceName}</p>
+                          {service.description && <p className="text-xs text-gray-500 mt-0.5">{service.description}</p>}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-purple-600 font-medium">{service.currency} {service.price}</span>
+                            {service.ageRange && <span className="text-xs text-gray-400">{service.ageRange}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Visit Type */}
               <div>
@@ -489,27 +526,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           </button>
         </div>
 
-        {/* Service Features */}
-        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-pink-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-5 md:mb-6 flex items-center">
-            <FaHeart className="mr-2 text-pink-500" />
-            Our Childcare Activities
-          </h3>
-
-          <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3 md:gap-4">
-            {childcareActivities.map((activity, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-white/70 to-purple-50/70 border border-purple-200 rounded-lg sm:rounded-xl hover:border-purple-300 hover:from-white/90 hover:to-purple-100/90 transition">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <activity.icon className="text-purple-600 text-sm sm:text-base" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 text-sm sm:text-base">{activity.name}</p>
-                  <p className="text-xs sm:text-sm text-gray-600">{activity.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Safety Features (moved up since activities are now per-nanny) */}
 
         {/* Safety Features */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">

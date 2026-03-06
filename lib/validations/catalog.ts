@@ -25,6 +25,22 @@ export const labTestCatalogSchema = z.object({
   preparation: z.string().optional(),
 })
 
+export const nurseServiceCatalogSchema = z.object({
+  serviceName: z.string().min(1, 'Service name is required'),
+  category: z.string().min(1, 'Category is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().positive('Price must be positive'),
+  duration: z.string().min(1, 'Duration is required'),
+})
+
+export const nannyServiceCatalogSchema = z.object({
+  serviceName: z.string().min(1, 'Service name is required'),
+  category: z.string().min(1, 'Category is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().positive('Price must be positive'),
+  ageRange: z.string().optional(),
+})
+
 export const emergencyServiceSchema = z.object({
   serviceName: z.string().min(1, 'Service name is required'),
   serviceType: z.string().min(1, 'Service type is required'),

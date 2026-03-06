@@ -179,7 +179,8 @@ model NurseProfile {
   specializations String[]
 
   // Nurse-specific relations
-  nurseBookings NurseBooking[]
+  nurseBookings       NurseBooking[]
+  nurseServiceCatalog NurseServiceCatalog[]
 
   @@index([userId])
 }
@@ -192,7 +193,8 @@ model NannyProfile {
   certifications String[]
 
   // Nanny-specific relations
-  childcareBookings ChildcareBooking[]
+  childcareBookings       ChildcareBooking[]
+  nannyServiceCatalog     NannyServiceCatalog[]
 
   @@index([userId])
 }
@@ -279,12 +281,14 @@ model ReferralPartnerProfile {
 }
 
 model RegionalAdminProfile {
-  id          String  @id @default(uuid())
-  userId      String  @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  region      String
-  country     String
-  countryCode String?
+  id               String  @id @default(uuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region           String
+  country          String
+  countryCode      String?
+  commissionRate   Float   @default(10) // % of each transaction
+  totalCommission  Float   @default(0)  // accumulated earnings
 
   @@index([userId])
   @@index([countryCode])
@@ -922,6 +926,42 @@ model LabTestCatalog {
   @@index([category])
 }
 
+model NurseServiceCatalog {
+  id          String       @id @default(uuid())
+  nurseId     String
+  nurse       NurseProfile @relation(fields: [nurseId], references: [id], onDelete: Cascade)
+  serviceName String
+  category    String // Wound Care, Monitoring, Medication, Assessment, etc.
+  description String
+  price       Float
+  currency    String       @default("MUR")
+  duration    String // e.g. "30 minutes", "1 hour"
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([nurseId])
+  @@index([category])
+}
+
+model NannyServiceCatalog {
+  id          String       @id @default(uuid())
+  nannyId     String
+  nanny       NannyProfile @relation(fields: [nannyId], references: [id], onDelete: Cascade)
+  serviceName String
+  category    String // Educational, Creative, Health, Daily Care, etc.
+  description String
+  price       Float
+  currency    String       @default("MUR")
+  ageRange    String? // e.g. "0-2 years", "3-6 years", "All ages"
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([nannyId])
+  @@index([category])
+}
+
 model EmergencyServiceListing {
   id              String                 @id @default(uuid())
   workerId        String
@@ -1009,21 +1049,26 @@ model UserWallet {
 }
 
 model WalletTransaction {
-  id            String     @id @default(uuid())
-  walletId      String
-  wallet        UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  type          String     // credit, debit
-  amount        Float
-  description   String
-  serviceType   String?    // consultation, medicine, lab_test, emergency, subscription
-  referenceId   String?
-  balanceBefore Float
-  balanceAfter  Float
-  status        String     @default("completed")
-  createdAt     DateTime   @default(now())
+  id                   String     @id @default(uuid())
+  walletId             String
+  wallet               UserWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type                 String     // credit, debit
+  amount               Float
+  description          String
+  serviceType          String?    // consultation, medicine, lab_test, emergency, subscription
+  referenceId          String?
+  balanceBefore        Float
+  balanceAfter         Float
+  status               String     @default("completed")
+  platformCommission   Float?     // 5% platform fee
+  regionalCommission   Float?     // 10% regional admin fee
+  providerAmount       Float?     // 85% provider earnings
+  regionalAdminId      String?    // regional admin who gets commission
+  createdAt            DateTime   @default(now())
 
   @@index([walletId])
   @@index([createdAt])
+  @@index([regionalAdminId])
 }
 
 // ─── Doctor Posts (Social Feed) ──────────────────────────────────────────────
@@ -1119,15 +1164,16 @@ model EmergencyBooking {
 // ─── Provider Availability ──────────────────────────────────────────────────
 
 model ProviderAvailability {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dayOfWeek Int      // 0=Sunday, 6=Saturday
-  startTime String   // "09:00" (24h)
-  endTime   String   // "10:00"
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int      // 0=Sunday, 6=Saturday
+  startTime    String   // "09:00" (24h)
+  endTime      String   // "17:00"
+  slotDuration Int      @default(60) // minutes per slot (30, 60, etc.)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([userId, dayOfWeek, startTime])
   @@index([userId])
@@ -1197,6 +1243,19 @@ model ProviderReview {
   @@index([providerUserId])
   @@index([providerType])
   @@index([createdAt])
+}
+
+// ─── Platform Commission Configuration (singleton) ──────────────────────────
+
+model PlatformConfig {
+  id                     String   @id @default(uuid())
+  platformCommissionRate Float    @default(5)   // % to platform
+  regionalCommissionRate Float    @default(10)  // % default to regional admin
+  providerCommissionRate Float    @default(85)  // % to service provider
+  currency               String   @default("MUR")
+  trialWalletAmount      Float    @default(4500)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 // ─── Role Feature Configuration (admin-configurable) ────────────────────────

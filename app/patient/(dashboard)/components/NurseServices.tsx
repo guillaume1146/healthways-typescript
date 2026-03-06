@@ -9,13 +9,9 @@ import {
   FaHome,
   FaHospital,
   FaVideo,
-  FaComments,
-  FaStethoscope,
-  FaPlus,
   FaCheckCircle,
   FaTimes,
   FaSpinner,
-  FaMedkit,
 } from 'react-icons/fa'
 
 interface Props {
@@ -61,19 +57,8 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [loadingNurses, setLoadingNurses] = useState(false)
-
-  const nurseServices = [
-    'Blood pressure monitoring',
-    'Medication administration',
-    'Wound care and dressing',
-    'Injection services',
-    'Health assessment',
-    'Post-surgery care',
-    'Diabetes management',
-    'Elderly care assistance',
-    'Health education',
-    'Vital signs monitoring'
-  ]
+  const [nurseServices, setNurseServices] = useState<{ id: string; serviceName: string; category: string; description: string; price: number; currency: string; duration: string }[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
 
   // Fetch nurse bookings for this patient
   const fetchBookings = useCallback(async () => {
@@ -128,6 +113,33 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     }
     fetchNurses()
   }, [showBookingForm])
+
+  // Fetch services for selected nurse
+  useEffect(() => {
+    if (!selectedNurseId) {
+      setNurseServices([])
+      setSelectedService('')
+      return
+    }
+    setSelectedService('')
+    const fetchServices = async () => {
+      setLoadingServices(true)
+      try {
+        const res = await fetch(`/api/nurses/${selectedNurseId}/services`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setNurseServices(json.data)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch nurse services:', error)
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [selectedNurseId])
 
   const resetBookingForm = () => {
     setSelectedNurseId('')
@@ -220,29 +232,7 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
             </div>
           ) : (
             <>
-              {/* Step 1: Service Selection */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
-                  Select Service <span className="text-red-500">*</span>
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  {nurseServices.map((service, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedService(service)}
-                      className={`p-2.5 sm:p-3 border rounded-lg text-left transition ${
-                        selectedService === service
-                          ? 'bg-pink-100 border-pink-500 ring-2 ring-pink-300'
-                          : 'bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 hover:border-pink-300 hover:from-pink-100 hover:to-purple-100'
-                      }`}
-                    >
-                      <p className="font-medium text-gray-900 text-xs sm:text-sm">{service}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Step 2: Select Nurse */}
+              {/* Step 1: Select Nurse */}
               <ProviderSearchSelect
                 providers={availableNurses.map((n): ProviderOption => ({
                   id: n.id,
@@ -259,6 +249,44 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 accentColor="pink"
                 avatarGradient="from-pink-400 to-pink-600"
               />
+
+              {/* Step 2: Service Selection */}
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
+                  Select Service <span className="text-red-500">*</span>
+                </h4>
+                {!selectedNurseId ? (
+                  <p className="text-sm text-gray-400 py-3">Select a nurse first to see available services</p>
+                ) : loadingServices ? (
+                  <div className="flex items-center gap-2 py-3">
+                    <FaSpinner className="animate-spin text-pink-500" />
+                    <span className="text-sm text-gray-500">Loading services...</span>
+                  </div>
+                ) : nurseServices.length === 0 ? (
+                  <p className="text-sm text-gray-400 py-3">No services available from this nurse</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    {nurseServices.map((service) => (
+                      <button
+                        key={service.id}
+                        onClick={() => setSelectedService(service.serviceName)}
+                        className={`p-2.5 sm:p-3 border rounded-lg text-left transition ${
+                          selectedService === service.serviceName
+                            ? 'bg-pink-100 border-pink-500 ring-2 ring-pink-300'
+                            : 'bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 hover:border-pink-300 hover:from-pink-100 hover:to-purple-100'
+                        }`}
+                      >
+                        <p className="font-medium text-gray-900 text-xs sm:text-sm">{service.serviceName}</p>
+                        {service.description && <p className="text-xs text-gray-500 mt-0.5">{service.description}</p>}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-pink-600 font-medium">{service.currency} {service.price}</span>
+                          <span className="text-xs text-gray-400">{service.duration}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Step 3: Consultation Type */}
               <div>

@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
             phone: true,
           },
         },
+        _count: {
+          select: { nurseServiceCatalog: { where: { isActive: true } } },
+        },
       },
     })
 
@@ -40,6 +43,7 @@ export async function GET(request: NextRequest) {
       phone: n.user.phone,
       experience: `${n.experience} years`,
       specializations: n.specializations,
+      serviceCount: n._count.nurseServiceCatalog,
     }))
 
     return NextResponse.json({ success: true, data })
