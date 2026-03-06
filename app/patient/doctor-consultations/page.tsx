@@ -251,10 +251,10 @@ export default function DoctorConsultationsPage() {
   const confirmCancel = async () => {
     if (!selectedAppointment) return
     try {
-      await fetch(`/api/bookings/doctor/${selectedAppointment.id}`, {
-        method: 'PATCH',
+      await fetch('/api/bookings/cancel', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cancel' }),
+        body: JSON.stringify({ bookingId: selectedAppointment.id, bookingType: 'doctor' }),
       })
       setAppointments(prev =>
         prev.map(apt =>

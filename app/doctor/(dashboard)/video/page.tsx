@@ -1,8 +1,7 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
-import { useDoctorData } from '../context'
 import dynamic from 'next/dynamic'
+import { useDashboardUser } from '@/hooks/useDashboardUser'
 
 const VideoCallRoomsList = dynamic(() => import('@/components/video/VideoCallRoomsList'), {
   ssr: false,
@@ -14,19 +13,9 @@ const VideoCallRoomsList = dynamic(() => import('@/components/video/VideoCallRoo
 })
 
 export default function VideoPage() {
-  const user = useDoctorData()
-  const searchParams = useSearchParams()
-  const roomId = searchParams.get('roomId')
+  const user = useDashboardUser()
 
-  return (
-    <VideoCallRoomsList
-      currentUser={{
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userType: 'doctor',
-      }}
-      initialRoomId={roomId}
-    />
-  )
+  if (!user) return <div className="flex items-center justify-center h-full"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>
+
+  return <VideoCallRoomsList currentUser={user} />
 }

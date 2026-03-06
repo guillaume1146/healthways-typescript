@@ -89,10 +89,10 @@ export default function LabDashboardPage() {
 
   const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
     try {
-      const res = await fetch(`/api/bookings/lab-test/${bookingId}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ bookingId, bookingType: 'lab_test', action }),
       })
       if (res.ok) {
         if (action === 'accept') {

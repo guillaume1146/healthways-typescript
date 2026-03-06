@@ -91,10 +91,10 @@ export default function NurseDashboardPage() {
 
   const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
     try {
-      const res = await fetch(`/api/bookings/nurse/${bookingId}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ bookingId, bookingType: 'nurse', action }),
       })
       if (res.ok) {
         if (action === 'accept') {

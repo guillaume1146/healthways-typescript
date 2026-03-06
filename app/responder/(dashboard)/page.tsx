@@ -93,10 +93,10 @@ export default function ResponderDashboardPage() {
 
   const handleAcceptRequest = async (requestId: string) => {
     try {
-      const res = await fetch(`/api/bookings/emergency/${requestId}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'accept' }),
+        body: JSON.stringify({ bookingId: requestId, bookingType: 'emergency', action: 'accept' }),
       })
       if (res.ok) {
         setIncomingRequests(prev => prev.filter(r => r.id !== requestId))
@@ -109,10 +109,10 @@ export default function ResponderDashboardPage() {
 
   const handleDeclineRequest = async (requestId: string) => {
     try {
-      const res = await fetch(`/api/bookings/emergency/${requestId}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deny' }),
+        body: JSON.stringify({ bookingId: requestId, bookingType: 'emergency', action: 'deny' }),
       })
       if (res.ok) {
         setIncomingRequests(prev => prev.filter(r => r.id !== requestId))
