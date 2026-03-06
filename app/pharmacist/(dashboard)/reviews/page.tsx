@@ -1,25 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useUser } from '@/hooks/useUser'
 import ProviderReviews from '@/components/shared/ProviderReviews'
 
 export default function PharmacistReviewsPage() {
-  const [userId, setUserId] = useState('')
+  const { user, loading } = useUser()
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) setUserId(JSON.parse(stored).id)
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
-
-  if (!userId) return null
+  if (loading || !user) return null
 
   return (
     <ProviderReviews
-      providerUserId={userId}
+      providerUserId={user.id}
       providerLabel="Pharmacist"
       headerGradient="from-teal-500 via-teal-600 to-cyan-600"
       isOwner

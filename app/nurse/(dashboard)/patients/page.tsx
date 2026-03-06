@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useUser } from '@/hooks/useUser'
 import {
   FaSpinner, FaUsers, FaSearch, FaEnvelope, FaPhone,
   FaCalendarCheck, FaCheckCircle, FaClock, FaThLarge,
@@ -20,6 +21,7 @@ interface Patient {
 }
 
 export default function NursePatientsPage() {
+  const { user: hookUser } = useUser()
   const [userId, setUserId] = useState('')
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,11 +30,8 @@ export default function NursePatientsPage() {
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'past'>('all')
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) setUserId(JSON.parse(stored).id)
-    } catch { /* */ }
-  }, [])
+    if (hookUser?.id) setUserId(hookUser.id)
+  }, [hookUser])
 
   useEffect(() => {
     if (!userId) return

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSocket } from '@/hooks/useSocket'
 import { useWebRTC } from '@/hooks/useWebRTC'
+import { useUser } from '@/hooks/useUser'
 import {
   FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhone, FaDesktop, FaComments,
   FaUserMd, FaUser, FaWifi, FaClock, FaPaperPlane, FaExpand, FaCompress, FaRecordVinyl,
@@ -135,15 +136,15 @@ export default function DoctorVideoCall() {
 
   const streamCleanupRef = useRef<() => void>(() => {})
 
+  const { user: authUser, loading: userLoading } = useUser()
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo>({ id: '', name: '', type: 'doctor' })
 
   useEffect(() => {
+    if (userLoading) return
     try {
-      const userData = localStorage.getItem('healthwyz_user') || localStorage.getItem('userData')
-      if (userData) {
-        const user = JSON.parse(userData) as { userType?: UserType; id?: string; firstName?: string; lastName?: string }
-        if (user.userType === 'doctor' && user.id) {
-          setDoctorInfo({ id: user.id, name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(), type: 'doctor' })
+      if (authUser) {
+        if (authUser.userType === 'doctor' && authUser.id) {
+          setDoctorInfo({ id: authUser.id, name: `${authUser.firstName ?? ''} ${authUser.lastName ?? ''}`.trim(), type: 'doctor' })
         } else {
           alert('Please login as a doctor to start consultations')
           router.push('/login')
@@ -158,7 +159,7 @@ export default function DoctorVideoCall() {
       // Corrupted localStorage
       router.push('/login')
     }
-  }, [roomId, router])
+  }, [roomId, router, authUser, userLoading])
 
   const {
     peers,
