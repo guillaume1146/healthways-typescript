@@ -30,6 +30,7 @@ vi.mock('@/lib/commission', () => ({
 
 import { POST as postAction } from '../bookings/action/route'
 import { POST as postCancel } from '../bookings/cancel/route'
+import { POST as postReschedule } from '../bookings/reschedule/route'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { processServicePayment } from '@/lib/commission'
@@ -268,6 +269,91 @@ describe('POST /api/bookings/cancel', () => {
 
     const res = await postCancel(createPostRequest('/api/bookings/cancel', {
       bookingId: 'nonexistent', bookingType: 'doctor',
+    }))
+
+    expect(res.status).toBe(404)
+  })
+})
+
+// ─── /api/bookings/reschedule ───
+
+describe('POST /api/bookings/reschedule', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 401 without auth', async () => {
+    vi.mocked(validateRequest).mockReturnValue(null)
+
+    const res = await postReschedule(createPostRequest('/api/bookings/reschedule', {
+      bookingId: 'b-1', bookingType: 'doctor', newDate: '2026-04-15', newTime: '14:00',
+    }))
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 400 for invalid body', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'p-1', userType: 'patient', email: 'p@e.com' })
+
+    const res = await postReschedule(createPostRequest('/api/bookings/reschedule', {
+      bookingId: 'b-1', bookingType: 'emergency', newDate: 'bad', newTime: '14:00',
+    }))
+
+    expect(res.status).toBe(400)
+  })
+
+  it('reschedules doctor appointment as patient', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'patient-user-1', userType: 'patient', email: 'p@e.com' })
+    vi.mocked(prisma.appointment.findUnique).mockResolvedValue({
+      id: 'apt-1', status: 'upcoming',
+      doctor: { userId: 'doc-user-1' },
+      patient: { userId: 'patient-user-1' },
+    } as never)
+    vi.mocked(prisma.appointment.update).mockResolvedValue({ id: 'apt-1' } as never)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ firstName: 'John', lastName: 'Doe' } as never)
+
+    const res = await postReschedule(createPostRequest('/api/bookings/reschedule', {
+      bookingId: 'apt-1', bookingType: 'doctor', newDate: '2026-04-15', newTime: '14:00',
+    }))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(prisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'apt-1' },
+      data: { scheduledAt: expect.any(Date) },
+    })
+    expect(createNotification).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'doc-user-1',
+      type: 'booking_rescheduled',
+    }))
+  })
+
+  it('returns 403 for unrelated user', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'random-user', userType: 'patient', email: 'r@e.com' })
+    vi.mocked(prisma.appointment.findUnique).mockResolvedValue({
+      id: 'apt-1', status: 'upcoming',
+      doctor: { userId: 'doc-user-1' },
+      patient: { userId: 'patient-user-1' },
+    } as never)
+
+    const res = await postReschedule(createPostRequest('/api/bookings/reschedule', {
+      bookingId: 'apt-1', bookingType: 'doctor', newDate: '2026-04-15', newTime: '14:00',
+    }))
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 for completed booking', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'patient-user-1', userType: 'patient', email: 'p@e.com' })
+    vi.mocked(prisma.appointment.findUnique).mockResolvedValue({
+      id: 'apt-1', status: 'completed',
+      doctor: { userId: 'doc-user-1' },
+      patient: { userId: 'patient-user-1' },
+    } as never)
+
+    const res = await postReschedule(createPostRequest('/api/bookings/reschedule', {
+      bookingId: 'apt-1', bookingType: 'doctor', newDate: '2026-04-15', newTime: '14:00',
     }))
 
     expect(res.status).toBe(404)
