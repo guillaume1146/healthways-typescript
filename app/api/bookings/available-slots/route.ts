@@ -157,13 +157,33 @@ export async function GET(request: NextRequest) {
       orderBy: { startTime: 'asc' },
     })
 
-    if (availability.length === 0) {
+    // For doctors, fall back to ScheduleSlot if no ProviderAvailability is configured
+    let scheduleSlots: { startTime: string; endTime: string; slotDuration: number }[] =
+      availability.map(a => ({ startTime: a.startTime, endTime: a.endTime, slotDuration: a.slotDuration }))
+
+    if (scheduleSlots.length === 0 && providerType === 'doctor') {
+      const doctorSlots = await prisma.scheduleSlot.findMany({
+        where: {
+          doctorId: provider.profileId,
+          dayOfWeek,
+          isActive: true,
+        },
+        orderBy: { startTime: 'asc' },
+      })
+      scheduleSlots = doctorSlots.map(s => ({
+        startTime: s.startTime,
+        endTime: s.endTime,
+        slotDuration: 30, // default 30-min slots for doctor schedule
+      }))
+    }
+
+    if (scheduleSlots.length === 0) {
       return NextResponse.json({ success: true, slots: [] })
     }
 
     // Generate slot start times within each availability window using configured duration
     const allSlots: string[] = []
-    for (const window of availability) {
+    for (const window of scheduleSlots) {
       const slots = generateSlots(window.startTime, window.endTime, window.slotDuration)
       allSlots.push(...slots)
     }

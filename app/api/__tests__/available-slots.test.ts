@@ -8,6 +8,7 @@ vi.mock('@/lib/db', () => ({
     nannyProfile: { findUnique: vi.fn(), findFirst: vi.fn() },
     labTechProfile: { findUnique: vi.fn(), findFirst: vi.fn() },
     providerAvailability: { findMany: vi.fn() },
+    scheduleSlot: { findMany: vi.fn() },
     appointment: { findMany: vi.fn() },
     nurseBooking: { findMany: vi.fn() },
     childcareBooking: { findMany: vi.fn() },
@@ -67,6 +68,7 @@ describe('GET /api/bookings/available-slots', () => {
       userId: 'user-1',
     } as never)
     vi.mocked(prisma.providerAvailability.findMany).mockResolvedValue([])
+    vi.mocked(prisma.scheduleSlot.findMany).mockResolvedValue([])
 
     const res = await GET(createRequest({
       providerId: 'profile-1',
