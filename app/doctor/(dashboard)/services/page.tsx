@@ -1,27 +1,27 @@
 'use client'
 
 import ServiceCatalogManager from '@/components/shared/ServiceCatalogManager'
-import { NANNY_SERVICE_CATEGORIES } from '@/lib/validations/service-catalog'
+import { DOCTOR_SERVICE_CATEGORIES } from '@/lib/validations/service-catalog'
 import type { ServiceCatalogConfig } from '@/components/shared/ServiceCatalogManager'
 
 const config: ServiceCatalogConfig = {
   title: 'My Services',
-  apiBasePath: '/api/nanny/services',
-  categoryOptions: NANNY_SERVICE_CATEGORIES,
-  accentColor: 'purple',
+  apiBasePath: '/api/doctor/services',
+  categoryOptions: DOCTOR_SERVICE_CATEGORIES,
+  accentColor: 'blue',
   fields: [
-    { key: 'serviceName', label: 'Service Name', type: 'text', required: true, placeholder: 'e.g. Early Learning Program' },
+    { key: 'serviceName', label: 'Service Name', type: 'text', required: true, placeholder: 'e.g. General Consultation' },
     {
       key: 'category', label: 'Category', type: 'select', required: true,
-      options: NANNY_SERVICE_CATEGORIES,
+      options: DOCTOR_SERVICE_CATEGORIES,
     },
     { key: 'description', label: 'Description', type: 'textarea', required: true, placeholder: 'Describe the service...' },
     { key: 'price', label: 'Price (MUR)', type: 'number', required: true, placeholder: '0' },
-    { key: 'ageRange', label: 'Age Range', type: 'text', placeholder: 'e.g. 0-2 years, 3-6 years, All ages' },
+    { key: 'duration', label: 'Duration (minutes)', type: 'number', placeholder: '30', defaultValue: 30 },
     { key: 'isActive', label: 'Active', type: 'checkbox', defaultValue: true },
   ],
 }
 
-export default function NannyServicesPage() {
+export default function DoctorServicesPage() {
   return <ServiceCatalogManager config={config} />
 }

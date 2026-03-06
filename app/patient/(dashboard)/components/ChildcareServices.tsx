@@ -70,6 +70,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
 
   const [nannyServices, setNannyServices] = useState<{ id: string; serviceName: string; category: string; description: string; price: number; currency: string; ageRange: string | null }[]>([])
   const [loadingServices, setLoadingServices] = useState(false)
+  const [selectedServiceId, setSelectedServiceId] = useState('')
 
   // Fetch childcare bookings for this patient
   const fetchBookings = useCallback(async () => {
@@ -130,8 +131,10 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   useEffect(() => {
     if (!selectedNannyId) {
       setNannyServices([])
+      setSelectedServiceId('')
       return
     }
+    setSelectedServiceId('')
     const fetchServices = async () => {
       setLoadingServices(true)
       try {
@@ -170,6 +173,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     setIsSubmitting(true)
     setSubmitError('')
     try {
+      const chosenService = nannyServices.find(s => s.id === selectedServiceId)
       const res = await fetch('/api/bookings/nanny', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,10 +182,12 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           consultationType,
           scheduledDate,
           scheduledTime,
-          reason: `${careType === 'overnight' ? 'Overnight' : 'Regular'} childcare`,
+          reason: chosenService?.serviceName || `${careType === 'overnight' ? 'Overnight' : 'Regular'} childcare`,
           notes: specialInstructions || undefined,
           duration: careType === 'overnight' ? 720 : duration * 60,
           children: validChildren,
+          serviceName: chosenService?.serviceName,
+          servicePrice: chosenService?.price,
         }),
       })
       const data = await res.json()
@@ -309,7 +315,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
               {selectedNannyId && (
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">
-                    Available Services
+                    Select Service
                   </h4>
                   {loadingServices ? (
                     <div className="flex items-center gap-2 py-3">
@@ -321,14 +327,22 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       {nannyServices.map((service) => (
-                        <div key={service.id} className="p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                        <button
+                          key={service.id}
+                          onClick={() => setSelectedServiceId(service.id)}
+                          className={`p-2.5 sm:p-3 border rounded-lg text-left transition ${
+                            selectedServiceId === service.id
+                              ? 'bg-purple-100 border-purple-500 ring-2 ring-purple-300'
+                              : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-300 hover:from-purple-100 hover:to-pink-100'
+                          }`}
+                        >
                           <p className="font-medium text-gray-900 text-xs sm:text-sm">{service.serviceName}</p>
                           {service.description && <p className="text-xs text-gray-500 mt-0.5">{service.description}</p>}
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-purple-600 font-medium">{service.currency} {service.price}</span>
                             {service.ageRange && <span className="text-xs text-gray-400">{service.ageRange}</span>}
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -454,6 +468,9 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                     <div><span className="text-gray-500">Nanny:</span> <span className="font-medium">{selectedNanny?.name}</span></div>
                     <div><span className="text-gray-500">Type:</span> <span className="font-medium capitalize">{careType} Care</span></div>
+                    {selectedServiceId && nannyServices.find(s => s.id === selectedServiceId) && (
+                      <div><span className="text-gray-500">Service:</span> <span className="font-medium">{nannyServices.find(s => s.id === selectedServiceId)?.serviceName} — {nannyServices.find(s => s.id === selectedServiceId)?.currency} {nannyServices.find(s => s.id === selectedServiceId)?.price}</span></div>
+                    )}
                     <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>
                     <div><span className="text-gray-500">Time:</span> <span className="font-medium">{scheduledTime}</span></div>
                     <div><span className="text-gray-500">Duration:</span> <span className="font-medium">{careType === 'overnight' ? '12 hours' : `${duration} hours`}</span></div>

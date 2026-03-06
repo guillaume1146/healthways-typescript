@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
       )
     }
     const { doctorId, consultationType, scheduledDate, scheduledTime, reason, notes, duration } = parsed.data
+    const serviceName = body.serviceName as string | undefined
+    const servicePrice = body.servicePrice != null ? Number(body.servicePrice) : undefined
 
     // Look up patient profile
     const patientProfile = await prisma.patientProfile.findUnique({
@@ -61,9 +63,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check patient wallet balance before creating the booking
-    const fee = consultationType === 'video'
-      ? doctorProfile.videoConsultationFee
-      : doctorProfile.consultationFee
+    const fee = servicePrice
+      ?? (consultationType === 'video' ? doctorProfile.videoConsultationFee : doctorProfile.consultationFee)
     const balanceCheck = await checkPatientBalance(auth.sub, fee)
     if (!balanceCheck.sufficient) {
       return NextResponse.json(
@@ -111,6 +112,8 @@ export async function POST(request: NextRequest) {
         location,
         roomId,
         notes: notes?.trim() || null,
+        serviceName: serviceName || null,
+        servicePrice: servicePrice ?? null,
       },
       select: {
         id: true,

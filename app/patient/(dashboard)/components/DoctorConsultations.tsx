@@ -86,6 +86,11 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
+  // Service selection state
+  const [doctorServices, setDoctorServices] = useState<{ id: string; serviceName: string; category: string; description: string; price: number; currency: string; duration: number }[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
+  const [selectedServiceId, setSelectedServiceId] = useState('')
+
   // Fetch appointments for this patient
   const fetchAppointments = useCallback(async () => {
     try {
@@ -129,6 +134,34 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     fetchDoctors()
   }, [showBookingForm])
 
+  // Fetch doctor's services when a doctor is selected
+  useEffect(() => {
+    if (!selectedDoctorId) {
+      setDoctorServices([])
+      setSelectedServiceId('')
+      return
+    }
+    const fetchServices = async () => {
+      setLoadingServices(true)
+      try {
+        const res = await fetch(`/api/doctors/${selectedDoctorId}/services`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setDoctorServices(json.data)
+          }
+        }
+      } catch {
+        // Services are optional — doctor may not have configured any
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [selectedDoctorId])
+
+  const selectedService = doctorServices.find(s => s.id === selectedServiceId)
+
   const resetBookingForm = () => {
     setSelectedDoctorId('')
     setConsultationType('in_person')
@@ -138,6 +171,8 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
     setNotes('')
     setSubmitError('')
     setSubmitSuccess(false)
+    setDoctorServices([])
+    setSelectedServiceId('')
   }
 
   const handleBookingSubmit = async () => {
@@ -155,6 +190,7 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
           scheduledTime,
           reason: reason.trim(),
           notes: notes.trim() || undefined,
+          ...(selectedService ? { serviceName: selectedService.serviceName, servicePrice: selectedService.price } : {}),
         }),
       })
       const data = await res.json()
@@ -253,7 +289,47 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                 avatarGradient="from-blue-400 to-indigo-600"
               />
 
-              {/* Step 2: Consultation Type */}
+              {/* Step 2: Select Service (if doctor has services configured) */}
+              {selectedDoctorId && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
+                    Select Service {doctorServices.length > 0 && <span className="text-gray-400 font-normal">(optional)</span>}
+                  </h4>
+                  {loadingServices ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                      <FaSpinner className="animate-spin" /> Loading services...
+                    </div>
+                  ) : doctorServices.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {doctorServices.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => setSelectedServiceId(selectedServiceId === s.id ? '' : s.id)}
+                          className={`p-3 border rounded-lg text-left transition ${
+                            selectedServiceId === s.id
+                              ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-200'
+                              : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm text-gray-900">{s.serviceName}</span>
+                            <span className="text-sm font-bold text-blue-600">{s.currency} {s.price.toLocaleString()}</span>
+                          </div>
+                          <p className="text-xs text-gray-500 line-clamp-1">{s.description}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">{s.category}</span>
+                            <span className="text-[10px] text-gray-400">{s.duration} min</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 py-1">This doctor has not configured specific services. Standard consultation fees apply.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Consultation Type */}
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Consultation Type</h4>
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -333,6 +409,9 @@ const DoctorConsultations: React.FC<Props> = ({ patientData, onVideoCall }) => {
                     <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>
                     <div><span className="text-gray-500">Time:</span> <span className="font-medium">{scheduledTime}</span></div>
                     <div><span className="text-gray-500">Type:</span> <span className="font-medium capitalize">{consultationType.replace('_', ' ')}</span></div>
+                    {selectedService && (
+                      <div><span className="text-gray-500">Service:</span> <span className="font-medium">{selectedService.serviceName} — {selectedService.currency} {selectedService.price.toLocaleString()}</span></div>
+                    )}
                     <div><span className="text-gray-500">Reason:</span> <span className="font-medium">{reason}</span></div>
                   </div>
                 </div>

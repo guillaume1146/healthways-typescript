@@ -157,6 +157,7 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     setIsSubmitting(true)
     setSubmitError('')
     try {
+      const chosenService = nurseServices.find(s => s.serviceName === selectedService)
       const res = await fetch('/api/bookings/nurse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,6 +168,8 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
           scheduledTime,
           reason: selectedService,
           notes: notes || undefined,
+          serviceName: chosenService?.serviceName,
+          servicePrice: chosenService?.price,
         }),
       })
       const data = await res.json()
@@ -350,7 +353,7 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <h4 className="font-semibold text-gray-800 mb-2 text-sm">Booking Summary</h4>
                   <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                     <div><span className="text-gray-500">Nurse:</span> <span className="font-medium">{selectedNurse?.name}</span></div>
-                    <div><span className="text-gray-500">Service:</span> <span className="font-medium">{selectedService}</span></div>
+                    <div><span className="text-gray-500">Service:</span> <span className="font-medium">{selectedService}{nurseServices.find(s => s.serviceName === selectedService)?.price ? ` — ${nurseServices.find(s => s.serviceName === selectedService)?.currency} ${nurseServices.find(s => s.serviceName === selectedService)?.price}` : ''}</span></div>
                     <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>
                     <div><span className="text-gray-500">Time:</span> <span className="font-medium">{scheduledTime}</span></div>
                     <div><span className="text-gray-500">Type:</span> <span className="font-medium capitalize">{consultationType.replace('_', ' ')}</span></div>

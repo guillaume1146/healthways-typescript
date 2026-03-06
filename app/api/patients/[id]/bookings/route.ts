@@ -45,6 +45,8 @@ export async function GET(
             status: true,
             specialty: true,
             reason: true,
+            serviceName: true,
+            servicePrice: true,
             doctor: {
               select: {
                 user: { select: { firstName: true, lastName: true } },
@@ -61,6 +63,8 @@ export async function GET(
             type: true,
             status: true,
             reason: true,
+            serviceName: true,
+            servicePrice: true,
             nurse: {
               select: {
                 user: { select: { firstName: true, lastName: true } },
@@ -77,6 +81,8 @@ export async function GET(
             type: true,
             status: true,
             reason: true,
+            serviceName: true,
+            servicePrice: true,
             nanny: {
               select: {
                 user: { select: { firstName: true, lastName: true } },
@@ -131,7 +137,9 @@ export async function GET(
         scheduledAt: a.scheduledAt.toISOString(),
         status: a.status,
         consultationType: a.type,
-        detail: a.specialty,
+        detail: a.serviceName || a.specialty,
+        serviceName: a.serviceName || undefined,
+        servicePrice: a.servicePrice || undefined,
       })),
       ...nurseBookings.map((b) => ({
         id: b.id,
@@ -140,7 +148,9 @@ export async function GET(
         scheduledAt: b.scheduledAt.toISOString(),
         status: b.status,
         consultationType: b.type,
-        detail: b.reason || undefined,
+        detail: b.serviceName || b.reason || undefined,
+        serviceName: b.serviceName || undefined,
+        servicePrice: b.servicePrice || undefined,
       })),
       ...childcareBookings.map((b) => ({
         id: b.id,
@@ -149,7 +159,9 @@ export async function GET(
         scheduledAt: b.scheduledAt.toISOString(),
         status: b.status,
         consultationType: b.type,
-        detail: b.reason || undefined,
+        detail: b.serviceName || b.reason || undefined,
+        serviceName: b.serviceName || undefined,
+        servicePrice: b.servicePrice || undefined,
       })),
       ...labTestBookings.map((b) => ({
         id: b.id,

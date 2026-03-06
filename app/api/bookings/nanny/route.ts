@@ -7,7 +7,7 @@ import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 import { checkPatientBalance } from '@/lib/booking/check-balance'
 
-const DEFAULT_NANNY_FEE = 400
+const DEFAULT_NANNY_FEE = 400 // Fallback when no service price specified
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
       )
     }
     const { nannyId, consultationType, scheduledDate, scheduledTime, reason, notes, duration, children } = parsed.data
+    const serviceName = body.serviceName as string | undefined
+    const servicePrice = body.servicePrice != null ? Number(body.servicePrice) : undefined
 
     // Validate required fields
     if (!nannyId || typeof nannyId !== 'string') {
@@ -84,12 +86,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check patient wallet balance before creating the booking
-    const balanceCheck = await checkPatientBalance(auth.sub, DEFAULT_NANNY_FEE)
+    const bookingFee = servicePrice ?? DEFAULT_NANNY_FEE
+    const balanceCheck = await checkPatientBalance(auth.sub, bookingFee)
     if (!balanceCheck.sufficient) {
       return NextResponse.json(
         {
           success: false,
-          message: `Insufficient balance. You need Rs ${DEFAULT_NANNY_FEE} but only have Rs ${balanceCheck.balance?.toFixed(2) ?? '0'}. Please top up your wallet.`,
+          message: `Insufficient balance. You need Rs ${bookingFee} but only have Rs ${balanceCheck.balance?.toFixed(2) ?? '0'}. Please top up your wallet.`,
         },
         { status: 400 }
       )
@@ -118,6 +121,8 @@ export async function POST(request: NextRequest) {
         children: children || [],
         specialInstructions: notes?.trim() || null,
         reason: reason?.trim() || null,
+        serviceName: serviceName || null,
+        servicePrice: servicePrice ?? null,
         status: 'pending',
       },
       select: {

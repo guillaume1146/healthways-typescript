@@ -53,10 +53,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
       }
       patientUserId = appointment.patient.userId
-      amount = appointment.type === 'video'
-        ? appointment.doctor.videoConsultationFee
-        : appointment.doctor.consultationFee
-      description = `Doctor consultation (${appointment.type})`
+      amount = appointment.servicePrice
+        ?? (appointment.type === 'video' ? appointment.doctor.videoConsultationFee : appointment.doctor.consultationFee)
+      description = appointment.serviceName
+        ? `Doctor: ${appointment.serviceName} (${appointment.type})`
+        : `Doctor consultation (${appointment.type})`
       providerUserId = appointment.doctor.userId
 
       await prisma.appointment.update({
@@ -79,8 +80,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
       }
       patientUserId = booking.patient.userId
-      amount = 500 // Default nurse rate
-      description = `Nurse visit (${booking.type})`
+      amount = booking.servicePrice ?? 500
+      description = booking.serviceName ? `Nurse: ${booking.serviceName} (${booking.type})` : `Nurse visit (${booking.type})`
       providerUserId = booking.nurse.userId
 
       await prisma.nurseBooking.update({
@@ -103,8 +104,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
       }
       patientUserId = booking.patient.userId
-      amount = 400 // Default nanny rate
-      description = `Childcare session (${booking.type})`
+      amount = booking.servicePrice ?? 400
+      description = booking.serviceName ? `Childcare: ${booking.serviceName} (${booking.type})` : `Childcare session (${booking.type})`
       providerUserId = booking.nanny.userId
 
       await prisma.childcareBooking.update({

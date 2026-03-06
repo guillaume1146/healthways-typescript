@@ -25,7 +25,7 @@ module.exports = {
         'gradient-purple': 'linear-gradient(135deg, #008fa3 0%, #125ff9 100%)',
         'gradient-orange': 'linear-gradient(135deg, #00a542 0%, #125ff9 100%)',
         'gradient-footer': 'linear-gradient(135deg, #125ff9 0%, #125ff9 30%, #008fa3 70%, #00a542 100%)',
-        'gradient-footer-dark': 'linear-gradient(135deg, #0d1421 0%, #125ff9 20%, #008fa3 60%, #00a542 100%)',
+        'gradient-footer-dark': 'linear-gradient(135deg, #0a0f1a 0%, #0d1f4d 15%, #0e3a6b 30%, #0d6e7e 50%, #0a7a4f 70%, #063d28 90%, #041a12 100%)',
       },
       animation: {
         'blob': 'blob 7s infinite',

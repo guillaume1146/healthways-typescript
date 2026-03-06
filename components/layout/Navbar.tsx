@@ -107,7 +107,10 @@ const Navbar: React.FC = () => {
   const isLoggedIn = !!authUser
 
   return (
-    <nav role="navigation" aria-label="Main navigation" className="bg-white shadow-lg sticky top-0 z-50">
+    <nav role="navigation" aria-label="Main navigation" className="sticky top-0 z-50">
+      {/* Brand gradient accent line */}
+      <div className="h-1 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
+      <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
       {/* Skip to content link */}
       <a
         href="#main-content"
@@ -382,6 +385,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </nav>
   )

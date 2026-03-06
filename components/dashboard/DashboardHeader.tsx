@@ -153,7 +153,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const unreadCount = notifications.filter(n => !n.readAt).length || autoUnreadCount || notificationCount
 
   return (
-    <header role="banner" className="bg-white shadow-sm border-b sticky top-0 z-50 flex-shrink-0">
+    <header role="banner" className="sticky top-0 z-50 flex-shrink-0">
+      <div className="h-0.5 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
+      <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
       <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2 md:py-2.5">
         <div className="flex items-center justify-between">
           {/* Left: mobile toggle + logo + user info */}
@@ -310,6 +312,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </button>
           </div>
         </div>
+      </div>
       </div>
     </header>
   )

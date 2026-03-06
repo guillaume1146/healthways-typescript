@@ -46,8 +46,10 @@ const Footer: React.FC = () => {
 
   return (
     <footer role="contentinfo" className="bg-gradient-footer-dark text-white">
-      {/* Footer Content - with much darker overlay */}
-      <div className="bg-black/60 py-16">
+      {/* Gradient accent line at top */}
+      <div className="h-1 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
+      {/* Footer Content */}
+      <div className="bg-black/40 py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}

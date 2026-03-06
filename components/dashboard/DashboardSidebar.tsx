@@ -138,7 +138,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className={`
         flex-shrink-0
         ${isOpen ? 'w-64 lg:w-72 xl:w-80' : 'w-16'}
-        bg-white shadow-lg border-r border-gray-200
+        bg-gradient-to-b from-white via-white to-gray-50/80 shadow-lg border-r border-gray-200
         transition-all duration-300 ease-in-out
         overflow-hidden
       `}
