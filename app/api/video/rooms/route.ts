@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       duration: number
       participantName: string
       participantImage: string | null
+      participantProfileId?: string | null
       type: string
       endedAt?: Date | null
     }
@@ -109,6 +110,7 @@ export async function GET(request: NextRequest) {
           orderBy: { scheduledAt: 'desc' },
           select: {
             id: true, scheduledAt: true, status: true, reason: true, roomId: true, duration: true,
+            patientId: true,
             patient: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
           }
         })
@@ -121,6 +123,7 @@ export async function GET(request: NextRequest) {
           duration: a.duration,
           participantName: a.patient?.user ? `${a.patient.user.firstName} ${a.patient.user.lastName}` : 'Patient',
           participantImage: a.patient?.user?.profileImage || null,
+          participantProfileId: a.patientId,
           type: 'doctor_consultation',
         }))
       }

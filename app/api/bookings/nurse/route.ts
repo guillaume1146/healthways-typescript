@@ -53,13 +53,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Reason is required' },
-        { status: 400 }
-      )
-    }
-
     // Look up patient profile
     const patientProfile = await prisma.patientProfile.findUnique({
       where: { userId: auth.sub },
@@ -125,7 +118,7 @@ export async function POST(request: NextRequest) {
         scheduledAt,
         duration: duration || 60,
         type: consultationType,
-        reason: reason.trim(),
+        reason: reason?.trim() || null,
         notes: notes?.trim() || null,
         serviceName: serviceName || null,
         servicePrice: servicePrice ?? null,
@@ -166,6 +159,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('POST /api/bookings/nurse error:', error)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ success: false, message: msg }, { status: 500 })
   }
 }

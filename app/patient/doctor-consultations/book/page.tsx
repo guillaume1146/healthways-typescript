@@ -221,15 +221,15 @@ export default function DoctorConsultationBooking() {
     try {
       const userId = getUserId()
       if (userId) {
-        const scheduledAt = new Date(`${appointmentDetails.date}T${convertTo24h(appointmentDetails.time)}:00`)
+        const time24 = convertTo24h(appointmentDetails.time)
         await fetch('/api/bookings/doctor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            patientUserId: userId,
-            doctorUserId: appointmentDetails.doctor.id,
-            scheduledAt: scheduledAt.toISOString(),
-            type: appointmentDetails.type,
+            doctorId: appointmentDetails.doctor.id,
+            consultationType: appointmentDetails.type,
+            scheduledDate: appointmentDetails.date,
+            scheduledTime: time24,
             reason: appointmentDetails.reason,
             notes: appointmentDetails.notes,
           }),

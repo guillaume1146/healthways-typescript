@@ -59,8 +59,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [selectedNannyId, setSelectedNannyId] = useState('')
   const [careType, setCareType] = useState<'regular' | 'overnight'>('regular')
   const [consultationType, setConsultationType] = useState<'home_visit' | 'in_person' | 'video'>('home_visit')
-  const [scheduledDate, setScheduledDate] = useState('')
-  const [scheduledTime, setScheduledTime] = useState('')
+  const [selectedSlots, setSelectedSlots] = useState<{ date: string; time: string }[]>([])
   const [duration, setDuration] = useState(2)
   const [childrenNames, setChildrenNames] = useState<string[]>([''])
   const [specialInstructions, setSpecialInstructions] = useState('')
@@ -158,8 +157,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     setSelectedNannyId('')
     setCareType('regular')
     setConsultationType('home_visit')
-    setScheduledDate('')
-    setScheduledTime('')
+    setSelectedSlots([])
     setDuration(2)
     setChildrenNames([''])
     setSpecialInstructions('')
@@ -169,37 +167,51 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
 
   const handleBookingSubmit = async () => {
     const validChildren = childrenNames.filter(n => n.trim())
-    if (!selectedNannyId || !scheduledDate || !scheduledTime || validChildren.length === 0) return
+    if (!selectedNannyId || selectedSlots.length === 0 || validChildren.length === 0) return
     setIsSubmitting(true)
     setSubmitError('')
     try {
       const chosenService = nannyServices.find(s => s.id === selectedServiceId)
-      const res = await fetch('/api/bookings/nanny', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nannyId: selectedNannyId,
-          consultationType,
-          scheduledDate,
-          scheduledTime,
-          reason: chosenService?.serviceName || `${careType === 'overnight' ? 'Overnight' : 'Regular'} childcare`,
-          notes: specialInstructions || undefined,
-          duration: careType === 'overnight' ? 720 : duration * 60,
-          children: validChildren,
-          serviceName: chosenService?.serviceName,
-          servicePrice: chosenService?.price,
-        }),
-      })
-      const data = await res.json()
-      if (data.success) {
+      const errors: string[] = []
+      let successCount = 0
+
+      for (const slot of selectedSlots) {
+        const res = await fetch('/api/bookings/nanny', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nannyId: selectedNannyId,
+            consultationType,
+            scheduledDate: slot.date,
+            scheduledTime: slot.time,
+            reason: chosenService?.serviceName || `${careType === 'overnight' ? 'Overnight' : 'Regular'} childcare`,
+            notes: specialInstructions || undefined,
+            duration: careType === 'overnight' ? 720 : duration * 60,
+            children: validChildren,
+            serviceName: chosenService?.serviceName,
+            servicePrice: chosenService?.price,
+          }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          successCount++
+        } else {
+          errors.push(`${slot.date} ${slot.time}: ${data.message}`)
+        }
+      }
+
+      if (successCount > 0) {
         setSubmitSuccess(true)
+        if (errors.length > 0) {
+          setSubmitError(`${successCount} booking(s) created. Some failed: ${errors.join('; ')}`)
+        }
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
           fetchBookings()
         }, 1500)
       } else {
-        setSubmitError(data.message || 'Booking failed. Please try again.')
+        setSubmitError(errors[0] || 'Booking failed. Please try again.')
       }
     } catch {
       setSubmitError('Network error. Please try again.')
@@ -210,7 +222,7 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
 
   const selectedNanny = availableNannies.find(n => n.id === selectedNannyId || n.userId === selectedNannyId)
   const validChildren = childrenNames.filter(n => n.trim())
-  const canSubmit = selectedNannyId && scheduledDate && scheduledTime && validChildren.length > 0 && !isSubmitting
+  const canSubmit = selectedNannyId && selectedSlots.length > 0 && validChildren.length > 0 && !isSubmitting
 
   // Map childcare bookings to BookingItem format
   const bookingItems: BookingItem[] = bookings.map((b) => ({
@@ -402,9 +414,10 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <WeeklySlotPicker
                     providerId={selectedNannyId}
                     providerType="nanny"
-                    onSelect={(date, time) => { setScheduledDate(date); setScheduledTime(time) }}
-                    selectedDate={scheduledDate}
-                    selectedTime={scheduledTime}
+                    onSelect={() => {}}
+                    multiSelect
+                    selectedSlots={selectedSlots}
+                    onMultiSelect={setSelectedSlots}
                     accentColor="purple"
                   />
                 )}
@@ -471,8 +484,9 @@ const ChildcareServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                     {selectedServiceId && nannyServices.find(s => s.id === selectedServiceId) && (
                       <div><span className="text-gray-500">Service:</span> <span className="font-medium">{nannyServices.find(s => s.id === selectedServiceId)?.serviceName} — {nannyServices.find(s => s.id === selectedServiceId)?.currency} {nannyServices.find(s => s.id === selectedServiceId)?.price}</span></div>
                     )}
-                    <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>
-                    <div><span className="text-gray-500">Time:</span> <span className="font-medium">{scheduledTime}</span></div>
+                    <div className="col-span-2"><span className="text-gray-500">Slots ({selectedSlots.length}):</span>{' '}
+                      <span className="font-medium">{selectedSlots.map(s => `${new Date(s.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${s.time}`).join(' • ')}</span>
+                    </div>
                     <div><span className="text-gray-500">Duration:</span> <span className="font-medium">{careType === 'overnight' ? '12 hours' : `${duration} hours`}</span></div>
                     <div><span className="text-gray-500">Children:</span> <span className="font-medium">{validChildren.join(', ')}</span></div>
                   </div>

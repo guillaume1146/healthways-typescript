@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FaSpinner, FaClock } from 'react-icons/fa'
 
+export interface SelectedSlot {
+  date: string
+  time: string
+}
+
 interface WeeklySlotPickerProps {
   providerId: string
   providerType: 'doctor' | 'nurse' | 'nanny' | 'lab-test'
@@ -10,6 +15,9 @@ interface WeeklySlotPickerProps {
   selectedDate?: string
   selectedTime?: string
   accentColor?: string // e.g. 'pink', 'purple', 'blue'
+  multiSelect?: boolean
+  selectedSlots?: SelectedSlot[]
+  onMultiSelect?: (slots: SelectedSlot[]) => void
 }
 
 interface DaySlots {
@@ -57,6 +65,9 @@ export default function WeeklySlotPicker({
   selectedDate,
   selectedTime,
   accentColor = 'blue',
+  multiSelect = false,
+  selectedSlots = [],
+  onMultiSelect,
 }: WeeklySlotPickerProps) {
   const [daySlots, setDaySlots] = useState<DaySlots[]>([])
   const [loading, setLoading] = useState(true)
@@ -141,12 +152,44 @@ export default function WeeklySlotPicker({
 
   if (daySlots.length === 0) return null
 
+  const handleSlotClick = (date: string, time: string) => {
+    if (multiSelect && onMultiSelect) {
+      const exists = selectedSlots.some(s => s.date === date && s.time === time)
+      if (exists) {
+        onMultiSelect(selectedSlots.filter(s => !(s.date === date && s.time === time)))
+      } else {
+        onMultiSelect([...selectedSlots, { date, time }])
+      }
+    } else {
+      onSelect(date, time)
+    }
+  }
+
+  const isSlotSelected = (date: string, time: string) => {
+    if (multiSelect) {
+      return selectedSlots.some(s => s.date === date && s.time === time)
+    }
+    return selectedDate === date && selectedTime === time
+  }
+
+  const dayHasSelection = (date: string) => {
+    if (multiSelect) {
+      return selectedSlots.some(s => s.date === date)
+    }
+    return selectedDate === date
+  }
+
   return (
     <div className="space-y-3">
+      {multiSelect && selectedSlots.length > 0 && (
+        <div className="text-xs font-medium text-gray-600 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+          {selectedSlots.length} time slot{selectedSlots.length !== 1 ? 's' : ''} selected
+        </div>
+      )}
       {daySlots.map((day) => (
         <div key={day.date} className="border border-gray-200 rounded-lg overflow-hidden">
           <div className={`px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-2 ${
-            selectedDate === day.date ? colors.tab : ''
+            dayHasSelection(day.date) ? colors.tab : ''
           }`}>
             <FaClock className="text-xs text-gray-400" />
             <span className="text-sm font-medium text-gray-700">{day.dateLabel}</span>
@@ -154,14 +197,14 @@ export default function WeeklySlotPicker({
           </div>
           <div className="p-2 flex flex-wrap gap-1.5">
             {day.slots.map((slot) => {
-              const isSelected = selectedDate === day.date && selectedTime === slot
+              const selected = isSlotSelected(day.date, slot)
               return (
                 <button
                   key={`${day.date}-${slot}`}
                   type="button"
-                  onClick={() => onSelect(day.date, slot)}
+                  onClick={() => handleSlotClick(day.date, slot)}
                   className={`px-2.5 py-1.5 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                    isSelected
+                    selected
                       ? `${colors.selected} shadow-md`
                       : `border-gray-200 text-gray-700 ${colors.hover}`
                   }`}

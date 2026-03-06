@@ -50,8 +50,7 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   const [selectedNurseId, setSelectedNurseId] = useState('')
   const [selectedService, setSelectedService] = useState('')
   const [consultationType, setConsultationType] = useState<'home_visit' | 'in_person' | 'video'>('home_visit')
-  const [scheduledDate, setScheduledDate] = useState('')
-  const [scheduledTime, setScheduledTime] = useState('')
+  const [selectedSlots, setSelectedSlots] = useState<{ date: string; time: string }[]>([])
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -145,43 +144,56 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
     setSelectedNurseId('')
     setSelectedService('')
     setConsultationType('home_visit')
-    setScheduledDate('')
-    setScheduledTime('')
+    setSelectedSlots([])
     setNotes('')
     setSubmitError('')
     setSubmitSuccess(false)
   }
 
   const handleBookingSubmit = async () => {
-    if (!selectedNurseId || !selectedService || !scheduledDate || !scheduledTime) return
+    if (!selectedNurseId || !selectedService || selectedSlots.length === 0) return
     setIsSubmitting(true)
     setSubmitError('')
     try {
       const chosenService = nurseServices.find(s => s.serviceName === selectedService)
-      const res = await fetch('/api/bookings/nurse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nurseId: selectedNurseId,
-          consultationType,
-          scheduledDate,
-          scheduledTime,
-          reason: selectedService,
-          notes: notes || undefined,
-          serviceName: chosenService?.serviceName,
-          servicePrice: chosenService?.price,
-        }),
-      })
-      const data = await res.json()
-      if (data.success) {
+      const errors: string[] = []
+      let successCount = 0
+
+      for (const slot of selectedSlots) {
+        const res = await fetch('/api/bookings/nurse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nurseId: selectedNurseId,
+            consultationType,
+            scheduledDate: slot.date,
+            scheduledTime: slot.time,
+            reason: selectedService,
+            notes: notes || undefined,
+            serviceName: chosenService?.serviceName,
+            servicePrice: chosenService?.price,
+          }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          successCount++
+        } else {
+          errors.push(`${slot.date} ${slot.time}: ${data.message}`)
+        }
+      }
+
+      if (successCount > 0) {
         setSubmitSuccess(true)
+        if (errors.length > 0) {
+          setSubmitError(`${successCount} booking(s) created. Some failed: ${errors.join('; ')}`)
+        }
         setTimeout(() => {
           setShowBookingForm(false)
           resetBookingForm()
           fetchBookings()
         }, 1500)
       } else {
-        setSubmitError(data.message || 'Booking failed. Please try again.')
+        setSubmitError(errors[0] || 'Booking failed. Please try again.')
       }
     } catch {
       setSubmitError('Network error. Please try again.')
@@ -191,7 +203,7 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
   }
 
   const selectedNurse = availableNurses.find(n => n.id === selectedNurseId || n.userId === selectedNurseId)
-  const canSubmit = selectedNurseId && selectedService && scheduledDate && scheduledTime && !isSubmitting
+  const canSubmit = selectedNurseId && selectedService && selectedSlots.length > 0 && !isSubmitting
 
   // Map nurse bookings to BookingItem format
   const bookingItems: BookingItem[] = bookings.map((b) => ({
@@ -327,9 +339,10 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <WeeklySlotPicker
                     providerId={selectedNurseId}
                     providerType="nurse"
-                    onSelect={(date, time) => { setScheduledDate(date); setScheduledTime(time) }}
-                    selectedDate={scheduledDate}
-                    selectedTime={scheduledTime}
+                    onSelect={() => {}}
+                    multiSelect
+                    selectedSlots={selectedSlots}
+                    onMultiSelect={setSelectedSlots}
                     accentColor="pink"
                   />
                 )}
@@ -354,8 +367,9 @@ const NurseServices: React.FC<Props> = ({ patientData, onVideoCall }) => {
                   <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                     <div><span className="text-gray-500">Nurse:</span> <span className="font-medium">{selectedNurse?.name}</span></div>
                     <div><span className="text-gray-500">Service:</span> <span className="font-medium">{selectedService}{nurseServices.find(s => s.serviceName === selectedService)?.price ? ` — ${nurseServices.find(s => s.serviceName === selectedService)?.currency} ${nurseServices.find(s => s.serviceName === selectedService)?.price}` : ''}</span></div>
-                    <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span></div>
-                    <div><span className="text-gray-500">Time:</span> <span className="font-medium">{scheduledTime}</span></div>
+                    <div className="col-span-2"><span className="text-gray-500">Slots ({selectedSlots.length}):</span>{' '}
+                      <span className="font-medium">{selectedSlots.map(s => `${new Date(s.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${s.time}`).join(' • ')}</span>
+                    </div>
                     <div><span className="text-gray-500">Type:</span> <span className="font-medium capitalize">{consultationType.replace('_', ' ')}</span></div>
                   </div>
                 </div>

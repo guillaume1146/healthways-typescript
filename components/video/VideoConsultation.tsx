@@ -19,7 +19,9 @@ import {
   FaExclamationTriangle,
   FaCheckCircle,
   FaDatabase,
-  FaRedo
+  FaRedo,
+  FaPrescriptionBottleAlt,
+  FaNotesMedical
 } from 'react-icons/fa'
 
 interface VideoConsultationUser {
@@ -684,10 +686,49 @@ const VideoConsultation: React.FC<VideoConsultationProps> = ({ currentUser, pati
     )
   }
 
+  const handleWritePrescription = () => {
+    if (!selectedAppointment) return
+    const patientId = selectedAppointment.patientId
+    if (!patientId) return
+    const url = `/doctor/prescriptions/create/${patientId}?roomId=${selectedAppointment.roomId}`
+    window.open(url, '_blank')
+  }
+
   return (
     <>
       {renderConnectionStatus()}
       {renderConnectionHealth()}
+
+      {/* Doctor prescription button during active call */}
+      {effectiveType === 'doctor' && selectedAppointment?.patientId && (
+        <div className="fixed top-20 left-4 z-40 flex flex-col gap-2">
+          <button
+            onClick={handleWritePrescription}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transition-colors text-sm font-medium"
+            title="Write a prescription for this patient"
+          >
+            <FaPrescriptionBottleAlt />
+            <span className="hidden sm:inline">Write Prescription</span>
+          </button>
+          <button
+            onClick={() => {
+              if (!selectedAppointment?.patientId) return
+              const notesKey = `consultation_notes_${selectedAppointment.roomId}`
+              const existing = localStorage.getItem(notesKey) || ''
+              const notes = prompt('Consultation Notes:', existing)
+              if (notes !== null) {
+                localStorage.setItem(notesKey, notes)
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transition-colors text-sm font-medium"
+            title="Save consultation notes"
+          >
+            <FaNotesMedical />
+            <span className="hidden sm:inline">Notes</span>
+          </button>
+        </div>
+      )}
+
       <VideoCallRoom
         localStream={localStream}
         remoteStreams={remoteStreams}

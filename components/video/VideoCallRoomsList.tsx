@@ -14,6 +14,7 @@ interface VideoRoom {
   duration: number
   participantName: string
   participantImage: string | null
+  participantProfileId?: string | null
   type: string
 }
 
@@ -107,6 +108,7 @@ export default function VideoCallRoomsList({ currentUser, initialRoomId }: Video
                 id: r.id,
                 type: 'video' as const,
                 participantName: r.participantName,
+                patientId: r.participantProfileId || undefined,
                 date: r.scheduledAt,
                 time: new Date(r.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 reason: r.reason,

@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('POST /api/bookings/nanny error:', error)
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ success: false, message: msg }, { status: 500 })
   }
 }

@@ -179,13 +179,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </Link>
 
             <div className="hidden sm:flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-200">
-              {userImage && (
-                <img
-                  src={userImage}
-                  alt={`${userName} profile photo`}
-                  className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-blue-200"
-                />
-              )}
               <div>
                 <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">
                   {userName}
