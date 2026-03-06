@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const auth = validateRequest(request)
-    if (!auth || auth.userType !== 'super-admin') {
+    if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const auth = validateRequest(request)
-    if (!auth || auth.userType !== 'super-admin') {
+    if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
     }
 

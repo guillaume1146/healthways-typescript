@@ -456,7 +456,7 @@ const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-140px)] bg-gray-50 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="flex h-[calc(100vh-8rem)] bg-gray-50 rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div

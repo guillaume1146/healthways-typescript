@@ -31,7 +31,7 @@ export const PATIENT_SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'nurse-services', label: 'Nurse Services', labelKey: 'nav.nurseServices', icon: FaUserNurse, color: 'text-pink-600', bgColor: 'bg-pink-50', href: `${base}/nurse-services` },
   { id: 'childcare', label: 'Childcare Services', labelKey: 'nav.childcare', icon: FaBaby, color: 'text-yellow-600', bgColor: 'bg-yellow-50', href: `${base}/childcare` },
   { id: 'emergency', label: 'Emergency Services', labelKey: 'nav.emergency', icon: FaAmbulance, color: 'text-red-600', bgColor: 'bg-red-50', href: `${base}/emergency` },
-  { id: 'lab-results', label: 'Lab Results', labelKey: 'nav.labResults', icon: FaFlask, color: 'text-cyan-600', bgColor: 'bg-cyan-50', href: `${base}/lab-results` },
+  { id: 'lab-results', label: 'Lab Testing', labelKey: 'nav.labTesting', icon: FaFlask, color: 'text-cyan-600', bgColor: 'bg-cyan-50', href: `${base}/lab-results` },
   { id: 'insurance', label: 'Insurance', labelKey: 'nav.insurance', icon: FaShieldAlt, color: 'text-emerald-600', bgColor: 'bg-emerald-50', href: `${base}/insurance` },
   { id: 'billing', label: 'Billing', labelKey: 'nav.billing', icon: FaMoneyBillWave, color: 'text-emerald-600', bgColor: 'bg-emerald-50', href: `${base}/billing` },
   { id: 'video', label: 'Video Call', labelKey: 'nav.video', icon: FaVideo, color: 'text-green-600', bgColor: 'bg-green-50', href: `${base}/video` },

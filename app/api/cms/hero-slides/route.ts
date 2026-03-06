@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     if (includeInactive) {
       const auth = validateRequest(request)
-      if (auth && auth.userType === 'REGIONAL_ADMIN') {
+      if (auth && ['admin', 'regional-admin'].includes(auth.userType)) {
         delete where.isActive
       }
     }
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const auth = validateRequest(request)
-  if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
+  if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
   }
 

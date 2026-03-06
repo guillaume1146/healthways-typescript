@@ -172,7 +172,7 @@ export default function ReferralPartnerDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Earnings Summary</h3>
-              <Link href="/referral-partner/earnings" className="text-purple-600 text-sm hover:underline">
+              <Link href="/referral-partner/billing" className="text-purple-600 text-sm hover:underline">
                 View Details
               </Link>
             </div>

@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import { createDoctorBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
+import { checkPatientBalance } from '@/lib/booking/check-balance'
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -43,12 +44,12 @@ export async function POST(request: NextRequest) {
     // Look up doctor profile (try profile ID first, then user ID)
     let doctorProfile = await prisma.doctorProfile.findUnique({
       where: { id: doctorId },
-      select: { id: true, userId: true, specialty: true, location: true },
+      select: { id: true, userId: true, specialty: true, location: true, consultationFee: true, videoConsultationFee: true },
     })
     if (!doctorProfile) {
       doctorProfile = await prisma.doctorProfile.findFirst({
         where: { userId: doctorId },
-        select: { id: true, userId: true, specialty: true, location: true },
+        select: { id: true, userId: true, specialty: true, location: true, consultationFee: true, videoConsultationFee: true },
       })
     }
 
@@ -56,6 +57,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Doctor profile not found' },
         { status: 404 }
+      )
+    }
+
+    // Check patient wallet balance before creating the booking
+    const fee = consultationType === 'video'
+      ? doctorProfile.videoConsultationFee
+      : doctorProfile.consultationFee
+    const balanceCheck = await checkPatientBalance(auth.sub, fee)
+    if (!balanceCheck.sufficient) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Insufficient balance. You need Rs ${fee} but only have Rs ${balanceCheck.balance?.toFixed(2) ?? '0'}. Please top up your wallet.`,
+        },
+        { status: 400 }
       )
     }
 

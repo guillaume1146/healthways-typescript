@@ -5,6 +5,9 @@ import { createNotification } from '@/lib/notifications'
 import { createNurseBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
+import { checkPatientBalance } from '@/lib/booking/check-balance'
+
+const DEFAULT_NURSE_FEE = 500
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -84,6 +87,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Nurse profile not found' },
         { status: 404 }
+      )
+    }
+
+    // Check patient wallet balance before creating the booking
+    const balanceCheck = await checkPatientBalance(auth.sub, DEFAULT_NURSE_FEE)
+    if (!balanceCheck.sufficient) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Insufficient balance. You need Rs ${DEFAULT_NURSE_FEE} but only have Rs ${balanceCheck.balance?.toFixed(2) ?? '0'}. Please top up your wallet.`,
+        },
+        { status: 400 }
       )
     }
 

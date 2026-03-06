@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   FaHome,
   FaUserMd,
@@ -16,7 +17,9 @@ import {
   FaFlask,
   FaBaby,
   FaChevronDown,
-  FaShieldAlt
+  FaShieldAlt,
+  FaUser,
+  FaSignOutAlt,
 } from 'react-icons/fa'
 
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
@@ -40,10 +43,28 @@ const serviceCategories = {
   ]
 }
 
+const COOKIE_TO_SLUG: Record<string, string> = {
+  patient: 'patient',
+  doctor: 'doctor',
+  nurse: 'nurse',
+  'child-care-nurse': 'nanny',
+  pharmacy: 'pharmacist',
+  lab: 'lab-technician',
+  ambulance: 'responder',
+  insurance: 'insurance',
+  corporate: 'corporate',
+  'referral-partner': 'referral-partner',
+  admin: 'admin',
+  'regional-admin': 'regional',
+}
+
 const Navbar: React.FC = () => {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
+  const [authUser, setAuthUser] = useState<{ id: string; firstName: string; lastName: string } | null>(null)
+  const [profileHref, setProfileHref] = useState('/login')
 
   useEffect(() => {
     const handleResize = () => {
@@ -56,13 +77,49 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Read auth state from localStorage + cookie
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('healthwyz_user')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.id) {
+          setAuthUser({ id: parsed.id, firstName: parsed.firstName, lastName: parsed.lastName })
+        }
+      }
+    } catch { /* ignore */ }
+
+    // Get userType slug from cookie
+    const match = document.cookie
+      .split(';')
+      .find((c) => c.trim().startsWith('healthwyz_userType='))
+    if (match) {
+      const cookieVal = decodeURIComponent(match.trim().split('=')[1] ?? '')
+      const slug = COOKIE_TO_SLUG[cookieVal] || 'patient'
+      setProfileHref(`/${slug}/profile`)
+    }
+  }, [])
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    } catch { /* ignore */ }
+    localStorage.removeItem('healthwyz_user')
+    document.cookie = 'healthwyz_token=; path=/; max-age=0'
+    document.cookie = 'healthwyz_userType=; path=/; max-age=0'
+    setAuthUser(null)
+    router.push('/login')
+  }, [router])
+
   const toggleDropdown = (category: string) => {
     setActiveDropdown(activeDropdown === category ? null : category)
   }
 
+  const isLoggedIn = !!authUser
+
   return (
     <nav role="navigation" aria-label="Main navigation" className="bg-white shadow-lg sticky top-0 z-50">
-      {/* Skip to content link — visible only on focus */}
+      {/* Skip to content link */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -71,15 +128,15 @@ const Navbar: React.FC = () => {
       </a>
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16 lg:h-20">
-          {/* Logo - Responsive sizing */}
+          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-md">
-            <HealthwyzLogo 
-              width={isMobile ? 140 : 160} 
-              height={isMobile ? 35 : 40} 
+            <HealthwyzLogo
+              width={isMobile ? 140 : 160}
+              height={isMobile ? 35 : 40}
             />
           </Link>
 
-          {/* Desktop Navigation - Hidden on mobile and tablet */}
+          {/* Desktop Navigation */}
           <div className="hidden xl:flex items-center space-x-6">
             <Link
               href="/"
@@ -89,40 +146,42 @@ const Navbar: React.FC = () => {
               <span className="text-sm font-medium">Home</span>
             </Link>
 
-            {/* Services Dropdown */}
-            <div className="relative group">
-              <button
-                className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                aria-haspopup="true"
-                aria-label="Services menu"
-              >
-                <FaUserMd className="text-sm" aria-hidden="true" />
-                <span className="text-sm font-medium">Services</span>
-                <FaChevronDown className="text-xs" aria-hidden="true" />
-              </button>
-              
-              <div className="absolute top-full left-0 mt-1 w-80 bg-white rounded-xl shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <div className="p-4 grid grid-cols-1 gap-4">
-                  {Object.entries(serviceCategories).map(([category, services]) => (
-                    <div key={category}>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{category}</h4>
-                      <div className="space-y-1">
-                        {services.map((service) => (
-                          <Link
-                            key={service.href}
-                            href={service.href}
-                            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 transition-colors duration-200 group/item"
-                          >
-                            <service.icon className="text-blue-600 group-hover/item:text-green-600 transition-colors" />
-                            <span className="text-sm text-gray-700 group-hover/item:text-gray-900">{service.label}</span>
-                          </Link>
-                        ))}
+            {/* Services Dropdown — hidden when logged in (accessible from dashboard sidebar) */}
+            {!isLoggedIn && (
+              <div className="relative group">
+                <button
+                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  aria-haspopup="true"
+                  aria-label="Services menu"
+                >
+                  <FaUserMd className="text-sm" aria-hidden="true" />
+                  <span className="text-sm font-medium">Services</span>
+                  <FaChevronDown className="text-xs" aria-hidden="true" />
+                </button>
+
+                <div className="absolute top-full left-0 mt-1 w-80 bg-white rounded-xl shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="p-4 grid grid-cols-1 gap-4">
+                    {Object.entries(serviceCategories).map(([category, services]) => (
+                      <div key={category}>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{category}</h4>
+                        <div className="space-y-1">
+                          {services.map((service) => (
+                            <Link
+                              key={service.href}
+                              href={service.href}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 transition-colors duration-200 group/item"
+                            >
+                              <service.icon className="text-blue-600 group-hover/item:text-green-600 transition-colors" />
+                              <span className="text-sm text-gray-700 group-hover/item:text-gray-900">{service.label}</span>
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <Link
               href="/about"
@@ -141,29 +200,47 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Search, Language and Auth - Responsive */}
+          {/* Right: Search, Language, Auth */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Search - Hidden on smaller screens, shown on medium+ */}
             <div className="hidden lg:block w-48 xl:w-64">
               <SearchAutocomplete variant="navbar" placeholder="Search doctors, medicines..." />
             </div>
 
-            {/* Language Switcher */}
             <LanguageSwitcher variant="navbar" />
 
-            {/* Auth Buttons with Blue-Green Gradient */}
-            <Link
-              href="/login"
-              className="px-4 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full hover:bg-blue-50 transition-all duration-200 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full hover:from-blue-700 hover:to-green-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              Sign Up
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href={profileHref}
+                  className="flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <FaUser className="text-sm" />
+                  <span>My Profile</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition text-sm font-medium"
+                >
+                  <FaSignOutAlt className="text-sm" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full hover:bg-blue-50 transition-all duration-200 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full hover:from-blue-700 hover:to-green-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -188,7 +265,6 @@ const Navbar: React.FC = () => {
 
               {/* Navigation Links */}
               <div className="space-y-2 px-2">
-                {/* Home Link */}
                 <Link
                   href="/"
                   className="flex items-center space-x-3 text-gray-700 py-3 px-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 rounded-lg transition-colors"
@@ -198,38 +274,60 @@ const Navbar: React.FC = () => {
                   <span className="font-medium">Home</span>
                 </Link>
 
-                {/* Service Categories */}
-                {Object.entries(serviceCategories).map(([category, services]) => (
-                  <div key={category} className="border-b border-gray-100 pb-3 mb-3">
-                    <button
-                      onClick={() => toggleDropdown(category)}
-                      className="flex items-center justify-between w-full text-left py-2 px-3 text-gray-800 font-semibold hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <span className="text-sm">{category}</span>
-                      <FaChevronDown 
-                        className={`text-xs transition-transform duration-200 ${
-                          activeDropdown === category ? 'rotate-180' : ''
-                        }`} 
-                      />
-                    </button>
-                    
-                    {activeDropdown === category && (
-                      <div className="mt-2 space-y-1 pl-4">
-                        {services.map((service) => (
-                          <Link
-                            key={service.href}
-                            href={service.href}
-                            className="flex items-center space-x-3 py-2.5 px-3 text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 rounded-lg transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
-                          >
-                            <service.icon className="text-blue-500" />
-                            <span>{service.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
+                {/* Mobile: Icon grid — hidden when logged in */}
+                {!isLoggedIn && (
+                  <div className="sm:hidden grid grid-cols-4 gap-2 mb-3 pb-3 border-b border-gray-100">
+                    {Object.values(serviceCategories).flat().map((service) => (
+                      <Link
+                        key={service.href}
+                        href={service.href}
+                        className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                        aria-label={service.label}
+                      >
+                        <service.icon className="text-blue-600 text-lg" />
+                        <span className="text-[10px] text-gray-600 text-center leading-tight">{service.label.split(' ')[0]}</span>
+                      </Link>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* Tablet+: Expandable categories — hidden when logged in */}
+                {!isLoggedIn && (
+                <div className="hidden sm:block">
+                  {Object.entries(serviceCategories).map(([category, services]) => (
+                    <div key={category} className="border-b border-gray-100 pb-3 mb-3">
+                      <button
+                        onClick={() => toggleDropdown(category)}
+                        className="flex items-center justify-between w-full text-left py-2 px-3 text-gray-800 font-semibold hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <span className="text-sm">{category}</span>
+                        <FaChevronDown
+                          className={`text-xs transition-transform duration-200 ${
+                            activeDropdown === category ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {activeDropdown === category && (
+                        <div className="mt-2 space-y-1 pl-4">
+                          {services.map((service) => (
+                            <Link
+                              key={service.href}
+                              href={service.href}
+                              className="flex items-center space-x-3 py-2.5 px-3 text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 rounded-lg transition-colors"
+                              onClick={() => setIsMenuOpen(false)}
+                            >
+                              <service.icon className="text-blue-500" />
+                              <span>{service.label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                )}
 
                 <Link
                   href="/about"
@@ -249,7 +347,7 @@ const Navbar: React.FC = () => {
                   <span className="font-medium">Contact</span>
                 </Link>
               </div>
-              
+
               {/* Mobile Language Switcher */}
               <div className="px-2 mt-3">
                 <LanguageSwitcher variant="navbar" />
@@ -257,20 +355,40 @@ const Navbar: React.FC = () => {
 
               {/* Mobile Auth Buttons */}
               <div className="pt-4 px-2 space-y-3 border-t border-gray-200 mt-4">
-                <Link 
-                  href="/login" 
-                  className="block text-center py-3 border-2 border-blue-500 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  href="/signup" 
-                  className="block text-center py-3 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full font-medium shadow-md hover:from-blue-700 hover:to-green-600 transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link
+                      href={profileHref}
+                      className="flex items-center justify-center gap-2 py-3 border-2 border-blue-500 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FaUser /> My Profile
+                    </Link>
+                    <button
+                      onClick={() => { setIsMenuOpen(false); handleLogout() }}
+                      className="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full font-medium hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <FaSignOutAlt /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="block text-center py-3 border-2 border-blue-500 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="block text-center py-3 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-full font-medium shadow-md hover:from-blue-700 hover:to-green-600 transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

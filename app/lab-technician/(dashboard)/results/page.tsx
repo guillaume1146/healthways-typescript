@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaClipboardCheck, FaSearch, FaClock, FaCheckCircle, FaPaperPlane, FaFlask } from 'react-icons/fa'
+import { FaClipboardCheck, FaSearch, FaClock, FaCheckCircle, FaPaperPlane, FaFlask, FaPen, FaTimes, FaSpinner, FaEye } from 'react-icons/fa'
 
 interface LabResult {
   id: string
@@ -10,6 +10,9 @@ interface LabResult {
   status: 'pending' | 'ready' | 'sent'
   date: string
   category?: string
+  resultFindings?: string
+  resultNotes?: string
+  resultDate?: string
 }
 
 export default function LabResultsPage() {
@@ -19,6 +22,18 @@ export default function LabResultsPage() {
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+
+  // Write result modal state
+  const [writeModalOpen, setWriteModalOpen] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState<LabResult | null>(null)
+  const [findings, setFindings] = useState('')
+  const [resultNotes, setResultNotes] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+
+  // View result modal state
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [viewBooking, setViewBooking] = useState<LabResult | null>(null)
 
   useEffect(() => {
     try {
@@ -32,32 +47,32 @@ export default function LabResultsPage() {
     }
   }, [])
 
-  useEffect(() => {
+  const fetchResults = async () => {
     if (!userId) return
-
-    const fetchResults = async () => {
-      try {
-        setLoading(true)
-        const res = await fetch(`/api/lab-techs/${userId}/results`)
-        if (!res.ok) {
-          if (res.status === 404) {
-            setResults([])
-            return
-          }
-          throw new Error('Failed to fetch lab results')
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/lab-techs/${userId}/results`)
+      if (!res.ok) {
+        if (res.status === 404) {
+          setResults([])
+          return
         }
-        const json = await res.json()
-        setResults(json.data ?? json.results ?? (Array.isArray(json) ? json : []))
-      } catch (err) {
-        console.error('Failed to fetch lab results:', err)
-        setError(err instanceof Error ? err.message : 'An error occurred')
-        setResults([])
-      } finally {
-        setLoading(false)
+        throw new Error('Failed to fetch lab results')
       }
+      const json = await res.json()
+      setResults(json.data ?? json.results ?? (Array.isArray(json) ? json : []))
+    } catch (err) {
+      console.error('Failed to fetch lab results:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setResults([])
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchResults()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
   const getStatusBadge = (status: string) => {
@@ -65,7 +80,7 @@ export default function LabResultsPage() {
       case 'pending':
         return { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: FaClock }
       case 'ready':
-        return { label: 'Ready', color: 'bg-green-100 text-green-800', icon: FaCheckCircle }
+        return { label: 'Results Ready', color: 'bg-green-100 text-green-800', icon: FaCheckCircle }
       case 'sent':
         return { label: 'Sent', color: 'bg-blue-100 text-blue-800', icon: FaPaperPlane }
       default:
@@ -80,6 +95,48 @@ export default function LabResultsPage() {
     const matchesStatus = !statusFilter || result.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  const openWriteModal = (booking: LabResult) => {
+    setSelectedBooking(booking)
+    setFindings('')
+    setResultNotes('')
+    setSubmitError('')
+    setWriteModalOpen(true)
+  }
+
+  const openViewModal = (booking: LabResult) => {
+    setViewBooking(booking)
+    setViewModalOpen(true)
+  }
+
+  const handleSubmitResult = async () => {
+    if (!selectedBooking || !findings.trim()) return
+    setSubmitting(true)
+    setSubmitError('')
+
+    try {
+      const res = await fetch(`/api/lab-techs/${userId}/results/${selectedBooking.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resultFindings: findings.trim(),
+          resultNotes: resultNotes.trim() || undefined,
+        }),
+      })
+
+      const json = await res.json()
+      if (json.success) {
+        setWriteModalOpen(false)
+        fetchResults()
+      } else {
+        setSubmitError(json.message || 'Failed to submit results')
+      }
+    } catch {
+      setSubmitError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -118,7 +175,7 @@ export default function LabResultsPage() {
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
-          <option value="ready">Ready</option>
+          <option value="ready">Results Ready</option>
           <option value="sent">Sent</option>
         </select>
       </div>
@@ -156,6 +213,9 @@ export default function LabResultsPage() {
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -183,11 +243,172 @@ export default function LabResultsPage() {
                           day: 'numeric',
                         })}
                       </td>
+                      <td className="px-6 py-4">
+                        {result.status === 'pending' ? (
+                          <button
+                            onClick={() => openWriteModal(result)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition"
+                          >
+                            <FaPen className="text-[10px]" />
+                            Write Result
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openViewModal(result)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-medium rounded-lg hover:bg-green-100 transition border border-green-200"
+                          >
+                            <FaEye className="text-[10px]" />
+                            View Result
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Write Result Modal */}
+      {writeModalOpen && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Write Test Result</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {selectedBooking.testName} — {selectedBooking.patientName}
+                </p>
+              </div>
+              <button
+                onClick={() => setWriteModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Findings <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={5}
+                  value={findings}
+                  onChange={(e) => setFindings(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                  placeholder="Enter test results, measurements, values, and clinical findings..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Additional Notes (optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={resultNotes}
+                  onChange={(e) => setResultNotes(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                  placeholder="Recommendations, follow-up instructions, or clinical notes..."
+                />
+              </div>
+
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {submitError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setWriteModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitResult}
+                  disabled={!findings.trim() || submitting}
+                  className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheckCircle />
+                      Submit Result
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Result Modal */}
+      {viewModalOpen && viewBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Test Result</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {viewBooking.testName} — {viewBooking.patientName}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {viewBooking.resultDate && (
+                <div className="text-xs text-gray-500">
+                  Result submitted on{' '}
+                  {new Date(viewBooking.resultDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+              )}
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">Findings</h4>
+                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap border">
+                  {viewBooking.resultFindings || 'No findings recorded'}
+                </div>
+              </div>
+
+              {viewBooking.resultNotes && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Notes</h4>
+                  <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap border border-blue-100">
+                    {viewBooking.resultNotes}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

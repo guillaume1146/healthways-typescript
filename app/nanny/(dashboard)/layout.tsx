@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Childcare',
   sidebarItems: NANNY_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/nanny/settings',
+  profileHref: '/nanny/profile',
 })

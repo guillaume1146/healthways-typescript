@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Lab Technician',
   sidebarItems: LAB_TECH_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/lab-technician/settings',
+  profileHref: '/lab-technician/profile',
 })

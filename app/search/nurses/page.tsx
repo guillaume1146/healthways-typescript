@@ -154,7 +154,7 @@ const NurseCard = ({ nurse }: NurseProps) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
             <Link href={`/search/nurses/${nurse.id}`} className="flex-1 min-w-[80px]">
               <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
                 Details

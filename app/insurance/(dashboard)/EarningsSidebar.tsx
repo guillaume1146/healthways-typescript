@@ -57,7 +57,7 @@ export default function EarningsSidebar({ totalCommission, platformFee, netPayou
           </div>
         </div>
         <Link 
-          href="/insurance/analytics" 
+          href="/insurance/billing" 
           className="bg-gradient-to-r from-blue-600 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 mt-4"
         >
           <FaChartLine />

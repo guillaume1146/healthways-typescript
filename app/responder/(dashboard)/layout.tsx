@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Responder',
   sidebarItems: RESPONDER_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/responder/settings',
+  profileHref: '/responder/profile',
 })

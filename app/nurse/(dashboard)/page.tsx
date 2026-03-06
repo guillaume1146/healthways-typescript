@@ -239,7 +239,7 @@ export default function NurseDashboardPage() {
               <FaCheckCircle />
               <span className="text-sm font-medium">Available for emergency bookings</span>
             </div>
-            <Link href="/nurse/settings?tab=availability" className="w-full bg-teal-100 text-teal-800 text-center py-2.5 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center justify-center gap-2">
+            <Link href="/nurse/profile?tab=availability" className="w-full bg-teal-100 text-teal-800 text-center py-2.5 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center justify-center gap-2">
               <FaClock />
               Manage Schedule
             </Link>
@@ -254,7 +254,7 @@ export default function NurseDashboardPage() {
                 <p className="text-xs text-gray-600">Payouts are sent to your wallet</p>
               </div>
             </div>
-            <Link href="/nurse/settings?tab=payments" className="w-full bg-gray-100 text-gray-800 text-center mt-4 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+            <Link href="/nurse/profile?tab=payments" className="w-full bg-gray-100 text-gray-800 text-center mt-4 py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
               <FaFileInvoiceDollar />
               View Transactions
             </Link>
@@ -265,7 +265,7 @@ export default function NurseDashboardPage() {
             <p className="text-white/90 text-sm mb-4">
               A complete profile helps you get chosen by more patients.
             </p>
-            <Link href="/nurse/settings?tab=documents" className="bg-white text-teal-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+            <Link href="/nurse/profile?tab=documents" className="bg-white text-teal-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
               Upload Documents
             </Link>
           </div>

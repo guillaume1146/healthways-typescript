@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Patient } from '@/lib/data/patients'
 import { 
@@ -54,13 +54,48 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
   const [activeTab, setActiveTab] = useState<'records' | 'vitals' | 'metrics' | 'timeline'>('records')
   const [expandedSection, setExpandedSection] = useState<string>('records')
 
+  // Self-fetch medical records
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([])
+  const [activePrescriptions, setActivePrescriptions] = useState<any[]>([])
+  const [loadingRecords, setLoadingRecords] = useState(true)
+
+  const fetchRecords = useCallback(async () => {
+    try {
+      const [recordsRes, prescriptionsRes] = await Promise.all([
+        fetch(`/api/patients/${patientData.id}/medical-records`).catch(() => null),
+        fetch(`/api/patients/${patientData.id}/prescriptions?active=true`).catch(() => null),
+      ])
+      const [recordsData, prescriptionsData] = await Promise.all([
+        recordsRes?.ok ? recordsRes.json() : null,
+        prescriptionsRes?.ok ? prescriptionsRes.json() : null,
+      ])
+      if (recordsData?.data) setMedicalRecords(recordsData.data)
+      if (prescriptionsData?.data) {
+        setActivePrescriptions(prescriptionsData.data.map((p: any) => ({
+          id: p.id,
+          date: p.date,
+          time: '',
+          doctorName: p.doctor ? `${p.doctor.user.firstName} ${p.doctor.user.lastName}` : 'Unknown',
+          diagnosis: p.diagnosis,
+        })))
+      }
+    } catch (error) {
+      console.error('Failed to fetch health records:', error)
+    } finally {
+      setLoadingRecords(false)
+    }
+  }, [patientData.id])
+
+  useEffect(() => { fetchRecords() }, [fetchRecords])
+
   // Get unique doctors from medical records
   const doctors = Array.from(new Set(
-    (patientData.medicalRecords || []).map(record => record.doctorResponsible)
+    medicalRecords.map(record => record.doctorResponsible)
   ))
 
   // Filter records based on search and filters
-  const filteredRecords = (patientData.medicalRecords || []).filter(record => {
+  const filteredRecords = medicalRecords.filter(record => {
     const matchesSearch = 
       record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.doctorResponsible.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -311,7 +346,8 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
                         Attachments ({record.attachments.length})
                       </h4>
                       <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-2 md:gap-3">
-                        {record.attachments.map((attachment, index) => (
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {record.attachments.map((attachment: any, index: number) => (
                           <button
                             key={index}
                             className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-to-r from-white/70 to-indigo-50/70 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition text-left"
@@ -631,7 +667,7 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
   const renderTimeline = () => {
     // Combine all health events for timeline
     const timelineEvents = [
-      ...(patientData.medicalRecords || []).map(record => ({
+      ...(medicalRecords || []).map(record => ({
         id: record.id,
         date: record.date,
         time: record.time,
@@ -641,7 +677,7 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
         provider: record.doctorResponsible,
         category: record.type
       })),
-      ...(patientData.activePrescriptions || []).map(rx => ({
+      ...(activePrescriptions || []).map(rx => ({
         id: rx.id,
         date: rx.date,
         time: rx.time,
@@ -720,7 +756,16 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
     )
   }
 
-  if (!patientData.medicalRecords && !patientData.vitalSigns && !patientData.healthMetrics) {
+  if (loadingRecords) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <FaFileAlt className="animate-pulse text-blue-500 text-2xl mr-3" />
+        <span className="text-gray-500">Loading health records...</span>
+      </div>
+    )
+  }
+
+  if (medicalRecords.length === 0 && !patientData.vitalSigns && !patientData.healthMetrics) {
     return (
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-blue-200">
         <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4">
@@ -750,7 +795,7 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 text-center">
             <div className="bg-gradient-to-br from-blue-400/20 to-indigo-400/20 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-              <p className="text-lg sm:text-xl md:text-2xl font-bold">{patientData.medicalRecords?.length || 0}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">{medicalRecords?.length || 0}</p>
               <p className="text-xs opacity-90">Medical Records</p>
             </div>
             <div className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg p-2 sm:p-3">

@@ -42,7 +42,17 @@
       "Bash(docker:*)",
       "Bash(__NEW_LINE_52182f0e14a62e93__ head:*)",
       "Bash(DATABASE_URL=\"postgresql://healthwyz:healthwyz_secret@127.0.0.1:5432/healthwyz\" npx prisma:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(mkdir:*)",
+      "Bash(start:*)",
+      "Bash(grep ''super-admin'':*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(timeout 30 bash:*)",
+      "Bash(timeout 90 bash:*)",
+      "Bash(find C:\\\\Github Repositories\\\\healthways-typescript\\\\app:*)",
+      "Read(//dev/**)",
+      "Bash(bash:*)"
     ]
   }
 }

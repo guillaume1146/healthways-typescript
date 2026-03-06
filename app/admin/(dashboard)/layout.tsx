@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Admin',
   sidebarItems: ADMIN_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/admin/settings',
+  profileHref: '/admin/profile',
 })

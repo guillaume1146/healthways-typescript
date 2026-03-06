@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   FaCalendarAlt,
   FaPills,
@@ -8,17 +9,71 @@ import {
   FaClock,
   FaEdit,
   FaChartLine,
+  FaSpinner,
 } from 'react-icons/fa'
 import { usePatientData } from './context'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
+interface MedicalRecord {
+  id: string
+  title: string
+  doctorResponsible: string
+  date: string
+}
+
 export default function PatientOverviewPage() {
   const patientData = usePatientData()
+  const [upcomingCount, setUpcomingCount] = useState(0)
+  const [prescriptionCount, setPrescriptionCount] = useState(0)
+  const [recordCount, setRecordCount] = useState(0)
+  const [recentRecords, setRecentRecords] = useState<MedicalRecord[]>([])
+  const [nextAppointment, setNextAppointment] = useState<{ date: string } | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const upcomingCount = patientData.upcomingAppointments?.length || 0
-  const prescriptionCount = patientData.activePrescriptions?.length || 0
-  const recordCount = patientData.medicalRecords?.length || 0
-  const nextAppointment = patientData.upcomingAppointments?.[0] ?? null
+  useEffect(() => {
+    const fetchOverviewData = async () => {
+      try {
+        const [appointmentsRes, prescriptionsRes, recordsRes] = await Promise.all([
+          fetch(`/api/patients/${patientData.id}/appointments?status=upcoming`).catch(() => null),
+          fetch(`/api/patients/${patientData.id}/prescriptions?active=true`).catch(() => null),
+          fetch(`/api/patients/${patientData.id}/medical-records`).catch(() => null),
+        ])
+
+        const [appointments, prescriptions, records] = await Promise.all([
+          appointmentsRes?.ok ? appointmentsRes.json() : null,
+          prescriptionsRes?.ok ? prescriptionsRes.json() : null,
+          recordsRes?.ok ? recordsRes.json() : null,
+        ])
+
+        if (appointments?.data) {
+          setUpcomingCount(appointments.data.length)
+          if (appointments.data[0]?.scheduledAt) {
+            setNextAppointment({ date: appointments.data[0].scheduledAt })
+          }
+        }
+        if (prescriptions?.data) {
+          setPrescriptionCount(prescriptions.data.length)
+        }
+        if (records?.data) {
+          setRecordCount(records.data.length)
+          setRecentRecords(records.data.slice(0, 3))
+        }
+      } catch (error) {
+        console.error('Failed to fetch overview data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchOverviewData()
+  }, [patientData.id])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6">
@@ -133,7 +188,7 @@ export default function PatientOverviewPage() {
           Recent Activities
         </h3>
         <div className="space-y-2 sm:space-y-3">
-          {patientData.medicalRecords?.slice(0, 3).map((record) => (
+          {recentRecords.length > 0 ? recentRecords.map((record) => (
             <div
               key={record.id}
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 lg:p-5 bg-white bg-opacity-70 rounded-lg sm:rounded-xl hover:bg-opacity-90 transition"
@@ -151,7 +206,9 @@ export default function PatientOverviewPage() {
               </div>
               <FaEdit className="text-gray-400 hover:text-blue-500 cursor-pointer text-sm sm:text-base md:text-lg flex-shrink-0" />
             </div>
-          ))}
+          )) : (
+            <p className="text-sm text-gray-500 py-2">No recent activities</p>
+          )}
         </div>
       </div>
     </div>

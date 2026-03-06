@@ -44,6 +44,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF001',
       patientId: 'PPROF001',
+      planId: 'INSPLAN001',
       policyHolderName: 'Emma Johnson',
       description: 'Hospitalization claim for diabetic ketoacidosis episode — 3-day inpatient stay at City Medical Center',
       policyType: 'Health',
@@ -55,6 +56,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF001',
       patientId: 'PPROF001',
+      planId: 'INSPLAN001',
       policyHolderName: 'Emma Johnson',
       description: 'Outpatient specialist consultation — endocrinology follow-up x 4 visits',
       policyType: 'Health',
@@ -66,6 +68,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF001',
       patientId: 'PPROF004',
+      planId: 'INSPLAN001',
       policyHolderName: 'Vikash Doorgakant',
       description: 'Emergency ambulance call and hypertensive crisis treatment — paramedic intervention at home',
       policyType: 'Health',
@@ -76,6 +79,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF001',
       patientId: 'PPROF002',
+      planId: 'INSPLAN001',
       policyHolderName: 'Jean Pierre',
       description: 'Prescription drug claim — 6-month supply of asthma inhalers and antihistamines',
       policyType: 'Health',
@@ -89,6 +93,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF002',
       patientId: 'PPROF003',
+      planId: 'INSPLAN005',
       policyHolderName: 'Aisha Khan',
       description: 'Lab test claim — thyroid panel, iron studies, and full blood count',
       policyType: 'Health',
@@ -100,6 +105,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF002',
       patientId: 'PPROF005',
+      planId: 'INSPLAN005',
       policyHolderName: 'Nadia Soobramanien',
       description: 'Annual wellness exam and preventive screening package',
       policyType: 'Health',
@@ -110,6 +116,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF002',
       patientId: 'PPROF004',
+      planId: 'INSPLAN005',
       policyHolderName: 'Vikash Doorgakant',
       description: 'Cardiology specialist consultation and lipid panel — cholesterol management program',
       policyType: 'Health',
@@ -120,6 +127,7 @@ export async function seedConnections(prisma: PrismaClient) {
     {
       insuranceRepId: 'IRPROF002',
       patientId: 'PPROF001',
+      planId: 'INSPLAN006',
       policyHolderName: 'Emma Johnson',
       description: 'Vision care claim — annual eye exam and prescription glasses',
       policyType: 'Vision',

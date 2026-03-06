@@ -210,7 +210,7 @@ export default function PharmacyDashboardPage() {
           <div className="bg-gradient-to-br from-green-600 to-blue-500 text-white rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-2">Complete Your Pharmacy Profile</h3>
             <p className="text-white/90 text-sm mb-4">Add pharmacist details and certifications to build trust.</p>
-            <Link href="/pharmacist/settings?tab=documents" className="bg-white text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+            <Link href="/pharmacist/profile" className="bg-white text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
               Upload License
             </Link>
           </div>

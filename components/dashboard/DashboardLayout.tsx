@@ -13,12 +13,12 @@ interface DashboardLayoutProps {
   sidebarItems: SidebarItem[]
   activeSectionId: string
   notificationCount?: number
-  settingsHref: string
+  /** @deprecated Use profileHref instead */
+  settingsHref?: string
+  profileHref?: string
   onLogout: () => void
   sidebarFooter?: React.ReactNode
 }
-
-const HEADER_HEIGHT = 56 // px — matches header h-14
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
@@ -29,12 +29,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   activeSectionId,
   notificationCount = 0,
   settingsHref,
+  profileHref,
   onLogout,
   sidebarFooter,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [userId, setUserId] = useState<string | undefined>(undefined)
+
+  // Use profileHref if provided, fall back to settingsHref for backwards compat
+  const resolvedProfileHref = profileHref || settingsHref || '/profile'
 
   useEffect(() => {
     const handleResize = () => {
@@ -95,13 +99,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setSidebarOpen(false)
   }
 
-  // Sidebar widths (must match DashboardSidebar classes)
-  const sidebarWidth = isMobile
-    ? 0
-    : sidebarOpen
-    ? 256 // md:w-64
-    : 64  // md:w-16
-
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
       {/* Skip to content link */}
@@ -112,22 +109,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         Skip to main content
       </a>
 
-      {/* Row 1: Fixed header — takes its natural height, never scrolls */}
+      {/* Single header with logo, user info, notifications, logout */}
       <DashboardHeader
         userName={userName}
         userImage={userImage}
         userSubtitle={userSubtitle}
         notificationCount={notificationCount}
-        settingsHref={settingsHref}
+        profileHref={resolvedProfileHref}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={handleToggleSidebar}
         onLogout={onLogout}
         userId={userId}
       />
 
-      {/* Row 2: Sidebar + Main content — fills remaining height */}
+      {/* Sidebar + Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — fixed height, own scroll */}
         <DashboardSidebar
           items={sidebarItems}
           activeItemId={activeSectionId}
@@ -137,14 +133,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           footer={sidebarFooter}
         />
 
-        {/* Main content — scrollable, takes remaining width */}
         <main
           id="dashboard-main-content"
           role="main"
           className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8"
-          style={{
-            marginLeft: isMobile ? 0 : undefined,
-          }}
         >
           {children}
         </main>

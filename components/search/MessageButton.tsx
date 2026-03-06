@@ -16,7 +16,8 @@ const USER_TYPE_CHAT_ROUTES: Record<string, string> = {
   insurance: '/insurance/messages',
   corporate: '/corporate/messages',
   'referral-partner': '/referral-partner/messages',
-  'super-admin': '/super-admin/messages',
+  admin: '/admin/messages',
+  'regional-admin': '/regional/messages',
 }
 
 interface MessageButtonProps {
@@ -80,7 +81,7 @@ export default function MessageButton({ providerId, className = '' }: MessageBut
   }
 
   return (
-    <div className="inline-flex flex-col items-start gap-1">
+    <>
       <button
         onClick={handleMessage}
         disabled={loading}
@@ -91,10 +92,10 @@ export default function MessageButton({ providerId, className = '' }: MessageBut
         {loading ? 'Opening…' : 'Message'}
       </button>
       {error && (
-        <span className="text-xs text-red-500" role="alert">
+        <span className="text-xs text-red-500 col-span-2" role="alert">
           {error}
         </span>
       )}
-    </div>
+    </>
   )
 }

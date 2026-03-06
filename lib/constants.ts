@@ -118,5 +118,5 @@ export const USER_TYPE_SLUGS: Record<string, string> = {
   INSURANCE_REP: 'insurance',
   CORPORATE_ADMIN: 'corporate',
   REFERRAL_PARTNER: 'referral-partner',
-  REGIONAL_ADMIN: 'super-admin',
+  REGIONAL_ADMIN: 'regional',
 }

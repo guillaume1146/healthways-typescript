@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Referral Partner',
   sidebarItems: REFERRAL_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/referral-partner/settings',
+  profileHref: '/referral-partner/profile',
 })

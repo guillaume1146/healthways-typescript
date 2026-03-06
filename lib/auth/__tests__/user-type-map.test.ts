@@ -21,7 +21,7 @@ import { vi } from 'vitest'
 import { cookieToPrismaUserType, prismaUserTypeToCookie, userTypeToProfileRelation } from '../user-type-map'
 
 describe('cookieToPrismaUserType', () => {
-  it('maps all 11 cookie types to Prisma enums', () => {
+  it('maps all cookie types to Prisma enums', () => {
     const expectedMappings: Record<string, string> = {
       'patient': 'PATIENT',
       'doctor': 'DOCTOR',
@@ -31,6 +31,7 @@ describe('cookieToPrismaUserType', () => {
       'lab': 'LAB_TECHNICIAN',
       'ambulance': 'EMERGENCY_WORKER',
       'admin': 'REGIONAL_ADMIN',
+      'regional-admin': 'REGIONAL_ADMIN',
       'corporate': 'CORPORATE_ADMIN',
       'insurance': 'INSURANCE_REP',
       'referral-partner': 'REFERRAL_PARTNER',

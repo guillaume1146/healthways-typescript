@@ -35,7 +35,7 @@ describe('USER_TYPE_SLUGS', () => {
     expect(USER_TYPE_SLUGS['PATIENT']).toBe('patient')
     expect(USER_TYPE_SLUGS['DOCTOR']).toBe('doctor')
     expect(USER_TYPE_SLUGS['EMERGENCY_WORKER']).toBe('responder')
-    expect(USER_TYPE_SLUGS['REGIONAL_ADMIN']).toBe('super-admin')
+    expect(USER_TYPE_SLUGS['REGIONAL_ADMIN']).toBe('regional')
     expect(USER_TYPE_SLUGS['LAB_TECHNICIAN']).toBe('lab-technician')
   })
 })

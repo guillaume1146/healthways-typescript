@@ -1127,14 +1127,17 @@ model LabTestBooking {
   patient     PatientProfile  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   labTechId   String?
   labTech     LabTechProfile? @relation(fields: [labTechId], references: [id])
-  testName    String
-  scheduledAt DateTime
-  status      String          @default("pending") // pending, upcoming, completed, cancelled
-  sampleType  String?
-  notes       String?
-  price       Float?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  testName       String
+  scheduledAt    DateTime
+  status         String          @default("pending") // pending, upcoming, completed, cancelled
+  sampleType     String?
+  notes          String?
+  price          Float?
+  resultFindings String?
+  resultNotes    String?
+  resultDate     DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([patientId])
   @@index([labTechId])

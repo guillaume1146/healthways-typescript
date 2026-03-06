@@ -12,7 +12,7 @@ export async function PUT(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
+  if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
   }
 
@@ -48,7 +48,7 @@ export async function DELETE(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth || auth.userType !== 'REGIONAL_ADMIN') {
+  if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
   }
 

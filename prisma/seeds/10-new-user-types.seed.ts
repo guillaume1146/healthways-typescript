@@ -332,15 +332,15 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
 
   console.log(`  Seeded ${referralPartners.length} referral partner user with profile`)
 
-  // ── Regional Admin User with nested RegionalAdminProfile ──────────────────
+  // ── Regional Admin Users with nested RegionalAdminProfiles ──────────────────
 
   const regionalAdmins = [
     {
       id: 'RADM001',
-      firstName: 'Hassan',
+      firstName: 'Vikash',
       lastName: 'Doorgakant',
-      email: 'hassan.doorgakant@healthways.mu',
-      password: await hash('Admin123!'),
+      email: 'vikash.doorgakant@healthways.mu',
+      password: await hash('Regional123!'),
       profileImage: null,
       phone: '+230 5789 6001',
       userType: UserType.REGIONAL_ADMIN,
@@ -352,8 +352,55 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       regionalAdminProfile: {
         create: {
           id: 'RAPROF001',
-          region: 'Port Louis Metro',
+          region: 'Mauritius',
           country: 'Mauritius',
+          countryCode: 'MU',
+        },
+      },
+    },
+    {
+      id: 'RADM002',
+      firstName: 'Tiana',
+      lastName: 'Rasoamanarivo',
+      email: 'tiana.rasoa@healthways.mg',
+      password: await hash('Regional123!'),
+      profileImage: null,
+      phone: '+261 34 00 001',
+      userType: UserType.REGIONAL_ADMIN,
+      dateOfBirth: new Date('1985-06-20'),
+      gender: 'Female',
+      address: 'Antananarivo, Madagascar',
+      verified: true,
+      accountStatus: 'active',
+      regionalAdminProfile: {
+        create: {
+          id: 'RAPROF002',
+          region: 'Madagascar',
+          country: 'Madagascar',
+          countryCode: 'MG',
+        },
+      },
+    },
+    {
+      id: 'RADM003',
+      firstName: 'James',
+      lastName: 'Mwangi',
+      email: 'james.mwangi@healthways.ke',
+      password: await hash('Regional123!'),
+      profileImage: null,
+      phone: '+254 700 000 001',
+      userType: UserType.REGIONAL_ADMIN,
+      dateOfBirth: new Date('1982-09-10'),
+      gender: 'Male',
+      address: 'Nairobi, Kenya',
+      verified: true,
+      accountStatus: 'active',
+      regionalAdminProfile: {
+        create: {
+          id: 'RAPROF003',
+          region: 'Kenya',
+          country: 'Kenya',
+          countryCode: 'KE',
         },
       },
     },

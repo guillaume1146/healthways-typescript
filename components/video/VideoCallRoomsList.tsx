@@ -79,6 +79,12 @@ export default function VideoCallRoomsList({ currentUser, initialRoomId }: Video
     fetchRooms()
   }, [currentUser.id, initialRoomId])
 
+  // Derive the currently selected room object (must be before any early return to satisfy React hooks rules)
+  const selectedRoomData = useMemo(() => {
+    if (!selectedRoomId) return null
+    return rooms.find(r => r.id === selectedRoomId) || null
+  }, [rooms, selectedRoomId])
+
   // If a room is selected, show the VideoConsultation component
   if (selectedRoom) {
     return (
@@ -111,12 +117,6 @@ export default function VideoCallRoomsList({ currentUser, initialRoomId }: Video
       </div>
     )
   }
-
-  // Derive the currently selected room object
-  const selectedRoomData = useMemo(() => {
-    if (!selectedRoomId) return null
-    return rooms.find(r => r.id === selectedRoomId) || null
-  }, [rooms, selectedRoomId])
 
   const filteredRooms = rooms.filter(room => {
     if (filter === 'upcoming') return isUpcoming(room) || isActive(room)

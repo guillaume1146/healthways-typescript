@@ -5,5 +5,5 @@ import UserProfile from '@/components/profile/UserProfile'
 
 export default function PatientProfilePage() {
   const user = usePatientData()
-  return <UserProfile userId={user.id} userType="PATIENT" settingsPath="/patient/settings" />
+  return <UserProfile userId={user.id} userType="PATIENT" settingsPath="/patient/profile" />
 }

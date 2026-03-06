@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Nurse',
   sidebarItems: NURSE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/nurse/settings',
+  profileHref: '/nurse/profile',
 })

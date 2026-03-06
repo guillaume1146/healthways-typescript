@@ -9,8 +9,11 @@ import {
   FaArrowLeft, FaStar, FaMapMarkerAlt, FaCalendarAlt,
   FaPhone, FaEnvelope, FaVideo, FaHome, FaLanguage, FaCheckCircle,
   FaCertificate, FaGraduationCap, FaBriefcase,
-  FaUserNurse,  FaComments, FaHospital, FaShieldAlt,
+  FaUserNurse,  FaComments, FaHospital, FaShieldAlt, FaUserPlus,
 } from 'react-icons/fa'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
 
 export default function NurseDetailsPage() {
   const params = useParams()
@@ -418,14 +421,30 @@ export default function NurseDetailsPage() {
                 </div>
               </div>
 
-              {/* Book Button */}
-              <Link
-                href={`/patient/book/nurse/${nurse.id}`}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <FaCalendarAlt />
-                Book Nursing Service
-              </Link>
+              {/* Action Buttons - 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <AuthBookingLink
+                  type="nurse"
+                  providerId={nurse.id}
+                  className="bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaCalendarAlt />
+                  Book
+                </AuthBookingLink>
+
+                <AuthBookingLink
+                  type="nurse"
+                  providerId={nurse.id}
+                  className="bg-purple-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaVideo />
+                  Video Call
+                </AuthBookingLink>
+
+                <ConnectButton providerId={nurse.id} className="w-full justify-center text-xs sm:text-sm" />
+
+                <MessageButton providerId={nurse.id} className="w-full justify-center text-xs sm:text-sm" />
+              </div>
 
               {/* Verification Badge */}
               {nurse.verified && (

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
     }
-    if (auth.userType !== 'super-admin') {
+    if (!['admin', 'regional-admin'].includes(auth.userType)) {
       return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
     }
 

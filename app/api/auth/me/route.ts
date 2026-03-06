@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
 
     // Extract the profile data (strip the relation key and flatten if desired)
     const { password: _password, ...safeUser } = user
-    const cookieUserType = prismaUserTypeToCookie[user.userType]
 
+    // Preserve the actual cookie value from the JWT (handles admin vs regional-admin distinction)
     return NextResponse.json({
       success: true,
       user: {
         ...safeUser,
-        userType: cookieUserType,
+        userType: auth.userType,
       },
     })
   } catch (error) {

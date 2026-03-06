@@ -6,10 +6,11 @@ import {
   FaBars,
   FaTimes,
   FaBell,
-  FaCog,
+  FaUser,
   FaSignOutAlt,
   FaCheckDouble,
 } from 'react-icons/fa'
+import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
 import { useTranslation } from '@/lib/i18n'
 
@@ -29,7 +30,7 @@ interface DashboardHeaderProps {
   userImage?: string | null
   userSubtitle: string
   notificationCount: number
-  settingsHref: string
+  profileHref: string
   sidebarOpen: boolean
   onToggleSidebar: () => void
   onLogout: () => void
@@ -52,7 +53,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userImage,
   userSubtitle,
   notificationCount,
-  settingsHref,
+  profileHref,
   sidebarOpen,
   onToggleSidebar,
   onLogout,
@@ -115,7 +116,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showDropdown])
 
-  // Expose a way for parent to add notifications in real time
+  // Real-time notification listener
   useEffect(() => {
     const handler = (e: CustomEvent<NotificationItem>) => {
       setNotifications(prev => [e.detail, ...prev].slice(0, 10))
@@ -126,7 +127,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const [autoUnreadCount, setAutoUnreadCount] = useState(0)
 
-  // Auto-fetch unread notification count on mount
   useEffect(() => {
     if (!userId) return
     const fetchUnreadCount = async () => {
@@ -153,7 +153,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <header role="banner" className="bg-white shadow-sm border-b sticky top-0 z-50 flex-shrink-0">
       <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2 md:py-2.5">
         <div className="flex items-center justify-between">
-          {/* Left: mobile toggle + user info */}
+          {/* Left: mobile toggle + logo + user info */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <button
               onClick={onToggleSidebar}
@@ -168,7 +168,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               )}
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-md">
+              <HealthwyzLogo width={130} height={32} />
+            </Link>
+
+            <div className="hidden sm:flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-200">
               {userImage && (
                 <img
                   src={userImage}
@@ -177,18 +182,37 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 />
               )}
               <div>
-                <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">
+                <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">
                   {userName}
                 </h1>
-                <p className="text-[10px] sm:text-xs md:text-xs text-gray-500">
+                <p className="text-[10px] sm:text-xs text-gray-500">
                   {userSubtitle}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Right: notification bell, settings, logout */}
+          {/* Right: profile, notifications, language, logout */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
+            {/* Profile avatar link */}
+            <Link
+              href={profileHref}
+              className="flex-shrink-0"
+              aria-label="My Profile"
+            >
+              {userImage ? (
+                <img
+                  src={userImage}
+                  alt={userName}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-blue-200 hover:border-blue-400 transition-colors"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs sm:text-sm font-bold border-2 border-blue-200 hover:border-blue-400 transition-colors">
+                  {userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                </div>
+              )}
+            </Link>
+
             {/* Notification bell + dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -258,15 +282,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
             {/* Language switcher */}
             <LanguageSwitcher variant="header" />
-
-            {/* Settings link */}
-            <Link
-              href={settingsHref}
-              className="p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              aria-label="Settings"
-            >
-              <FaCog className="text-sm sm:text-base md:text-lg" aria-hidden="true" />
-            </Link>
 
             {/* Logout button */}
             <button

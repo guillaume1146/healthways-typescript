@@ -21,7 +21,6 @@ import {
   FaExclamationTriangle,
   FaSpinner,
 } from 'react-icons/fa'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
 const PdfViewer = dynamic(() => import('@/components/shared/PdfViewer'), {
@@ -283,6 +282,9 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
   // Info editing state
   const [isEditing, setIsEditing] = useState(false)
   const [editedProfile, setEditedProfile] = useState<Record<string, unknown>>({})
+  const [editedGeneral, setEditedGeneral] = useState<{ firstName: string; lastName: string; email: string; phone: string; dateOfBirth: string; gender: string; address: string }>({
+    firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', gender: '', address: '',
+  })
   const [editedEmergency, setEditedEmergency] = useState<{ name: string; relationship: string; phone: string }>({
     name: '',
     relationship: '',
@@ -316,16 +318,26 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
   /* ─── Initialize edit state when entering edit mode ────────────────────── */
 
   const startEditing = useCallback(() => {
-    if (!userData?.profile) return
+    if (!userData) return
     const profile = userData.profile
     const fields = getEditableFieldsForType(userType)
     const values: Record<string, unknown> = {}
     for (const f of fields) {
-      values[f.key] = (profile as Record<string, unknown>)[f.key] ?? (f.type === 'tags' ? [] : '')
+      values[f.key] = (profile as Record<string, unknown> | null)?.[f.key] ?? (f.type === 'tags' ? [] : '')
     }
     setEditedProfile(values)
 
-    if (userType === 'PATIENT' && profile.emergencyContact) {
+    setEditedGeneral({
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      email: userData.email || '',
+      phone: userData.phone || '',
+      dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString().split('T')[0] : '',
+      gender: userData.gender || '',
+      address: userData.address || '',
+    })
+
+    if (userType === 'PATIENT' && profile?.emergencyContact) {
       setEditedEmergency({
         name: profile.emergencyContact.name || '',
         relationship: profile.emergencyContact.relationship || '',
@@ -344,7 +356,16 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
     setSaving(true)
     setSaveMsg(null)
     try {
-      const body: Record<string, unknown> = { profileData: editedProfile }
+      const body: Record<string, unknown> = {
+        firstName: editedGeneral.firstName,
+        lastName: editedGeneral.lastName,
+        email: editedGeneral.email,
+        phone: editedGeneral.phone,
+        dateOfBirth: editedGeneral.dateOfBirth || undefined,
+        gender: editedGeneral.gender || undefined,
+        address: editedGeneral.address || undefined,
+        profileData: editedProfile,
+      }
       if (userType === 'PATIENT' && editedEmergency.name) {
         body.emergencyContact = editedEmergency
       }
@@ -360,7 +381,21 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
       // Re-fetch profile
       const profileRes = await fetch(`/api/users/${userId}`)
       const profileJson = await profileRes.json()
-      if (profileJson.data) setUserData(profileJson.data)
+      if (profileJson.data) {
+        setUserData(profileJson.data)
+        // Update localStorage so sidebar/header reflect changes
+        try {
+          const stored = localStorage.getItem('healthwyz_user')
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            parsed.firstName = profileJson.data.firstName
+            parsed.lastName = profileJson.data.lastName
+            parsed.email = profileJson.data.email
+            parsed.phone = profileJson.data.phone
+            localStorage.setItem('healthwyz_user', JSON.stringify(parsed))
+          }
+        } catch { /* ignore */ }
+      }
       setIsEditing(false)
       setSaveMsg({ type: 'success', text: 'Profile updated successfully' })
       setTimeout(() => setSaveMsg(null), 3000)
@@ -705,7 +740,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
-              {userType === 'PATIENT' ? 'Medical Information' : 'Professional Information'}
+              Personal Information
             </h3>
             {!isEditing ? (
               <button
@@ -747,6 +782,100 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
             </div>
           )}
 
+          {/* General Information (name, email, phone, etc.) */}
+          {isEditing ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+                <input
+                  type="text"
+                  value={editedGeneral.firstName}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, firstName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                <input
+                  type="text"
+                  value={editedGeneral.lastName}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, lastName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={editedGeneral.email}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={editedGeneral.phone}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  value={editedGeneral.dateOfBirth}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Gender</label>
+                <select
+                  value={editedGeneral.gender}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, gender: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-600 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={editedGeneral.address}
+                  onChange={(e) => setEditedGeneral((prev) => ({ ...prev, address: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-200">
+              {[
+                { label: 'First Name', value: userData.firstName, icon: FaUser },
+                { label: 'Last Name', value: userData.lastName, icon: FaUser },
+                { label: 'Email', value: userData.email, icon: FaEnvelope },
+                { label: 'Phone', value: userData.phone, icon: FaPhone },
+                { label: 'Date of Birth', value: userData.dateOfBirth ? new Date(userData.dateOfBirth).toLocaleDateString() : null, icon: FaBirthdayCake },
+                { label: 'Gender', value: userData.gender, icon: FaVenusMars },
+                { label: 'Address', value: userData.address, icon: FaMapMarkerAlt },
+              ].filter(f => f.value).map((f) => (
+                <div key={f.label} className="flex items-center gap-3">
+                  <f.icon className="text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-gray-500">{f.label}</p>
+                    <p className="text-gray-900 capitalize">{f.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Type-specific fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {fields.map((field) => {
               const rawValue = isEditing
@@ -967,12 +1096,12 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
               </span>
             )}
           </div>
-          <Link
-            href={settingsPath}
+          <button
+            onClick={() => { setIsEditing(true); setActiveTab('info') }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
           >
             <FaEdit /> Edit Profile
-          </Link>
+          </button>
         </div>
       </div>
 

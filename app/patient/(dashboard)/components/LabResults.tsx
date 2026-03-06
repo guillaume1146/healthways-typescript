@@ -2,35 +2,23 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import BookingsList, { BookingItem } from '@/components/booking/BookingsList'
 import ProviderPageHeader from '@/components/booking/ProviderPageHeader'
+import ProviderSearchSelect, { ProviderOption } from '@/components/booking/ProviderSearchSelect'
 import {
   FaFlask,
-  FaDownload,
   FaCheckCircle,
-  FaExclamationTriangle,
-  FaCalendarAlt,
-  FaClock,
   FaSearch,
   FaFilter,
   FaPlus,
   FaHome,
   FaHospital,
-  FaTint,
-  FaMicroscope,
-  FaUserMd,
-  FaShoppingCart,
   FaStar,
-  FaEye,
-  FaChartLine,
   FaChevronDown,
   FaChevronUp,
-  FaInfoCircle,
-  FaAward,
   FaPercent,
   FaTimes,
   FaSpinner,
-  FaHistory,
-  FaFileDownload,
-  FaClipboardList,
+  FaEye,
+  FaClipboardCheck,
 } from 'react-icons/fa'
 
 interface Props {
@@ -53,64 +41,7 @@ interface LabTest {
   accuracy: number
 }
 
-const availableTests: LabTest[] = [
-  {
-    id: 'LT001', name: 'Complete Blood Count (CBC)', category: 'Hematology', price: 500,
-    duration: '24 hours', preparation: 'No special preparation required',
-    description: 'Comprehensive blood analysis measuring red cells, white cells, platelets, and hemoglobin levels',
-    popular: true, requirements: ['No fasting required', 'Avoid strenuous exercise 24hrs before'],
-    sampleType: 'Blood (5ml)', methodology: 'Flow Cytometry', accuracy: 99.8
-  },
-  {
-    id: 'LT002', name: 'Lipid Profile Complete', category: 'Biochemistry', price: 800,
-    duration: '24 hours', preparation: '12 hours fasting required',
-    description: 'Comprehensive cholesterol analysis including total, LDL, HDL, VLDL, and triglycerides',
-    popular: true, discount: 15, requirements: ['12 hours fasting', 'Avoid alcohol 24hrs before', 'Normal water intake allowed'],
-    sampleType: 'Blood (3ml)', methodology: 'Enzymatic Colorimetric', accuracy: 99.5
-  },
-  {
-    id: 'LT003', name: 'HbA1c (Glycated Hemoglobin)', category: 'Diabetes', price: 600,
-    duration: '24 hours', preparation: 'No fasting required',
-    description: 'Gold standard test for diabetes monitoring - shows average blood sugar over 3 months',
-    popular: true, requirements: ['No fasting required', 'Can be done any time of day'],
-    sampleType: 'Blood (2ml)', methodology: 'HPLC', accuracy: 99.9
-  },
-  {
-    id: 'LT004', name: 'Thyroid Function Test (T3, T4, TSH)', category: 'Endocrinology', price: 1200,
-    duration: '48 hours', preparation: 'No special preparation required',
-    description: 'Complete thyroid assessment measuring T3, T4, and TSH levels for thyroid disorders',
-    popular: true, discount: 20, requirements: ['Morning sample preferred', 'Avoid biotin supplements 72hrs before'],
-    sampleType: 'Blood (3ml)', methodology: 'Chemiluminescence', accuracy: 99.7
-  },
-  {
-    id: 'LT005', name: 'Liver Function Test (LFT)', category: 'Biochemistry', price: 900,
-    duration: '24 hours', preparation: 'Fasting for 8-12 hours',
-    description: 'Comprehensive liver assessment including ALT, AST, ALP, Bilirubin, and protein levels',
-    popular: false, requirements: ['8-12 hours fasting', 'Avoid alcohol 48hrs before', 'Avoid fatty foods'],
-    sampleType: 'Blood (4ml)', methodology: 'Kinetic UV', accuracy: 99.6
-  },
-  {
-    id: 'LT006', name: 'Kidney Function Test (KFT)', category: 'Biochemistry', price: 850,
-    duration: '24 hours', preparation: 'No special preparation required',
-    description: 'Complete kidney assessment measuring creatinine, urea, uric acid, and electrolytes',
-    popular: false, requirements: ['Normal water intake', 'Avoid excessive protein 24hrs before'],
-    sampleType: 'Blood (3ml) + Urine', methodology: 'Kinetic Jaffe Method', accuracy: 99.4
-  },
-  {
-    id: 'LT007', name: 'Vitamin D (25-OH) Test', category: 'Vitamins', price: 1000,
-    duration: '48 hours', preparation: 'No special preparation required',
-    description: 'Measures vitamin D levels for bone health and immune function assessment',
-    popular: true, discount: 10, requirements: ['No special preparation', 'Can be done any time'],
-    sampleType: 'Blood (2ml)', methodology: 'Chemiluminescence', accuracy: 99.3
-  },
-  {
-    id: 'LT008', name: 'COVID-19 RT-PCR', category: 'Infectious Disease', price: 2500,
-    duration: '24-48 hours', preparation: 'No eating/drinking 30 min before test',
-    description: 'Highly accurate molecular test for active COVID-19 infection detection',
-    popular: false, requirements: ['No food/drink 30min before', 'Avoid nasal medications 2hrs before'],
-    sampleType: 'Nasopharyngeal Swab', methodology: 'RT-PCR', accuracy: 99.9
-  },
-]
+// availableTests fetched from API in component
 
 interface LabBookingData {
   id: string
@@ -119,12 +50,20 @@ interface LabBookingData {
   facility: string
   status: string
   notes?: string
+  resultFindings?: string
+  resultNotes?: string
+  resultDate?: string
 }
 
 const LabResults: React.FC<Props> = ({ patientData }) => {
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [labBookings, setLabBookings] = useState<LabBookingData[]>([])
   const [loadingBookings, setLoadingBookings] = useState(true)
+  const [availableTests, setAvailableTests] = useState<LabTest[]>([])
+  const [loadingTests, setLoadingTests] = useState(false)
+  const [availableLabTechs, setAvailableLabTechs] = useState<ProviderOption[]>([])
+  const [selectedLabTechId, setSelectedLabTechId] = useState('')
+  const [loadingLabTechs, setLoadingLabTechs] = useState(false)
 
   // Booking form state
   const [selectedTests, setSelectedTests] = useState<string[]>([])
@@ -140,6 +79,75 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
   const [showFilters, setShowFilters] = useState(false)
   const [expandedTest, setExpandedTest] = useState<string | null>(null)
   const [expandedResultId, setExpandedResultId] = useState<string | null>(null)
+  const [viewResultModal, setViewResultModal] = useState(false)
+  const [viewResultData, setViewResultData] = useState<LabBookingData | null>(null)
+
+  // Fetch available lab techs when booking form opens
+  useEffect(() => {
+    if (!showBookingForm) return
+    const fetchLabTechs = async () => {
+      setLoadingLabTechs(true)
+      try {
+        const res = await fetch('/api/lab-techs/available')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setAvailableLabTechs(json.data.map((lt: any) => ({
+              id: lt.id,
+              userId: lt.userId,
+              name: lt.name,
+              subtitle: `${lt.testCount} tests available`,
+              tags: lt.specializations?.slice(0, 3) || [],
+            })))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch lab techs:', error)
+      } finally {
+        setLoadingLabTechs(false)
+      }
+    }
+    fetchLabTechs()
+  }, [showBookingForm])
+
+  // Fetch tests for selected lab tech
+  useEffect(() => {
+    if (!selectedLabTechId) {
+      setAvailableTests([])
+      return
+    }
+    const fetchTests = async () => {
+      setLoadingTests(true)
+      try {
+        const res = await fetch(`/api/lab-techs/${selectedLabTechId}/tests`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setAvailableTests(json.data.map((t: any) => ({
+              id: t.id,
+              name: t.testName,
+              category: t.category,
+              price: t.price,
+              duration: t.turnaroundTime || '24 hours',
+              preparation: t.preparation || 'No special preparation',
+              description: t.description,
+              sampleType: t.sampleType,
+              requirements: t.preparation ? [t.preparation] : [],
+              methodology: '',
+              accuracy: 0,
+            })))
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch lab tests:', error)
+      } finally {
+        setLoadingTests(false)
+      }
+    }
+    fetchTests()
+  }, [selectedLabTechId])
 
   // Fetch lab test bookings for this patient
   const fetchBookings = useCallback(async () => {
@@ -155,6 +163,9 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
             date: new Date(b.scheduledAt).toISOString().split('T')[0],
             facility: b.providerName || 'Lab',
             status: b.status,
+            resultFindings: b.resultFindings,
+            resultNotes: b.resultNotes,
+            resultDate: b.resultDate,
           }))
           setLabBookings(labItems)
         }
@@ -191,6 +202,7 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
   }
 
   const resetBookingForm = () => {
+    setSelectedLabTechId('')
     setSelectedTests([])
     setCollectionType('clinic')
     setScheduledDate('')
@@ -216,6 +228,7 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          labTechId: selectedLabTechId,
           testName: testNames,
           scheduledDate,
           scheduledTime,
@@ -256,8 +269,12 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
     details: [
       { label: 'Test Name', value: b.testName },
       { label: 'Facility', value: b.facility },
+      ...(b.resultDate ? [{ label: 'Result Date', value: new Date(b.resultDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }] : []),
     ],
   }))
+
+  // Separate completed bookings with results
+  const completedWithResults = labBookings.filter(b => b.status === 'completed' && b.resultFindings)
 
   // Generate available dates (next 14 days)
   const getAvailableDates = () => {
@@ -304,12 +321,35 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
             </div>
           ) : (
             <>
-              {/* Step 1: Select Tests */}
+              {/* Step 1: Select Lab */}
+              <ProviderSearchSelect
+                providers={availableLabTechs}
+                selectedId={selectedLabTechId}
+                onSelect={(id) => { setSelectedLabTechId(id); setSelectedTests([]) }}
+                loading={loadingLabTechs}
+                label="Select Laboratory"
+                placeholder="Search labs by name, specialization..."
+                accentColor="cyan"
+                avatarGradient="from-cyan-400 to-blue-600"
+              />
+
+              {/* Step 2: Select Tests */}
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
                   Select Tests <span className="text-red-500">*</span>
                 </h4>
 
+                {!selectedLabTechId ? (
+                  <p className="text-sm text-gray-400 py-3">Select a laboratory first to see available tests</p>
+                ) : loadingTests ? (
+                  <div className="flex items-center justify-center py-6">
+                    <FaSpinner className="animate-spin text-cyan-500 mr-2" />
+                    <span className="text-sm text-gray-500">Loading available tests...</span>
+                  </div>
+                ) : availableTests.length === 0 ? (
+                  <p className="text-sm text-gray-500 py-3">No tests available from this laboratory</p>
+                ) : (
+                <>
                 {/* Search & Filter */}
                 <div className="flex gap-2 mb-3">
                   <div className="flex-1 relative">
@@ -421,9 +461,11 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
                 {selectedTests.length > 0 && (
                   <p className="text-sm text-cyan-700 mt-2 font-medium">{selectedTests.length} test(s) selected</p>
                 )}
+                </>
+                )}
               </div>
 
-              {/* Step 2: Collection Type */}
+              {/* Step 3: Collection Type */}
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Collection Type</h4>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -564,46 +606,6 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
     </div>
   )
 
-  // Detailed result view for a specific lab test
-  const renderDetailedResult = (test: NonNullable<Patient['labTests']>[number]) => (
-    <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {test.results.map((result, index) => (
-          <div key={index} className={`rounded-lg p-3 border ${
-            result.status === 'normal' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-          }`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-700">{result.parameter}</p>
-                <p className="text-sm font-bold text-gray-900">{result.value}</p>
-                <p className="text-xs text-gray-500">Range: {result.normalRange}</p>
-              </div>
-              {result.status === 'normal'
-                ? <FaCheckCircle className="text-green-500 text-xs flex-shrink-0" />
-                : <FaExclamationTriangle className="text-red-500 text-xs flex-shrink-0" />
-              }
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-3 text-xs text-gray-500">
-        <span className="flex items-center gap-1"><FaHospital /> {test.facility}</span>
-        <span className="flex items-center gap-1"><FaUserMd /> {test.orderedBy}</span>
-        {test.reportUrl && (
-          <button className="flex items-center gap-1 text-blue-600 hover:underline">
-            <FaDownload /> Download Report
-          </button>
-        )}
-      </div>
-      {test.notes && (
-        <p className="text-xs text-gray-600 bg-yellow-50 rounded p-2 border border-yellow-100">
-          <FaInfoCircle className="inline mr-1 text-yellow-600" />
-          {test.notes}
-        </p>
-      )}
-    </div>
-  )
-
   if (loadingBookings) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -612,7 +614,7 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
     )
   }
 
-  if (labBookings.length === 0 && (!patientData.labTests || patientData.labTests.length === 0)) {
+  if (labBookings.length === 0) {
     return (
       <div className="space-y-4">
         <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-cyan-200">
@@ -650,99 +652,107 @@ const LabResults: React.FC<Props> = ({ patientData }) => {
         bookings={bookingItems}
         providerLabel="Lab"
         accentColor="cyan"
-        emptyMessage="No lab test results yet."
+        emptyMessage="No lab test bookings yet."
       />
 
-      {/* Detailed Results Section */}
-      {patientData.labTests && patientData.labTests.length > 0 && (
-        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-cyan-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-            <FaChartLine className="mr-2 text-cyan-500" />
-            Detailed Test Results
-          </h3>
-          <div className="space-y-3">
-            {patientData.labTests.map((test) => {
-              const hasAbnormal = test.results.some(r => r.status === 'abnormal')
-              const isExpanded = expandedResultId === test.id
-              return (
-                <div key={test.id} className="bg-white rounded-lg border border-cyan-200 overflow-hidden">
-                  <button
-                    onClick={() => setExpandedResultId(isExpanded ? null : test.id)}
-                    className="w-full p-3 sm:p-4 text-left flex items-center gap-3 hover:bg-cyan-50 transition"
-                  >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      hasAbnormal ? 'bg-red-100' : 'bg-green-100'
-                    }`}>
-                      {hasAbnormal
-                        ? <FaExclamationTriangle className="text-red-500" />
-                        : <FaCheckCircle className="text-green-500" />
-                      }
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{test.testName}</h4>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <FaCalendarAlt />
-                          {new Date(test.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                        <span>{test.results.length} parameters</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        hasAbnormal ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                      }`}>
-                        {hasAbnormal ? 'Attention' : 'Normal'}
+      {/* Lab Results Section */}
+      {completedWithResults.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b border-gray-100 flex items-center gap-2">
+            <FaClipboardCheck className="text-green-600" />
+            <h3 className="font-semibold text-gray-900">Lab Test Results</h3>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{completedWithResults.length}</span>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {completedWithResults.map((b) => (
+              <div key={b.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm">{b.testName}</p>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    <span>{b.facility}</span>
+                    <span>{new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    {b.resultDate && (
+                      <span className="text-green-600">
+                        Result: {new Date(b.resultDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
-                      {isExpanded ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
-                    </div>
-                  </button>
-                  {isExpanded && (
-                    <div className="px-3 sm:px-4 pb-3 sm:pb-4">
-                      {renderDetailedResult(test)}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              )
-            })}
+                <button
+                  onClick={() => { setViewResultData(b); setViewResultModal(true) }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-50 text-cyan-700 text-xs font-medium rounded-lg hover:bg-cyan-100 transition border border-cyan-200"
+                >
+                  <FaEye className="text-[10px]" />
+                  See Result
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <button
-            onClick={() => setShowBookingForm(true)}
-            className="bg-gradient-to-br from-cyan-400/20 to-blue-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-cyan-400/30 hover:to-blue-400/30 transition text-left"
-          >
-            <FaPlus className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Book Test</p>
-            <p className="text-xs opacity-80">Schedule lab test</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left">
-            <FaFileDownload className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Reports</p>
-            <p className="text-xs opacity-80">Download results</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-purple-400/20 to-indigo-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-indigo-400/30 transition text-left">
-            <FaClipboardList className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm">Health Packages</p>
-            <p className="text-xs opacity-80">Bundle deals</p>
-          </button>
-
-          <button className="bg-gradient-to-br from-orange-400/20 to-red-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-orange-400/30 hover:to-red-400/30 transition text-left">
-            <FaHistory className="text-xl sm:text-2xl mb-1.5 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm">History</p>
-            <p className="text-xs opacity-80">Past results</p>
-          </button>
-        </div>
-      </div>
-
       {showBookingForm && renderBookingForm()}
+
+      {/* View Result Modal */}
+      {viewResultModal && viewResultData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Test Result</h3>
+                <p className="text-sm text-gray-500 mt-0.5">{viewResultData.testName}</p>
+              </div>
+              <button
+                onClick={() => setViewResultModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500">Laboratory:</span>{' '}
+                  <span className="font-medium">{viewResultData.facility}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Test Date:</span>{' '}
+                  <span className="font-medium">{new Date(viewResultData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+                {viewResultData.resultDate && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500">Result Date:</span>{' '}
+                    <span className="font-medium">{new Date(viewResultData.resultDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-1.5">Findings</h4>
+                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap border">
+                  {viewResultData.resultFindings}
+                </div>
+              </div>
+
+              {viewResultData.resultNotes && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1.5">Notes</h4>
+                  <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap border border-blue-100">
+                    {viewResultData.resultNotes}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setViewResultModal(false)}
+                className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -10,8 +10,11 @@ import {
   FaPhone, FaEnvelope,  FaHome, FaLanguage, FaCheckCircle,
   FaCertificate, FaGraduationCap, FaBriefcase,  FaHeart,
   FaBaby, FaExclamationCircle, FaComments,
-  FaUsers, FaShieldAlt
+  FaUsers, FaShieldAlt, FaVideo
 } from 'react-icons/fa'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
 
 export default function NannyDetailsPage() {
   const params = useParams()
@@ -434,14 +437,30 @@ export default function NannyDetailsPage() {
                 </div>
               </div>
 
-              {/* Book Button */}
-              <Link 
-                href={`/booking/nannies/${nanny.id}`}
-                className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <FaCalendarAlt />
-                Book Childcare Service
-              </Link>
+              {/* Action Buttons - 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <AuthBookingLink
+                  type="nanny"
+                  providerId={nanny.id}
+                  className="bg-purple-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaCalendarAlt />
+                  Book
+                </AuthBookingLink>
+
+                <AuthBookingLink
+                  type="nanny"
+                  providerId={nanny.id}
+                  className="bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaVideo />
+                  Video Call
+                </AuthBookingLink>
+
+                <ConnectButton providerId={nanny.id} className="w-full justify-center text-xs sm:text-sm" />
+
+                <MessageButton providerId={nanny.id} className="w-full justify-center text-xs sm:text-sm" />
+              </div>
 
               {/* Verification Badge */}
               {nanny.verified && (

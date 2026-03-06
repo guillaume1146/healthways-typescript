@@ -11,8 +11,11 @@ import {
   FaCertificate, FaGraduationCap, FaBriefcase,
   FaUserMd,  FaExclamationCircle, FaComments,
    FaHospital, FaShieldAlt,
-  FaChevronDown, FaChevronUp
+  FaChevronDown, FaChevronUp, FaUserPlus
 } from 'react-icons/fa'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
 
 export default function DoctorDetailsPage() {
   const params = useParams()
@@ -317,14 +320,30 @@ export default function DoctorDetailsPage() {
                 </div>
               </div>
 
-              {/* Book Button */}
-              <Link
-                href={`/patient/book/doctor/${doctor.id}`}
-                className="w-full bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                <FaCalendarAlt />
-                Book Consultation
-              </Link>
+              {/* Action Buttons - 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <AuthBookingLink
+                  type="doctor"
+                  providerId={doctor.id}
+                  className="bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaCalendarAlt />
+                  Book
+                </AuthBookingLink>
+
+                <AuthBookingLink
+                  type="doctor"
+                  providerId={doctor.id}
+                  className="bg-purple-600 text-white py-2.5 sm:py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                >
+                  <FaVideo />
+                  Video Call
+                </AuthBookingLink>
+
+                <ConnectButton providerId={doctor.id} className="w-full justify-center text-xs sm:text-sm" />
+
+                <MessageButton providerId={doctor.id} className="w-full justify-center text-xs sm:text-sm" />
+              </div>
 
               {/* Verification Badge */}
               {doctor.verified && (

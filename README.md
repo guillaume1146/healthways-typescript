@@ -318,6 +318,10 @@ npx eslint .            # Lint
 | `NEXT_PUBLIC_SOCKET_URL` | Socket.IO server URL | `http://localhost:3000` |
 | `NEXT_PUBLIC_APP_URL` | App base URL | `http://localhost:3000` |
 | `PORT` | Server port | `3000` |
+| `SUPER_ADMIN_EMAIL` | Super admin email (auto-created on startup) | `admin@healthwyz.mu` |
+| `SUPER_ADMIN_PASSWORD` | Super admin password | `Admin123!` |
+| `PLATFORM_COMMISSION_RATE` | Platform fee % (fallback if DB config missing) | `5` |
+| `REGIONAL_COMMISSION_RATE` | Regional admin fee % (fallback) | `10` |
 
 ---
 
@@ -387,9 +391,10 @@ The database is **fully normalized** — no JSON columns. All data is stored in 
 
 | Table | Description |
 |-------|-------------|
-| `ProviderReview` | Generic reviews for all provider types (rating, comment, response, helpful) |
+| `PlatformConfig` | Commission rates (provider/regional/platform %), currency, trial wallet amount — singleton |
 | `RoleFeatureConfig` | Admin-configurable feature visibility per user role |
 | `RequiredDocumentConfig` | Admin-configurable required documents per user role |
+| `ProviderReview` | Generic reviews for all provider types (rating, comment, response, helpful) |
 | `InsuranceClaim` | Insurance claim lifecycle (pending → approved/rejected) |
 
 ---
@@ -473,6 +478,17 @@ All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) requ
 | GET | `/api/corporate/[id]/employees` | Employee list |
 | GET | `/api/corporate/[id]/claims` | Corporate claims |
 
+### Bookings
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/bookings/doctor` | Create doctor appointment |
+| POST | `/api/bookings/nurse` | Create nurse booking |
+| POST | `/api/bookings/nanny` | Create childcare booking |
+| POST | `/api/bookings/lab-test` | Create lab test booking |
+| POST | `/api/bookings/emergency` | Create emergency request (broadcasts to all workers) |
+| POST | `/api/bookings/confirm` | Provider confirms booking, triggers payment with commission split |
+| GET | `/api/bookings/available-slots` | Available time slots for a provider |
+
 ### Admin Configuration
 | Method | Path | Description |
 |--------|------|-------------|
@@ -481,6 +497,10 @@ All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) requ
 | GET | `/api/admin/required-documents` | All required document configs |
 | PUT | `/api/admin/required-documents` | Upsert required document configs |
 | GET | `/api/role-config/[userType]` | Public: enabled features for a role |
+| GET | `/api/admin/commission-config` | Get platform commission configuration |
+| PUT | `/api/admin/commission-config` | Update commission rates (super admin only) |
+| GET | `/api/admin/platform-commission` | Commission earnings dashboard data |
+| GET | `/api/admin/regional-activity` | Regional admin activity and stats |
 
 ---
 
@@ -627,6 +647,8 @@ All passwords are hashed with bcrypt in the database.
 - **Unified dashboard architecture** — All 12 user type dashboards use a shared `createDashboardLayout` HOC and `createGetActiveSectionFromPath` utility, eliminating code duplication
 - **Insurance claims** — Full create/approve/reject flow with `InsuranceClaim` model
 - **Wallet system** — Trial credits (Rs 4,500) for all users, debit on booking acceptance, credit for providers
+- **Commission system** — Automatic revenue split: 85% provider, 10% regional admin, 5% platform. Rates stored in `PlatformConfig` table and configurable via super admin UI
+- **Regional admin model** — Regional admins install the platform in their region, manage CMS content, and earn commission on all transactions. Super admin (env vars) validates regional admin accounts
 - **Referral tracking** — Referral codes tracked at signup, referrer gets commission credits
 - **Emergency dispatch** — Broadcast-based emergency booking with responder accept/dispatch/en-route/resolved flow
 - **AI health assistant** — Groq-powered LLM with dietary tracking, date-aware insight extraction (Llama 3.1)
@@ -637,3 +659,5 @@ All passwords are hashed with bcrypt in the database.
 - **Billing in settings** — Shared `BillingSettingsTab` available in all 11 user type settings pages
 - **i18n** — English, French, and Mauritian Creole with language switcher
 - **PWA** — Service worker + manifest for mobile app-like experience
+- **Responsive mobile nav** — Service icons in 4-column grid on mobile, expandable categories on tablet+
+- **ERD diagram** — Auto-generated entity relationship diagram at `docs/erd.svg` via prisma-erd-generator

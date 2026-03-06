@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Insurance',
   sidebarItems: INSURANCE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/insurance/settings',
+  profileHref: '/insurance/profile',
 })

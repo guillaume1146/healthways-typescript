@@ -305,11 +305,11 @@ export default function InsuranceDashboardPage() {
             <p className="text-sm font-medium">Policy Renewals</p>
           </Link>
           <Link
-            href="/insurance/analytics"
+            href="/insurance/billing"
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-orange-500 hover:bg-orange-50 transition group"
           >
             <FaChartLine className="text-2xl text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-            <p className="text-sm font-medium">View Analytics</p>
+            <p className="text-sm font-medium">View Billing</p>
           </Link>
         </div>
       </div>

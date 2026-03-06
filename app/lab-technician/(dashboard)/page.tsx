@@ -220,7 +220,7 @@ export default function LabDashboardPage() {
           <div className="bg-gradient-to-br from-purple-600 to-blue-500 text-white rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-2">Manage Your Lab Profile</h3>
             <p className="text-white/90 text-sm mb-4">Keep your lab certifications and equipment list updated to attract more patients.</p>
-            <Link href="/lab-technician/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+            <Link href="/lab-technician/profile" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
               Update Certifications
             </Link>
           </div>

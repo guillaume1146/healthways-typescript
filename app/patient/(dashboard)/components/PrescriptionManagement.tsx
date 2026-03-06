@@ -72,6 +72,30 @@ interface PillReminder {
   frequency: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizePrescription(p: any): Prescription {
+  return {
+    id: p.id,
+    date: p.date,
+    time: '',
+    doctorName: p.doctor ? `${p.doctor.user.firstName} ${p.doctor.user.lastName}` : 'Unknown',
+    doctorId: p.doctor?.id ?? '',
+    diagnosis: p.diagnosis,
+    isActive: p.isActive,
+    nextRefill: p.nextRefill ?? null,
+    notes: p.notes ?? '',
+    medicines: (p.medicines ?? []).map((m: any) => ({
+      name: m.medicine?.name ?? m.name ?? '',
+      dosage: m.dosage ?? '',
+      quantity: m.quantity ?? 0,
+      frequency: m.frequency ?? '',
+      duration: m.duration ?? '',
+      instructions: m.instructions ?? '',
+      beforeFood: false,
+    })),
+  }
+}
+
 const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'reminders' | 'order'>('active')
   const [searchQuery, setSearchQuery] = useState('')
@@ -82,8 +106,35 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   const [showReminders, setShowReminders] = useState(true)
   const [expandedSection, setExpandedSection] = useState<string>('active')
 
+  const [activePrescriptions, setActivePrescriptions] = useState<Prescription[]>([])
+  const [prescriptionHistory, setPrescriptionHistory] = useState<Prescription[]>([])
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(true)
   const [reminders, setReminders] = useState<PillReminder[]>([])
   const [currentOrder, setCurrentOrder] = useState<MedicineOrder | null>(null)
+
+  // Self-fetch prescriptions
+  const fetchPrescriptions = useCallback(async () => {
+    try {
+      const [activeRes, allRes] = await Promise.all([
+        fetch(`/api/patients/${patientData.id}/prescriptions?active=true`).catch(() => null),
+        fetch(`/api/patients/${patientData.id}/prescriptions`).catch(() => null),
+      ])
+      const [activeData, allData] = await Promise.all([
+        activeRes?.ok ? activeRes.json() : null,
+        allRes?.ok ? allRes.json() : null,
+      ])
+      const activeList = (activeData?.data ?? []).map(normalizePrescription)
+      const allList = (allData?.data ?? []).map(normalizePrescription)
+      setActivePrescriptions(activeList)
+      setPrescriptionHistory(allList.filter((p: Prescription) => !p.isActive))
+    } catch (error) {
+      console.error('Failed to fetch prescriptions:', error)
+    } finally {
+      setLoadingPrescriptions(false)
+    }
+  }, [patientData.id])
+
+  useEffect(() => { fetchPrescriptions() }, [fetchPrescriptions])
 
   // Fetch pill reminders from API
   const fetchReminders = useCallback(async () => {
@@ -146,8 +197,8 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const allPrescriptions = [
-    ...(patientData.activePrescriptions || []),
-    ...(patientData.prescriptionHistory || [])
+    ...activePrescriptions,
+    ...prescriptionHistory,
   ]
 
   // Filter and sort prescriptions
@@ -170,7 +221,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
       case 'doctor':
         return a.doctorName.localeCompare(b.doctorName)
       case 'medicine':
-        return a.medicines[0]?.name.localeCompare(b.medicines[0]?.name) || 0
+        return (a.medicines[0]?.name || '').localeCompare(b.medicines[0]?.name || '') || 0
       default:
         return 0
     }
@@ -200,7 +251,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   }
 
   const sections = [
-    { id: 'active', label: 'Active Prescriptions', icon: FaCheckCircle, color: 'green', count: patientData.activePrescriptions?.length },
+    { id: 'active', label: 'Active Prescriptions', icon: FaCheckCircle, color: 'green', count: activePrescriptions?.length },
     { id: 'reminders', label: 'Reminders', icon: FaBell, color: 'blue', count: reminders.length },
     { id: 'order', label: 'Order Medicines', icon: FaShoppingCart, color: 'purple' },
     { id: 'history', label: 'History', icon: FaHistory, color: 'orange', count: allPrescriptions.length }
@@ -251,14 +302,14 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
       </div>
 
       {/* Refill Alerts */}
-      {patientData.activePrescriptions && patientData.activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').length > 0 && (
+      {activePrescriptions && activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').length > 0 && (
         <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-orange-200">
           <h3 className="text-base sm:text-lg font-semibold text-orange-800 mb-3 sm:mb-4 flex items-center">
             <FaExclamationTriangle className="mr-2" />
             Refill Reminders
           </h3>
           <div className="space-y-2 sm:space-y-3">
-            {patientData.activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').map((prescription) => {
+            {activePrescriptions.filter(p => getRefillUrgency(p) !== 'normal').map((prescription) => {
               const urgency = getRefillUrgency(prescription)
               const days = getDaysUntilRefill(prescription)
               return (
@@ -912,6 +963,15 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
     </div>
   )
 
+  if (loadingPrescriptions) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <FaPills className="animate-pulse text-purple-500 text-2xl mr-3" />
+        <span className="text-gray-500">Loading prescriptions...</span>
+      </div>
+    )
+  }
+
   if (allPrescriptions.length === 0) {
     return (
       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center border border-purple-200">
@@ -942,7 +1002,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 text-center">
             <div className="bg-gradient-to-br from-purple-400/20 to-indigo-400/20 backdrop-blur-sm rounded-lg p-2 sm:p-3">
-              <p className="text-lg sm:text-xl md:text-2xl font-bold">{patientData.activePrescriptions?.length || 0}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold">{activePrescriptions?.length || 0}</p>
               <p className="text-xs opacity-90">Active</p>
             </div>
             <div className="bg-gradient-to-br from-blue-400/20 to-cyan-400/20 backdrop-blur-sm rounded-lg p-2 sm:p-3">

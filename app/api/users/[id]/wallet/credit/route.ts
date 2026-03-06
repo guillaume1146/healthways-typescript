@@ -31,7 +31,7 @@ export async function POST(
   const { id } = await params
 
   // Only the wallet owner or a super admin can credit
-  const isAdmin = auth.userType === 'REGIONAL_ADMIN'
+  const isAdmin = ['admin', 'regional-admin'].includes(auth.userType)
   if (auth.sub !== id && !isAdmin) {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
   }

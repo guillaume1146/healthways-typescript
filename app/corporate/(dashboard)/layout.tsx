@@ -7,5 +7,5 @@ export default createDashboardLayout({
   userSubtitle: 'Corporate',
   sidebarItems: CORPORATE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/corporate/settings',
+  profileHref: '/corporate/profile',
 })

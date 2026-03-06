@@ -63,7 +63,7 @@ export async function GET(
     // Verify the requesting user is the patient who placed the order
     if (order.patient.userId !== auth.sub) {
       // Also allow pharmacists and admins to view
-      if (auth.userType !== 'PHARMACIST' && auth.userType !== 'REGIONAL_ADMIN') {
+      if (auth.userType !== 'pharmacy' && !['admin', 'regional-admin'].includes(auth.userType)) {
         return NextResponse.json(
           { success: false, message: 'Forbidden' },
           { status: 403 }
@@ -137,7 +137,7 @@ export async function PATCH(
 
     // Authorization: pharmacist, admin, or the patient (for cancellation only)
     const isPatient = order.patient.userId === auth.sub
-    const isPrivileged = auth.userType === 'PHARMACIST' || auth.userType === 'REGIONAL_ADMIN'
+    const isPrivileged = auth.userType === 'pharmacy' || ['admin', 'regional-admin'].includes(auth.userType)
 
     if (!isPatient && !isPrivileged) {
       return NextResponse.json(

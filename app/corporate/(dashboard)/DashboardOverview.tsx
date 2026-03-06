@@ -216,7 +216,7 @@ export default function DashboardOverview({
                 </div>
               </Link>
               <Link
-                href="/corporate/analytics"
+                href="/corporate/billing"
                 className="block bg-white/20 hover:bg-white/30 rounded-lg p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">

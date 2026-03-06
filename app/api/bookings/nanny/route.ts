@@ -5,6 +5,9 @@ import { createNotification } from '@/lib/notifications'
 import { createNannyBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
+import { checkPatientBalance } from '@/lib/booking/check-balance'
+
+const DEFAULT_NANNY_FEE = 400
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -77,6 +80,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Nanny profile not found' },
         { status: 404 }
+      )
+    }
+
+    // Check patient wallet balance before creating the booking
+    const balanceCheck = await checkPatientBalance(auth.sub, DEFAULT_NANNY_FEE)
+    if (!balanceCheck.sufficient) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Insufficient balance. You need Rs ${DEFAULT_NANNY_FEE} but only have Rs ${balanceCheck.balance?.toFixed(2) ?? '0'}. Please top up your wallet.`,
+        },
+        { status: 400 }
       )
     }
 

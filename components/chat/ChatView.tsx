@@ -5,7 +5,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { FaPaperPlane, FaSearch, FaArrowLeft, FaCheck, FaCheckDouble } from 'react-icons/fa'
+import { FaPaperPlane, FaSearch, FaArrowLeft, FaCheck, FaCheckDouble, FaUserPlus } from 'react-icons/fa'
 import { useChat, ChatMessage } from '@/hooks/useChat'
 
 // ---------------------------------------------------------------------------
@@ -297,6 +297,11 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   const [loadingConversations, setLoadingConversations] = useState(true)
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [mobileShowMessages, setMobileShowMessages] = useState(false)
+  const [userSearchResults, setUserSearchResults] = useState<Array<{
+    id: string; firstName: string; lastName: string; email: string; userType: string; profileImage: string | null
+  }>>([])
+  const [searchingUsers, setSearchingUsers] = useState(false)
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -325,6 +330,14 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
 
     async function fetchConversations() {
       try {
+        // For regional admins, ensure conversations exist with all users first
+        if (currentUser.userType === 'REGIONAL_ADMIN') {
+          await fetch('/api/conversations/ensure-all', {
+            method: 'POST',
+            credentials: 'include',
+          }).catch(() => {})
+        }
+
         // Fetch conversations and accepted connections in parallel
         const [convRes, connRes] = await Promise.all([
           fetch('/api/conversations', { credentials: 'include' }),
@@ -393,6 +406,72 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
     fetchConversations()
     return () => { cancelled = true }
   }, [currentUser.id])
+
+  // ---- Search platform users when query has 2+ characters ----
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+
+    if (searchQuery.length < 2) {
+      setUserSearchResults([])
+      setSearchingUsers(false)
+      return
+    }
+
+    setSearchingUsers(true)
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`, { credentials: 'include' })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            // Filter out users who already have conversations
+            const existingUserIds = new Set<string>()
+            for (const conv of conversations) {
+              for (const p of conv.participants) {
+                if (p.userId !== currentUser.id) existingUserIds.add(p.userId)
+              }
+            }
+            setUserSearchResults(
+              (json.data || []).filter((u: { id: string }) => !existingUserIds.has(u.id))
+            )
+          }
+        }
+      } catch {
+        // silent
+      } finally {
+        setSearchingUsers(false)
+      }
+    }, 300)
+
+    return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current) }
+  }, [searchQuery, conversations, currentUser.id])
+
+  // ---- Start conversation with a searched user ----
+  const handleStartConversation = useCallback(async (targetUserId: string) => {
+    try {
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ participantIds: [targetUserId] }),
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        const newConv: ConversationSummary = {
+          ...json.data,
+          participants: json.data.participants ?? [],
+          unreadCount: 0,
+        }
+        setConversations((prev) => [newConv, ...prev.filter((c) => c.id !== newConv.id)])
+        setSelectedId(newConv.id)
+        setMobileShowMessages(true)
+        setSearchQuery('')
+        setUserSearchResults([])
+      }
+    } catch {
+      // silent
+    }
+  }, [])
 
   // ---- Auto-select initial conversation if provided ----
   useEffect(() => {
@@ -653,7 +732,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   // =========================================================================
 
   return (
-    <div className="flex h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="flex h-[calc(100vh-8rem)] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* ----------------------------------------------------------------- */}
       {/* LEFT PANEL — Conversation List                                    */}
       {/* ----------------------------------------------------------------- */}
@@ -699,6 +778,42 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
                 onSelect={handleSelectConversation}
               />
             ))
+          )}
+
+          {/* Platform user search results */}
+          {searchQuery.length >= 2 && (userSearchResults.length > 0 || searchingUsers) && (
+            <div className="border-t border-gray-200">
+              <div className="px-4 py-2 bg-gray-50">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  {searchingUsers ? 'Searching users...' : 'Start a new conversation'}
+                </p>
+              </div>
+              {userSearchResults.map((user) => {
+                const { bg, text, label } = getUserTypeColor(user.userType)
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => handleStartConversation(user.id)}
+                    className="w-full text-left px-4 py-3 border-b border-gray-100 transition-colors hover:bg-green-50 focus:outline-none"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-sm text-gray-900 truncate">
+                            {user.firstName} {user.lastName}
+                          </span>
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${bg} ${text}`}>
+                            {label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                      <FaUserPlus className="text-green-500 flex-shrink-0" />
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           )}
         </div>
 

@@ -137,7 +137,7 @@ export async function validateSlotAvailability(
       dayOfWeek,
       isActive: true,
     },
-    select: { startTime: true, endTime: true },
+    select: { startTime: true, endTime: true, slotDuration: true },
     orderBy: { startTime: 'asc' },
   })
 
@@ -162,8 +162,9 @@ export async function validateSlotAvailability(
     const withinWindow = availability.some((slot) => {
       const startMinutes = timeToMinutes(slot.startTime)
       const endMinutes = timeToMinutes(slot.endTime)
-      // The slot must start within a window such that the full 1-hour slot fits
-      return requestedMinutes >= startMinutes && requestedMinutes + 60 <= endMinutes
+      const duration = slot.slotDuration || 60
+      // The slot must start within a window such that the full slot fits
+      return requestedMinutes >= startMinutes && requestedMinutes + duration <= endMinutes
     })
 
     if (!withinWindow) {

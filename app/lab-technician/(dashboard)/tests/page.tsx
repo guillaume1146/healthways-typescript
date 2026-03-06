@@ -63,7 +63,7 @@ export default function LabTechTestsPage() {
       const res = await fetch('/api/lab-technician/tests');
       if (!res.ok) throw new Error('Failed to fetch lab tests');
       const data = await res.json();
-      setTests(data);
+      setTests(data.data || data);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

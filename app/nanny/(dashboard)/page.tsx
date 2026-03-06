@@ -199,7 +199,7 @@ export default function CaregiverDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Your Availability</h3>
             <p className="text-sm text-gray-600 mb-4">Your schedule is visible to parents. Keep it updated to receive booking requests.</p>
-            <Link href="/nanny/settings?tab=availability" className="w-full bg-purple-100 text-purple-800 text-center py-2.5 rounded-lg font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center gap-2">
+            <Link href="/nanny/profile?tab=availability" className="w-full bg-purple-100 text-purple-800 text-center py-2.5 rounded-lg font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center gap-2">
               <FaClock />
               Manage Calendar
             </Link>
@@ -208,7 +208,7 @@ export default function CaregiverDashboardPage() {
           <div className="bg-gradient-to-br from-purple-600 to-pink-500 text-white rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-2">Enhance Your Profile</h3>
             <p className="text-white/90 text-sm mb-4">Caregivers with complete profiles get 3x more bookings.</p>
-            <Link href="/nanny/settings?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
+            <Link href="/nanny/profile?tab=documents" className="bg-white text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">
               Upload Certifications
             </Link>
           </div>

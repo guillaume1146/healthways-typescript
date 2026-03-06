@@ -51,7 +51,7 @@ async function resolveProvider(providerId: string, providerType: ProviderType): 
   }
 }
 
-function generateSlots(startTime: string, endTime: string): string[] {
+function generateSlots(startTime: string, endTime: string, slotDuration: number = 60): string[] {
   const [startHour, startMin] = startTime.split(':').map(Number)
   const [endHour, endMin] = endTime.split(':').map(Number)
 
@@ -59,7 +59,7 @@ function generateSlots(startTime: string, endTime: string): string[] {
   const endMinutes = endHour * 60 + endMin
 
   const slots: string[] = []
-  for (let m = startMinutes; m + 60 <= endMinutes; m += 60) {
+  for (let m = startMinutes; m + slotDuration <= endMinutes; m += slotDuration) {
     const h = Math.floor(m / 60)
     const min = m % 60
     slots.push(`${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`)
@@ -161,10 +161,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, slots: [] })
     }
 
-    // Generate 1-hour slot start times within each availability window
+    // Generate slot start times within each availability window using configured duration
     const allSlots: string[] = []
     for (const window of availability) {
-      const slots = generateSlots(window.startTime, window.endTime)
+      const slots = generateSlots(window.startTime, window.endTime, window.slotDuration)
       allSlots.push(...slots)
     }
 

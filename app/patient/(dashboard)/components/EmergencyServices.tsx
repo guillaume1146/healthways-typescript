@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Patient } from '@/lib/data/patients'
 import { 
   FaAmbulance, 
@@ -60,6 +60,30 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
   const hasEmergencyChat = patientData.chatHistory?.emergencyServices && patientData.chatHistory.emergencyServices.length > 0
 
   const [emergencyServices, setEmergencyServices] = useState<EmergencyContact[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeMedications, setActiveMedications] = useState<any[]>([])
+
+  // Self-fetch active prescriptions for medical info display
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const res = await fetch(`/api/patients/${patientData.id}/prescriptions?active=true`)
+        if (res.ok) {
+          const json = await res.json()
+          if (json.data) {
+            setActiveMedications(json.data.map((p: any) => ({
+              medicines: (p.medicines ?? []).map((m: any) => ({
+                name: m.medicine?.name ?? m.name ?? '',
+                dosage: m.dosage ?? '',
+                frequency: m.frequency ?? '',
+              })),
+            })))
+          }
+        }
+      } catch { /* silent */ }
+    }
+    fetchMedications()
+  }, [patientData.id])
 
   useEffect(() => {
     const fetchResponders = async () => {
@@ -240,7 +264,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
               <div className="bg-green-100 bg-opacity-70 rounded-lg p-3">
                 <p className="text-xs sm:text-sm font-medium text-green-700">Current Medications</p>
                 <div className="space-y-1 mt-1">
-                  {patientData.activePrescriptions?.slice(0, 3).map((prescription, index) => (
+                  {activeMedications?.slice(0, 3).map((prescription, index) => (
                     <p key={index} className="text-xs text-green-800">
                       • {prescription.medicines[0]?.name} - {prescription.medicines[0]?.dosage}
                     </p>
@@ -598,7 +622,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
                 Current Medications
               </h4>
               <div className="space-y-1.5 sm:space-y-2">
-                {patientData.activePrescriptions?.slice(0, 3).map((prescription, index) => (
+                {activeMedications?.slice(0, 3).map((prescription, index) => (
                   <div key={index} className="text-green-800 bg-green-200 bg-opacity-70 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
                     <p className="font-medium text-xs sm:text-sm">{prescription.medicines[0]?.name}</p>
                     <p className="text-xs text-green-600">{prescription.medicines[0]?.dosage} - {prescription.medicines[0]?.frequency}</p>

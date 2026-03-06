@@ -21,8 +21,10 @@ interface DashboardLayoutConfig {
   sidebarItems: SidebarItem[]
   /** Function to resolve active sidebar section from pathname */
   getActiveSectionFromPath: (pathname: string) => string
-  /** Link to settings page (e.g. '/patient/settings') */
-  settingsHref: string
+  /** Link to profile page (e.g. '/patient/profile') */
+  profileHref?: string
+  /** @deprecated Use profileHref instead */
+  settingsHref?: string
   /** Optional name prefix (e.g. 'Dr.' for doctors) */
   namePrefix?: string
   /** Optional context provider wrapping children (e.g. PatientDashboardProvider) */
@@ -49,6 +51,7 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
     userSubtitle,
     sidebarItems,
     getActiveSectionFromPath,
+    profileHref,
     settingsHref,
     namePrefix,
     ContextProvider,
@@ -115,7 +118,7 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
         sidebarItems={sidebarItems}
         activeSectionId={getActiveSectionFromPath(pathname)}
         notificationCount={0}
-        settingsHref={settingsHref}
+        profileHref={profileHref || settingsHref}
         onLogout={handleLogout}
       >
         {children}

@@ -54,6 +54,9 @@ export async function GET(
         status: true,
         scheduledAt: true,
         sampleType: true,
+        resultFindings: true,
+        resultNotes: true,
+        resultDate: true,
         patient: {
           select: {
             user: {
@@ -75,6 +78,9 @@ export async function GET(
         status: mappedStatus,
         date: booking.scheduledAt.toISOString(),
         ...(booking.sampleType ? { category: booking.sampleType } : {}),
+        ...(booking.resultFindings ? { resultFindings: booking.resultFindings } : {}),
+        ...(booking.resultNotes ? { resultNotes: booking.resultNotes } : {}),
+        ...(booking.resultDate ? { resultDate: booking.resultDate.toISOString() } : {}),
       }
     })
 

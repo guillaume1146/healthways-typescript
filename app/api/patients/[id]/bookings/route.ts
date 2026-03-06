@@ -92,6 +92,9 @@ export async function GET(
             scheduledAt: true,
             testName: true,
             status: true,
+            resultFindings: true,
+            resultNotes: true,
+            resultDate: true,
             labTech: {
               select: {
                 user: { select: { firstName: true, lastName: true } },
@@ -158,6 +161,9 @@ export async function GET(
         status: b.status,
         testName: b.testName,
         detail: b.testName,
+        ...(b.resultFindings ? { resultFindings: b.resultFindings } : {}),
+        ...(b.resultNotes ? { resultNotes: b.resultNotes } : {}),
+        ...(b.resultDate ? { resultDate: b.resultDate.toISOString() } : {}),
       })),
       ...emergencyBookings.map((b) => ({
         id: b.id,

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
+import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
 import ConditionalFooter from '@/components/layout/ConditionalFooter'
 import { CartProvider } from '@/app/search/medicines/contexts/CartContext'
 import ToastProvider from '@/components/shared/ToastProvider'
@@ -139,7 +139,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <CartProvider>
-          <Navbar />
+          <ConditionalNavbar />
           <main id="main-content" className="min-h-screen">
             {children}
           </main>

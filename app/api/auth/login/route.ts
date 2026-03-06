@@ -63,10 +63,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Auto-detect the cookie-friendly user type from the DB record
-    const cookieUserType = prismaUserTypeToCookie[dbUser.userType]
+    let cookieUserType = prismaUserTypeToCookie[dbUser.userType]
+
+    // Super admin override: if REGIONAL_ADMIN matches SUPER_ADMIN_EMAIL, use 'admin' cookie
+    if (dbUser.userType === 'REGIONAL_ADMIN' && dbUser.email === process.env.SUPER_ADMIN_EMAIL) {
+      cookieUserType = 'admin'
+    }
 
     // Determine the redirect path — default to feed page after login
-    const slug = USER_TYPE_SLUGS[dbUser.userType] || 'patient'
+    const slugMap: Record<string, string> = { 'admin': 'admin', 'regional-admin': 'regional' }
+    const slug = slugMap[cookieUserType] || USER_TYPE_SLUGS[dbUser.userType] || 'patient'
     const redirectPath = `/${slug}/feed`
 
     // Generate JWT

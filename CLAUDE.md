@@ -169,4 +169,5 @@ Next.js wrapped by Node.js server co-hosting Socket.IO. Dev runs `node server.js
 | INSURANCE_REP | /insurance/ | insurance | 2 users |
 | CORPORATE_ADMIN | /corporate/ | corporate | 1 user |
 | REFERRAL_PARTNER | /referral-partner/ | referral-partner | 1 user |
-| REGIONAL_ADMIN | /super-admin/ | super-admin | 1 user |
+| REGIONAL_ADMIN | /regional/ | regional-admin | 3 users |
+| Super Admin (env) | /admin/ | admin | 1 user (auto-created) |

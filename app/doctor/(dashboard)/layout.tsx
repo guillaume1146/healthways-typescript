@@ -9,6 +9,6 @@ export default createDashboardLayout({
   namePrefix: 'Dr.',
   sidebarItems: DOCTOR_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
-  settingsHref: '/doctor/settings',
+  profileHref: '/doctor/profile',
   ContextProvider: DoctorDashboardProvider,
 })
