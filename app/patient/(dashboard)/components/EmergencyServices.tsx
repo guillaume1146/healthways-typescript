@@ -239,7 +239,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
               <div className="bg-yellow-100 bg-opacity-70 rounded-lg p-3">
                 <p className="text-xs sm:text-sm font-medium text-yellow-700">Allergies</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {patientData.allergies.map((allergy, index) => (
+                  {(patientData.allergies || []).map((allergy, index) => (
                     <span key={index} className="px-2 py-0.5 sm:py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium">
                       ⚠️ {allergy}
                     </span>
@@ -252,7 +252,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
               <div className="bg-blue-100 bg-opacity-70 rounded-lg p-3">
                 <p className="text-xs sm:text-sm font-medium text-blue-700">Chronic Conditions</p>
                 <div className="space-y-1 mt-1">
-                  {patientData.chronicConditions.map((condition, index) => (
+                  {(patientData.chronicConditions || []).map((condition, index) => (
                     <p key={index} className="text-xs sm:text-sm text-blue-800 flex items-center">
                       <FaHeartbeat className="mr-2 text-xs" />
                       {condition}
@@ -590,7 +590,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
                 Allergies & Warnings
               </h4>
               <div className="space-y-1.5 sm:space-y-2">
-                {patientData.allergies.map((allergy, index) => (
+                {(patientData.allergies || []).map((allergy, index) => (
                   <div key={index} className="flex items-center gap-2 text-yellow-800 bg-yellow-200 bg-opacity-70 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
                     <FaExclamationTriangle className="text-yellow-600 text-xs sm:text-sm" />
                     <span className="font-medium text-xs sm:text-sm">{allergy}</span>
@@ -607,7 +607,7 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
                 Chronic Conditions
               </h4>
               <div className="space-y-1.5 sm:space-y-2">
-                {patientData.chronicConditions.map((condition, index) => (
+                {(patientData.chronicConditions || []).map((condition, index) => (
                   <div key={index} className="flex items-center gap-2 text-blue-800 bg-blue-200 bg-opacity-70 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
                     <FaHeartbeat className="text-blue-600 text-xs sm:text-sm" />
                     <span className="text-xs sm:text-sm">{condition}</span>

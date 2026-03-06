@@ -212,6 +212,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
   // Edit states
   const [editingPersonal, setEditingPersonal] = useState(false)
   const [editingProfessional, setEditingProfessional] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Form data
   const [personalForm, setPersonalForm] = useState<PersonalFormData>({
@@ -266,6 +267,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
   const savePersonal = async () => {
     if (!userData) return
     setSaving(true)
+    setSaveMsg(null)
     try {
       const res = await fetch(`/api/users/${userData.id}`, {
         method: 'PATCH',
@@ -282,12 +284,26 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
       })
       if (res.ok) {
         setEditingPersonal(false)
-        // Refresh
+        setSaveMsg({ type: 'success', text: 'Personal information saved successfully.' })
+        // Update localStorage so sidebar/header stay in sync
+        try {
+          const stored = localStorage.getItem('healthwyz_user')
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            parsed.firstName = personalForm.firstName
+            parsed.lastName = personalForm.lastName
+            parsed.email = personalForm.email
+            localStorage.setItem('healthwyz_user', JSON.stringify(parsed))
+          }
+        } catch { /* ignore */ }
         setLoading(true)
         await fetchUser()
+      } else {
+        const json = await res.json().catch(() => null)
+        setSaveMsg({ type: 'error', text: json?.message || 'Failed to save. Please try again.' })
       }
     } catch {
-      // save failed silently
+      setSaveMsg({ type: 'error', text: 'Network error. Please try again.' })
     } finally {
       setSaving(false)
     }
@@ -324,11 +340,15 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
       })
       if (res.ok) {
         setEditingProfessional(false)
+        setSaveMsg({ type: 'success', text: 'Professional information saved successfully.' })
         setLoading(true)
         await fetchUser()
+      } else {
+        const json = await res.json().catch(() => null)
+        setSaveMsg({ type: 'error', text: json?.message || 'Failed to save. Please try again.' })
       }
     } catch {
-      // save failed silently
+      setSaveMsg({ type: 'error', text: 'Network error. Please try again.' })
     } finally {
       setSaving(false)
     }
@@ -449,7 +469,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                   aria-selected={isActive}
                   aria-label={tab.label}
                   title={tab.label}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => { setActiveTab(tab.id); setSaveMsg(null) }}
                   className={`flex items-center gap-2 px-4 sm:px-6 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
                     isActive
                       ? 'border-blue-600 text-blue-600'
@@ -469,6 +489,15 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
       {/* TAB CONTENT                                                       */}
       {/* ================================================================= */}
       <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Save feedback message */}
+        {saveMsg && (
+          <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium ${
+            saveMsg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {saveMsg.text}
+          </div>
+        )}
+
         {/* -------------------------------------------------------------- */}
         {/* PERSONAL INFO TAB                                               */}
         {/* -------------------------------------------------------------- */}
@@ -522,6 +551,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                     type="text"
                     value={personalForm.firstName}
                     onChange={(e) => setPersonalForm({ ...personalForm, firstName: e.target.value })}
+                    placeholder={userData.firstName || 'Enter first name'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -531,6 +561,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                     type="text"
                     value={personalForm.lastName}
                     onChange={(e) => setPersonalForm({ ...personalForm, lastName: e.target.value })}
+                    placeholder={userData.lastName || 'Enter last name'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -540,6 +571,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                     type="email"
                     value={personalForm.email}
                     onChange={(e) => setPersonalForm({ ...personalForm, email: e.target.value })}
+                    placeholder={userData.email || 'Enter email'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -549,6 +581,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                     type="tel"
                     value={personalForm.phone}
                     onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
+                    placeholder={userData.phone || '+230 5XXX XXXX'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -581,6 +614,7 @@ export default function ProfilePage({ userType }: ProfilePageProps) {
                     type="text"
                     value={personalForm.address}
                     onChange={(e) => setPersonalForm({ ...personalForm, address: e.target.value })}
+                    placeholder={userData.address || 'Enter your address'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -778,6 +812,7 @@ function ProfessionalEditForm({
                 value={String(val ?? '')}
                 onChange={(e) => handleChange(field.key, e.target.value)}
                 rows={4}
+                placeholder={`Enter ${field.label.toLowerCase()}`}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             ) : field.type === 'array' ? (
@@ -787,7 +822,7 @@ function ProfessionalEditForm({
                   value={Array.isArray(val) ? (val as string[]).join(', ') : String(val ?? '')}
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Comma-separated values"
+                  placeholder={`Enter ${field.label.toLowerCase()} (comma-separated)`}
                 />
                 <p className="text-xs text-gray-400 mt-1">Separate multiple values with commas</p>
               </>
@@ -796,6 +831,7 @@ function ProfessionalEditForm({
                 type="number"
                 value={val !== null && val !== undefined ? String(val) : ''}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                placeholder={`Enter ${field.label.toLowerCase()}`}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             ) : (
@@ -803,6 +839,7 @@ function ProfessionalEditForm({
                 type="text"
                 value={String(val ?? '')}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                placeholder={`Enter ${field.label.toLowerCase()}`}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             )}
