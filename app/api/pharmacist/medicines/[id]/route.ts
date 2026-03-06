@@ -4,6 +4,50 @@ import prisma from '@/lib/db'
 import { pharmacyMedicineSchema } from '@/lib/validations/catalog'
 import { rateLimitPublic } from '@/lib/rate-limit'
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const limited = rateLimitPublic(request)
+  if (limited) return limited
+
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+  if (auth.userType !== 'pharmacy') {
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+  }
+
+  const { id } = await params
+
+  try {
+    const pharmacistProfile = await prisma.pharmacistProfile.findUnique({
+      where: { userId: auth.sub },
+      select: { id: true },
+    })
+
+    if (!pharmacistProfile) {
+      return NextResponse.json({ message: 'Pharmacist profile not found' }, { status: 404 })
+    }
+
+    const medicine = await prisma.pharmacyMedicine.findUnique({
+      where: { id },
+    })
+
+    if (!medicine) {
+      return NextResponse.json({ message: 'Medicine not found' }, { status: 404 })
+    }
+
+    if (medicine.pharmacistId !== pharmacistProfile.id) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+    }
+
+    return NextResponse.json({ success: true, data: medicine })
+  } catch (error) {
+    console.error('Pharmacist medicine get error:', error)
+    return NextResponse.json({ message: 'Server error' }, { status: 500 })
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
