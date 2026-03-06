@@ -1,7 +1,7 @@
 'use client'
 
-import { usePatientData } from '../context'
 import dynamic from 'next/dynamic'
+import { useDashboardUser } from '@/hooks/useDashboardUser'
 
 const VideoCallRoomsList = dynamic(() => import('@/components/video/VideoCallRoomsList'), {
   ssr: false,
@@ -13,15 +13,9 @@ const VideoCallRoomsList = dynamic(() => import('@/components/video/VideoCallRoo
 })
 
 export default function VideoPage() {
-  const patient = usePatientData()
-  return (
-    <VideoCallRoomsList
-      currentUser={{
-        id: patient.id,
-        firstName: patient.firstName,
-        lastName: patient.lastName,
-        userType: 'patient',
-      }}
-    />
-  )
+  const user = useDashboardUser()
+
+  if (!user) return <div className="flex items-center justify-center h-full"><div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>
+
+  return <VideoCallRoomsList currentUser={user} />
 }
