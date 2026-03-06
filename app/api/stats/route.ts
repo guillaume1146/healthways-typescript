@@ -31,10 +31,10 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: [
-        { number: '500+', label: 'Qualified Doctors', color: 'text-blue-500' },
-        { number: '10,000+', label: 'Happy Patients', color: 'text-green-500' },
-        { number: '25,000+', label: 'Consultations', color: 'text-purple-500' },
-        { number: '20+', label: 'Cities Covered', color: 'text-orange-500' },
+        { number: 0, label: 'Qualified Doctors', color: 'text-blue-500' },
+        { number: 0, label: 'Happy Patients', color: 'text-green-500' },
+        { number: 0, label: 'Consultations', color: 'text-purple-500' },
+        { number: 0, label: 'Cities Covered', color: 'text-orange-500' },
       ],
     })
   }

@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: NANNY_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/nanny/profile',
+  networkHref: '/nanny/network',
 })

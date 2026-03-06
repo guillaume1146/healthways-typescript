@@ -30,13 +30,29 @@ export async function GET(request: NextRequest) {
             gender: true,
             dateOfBirth: true,
             address: true,
+            reviewsReceived: {
+              where: { providerType: 'NURSE' },
+              select: { rating: true },
+            },
           },
+        },
+        nurseServiceCatalog: {
+          select: { serviceName: true, price: true },
+          take: 5,
         },
       },
     })
 
     const mapped = nurses.map((nurse) => {
       const user = nurse.user
+      const reviews = user.reviewsReceived || []
+      const avgRating = reviews.length > 0
+        ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+        : 0
+      const baseRate = nurse.nurseServiceCatalog.length > 0
+        ? Math.min(...nurse.nurseServiceCatalog.map(s => s.price))
+        : null
+
       return {
         id: user.id,
         firstName: user.firstName,
@@ -46,27 +62,26 @@ export async function GET(request: NextRequest) {
         type: 'Registered Nurse',
         specialization: nurse.specializations,
         subSpecialties: [],
-        clinicAffiliation: 'Healthwyz Medical Center',
-        rating: 4.7,
-        reviews: 28,
+        rating: avgRating,
+        reviews: reviews.length,
         experience: `${nurse.experience} years`,
-        location: user.address || 'Port Louis, Mauritius',
-        address: user.address || 'Port Louis, Mauritius',
+        location: user.address || '',
+        address: user.address || '',
         languages: ['English', 'French', 'Creole'],
-        hourlyRate: 1000,
-        videoConsultationRate: 750,
+        hourlyRate: baseRate,
+        videoConsultationRate: baseRate ? Math.round(baseRate * 0.75) : null,
         availability: 'Available',
         nextAvailable: 'Available Today',
-        bio: `Experienced registered nurse with ${nurse.experience} years of experience specializing in ${nurse.specializations.join(', ')}. Dedicated to providing compassionate and professional care.`,
-        education: [`BSc Nursing - University of Mauritius`],
+        bio: `Experienced registered nurse with ${nurse.experience} years of experience specializing in ${nurse.specializations.join(', ')}.`,
+        education: [`BSc Nursing`],
         workHistory: [`Registered Nurse - ${nurse.experience} years experience`],
         certifications: [`RN License: ${nurse.licenseNumber}`],
-        services: nurse.specializations,
+        services: nurse.nurseServiceCatalog.map(s => s.serviceName),
         consultationTypes: ['In-Person', 'Video Consultation', 'Home Visit'],
         verified: user.verified,
-        emergencyAvailable: true,
+        emergencyAvailable: false,
         phone: user.phone,
-        age: user.dateOfBirth ? Math.floor((Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 30,
+        age: user.dateOfBirth ? Math.floor((Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
         patientComments: [],
       }
     })

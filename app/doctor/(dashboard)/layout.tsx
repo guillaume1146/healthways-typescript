@@ -10,5 +10,6 @@ export default createDashboardLayout({
   sidebarItems: DOCTOR_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/doctor/profile',
+  networkHref: '/doctor/network',
   ContextProvider: DoctorDashboardProvider,
 })

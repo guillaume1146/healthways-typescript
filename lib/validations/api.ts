@@ -44,7 +44,7 @@ const baseBookingSchema = z.object({
   scheduledTime: z.string().min(1, 'Time is required'),
   reason: z.string().max(500).optional(),
   notes: z.string().max(1000).optional(),
-  duration: z.number().int().min(15).max(1440).optional(),
+  duration: z.number().int().min(15).max(480).optional(),
 })
 
 export const createDoctorBookingSchema = baseBookingSchema.extend({

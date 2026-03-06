@@ -1,18 +1,9 @@
 'use client'
 
 import { useDoctorData } from '../context'
-import DoctorProfile from '../components/DoctorProfile'
+import UserProfile from '@/components/profile/UserProfile'
 
 export default function ProfilePage() {
   const user = useDoctorData()
-  return (
-    <DoctorProfile
-      doctorData={{
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-      }}
-      setDoctorData={() => {}}
-    />
-  )
+  return <UserProfile userId={user.id} userType="DOCTOR" settingsPath="/doctor/profile" />
 }

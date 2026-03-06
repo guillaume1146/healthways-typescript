@@ -9,5 +9,6 @@ export default createDashboardLayout({
   sidebarItems: PATIENT_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/patient/profile',
+  networkHref: '/patient/network',
   ContextProvider: PatientDashboardProvider,
 })

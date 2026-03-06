@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
   const userId = auth.sub
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status') ?? undefined
-  const direction = searchParams.get('direction') ?? undefined
+  // Support both 'direction' (original) and 'type' (used by ConnectionRequestsList) params
+  const direction = searchParams.get('direction') ?? searchParams.get('type') ?? undefined
 
   try {
     // Build the where clause based on direction

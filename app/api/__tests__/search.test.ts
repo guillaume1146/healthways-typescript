@@ -16,6 +16,9 @@ vi.mock('@/lib/db', () => ({
     pharmacyMedicine: {
       findMany: vi.fn(),
     },
+    providerReview: {
+      findMany: vi.fn(() => []),
+    },
   },
 }))
 

@@ -9,6 +9,7 @@ import {
   FaUser,
   FaSignOutAlt,
   FaCheckDouble,
+  FaUserFriends,
 } from 'react-icons/fa'
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
@@ -31,6 +32,7 @@ interface DashboardHeaderProps {
   userSubtitle: string
   notificationCount: number
   profileHref: string
+  networkHref?: string
   sidebarOpen: boolean
   onToggleSidebar: () => void
   onLogout: () => void
@@ -54,6 +56,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userSubtitle,
   notificationCount,
   profileHref,
+  networkHref,
   sidebarOpen,
   onToggleSidebar,
   onLogout,
@@ -212,6 +215,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 </div>
               )}
             </Link>
+
+            {/* Network / Connections */}
+            {networkHref && (
+              <Link
+                href={networkHref}
+                className="p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label="My Network"
+              >
+                <FaUserFriends className="text-sm sm:text-base md:text-lg" aria-hidden="true" />
+              </Link>
+            )}
 
             {/* Notification bell + dropdown */}
             <div className="relative" ref={dropdownRef}>

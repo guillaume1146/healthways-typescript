@@ -2,9 +2,10 @@
 
 import { use, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { FaCheckCircle, FaArrowLeft, FaCalendarAlt, FaClock, FaStethoscope, FaWallet } from 'react-icons/fa'
+import { FaArrowLeft } from 'react-icons/fa'
 import BookingForm from '@/components/booking/BookingForm'
 import type { BookingSubmitData } from '@/components/booking/BookingForm'
+import BookingSuccessTicket from '@/components/booking/BookingSuccessTicket'
 
 interface DoctorInfo {
   id: string
@@ -148,91 +149,15 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
 
   if (bookingResult) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FaCheckCircle className="text-green-600 text-4xl" />
-          </div>
-
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
-          <p className="text-gray-600 mb-8">Your doctor consultation has been successfully booked.</p>
-
-          {/* Ticket Card */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white mb-8 text-left">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-bold">Consultation Ticket</h3>
-                <p className="text-blue-200 text-sm">Keep this for your records</p>
-              </div>
-              <div className="text-right">
-                <p className="text-blue-200 text-xs">Ticket ID</p>
-                <p className="font-bold text-lg">{bookingResult.ticketId}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-blue-200 mb-1">Doctor</p>
-                <p className="font-semibold">Dr. {doctor.firstName} {doctor.lastName}</p>
-              </div>
-              <div>
-                <p className="text-blue-200 mb-1">Specialty</p>
-                <p className="font-semibold">{doctor.specialty[0] || 'General'}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaCalendarAlt className="text-blue-200" />
-                <div>
-                  <p className="text-blue-200 text-xs">Date</p>
-                  <p className="font-semibold">{submitData?.scheduledDate ? new Date(submitData.scheduledDate).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaClock className="text-blue-200" />
-                <div>
-                  <p className="text-blue-200 text-xs">Time</p>
-                  <p className="font-semibold">{submitData?.scheduledTime || ''}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaStethoscope className="text-blue-200" />
-                <div>
-                  <p className="text-blue-200 text-xs">Type</p>
-                  <p className="font-semibold capitalize">{submitData?.consultationType?.replace('_', ' ') || ''}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaWallet className="text-blue-200" />
-                <div>
-                  <p className="text-blue-200 text-xs">Wallet Balance</p>
-                  <p className="font-semibold">Rs {walletBalance?.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-
-            {submitData?.reason && (
-              <div className="mt-4 pt-4 border-t border-white/20">
-                <p className="text-blue-200 text-xs">Reason</p>
-                <p className="text-sm">{submitData.reason}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/patient/dashboard"
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-center"
-            >
-              Back to Dashboard
-            </Link>
-            <Link
-              href="/patient/consultations"
-              className="flex-1 border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
-            >
-              View Appointments
-            </Link>
-          </div>
-        </div>
-      </div>
+      <BookingSuccessTicket
+        providerType="doctor"
+        providerName={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+        providerDetail={doctor.specialty[0] || 'General'}
+        ticketId={bookingResult.ticketId}
+        submitData={submitData}
+        walletBalance={walletBalance}
+        viewLabel="View Appointments"
+      />
     )
   }
 

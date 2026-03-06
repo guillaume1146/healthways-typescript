@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: REFERRAL_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/referral-partner/profile',
+  networkHref: '/referral-partner/network',
 })

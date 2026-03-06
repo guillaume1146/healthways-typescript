@@ -3,6 +3,7 @@
 import { useDashboardUser } from '@/hooks/useDashboardUser'
 import PostFeed from '@/components/posts/PostFeed'
 import ChatContactsSidebar from '@/components/chat/ChatContactsSidebar'
+import UserSuggestions from '@/components/social/UserSuggestions'
 
 export default function InsuranceFeedPage() {
   const user = useDashboardUser()
@@ -12,7 +13,8 @@ export default function InsuranceFeedPage() {
       <div className="flex-1 min-w-0">
         <PostFeed currentUserId={user.id} currentUserType={user.userType} showCreateButton={false} />
       </div>
-      <div className="hidden lg:block w-72 flex-shrink-0">
+      <div className="hidden lg:block w-72 flex-shrink-0 space-y-4">
+        <UserSuggestions currentUserId={user.id} maxResults={5} />
         <ChatContactsSidebar currentUserId={user.id} messagesPath="/insurance/messages" />
       </div>
     </div>

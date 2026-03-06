@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: PHARMACIST_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/pharmacist/profile',
+  networkHref: '/pharmacist/network',
 })

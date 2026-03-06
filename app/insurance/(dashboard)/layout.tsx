@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: INSURANCE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/insurance/profile',
+  networkHref: '/insurance/network',
 })

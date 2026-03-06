@@ -175,8 +175,16 @@ export async function GET(request: NextRequest) {
           if (!locationStr.toLowerCase().includes(city.toLowerCase())) continue
         }
 
-        // Nurses don't have rating in DB -- use default
-        if (minRating > 0 && 4.7 < minRating) continue
+        // Compute actual rating from reviews
+        const nurseReviews = await prisma.providerReview.findMany({
+          where: { providerUserId: user.id, providerType: 'NURSE' },
+          select: { rating: true },
+        })
+        const nurseAvgRating = nurseReviews.length > 0
+          ? Math.round((nurseReviews.reduce((s, r) => s + r.rating, 0) / nurseReviews.length) * 10) / 10
+          : 0
+
+        if (minRating > 0 && nurseAvgRating < minRating) continue
 
         results.push({
           id: user.id,
@@ -184,19 +192,19 @@ export async function GET(request: NextRequest) {
           name: fullName,
           profileImage: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName} ${user.lastName}`,
           specialty: nurse.specializations,
-          rating: 4.7,
-          reviewCount: 28,
+          rating: nurseAvgRating,
+          reviewCount: nurseReviews.length,
           city: locationStr,
           available: true,
           nextAvailable: 'Available Today',
           verified: user.verified,
-          consultationFee: 1000,
-          videoConsultationFee: 750,
+          consultationFee: null,
+          videoConsultationFee: null,
           bio: `Experienced registered nurse with ${nurse.experience} years of experience specializing in ${nurse.specializations.join(', ')}.`,
           languages: ['English', 'French', 'Creole'],
           experience: `${nurse.experience} years`,
           consultationTypes: ['In-Person', 'Video Consultation', 'Home Visit'],
-          emergencyAvailable: true,
+          emergencyAvailable: false,
           category: 'Registered Nurse',
           detailHref: `/search/nurses/${user.id}`,
         })
@@ -248,27 +256,36 @@ export async function GET(request: NextRequest) {
           if (!locationStr.toLowerCase().includes(city.toLowerCase())) continue
         }
 
-        if (minRating > 0 && 4.8 < minRating) continue
+        // Compute actual rating from reviews
+        const nannyReviews = await prisma.providerReview.findMany({
+          where: { providerUserId: user.id, providerType: 'NANNY' },
+          select: { rating: true },
+        })
+        const nannyAvgRating = nannyReviews.length > 0
+          ? Math.round((nannyReviews.reduce((s, r) => s + r.rating, 0) / nannyReviews.length) * 10) / 10
+          : 0
+
+        if (minRating > 0 && nannyAvgRating < minRating) continue
 
         results.push({
           id: user.id,
           type: 'nanny',
           name: fullName,
           profileImage: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName} ${user.lastName}`,
-          specialty: nanny.certifications.length > 0 ? nanny.certifications : ['Child Care', 'Early Development'],
-          rating: 4.8,
-          reviewCount: 15,
+          specialty: nanny.certifications.length > 0 ? nanny.certifications : ['Child Care'],
+          rating: nannyAvgRating,
+          reviewCount: nannyReviews.length,
           city: locationStr,
           available: true,
           nextAvailable: 'Available Today',
           verified: user.verified,
-          consultationFee: 600,
+          consultationFee: null,
           videoConsultationFee: null,
           bio: `Caring childcare professional with ${nanny.experience} years of experience. Certified in ${nanny.certifications.join(', ') || 'early childhood development'}.`,
           languages: ['English', 'French', 'Creole'],
           experience: `${nanny.experience} years`,
           consultationTypes: ['Full-time Care', 'Part-time Care', 'Date Night Sitting'],
-          emergencyAvailable: true,
+          emergencyAvailable: false,
           category: 'Childcare Nurse',
           detailHref: `/search/childcare/${user.id}`,
         })

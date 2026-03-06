@@ -23,6 +23,8 @@ interface DashboardLayoutConfig {
   getActiveSectionFromPath: (pathname: string) => string
   /** Link to profile page (e.g. '/patient/profile') */
   profileHref?: string
+  /** Link to network/connections page (e.g. '/patient/network') */
+  networkHref?: string
   /** @deprecated Use profileHref instead */
   settingsHref?: string
   /** Optional name prefix (e.g. 'Dr.' for doctors) */
@@ -52,6 +54,7 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
     sidebarItems,
     getActiveSectionFromPath,
     profileHref,
+    networkHref,
     settingsHref,
     namePrefix,
     ContextProvider,
@@ -119,6 +122,7 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
         activeSectionId={getActiveSectionFromPath(pathname)}
         notificationCount={0}
         profileHref={profileHref || settingsHref}
+        networkHref={networkHref}
         onLogout={handleLogout}
       >
         {children}

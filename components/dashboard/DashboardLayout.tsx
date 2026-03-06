@@ -16,6 +16,7 @@ interface DashboardLayoutProps {
   /** @deprecated Use profileHref instead */
   settingsHref?: string
   profileHref?: string
+  networkHref?: string
   onLogout: () => void
   sidebarFooter?: React.ReactNode
 }
@@ -30,6 +31,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   notificationCount = 0,
   settingsHref,
   profileHref,
+  networkHref,
   onLogout,
   sidebarFooter,
 }) => {
@@ -116,6 +118,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         userSubtitle={userSubtitle}
         notificationCount={notificationCount}
         profileHref={resolvedProfileHref}
+        networkHref={networkHref}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={handleToggleSidebar}
         onLogout={onLogout}

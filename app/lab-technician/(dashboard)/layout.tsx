@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: LAB_TECH_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/lab-technician/profile',
+  networkHref: '/lab-technician/network',
 })

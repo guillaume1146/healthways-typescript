@@ -45,8 +45,13 @@ describe('cookieToPrismaUserType', () => {
 
 describe('prismaUserTypeToCookie', () => {
   it('is the reverse of cookieToPrismaUserType', () => {
+    // 'admin' is an alias for REGIONAL_ADMIN — the canonical cookie is 'regional-admin'
+    const canonical: Record<string, string> = {
+      'admin': 'regional-admin',
+    }
     for (const [cookie, prismaType] of Object.entries(cookieToPrismaUserType)) {
-      expect(prismaUserTypeToCookie[prismaType]).toBe(cookie)
+      const expected = canonical[cookie] || cookie
+      expect(prismaUserTypeToCookie[prismaType]).toBe(expected)
     }
   })
 })

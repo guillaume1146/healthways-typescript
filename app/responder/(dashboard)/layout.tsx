@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: RESPONDER_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/responder/profile',
+  networkHref: '/responder/network',
 })

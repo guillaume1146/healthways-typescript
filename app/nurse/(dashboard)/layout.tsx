@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: NURSE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/nurse/profile',
+  networkHref: '/nurse/network',
 })

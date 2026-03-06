@@ -8,4 +8,5 @@ export default createDashboardLayout({
   sidebarItems: CORPORATE_SIDEBAR_ITEMS,
   getActiveSectionFromPath,
   profileHref: '/corporate/profile',
+  networkHref: '/corporate/network',
 })
