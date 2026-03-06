@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CorporateStats, Employee, ClaimsData } from '../types'
+import { useUser } from '@/hooks/useUser'
 import DashboardOverview from './DashboardOverview'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
@@ -22,20 +23,9 @@ export default function CorporateDashboard() {
     employees: [] as Employee[],
     claims: [] as ClaimsData[],
   })
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

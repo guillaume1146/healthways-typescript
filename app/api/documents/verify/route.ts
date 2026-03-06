@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyDocument } from '@/lib/ocr/verify-document'
 import { rateLimitHeavy } from '@/lib/rate-limit'
+import { validateRequest } from '@/lib/auth/validate'
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+
   const limited = rateLimitHeavy(request)
   if (limited) return limited
 

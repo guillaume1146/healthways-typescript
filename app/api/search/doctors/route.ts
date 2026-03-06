@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl
     const query = searchParams.get('q') || ''
     const specialty = searchParams.get('specialty') || ''
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20') || 20))
 
     const doctors = await prisma.doctorProfile.findMany({
       where: {
@@ -144,7 +146,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({ success: true, data: results })
+    const total = results.length
+    const totalPages = Math.ceil(total / limit)
+    const paginatedData = results.slice((page - 1) * limit, page * limit)
+
+    return NextResponse.json({ success: true, data: paginatedData, total, page, limit, totalPages })
   } catch (error) {
     console.error('Doctors search error:', error)
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 })

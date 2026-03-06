@@ -5,6 +5,7 @@ import {
   FaBell, FaCheck, FaCheckDouble, FaSpinner, FaExclamationCircle,
   FaInfoCircle, FaCheckCircle
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Notification {
   id: string
@@ -25,17 +26,8 @@ const typeIcons: Record<string, { icon: React.ElementType; color: string }> = {
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string>('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch { /* ignore */ }
-  }, [])
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return

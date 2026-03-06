@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaUpload, FaFileAlt, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 export interface DocumentField {
   key: string
@@ -30,24 +31,9 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
     })
     return initial
   })
-  const [userId, setUserId] = useState<string | null>(null)
-  const [userName, setUserName] = useState<string>('')
-
-  // Load userId and name from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const user = JSON.parse(stored)
-        if (user?.id) setUserId(user.id)
-        if (user?.firstName && user?.lastName) {
-          setUserName(`${user.firstName} ${user.lastName}`)
-        }
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }, [])
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? null
+  const userName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : ''
 
   const handleFileUpload = useCallback((key: string, documentType: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

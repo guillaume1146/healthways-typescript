@@ -8,6 +8,7 @@ import {
   FaRoute,
   FaCheckCircle,
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { IconType } from 'react-icons'
 
 interface CoverageData {
@@ -41,22 +42,11 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function CoverageAreaPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [coverage, setCoverage] = useState<CoverageData | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

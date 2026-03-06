@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'react-toastify'
+import { useUser } from '@/hooks/useUser'
 import DashboardHeader from './DashboardHeader'
 import DashboardSidebar, { type SidebarItem } from './DashboardSidebar'
 
@@ -37,7 +38,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [userId, setUserId] = useState<string | undefined>(undefined)
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id
 
   // Use profileHref if provided, fall back to settingsHref for backwards compat
   const resolvedProfileHref = profileHref || settingsHref || '/profile'
@@ -52,16 +54,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  // Read userId from localStorage
-  useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('healthwyz_user') || '{}')
-      if (user.id) setUserId(user.id)
-    } catch {
-      // silent
-    }
   }, [])
 
   // Socket.IO: connect and listen for real-time notifications

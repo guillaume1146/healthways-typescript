@@ -9,6 +9,7 @@ import {
   FaTrophy,
   FaSpinner
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { ReferralPartnerData } from '../types'
 import StatCard from './StatCard'
 import UTMLinkGenerator from './UTMLinkGenerator'
@@ -40,20 +41,9 @@ export default function ReferralPartnerDashboard() {
     leadsBySource: [],
     recentConversions: [],
   })
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

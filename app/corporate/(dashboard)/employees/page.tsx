@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaUsers, FaSearch, FaPlus, FaSpinner } from 'react-icons/fa'
+import { FaUsers, FaSearch, FaPlus, FaSpinner, FaTimes } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Employee {
   id: string
@@ -16,20 +17,10 @@ interface Employee {
 export default function CorporateEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [userId, setUserId] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
 
   useEffect(() => {
     if (!userId) return
@@ -41,8 +32,9 @@ export default function CorporateEmployeesPage() {
           const json = await res.json()
           if (json.success) setEmployees(json.data || [])
         }
-      } catch {
-        // API may not exist yet
+      } catch (err) {
+        console.error('Failed to fetch employees:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load employees')
       } finally {
         setLoading(false)
       }
@@ -59,6 +51,15 @@ export default function CorporateEmployeesPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <FaUsers className="text-blue-500" /> Employee Management
@@ -81,8 +82,8 @@ export default function CorporateEmployeesPage() {
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <FaSpinner className="animate-spin text-2xl text-blue-500" />
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
           </div>
         ) : filteredEmployees.length === 0 ? (
           <div className="text-center py-12 text-gray-500">

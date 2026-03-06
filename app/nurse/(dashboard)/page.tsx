@@ -7,6 +7,7 @@ import {
   FaClipboardList, FaClock, FaUniversity,
   FaFileInvoiceDollar, FaCheckCircle, FaSpinner, FaTimesCircle
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
@@ -54,7 +55,8 @@ const AppointmentStatusIcon = ({ status }: { status: string }) => {
 }
 
 export default function NurseDashboardPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     todayAppointments: 0,
@@ -63,18 +65,6 @@ export default function NurseDashboardPage() {
     walletBalance: 0,
   })
   const [recentBookings, setRecentBookings] = useState<BookingItem[]>([])
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

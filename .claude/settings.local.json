@@ -52,7 +52,8 @@
       "Bash(timeout 90 bash:*)",
       "Bash(find C:\\\\Github Repositories\\\\healthways-typescript\\\\app:*)",
       "Read(//dev/**)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(read f:*)"
     ]
   }
 }

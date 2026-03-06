@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaCheck, FaTimes, FaSpinner, FaCalendarAlt, FaClock, FaEnvelope, FaPhone } from 'react-icons/fa'
+import { getUserId } from '@/hooks/useUser'
 
 interface BookingRequest {
   id: string
@@ -32,11 +33,10 @@ export default function DoctorBookingRequestsPage() {
 
   const fetchBookings = useCallback(async () => {
     try {
-      const userData = localStorage.getItem('healthwyz_user')
-      if (!userData) return
-      const user = JSON.parse(userData)
+      const uid = getUserId()
+      if (!uid) return
 
-      const res = await fetch(`/api/doctors/${user.id}/booking-requests`)
+      const res = await fetch(`/api/doctors/${uid}/booking-requests`)
       const data = await res.json()
       if (data.success) {
         setBookings(data.data)

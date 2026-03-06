@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import {
   FaSpinner, FaUserFriends, FaSearch, FaChild,
   FaEnvelope, FaPhone, FaCalendarCheck, FaCheckCircle,
-  FaClock, FaThLarge, FaHistory
+  FaClock, FaThLarge, FaHistory, FaTimesCircle
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Family {
   id: string
@@ -22,23 +23,13 @@ interface Family {
 }
 
 export default function NannyFamiliesPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [families, setFamilies] = useState<Family[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'past'>('all')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return
@@ -134,8 +125,9 @@ export default function NannyFamiliesPage() {
         }
 
         setFamilies(Array.from(familyMap.values()))
-      } catch (error) {
-        console.error('Failed to fetch families:', error)
+      } catch (err) {
+        console.error('Failed to fetch families:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load families')
       } finally {
         setLoading(false)
       }
@@ -171,14 +163,24 @@ export default function NannyFamiliesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <FaSpinner className="animate-spin text-3xl text-purple-600" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <FaTimesCircle />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

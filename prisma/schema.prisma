@@ -1107,8 +1107,10 @@ model WalletTransaction {
   createdAt            DateTime   @default(now())
 
   @@index([walletId])
+  @@index([walletId, createdAt])
   @@index([createdAt])
   @@index([regionalAdminId])
+  @@index([serviceType])
 }
 
 // ─── Doctor Posts (Social Feed) ──────────────────────────────────────────────
@@ -1131,6 +1133,7 @@ model DoctorPost {
   @@index([authorId])
   @@index([createdAt])
   @@index([category])
+  @@index([isPublished, createdAt])
 }
 
 model PostComment {
@@ -1284,7 +1287,9 @@ model ProviderReview {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  @@unique([providerUserId, reviewerUserId, providerType])
   @@index([providerUserId])
+  @@index([providerUserId, providerType])
   @@index([providerType])
   @@index([createdAt])
 }
@@ -1363,6 +1368,8 @@ model UserConnection {
   updatedAt  DateTime @updatedAt
 
   @@unique([senderId, receiverId])
+  @@index([senderId])
   @@index([receiverId])
   @@index([status])
+  @@index([receiverId, status])
 }

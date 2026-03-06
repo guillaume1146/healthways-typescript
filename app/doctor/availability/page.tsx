@@ -17,6 +17,7 @@ import {
   FaExclamationTriangle,
   FaSpinner
 } from 'react-icons/fa'
+import { getUserId } from '@/hooks/useUser'
 import { useDoctorStore } from '../lib/data-store'
 
 // Day-of-week mapping: 0=Sunday, 1=Monday, ..., 6=Saturday
@@ -172,15 +173,8 @@ export default function DynamicAvailabilityPage() {
 
   // Load userId and fetch existing availability on mount
   useEffect(() => {
-    const stored = localStorage.getItem('healthwyz_user')
-    if (!stored) {
-      setPageLoading(false)
-      return
-    }
-    let uid: string
-    try {
-      uid = JSON.parse(stored).id
-    } catch {
+    const uid = getUserId()
+    if (!uid) {
       setPageLoading(false)
       return
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useUser } from '@/hooks/useUser'
 import {
   FaUsers, FaUserMd,
   FaCheckCircle, FaChartBar, FaDollarSign, FaChartLine,
@@ -98,7 +99,8 @@ interface CommissionData {
 
 const AdminDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalUsers: 0, pendingValidations: 0, monthlyRevenue: 0, activeSessions: 0,
@@ -107,16 +109,6 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
   const [commission, setCommission] = useState<CommissionData | null>(null)
   const [commissionLoading, setCommissionLoading] = useState(true)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch { /* ignore */ }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

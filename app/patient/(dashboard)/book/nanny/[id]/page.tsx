@@ -1,11 +1,12 @@
 'use client'
 
-import { use, useState, useEffect, useCallback } from 'react'
+import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FaArrowLeft } from 'react-icons/fa'
 import BookingForm from '@/components/booking/BookingForm'
 import BookingSuccessTicket from '@/components/booking/BookingSuccessTicket'
 import type { BookingSubmitData } from '@/components/booking/BookingForm'
+import { getUserId } from '@/hooks/useUser'
 
 interface NannyInfo {
   id: string
@@ -34,15 +35,6 @@ export default function BookNannyPage({ params }: { params: Promise<{ id: string
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
   const [submitData, setSubmitData] = useState<BookingSubmitData | null>(null)
-
-  const getUserId = useCallback(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('healthwyz_user') || '{}')
-      return user.id || null
-    } catch {
-      return null
-    }
-  }, [])
 
   useEffect(() => {
     const fetchData = async () => {

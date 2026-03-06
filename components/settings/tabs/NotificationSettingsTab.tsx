@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaBell, FaSave, FaToggleOn, FaToggleOff, FaSpinner, FaExclamationTriangle } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 export interface NotificationOption {
   key: string
@@ -27,24 +28,12 @@ const NotificationSettingsTab: React.FC<NotificationSettingsTabProps> = ({
     })
     return initial
   })
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? null
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-
-  // Load userId from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const user = JSON.parse(stored)
-        if (user?.id) setUserId(user.id)
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }, [])
 
   // Load saved preferences from localStorage (persisted per user)
   useEffect(() => {

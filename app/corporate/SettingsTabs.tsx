@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { getUserId } from '@/hooks/useUser'
 import {
   FaBuilding,
   FaUsers,
@@ -77,34 +78,27 @@ export default function SettingsTabs({ initialTab }: SettingsTabsProps) {
   })
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (!stored) return
-      const parsed = JSON.parse(stored)
-      const userId = parsed.id
-      if (!userId) return
+    const userId = getUserId()
+    if (!userId) return
 
-      fetch(`/api/corporate/${userId}/dashboard`)
-        .then(res => res.ok ? res.json() : null)
-        .then(json => {
-          if (json?.success) {
-            const s = json.data.stats
-            const total = s.totalEmployees || 0
-            const approved = s.approvedClaims || 0
-            const pending = s.pendingClaims || 0
-            const coverageRate = total > 0 ? Math.round(((total - pending) / total) * 100) : 0
-            setQuickStats({
-              totalEmployees: total,
-              activePolicies: approved,
-              pendingClaims: pending,
-              coverageRate,
-            })
-          }
-        })
-        .catch(() => { /* silent fail */ })
-    } catch {
-      // Corrupted localStorage
-    }
+    fetch(`/api/corporate/${userId}/dashboard`)
+      .then(res => res.ok ? res.json() : null)
+      .then(json => {
+        if (json?.success) {
+          const s = json.data.stats
+          const total = s.totalEmployees || 0
+          const approved = s.approvedClaims || 0
+          const pending = s.pendingClaims || 0
+          const coverageRate = total > 0 ? Math.round(((total - pending) / total) * 100) : 0
+          setQuickStats({
+            totalEmployees: total,
+            activePolicies: approved,
+            pendingClaims: pending,
+            coverageRate,
+          })
+        }
+      })
+      .catch(() => { /* silent fail */ })
   }, [])
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

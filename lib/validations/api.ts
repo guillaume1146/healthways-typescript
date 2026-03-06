@@ -207,6 +207,19 @@ export const updateAvailabilitySchema = z.object({
   { message: 'startTime must be before endTime' }
 )
 
+// ─── Preferences ─────────────────────────────────────────────────────────────
+
+export const updatePreferencesSchema = z.object({
+  language: z.enum(['en', 'fr', 'mfe']).optional(),
+  timezone: z.string().min(1).max(100).optional(),
+  emailNotifications: z.boolean().optional(),
+  pushNotifications: z.boolean().optional(),
+  smsNotifications: z.boolean().optional(),
+  appointmentReminders: z.boolean().optional(),
+  marketingEmails: z.boolean().optional(),
+  profileVisibility: z.enum(['public', 'connections', 'private']).optional(),
+})
+
 // ─── Admin ──────────────────────────────────────────────────────────────────
 
 export const adminAccountActionSchema = z.object({

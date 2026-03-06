@@ -10,6 +10,7 @@ import {
   FaMapMarkerAlt,
   FaPhoneAlt,
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface EmergencyCall {
   id: string
@@ -23,24 +24,13 @@ interface EmergencyCall {
 }
 
 export default function EmergencyCallsPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [calls, setCalls] = useState<EmergencyCall[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

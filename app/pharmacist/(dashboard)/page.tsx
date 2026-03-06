@@ -7,6 +7,7 @@ import {
   FaTruck, FaClock, FaFileExport,
   FaCheckCircle, FaBoxOpen, FaStar, FaSpinner
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { IconType } from 'react-icons'
 import WalletBalanceCard from '@/components/shared/WalletBalanceCard'
 
@@ -42,7 +43,8 @@ const StatCard = ({ icon: Icon, title, value, color }: StatCardProps) => (
 )
 
 export default function PharmacyDashboardPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     dailyRevenue: 0,
@@ -51,18 +53,6 @@ export default function PharmacyDashboardPage() {
     walletBalance: 0,
   })
   const [recentOrders, setRecentOrders] = useState<OrderItem[]>([])
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

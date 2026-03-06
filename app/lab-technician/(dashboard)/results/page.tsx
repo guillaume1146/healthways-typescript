@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaClipboardCheck, FaSearch, FaClock, FaCheckCircle, FaPaperPlane, FaFlask, FaPen, FaTimes, FaSpinner, FaEye } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface LabResult {
   id: string
@@ -16,7 +17,8 @@ interface LabResult {
 }
 
 export default function LabResultsPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [results, setResults] = useState<LabResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -34,18 +36,6 @@ export default function LabResultsPage() {
   // View result modal state
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [viewBooking, setViewBooking] = useState<LabResult | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchResults = async () => {
     if (!userId) return

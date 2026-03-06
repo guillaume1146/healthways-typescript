@@ -5,6 +5,7 @@ import {
   FaShieldAlt, FaSpinner, FaSignInAlt, FaExclamationTriangle,
   FaLock, FaCheckCircle, FaTimesCircle, FaClock
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface LoginAttempt {
   id: string
@@ -16,7 +17,8 @@ interface LoginAttempt {
 }
 
 export default function AdminSecurityPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [loginAttempts, setLoginAttempts] = useState<LoginAttempt[]>([])
   const [securitySettings, setSecuritySettings] = useState({
@@ -25,18 +27,6 @@ export default function AdminSecurityPage() {
     maxLoginAttempts: 5,
     passwordMinLength: 8,
   })
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

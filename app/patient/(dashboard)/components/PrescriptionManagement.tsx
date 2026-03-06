@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { getUserId } from '@/hooks/useUser'
 import Link from 'next/link'
 import { Patient, Prescription } from '@/lib/data/patients'
 import { 
@@ -139,9 +140,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   // Fetch pill reminders from API
   const fetchReminders = useCallback(async () => {
     try {
-      const raw = localStorage.getItem('healthwyz_user')
-      if (!raw) return
-      const userId = JSON.parse(raw).id
+      const userId = getUserId()
       if (!userId) return
       const res = await fetch(`/api/patients/${userId}/pill-reminders`)
       const data = await res.json()
@@ -164,9 +163,7 @@ const PrescriptionManagement: React.FC<Props> = ({ patientData }) => {
   // Fetch current orders
   const fetchOrders = useCallback(async () => {
     try {
-      const raw = localStorage.getItem('healthwyz_user')
-      if (!raw) return
-      const userId = JSON.parse(raw).id
+      const userId = getUserId()
       if (!userId) return
       const res = await fetch(`/api/patients/${userId}/bookings?type=pharmacy&limit=1`)
       const data = await res.json()

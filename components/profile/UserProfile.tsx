@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useUser } from '@/hooks/useUser'
 import {
   FaUser,
   FaEnvelope,
@@ -263,6 +264,7 @@ function getEditableFieldsForType(userType: string): EditableField[] {
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function UserProfile({ userId, userType, settingsPath }: UserProfileProps) {
+  const { updateUser } = useUser()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
@@ -383,18 +385,12 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
       const profileJson = await profileRes.json()
       if (profileJson.data) {
         setUserData(profileJson.data)
-        // Update localStorage so sidebar/header reflect changes
-        try {
-          const stored = localStorage.getItem('healthwyz_user')
-          if (stored) {
-            const parsed = JSON.parse(stored)
-            parsed.firstName = profileJson.data.firstName
-            parsed.lastName = profileJson.data.lastName
-            parsed.email = profileJson.data.email
-            parsed.phone = profileJson.data.phone
-            localStorage.setItem('healthwyz_user', JSON.stringify(parsed))
-          }
-        } catch { /* ignore */ }
+        // Update cached user so sidebar/header reflect changes
+        updateUser({
+          firstName: profileJson.data.firstName,
+          lastName: profileJson.data.lastName,
+          email: profileJson.data.email,
+        })
       }
       setIsEditing(false)
       setSaveMsg({ type: 'success', text: 'Profile updated successfully' })

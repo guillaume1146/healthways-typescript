@@ -5,6 +5,7 @@ import {
   FaClipboardList, FaFilter, FaClock, FaBoxOpen,
   FaTruck, FaCheckCircle, FaSearch, FaTimes
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface OrderItem {
   id: string
@@ -46,21 +47,10 @@ export default function PharmacistOrdersPage() {
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [statusFilter, setStatusFilter] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchOrders = useCallback(async () => {
     if (!userId) return

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { FaLock, FaSave, FaShieldAlt, FaToggleOn, FaToggleOff, FaKey, FaSpinner } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 const SecuritySettingsTab: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -10,19 +11,8 @@ const SecuritySettingsTab: React.FC = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const user = JSON.parse(stored)
-        if (user?.id) setUserId(user.id)
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }, [])
+  const { user } = useUser()
+  const userId = user?.id ?? null
 
   const handlePasswordChange = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()

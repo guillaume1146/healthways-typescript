@@ -1,25 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import ProviderReviews from '@/components/shared/ProviderReviews'
+import { useUser } from '@/hooks/useUser'
 
 export default function NannyReviewsPage() {
-  const [userId, setUserId] = useState('')
+  const { user, loading } = useUser()
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) setUserId(JSON.parse(stored).id)
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
-
-  if (!userId) return null
+  if (loading || !user) return null
 
   return (
     <ProviderReviews
-      providerUserId={userId}
+      providerUserId={user.id}
       providerLabel="Childcare Provider"
       headerGradient="from-purple-500 via-purple-600 to-pink-500"
       isOwner

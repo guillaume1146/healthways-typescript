@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Patient } from '@/lib/data/patients'
+import { useUser } from '@/hooks/useUser'
 import { 
   FaShieldAlt,
   FaCreditCard,
@@ -53,21 +54,15 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
   const [realClaims, setRealClaims] = useState<RealClaim[]>([])
   const [claimsLoading, setClaimsLoading] = useState(true)
 
-  // Load patient data from localStorage if not passed as prop
+  // Load patient data from useUser if not passed as prop
+  const { user: hookUser } = useUser()
   const [localPatientData, setLocalPatientData] = useState<Patient | null>(patientData)
 
   useEffect(() => {
-    if (!patientData) {
-      try {
-        const userData = localStorage.getItem('healthwyz_user')
-        if (userData) {
-          setLocalPatientData(JSON.parse(userData))
-        }
-      } catch {
-        // Corrupted localStorage
-      }
+    if (!patientData && hookUser) {
+      setLocalPatientData(hookUser as unknown as Patient)
     }
-  }, [patientData])
+  }, [patientData, hookUser])
 
   // Fetch real claims from the API
   useEffect(() => {

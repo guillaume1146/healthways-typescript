@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { DashboardLayout, DashboardLoadingState, DashboardErrorState } from '@/components/dashboard'
 import type { SidebarItem } from '@/components/dashboard/DashboardSidebar'
+import { useUser } from '@/hooks/useUser'
 
 interface UserData {
   id: string
@@ -62,6 +63,7 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
   } = config
 
   return function DashboardLayoutWrapper({ children }: { children: React.ReactNode }) {
+    const { user: hookUser, loading: userLoading, clearUser } = useUser()
     const [userData, setUserData] = useState<UserData | null>(null)
     const [contextData, setContextData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -80,29 +82,22 @@ export function createDashboardLayout(config: DashboardLayoutConfig) {
     }, [])
 
     useEffect(() => {
-      try {
-        const stored = localStorage.getItem('healthwyz_user')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          setUserData(parsed)
-          setContextData(parsed)
-          setLoading(false)
-          loadExtraData(parsed)
-        } else {
-          setError('Not authenticated')
-          router.push('/login')
-          setLoading(false)
-        }
-      } catch {
-        setError('Failed to load user data')
+      if (userLoading) return
+      if (hookUser) {
+        const parsed = hookUser as UserData
+        setUserData(parsed)
+        setContextData(parsed)
+        setLoading(false)
+        loadExtraData(parsed)
+      } else {
+        setError('Not authenticated')
+        router.push('/login')
         setLoading(false)
       }
-    }, [router, loadExtraData])
+    }, [hookUser, userLoading, router, loadExtraData])
 
     const handleLogout = () => {
-      localStorage.removeItem('healthwyz_user')
-      localStorage.removeItem('healthwyz_token')
-      localStorage.removeItem('healthwyz_userType')
+      clearUser()
       router.push('/login')
     }
 

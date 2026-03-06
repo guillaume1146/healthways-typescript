@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaHandshake, FaSpinner, FaSearch, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Referral {
   id: string
@@ -15,21 +16,10 @@ interface Referral {
 export default function ReferralsPage() {
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

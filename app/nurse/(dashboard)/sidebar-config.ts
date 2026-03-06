@@ -1,4 +1,4 @@
-import { FaHome, FaNewspaper, FaCalendarCheck, FaStar, FaVideo, FaComments, FaClipboardList, FaMoneyBillWave, FaMedkit } from 'react-icons/fa'
+import { FaHome, FaNewspaper, FaCalendarCheck, FaStar, FaVideo, FaComments, FaClipboardList, FaMoneyBillWave, FaMedkit, FaUsers } from 'react-icons/fa'
 import type { SidebarItem } from '@/components/dashboard/DashboardSidebar'
 import { createGetActiveSectionFromPath } from '@/lib/dashboard/getActiveSectionFromPath'
 
@@ -10,6 +10,7 @@ export const NURSE_SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'services', label: 'My Services', labelKey: 'nav.services', icon: FaMedkit, color: 'text-rose-600', bgColor: 'bg-rose-50', href: `${base}/services` },
   { id: 'appointments', label: 'Appointments', labelKey: 'nav.appointments', icon: FaCalendarCheck, color: 'text-blue-600', bgColor: 'bg-blue-50', href: `${base}/appointments` },
   { id: 'booking-requests', label: 'Booking Requests', labelKey: 'nav.bookingRequests', icon: FaClipboardList, color: 'text-amber-600', bgColor: 'bg-amber-50', href: `${base}/booking-requests` },
+  { id: 'patients', label: 'My Patients', labelKey: 'nav.patients', icon: FaUsers, color: 'text-purple-600', bgColor: 'bg-purple-50', href: `${base}/patients` },
   { id: 'reviews', label: 'Reviews', labelKey: 'nav.reviews', icon: FaStar, color: 'text-yellow-600', bgColor: 'bg-yellow-50', href: `${base}/reviews` },
   { id: 'billing', label: 'Billing', labelKey: 'nav.billing', icon: FaMoneyBillWave, color: 'text-emerald-600', bgColor: 'bg-emerald-50', href: `${base}/billing` },
   { id: 'video', label: 'Video Call', labelKey: 'nav.video', icon: FaVideo, color: 'text-green-600', bgColor: 'bg-green-50', href: `${base}/video` },

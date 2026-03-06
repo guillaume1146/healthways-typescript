@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { getUserId } from '@/hooks/useUser'
 import {
   FaCalendarCheck,
   FaUserMd,
@@ -37,18 +38,10 @@ export default function PatientBookingsPage() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const stored = localStorage.getItem('healthwyz_user')
-        if (!stored) return
-        let user: { id?: string }
-        try {
-          user = JSON.parse(stored)
-        } catch {
-          // Corrupted localStorage
-          return
-        }
-        if (!user.id) return
+        const uid = getUserId()
+        if (!uid) return
 
-        const res = await fetch(`/api/patients/${user.id}/bookings`)
+        const res = await fetch(`/api/patients/${uid}/bookings`)
         const data = await res.json()
         if (data.success) {
           setBookings(data.data || [])

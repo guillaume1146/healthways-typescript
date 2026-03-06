@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { getUserId } from '@/hooks/useUser'
 import Link from "next/link"
 import {
   FaCalendarAlt,
@@ -65,14 +66,6 @@ interface Stats {
   upcoming: number;
   completed: number;
   cancelled: number;
-}
-
-function getUserId(): string | null {
-  try {
-    const raw = localStorage.getItem('healthwyz_user')
-    if (!raw) return null
-    return JSON.parse(raw).id ?? null
-  } catch { return null }
 }
 
 function formatTime(dateStr: string): string {

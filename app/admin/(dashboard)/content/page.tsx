@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaSpinner, FaGlobe, FaHome, FaChartBar, FaCogs, FaListUl, FaStar, FaCheckCircle, FaBullhorn, FaImages, FaQuoteRight } from 'react-icons/fa'
+import { getUserId } from '@/hooks/useUser'
 import type { IconType } from 'react-icons'
 import HeroSectionEditor from '@/app/regional/(dashboard)/content/HeroSectionEditor'
 import SectionItemsEditor from '@/app/regional/(dashboard)/content/SectionItemsEditor'
@@ -91,17 +92,9 @@ export default function AdminContentManagementPage() {
   useEffect(() => {
     const fetchCountryCode = async () => {
       try {
-        const userStr = localStorage.getItem('healthwyz_user')
-        if (!userStr) {
-          setCountryError('No user session found. Please log in again.')
-          setCountryLoading(false)
-          return
-        }
-
-        const user = JSON.parse(userStr)
-        const userId = user.id
+        const userId = getUserId()
         if (!userId) {
-          setCountryError('Invalid user session. Please log in again.')
+          setCountryError('No user session found. Please log in again.')
           setCountryLoading(false)
           return
         }

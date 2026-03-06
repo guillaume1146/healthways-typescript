@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { getUserId } from '@/hooks/useUser'
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { 
@@ -241,9 +242,7 @@ export default function CompletePharmacyOrderBooking() {
   const handlePayment = async () => {
     setIsProcessing(true)
     try {
-      const userId = (() => {
-        try { return JSON.parse(localStorage.getItem('healthwyz_user') || '{}').id } catch { return null }
-      })()
+      const userId = getUserId()
       if (userId && cartItems.length > 0) {
         await fetch('/api/orders', {
           method: 'POST',

@@ -6,6 +6,7 @@ import {
   FaShieldAlt, FaClock, FaDollarSign, FaUsers,
   FaExclamationTriangle, FaChartLine
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { InsuranceDashboardData, InsuranceClaim } from './types'
 import StatCard from './StatCard'
 import ClaimsTable from './ClaimsTable'
@@ -37,21 +38,10 @@ const emptyDashboard: InsuranceDashboardData = {
 
 export default function InsuranceDashboardPage() {
   const [insuranceData, setInsuranceData] = useState<InsuranceDashboardData>(emptyDashboard)
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [loading, setLoading] = useState(true)
   const [claimError, setClaimError] = useState<string | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchDashboard = useCallback(async () => {
     if (!userId) return

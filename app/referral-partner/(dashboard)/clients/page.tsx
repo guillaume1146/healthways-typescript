@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaUsers, FaSpinner, FaSearch, FaUserCheck } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Client {
   id: string
@@ -15,20 +16,9 @@ interface Client {
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   useEffect(() => {
     if (!userId) return

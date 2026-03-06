@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FaFileAlt, FaSearch, FaFilter, FaSpinner, FaCheckCircle, FaClock, FaTimes } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface Claim {
   id: string
@@ -16,21 +17,11 @@ interface Claim {
 export default function CorporateClaimsPage() {
   const [claims, setClaims] = useState<Claim[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [userId, setUserId] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
 
   useEffect(() => {
     if (!userId) return
@@ -42,8 +33,9 @@ export default function CorporateClaimsPage() {
           const json = await res.json()
           if (json.success) setClaims(json.data || [])
         }
-      } catch {
-        // API may not exist yet
+      } catch (err) {
+        console.error('Failed to fetch claims:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load claims')
       } finally {
         setLoading(false)
       }
@@ -69,6 +61,15 @@ export default function CorporateClaimsPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
         <FaFileAlt className="text-purple-500" /> Claims Management
       </h1>
@@ -97,8 +98,8 @@ export default function CorporateClaimsPage() {
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <FaSpinner className="animate-spin text-2xl text-purple-500" />
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto" />
           </div>
         ) : filteredClaims.length === 0 ? (
           <div className="text-center py-12 text-gray-500">

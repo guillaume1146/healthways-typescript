@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaPenFancy, FaEdit, FaTrash, FaCheckCircle, FaSpinner } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import CreatePostForm from '@/components/posts/CreatePostForm'
 
 interface Post {
@@ -61,23 +62,12 @@ function getRelativeTime(dateString: string): string {
 export default function DoctorPostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const { user: hookUser } = useUser()
+  const currentUserId = hookUser?.id ?? null
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState<string>('')
   const [savingId, setSavingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    const stored = localStorage.getItem('healthwyz_user')
-    if (stored) {
-      try {
-        const user = JSON.parse(stored)
-        if (user?.id) setCurrentUserId(user.id)
-      } catch {
-        // Malformed data — ignore
-      }
-    }
-  }, [])
 
   const fetchPosts = useCallback(async () => {
     try {

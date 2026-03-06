@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@/hooks/useUser'
 import {
   FaHome,
   FaUserMd,
@@ -60,10 +61,10 @@ const COOKIE_TO_SLUG: Record<string, string> = {
 
 const Navbar: React.FC = () => {
   const router = useRouter()
+  const { user: authUser, clearUser } = useUser()
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
-  const [authUser, setAuthUser] = useState<{ id: string; firstName: string; lastName: string } | null>(null)
   const [profileHref, setProfileHref] = useState('/login')
 
   useEffect(() => {
@@ -77,19 +78,8 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Read auth state from localStorage + cookie
+  // Get userType slug from cookie
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed.id) {
-          setAuthUser({ id: parsed.id, firstName: parsed.firstName, lastName: parsed.lastName })
-        }
-      }
-    } catch { /* ignore */ }
-
-    // Get userType slug from cookie
     const match = document.cookie
       .split(';')
       .find((c) => c.trim().startsWith('healthwyz_userType='))
@@ -104,12 +94,11 @@ const Navbar: React.FC = () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     } catch { /* ignore */ }
-    localStorage.removeItem('healthwyz_user')
+    clearUser()
     document.cookie = 'healthwyz_token=; path=/; max-age=0'
     document.cookie = 'healthwyz_userType=; path=/; max-age=0'
-    setAuthUser(null)
     router.push('/login')
-  }, [router])
+  }, [router, clearUser])
 
   const toggleDropdown = (category: string) => {
     setActiveDropdown(activeDropdown === category ? null : category)

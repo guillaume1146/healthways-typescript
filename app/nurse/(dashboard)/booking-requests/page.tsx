@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FaCheck, FaTimes, FaSpinner, FaCalendarAlt, FaClock, FaEnvelope, FaPhone } from 'react-icons/fa'
+import { getUserId } from '@/hooks/useUser'
 
 interface BookingRequest {
   id: string
@@ -27,22 +28,24 @@ interface BookingRequest {
 export default function NurseBookingRequestsPage() {
   const [bookings, setBookings] = useState<BookingRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const fetchBookings = useCallback(async () => {
     try {
-      const userData = localStorage.getItem('healthwyz_user')
-      if (!userData) return
-      const user = JSON.parse(userData)
+      const uid = getUserId()
+      if (!uid) return
 
-      const res = await fetch(`/api/nurses/${user.id}/booking-requests`)
+      const res = await fetch(`/api/nurses/${uid}/booking-requests`)
+      if (!res.ok) throw new Error('Failed to fetch booking requests')
       const data = await res.json()
       if (data.success) {
         setBookings(data.data)
       }
-    } catch (error) {
-      console.error('Failed to fetch booking requests:', error)
+    } catch (err) {
+      console.error('Failed to fetch booking requests:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load booking requests')
     } finally {
       setLoading(false)
     }
@@ -101,8 +104,8 @@ export default function NurseBookingRequestsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <FaSpinner className="animate-spin text-3xl text-teal-600" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto" />
       </div>
     )
   }
@@ -110,6 +113,15 @@ export default function NurseBookingRequestsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Booking Requests</h1>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <FaTimes />
+          </button>
+        </div>
+      )}
 
       {message && (
         <div className={`rounded-lg p-4 ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>

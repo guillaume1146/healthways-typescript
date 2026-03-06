@@ -5,6 +5,7 @@ import {
   FaFileAlt, FaSearch, FaClock, FaCheck,
   FaTimes, FaSpinner, FaEye, FaFilter
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 import { InsuranceClaim } from '../types'
 
 const CLAIM_STATUSES = [
@@ -34,21 +35,10 @@ export default function InsuranceClaimsPage() {
   const [claims, setClaims] = useState<InsuranceClaim[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [statusFilter, setStatusFilter] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchClaims = useCallback(async () => {
     if (!userId) return

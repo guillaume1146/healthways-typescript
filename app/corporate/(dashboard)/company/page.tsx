@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaBuilding, FaSpinner, FaSave, FaCheck } from 'react-icons/fa'
+import { FaBuilding, FaSpinner, FaSave, FaCheck, FaTimes, FaExclamationTriangle } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface CompanyProfile {
   companyName: string
@@ -18,21 +19,11 @@ export default function CorporateCompanyPage() {
     employeeCount: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [userId, setUserId] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
 
   useEffect(() => {
     if (!userId) return
@@ -52,8 +43,9 @@ export default function CorporateCompanyPage() {
             })
           }
         }
-      } catch {
-        // Show empty state
+      } catch (err) {
+        console.error('Failed to fetch company profile:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load company profile')
       } finally {
         setLoading(false)
       }
@@ -64,14 +56,23 @@ export default function CorporateCompanyPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <FaSpinner className="animate-spin text-2xl text-blue-500" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <FaBuilding className="text-indigo-500" /> Company Profile
@@ -94,8 +95,8 @@ export default function CorporateCompanyPage() {
                 }),
               })
               if (res.ok) setSaved(true)
-            } catch {
-              // Save failed silently
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Failed to save changes')
             } finally {
               setSaving(false)
             }

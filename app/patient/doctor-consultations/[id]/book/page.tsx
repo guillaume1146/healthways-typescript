@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { getUserId } from '@/hooks/useUser'
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { 
@@ -219,9 +220,7 @@ export default function DoctorConsultationBooking() {
   const handlePayment = async () => {
     setIsProcessing(true)
     try {
-      const userId = (() => {
-        try { return JSON.parse(localStorage.getItem('healthwyz_user') || '{}').id } catch { return null }
-      })()
+      const userId = getUserId()
       if (userId && doctorId) {
         const scheduledAt = new Date(`${appointmentDetails.date}T${convertTo24h(appointmentDetails.time)}:00`)
         await fetch('/api/bookings/doctor', {

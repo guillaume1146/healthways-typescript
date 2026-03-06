@@ -5,6 +5,7 @@ import {
   FaUsers, FaSearch, FaSpinner, FaUserCheck, FaUserTimes, FaBan,
   FaFilter
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface UserRecord {
   id: string
@@ -37,24 +38,13 @@ const statusColors: Record<string, string> = {
 }
 
 export default function AdminUsersPage() {
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [users, setUsers] = useState<UserRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)

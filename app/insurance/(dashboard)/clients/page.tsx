@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   FaUsers, FaSearch, FaEye, FaEdit, FaTrash, FaTimes
 } from 'react-icons/fa'
+import { useUser } from '@/hooks/useUser'
 
 interface PolicyHolder {
   id: string
@@ -28,20 +29,9 @@ export default function InsuranceClientsPage() {
   const [clients, setClients] = useState<PolicyHolder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string>('')
+  const { user: currentUser } = useUser()
+  const userId = currentUser?.id ?? ''
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('healthwyz_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUserId(parsed.id)
-      }
-    } catch {
-      // Corrupted localStorage
-    }
-  }, [])
 
   const fetchClients = useCallback(async () => {
     if (!userId) return
