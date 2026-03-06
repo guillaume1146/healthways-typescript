@@ -65,6 +65,7 @@ export default function NurseDashboardPage() {
     walletBalance: 0,
   })
   const [recentBookings, setRecentBookings] = useState<BookingItem[]>([])
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: string } | null>(null)
 
   useEffect(() => {
     if (!userId) return
@@ -90,6 +91,7 @@ export default function NurseDashboardPage() {
   }, [userId])
 
   const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    setActionLoading({ id: bookingId, action })
     try {
       const res = await fetch('/api/bookings/action', {
         method: 'POST',
@@ -105,6 +107,8 @@ export default function NurseDashboardPage() {
       }
     } catch (error) {
       console.error(`Failed to ${action} booking:`, error)
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -186,8 +190,14 @@ export default function NurseDashboardPage() {
                       </span>
                       {apt.status === 'pending' && (
                         <div className="flex gap-2">
-                          <button onClick={() => handleBookingAction(apt.id, 'accept')} className="bg-green-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-green-600 transition-colors">Accept</button>
-                          <button onClick={() => handleBookingAction(apt.id, 'deny')} className="bg-gray-200 text-gray-800 text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-gray-300 transition-colors">Decline</button>
+                          <button onClick={() => handleBookingAction(apt.id, 'accept')} disabled={actionLoading?.id === apt.id} className="bg-green-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1">
+                            {actionLoading?.id === apt.id && actionLoading.action === 'accept' && <FaSpinner className="animate-spin" />}
+                            Accept
+                          </button>
+                          <button onClick={() => handleBookingAction(apt.id, 'deny')} disabled={actionLoading?.id === apt.id} className="bg-gray-200 text-gray-800 text-xs font-bold py-1.5 px-3 rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-colors flex items-center gap-1">
+                            {actionLoading?.id === apt.id && actionLoading.action === 'deny' && <FaSpinner className="animate-spin" />}
+                            Decline
+                          </button>
                         </div>
                       )}
                     </div>

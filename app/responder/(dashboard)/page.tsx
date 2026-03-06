@@ -51,6 +51,7 @@ export default function ResponderDashboardPage() {
     walletBalance: 0,
   })
   const [incomingRequests, setIncomingRequests] = useState<EmergencyRequest[]>([])
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: string } | null>(null)
 
   useEffect(() => {
     if (!userId) return
@@ -92,6 +93,7 @@ export default function ResponderDashboardPage() {
   }
 
   const handleAcceptRequest = async (requestId: string) => {
+    setActionLoading({ id: requestId, action: 'accept' })
     try {
       const res = await fetch('/api/bookings/action', {
         method: 'POST',
@@ -104,10 +106,13 @@ export default function ResponderDashboardPage() {
       }
     } catch (error) {
       console.error('Failed to accept request:', error)
+    } finally {
+      setActionLoading(null)
     }
   }
 
   const handleDeclineRequest = async (requestId: string) => {
+    setActionLoading({ id: requestId, action: 'deny' })
     try {
       const res = await fetch('/api/bookings/action', {
         method: 'POST',
@@ -119,6 +124,8 @@ export default function ResponderDashboardPage() {
       }
     } catch (error) {
       console.error('Failed to decline request:', error)
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -179,8 +186,14 @@ export default function ResponderDashboardPage() {
                     )}
                   </div>
                   <div className="flex gap-3 w-full md:w-auto">
-                    <button onClick={() => handleDeclineRequest(req.id)} className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-bold hover:bg-gray-300 transition-colors">Decline</button>
-                    <button onClick={() => handleAcceptRequest(req.id)} className="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 transition-colors">Accept</button>
+                    <button onClick={() => handleDeclineRequest(req.id)} disabled={actionLoading?.id === req.id} className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-bold hover:bg-gray-300 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                      {actionLoading?.id === req.id && actionLoading.action === 'deny' && <FaSpinner className="animate-spin" />}
+                      Decline
+                    </button>
+                    <button onClick={() => handleAcceptRequest(req.id)} disabled={actionLoading?.id === req.id} className="flex-1 bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                      {actionLoading?.id === req.id && actionLoading.action === 'accept' && <FaSpinner className="animate-spin" />}
+                      Accept
+                    </button>
                   </div>
                 </div>
               </div>

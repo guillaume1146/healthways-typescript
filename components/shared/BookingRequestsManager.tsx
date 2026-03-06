@@ -31,7 +31,7 @@ export default function BookingRequestsManager({ config }: { config: BookingRequ
   const [bookings, setBookings] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: 'accept' | 'deny' } | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const fetchBookings = useCallback(async () => {
@@ -58,7 +58,7 @@ export default function BookingRequestsManager({ config }: { config: BookingRequ
   }, [fetchBookings])
 
   const handleAction = async (bookingId: string, action: 'accept' | 'deny') => {
-    setActionLoading(bookingId)
+    setActionLoading({ id: bookingId, action })
     setMessage(null)
 
     try {
@@ -199,18 +199,18 @@ export default function BookingRequestsManager({ config }: { config: BookingRequ
                   <div className="flex gap-2 sm:flex-col">
                     <button
                       onClick={() => handleAction(id, 'accept')}
-                      disabled={actionLoading === id}
+                      disabled={actionLoading?.id === id}
                       className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                     >
-                      {actionLoading === id ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                      {actionLoading?.id === id && actionLoading.action === 'accept' ? <FaSpinner className="animate-spin" /> : <FaCheck />}
                       Accept
                     </button>
                     <button
                       onClick={() => handleAction(id, 'deny')}
-                      disabled={actionLoading === id}
+                      disabled={actionLoading?.id === id}
                       className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
                     >
-                      {actionLoading === id ? <FaSpinner className="animate-spin" /> : <FaTimes />}
+                      {actionLoading?.id === id && actionLoading.action === 'deny' ? <FaSpinner className="animate-spin" /> : <FaTimes />}
                       Decline
                     </button>
                   </div>
