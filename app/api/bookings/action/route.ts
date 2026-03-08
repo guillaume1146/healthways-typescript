@@ -184,11 +184,57 @@ async function handleAccept(bookingId: string, bookingType: string, providerUser
     await prisma.labTestBooking.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
 
   } else if (bookingType === 'emergency') {
+    // Resolve responder profile ID from user ID
+    const responderProfile = await prisma.emergencyWorkerProfile.findUnique({
+      where: { userId: providerUserId },
+      select: { id: true },
+    })
+    if (!responderProfile) {
+      return NextResponse.json({ success: false, message: 'Responder profile not found' }, { status: 404 })
+    }
+    const booking = await prisma.emergencyBooking.findUnique({
+      where: { id: bookingId },
+      include: { patient: { select: { userId: true } } },
+    })
+    if (!booking) {
+      return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
+    }
     await prisma.emergencyBooking.update({
       where: { id: bookingId },
-      data: { status: 'dispatched', responderId: providerUserId },
+      data: { status: 'dispatched', responderId: responderProfile.id },
     })
-    return NextResponse.json({ success: true, message: 'Emergency booking accepted (no charge during trial)' })
+
+    // Auto-create conversation between responder and patient
+    try {
+      const existing = await prisma.conversation.findFirst({
+        where: {
+          type: 'direct',
+          AND: [
+            { participants: { some: { userId: providerUserId } } },
+            { participants: { some: { userId: booking.patient.userId } } },
+          ],
+        },
+      })
+      if (!existing) {
+        await prisma.conversation.create({
+          data: {
+            type: 'direct',
+            participants: { create: [{ userId: providerUserId }, { userId: booking.patient.userId }] },
+          },
+        })
+      }
+    } catch { /* silent */ }
+
+    await createNotification({
+      userId: booking.patient.userId,
+      type: 'booking_confirmed',
+      title: 'Emergency Responder Dispatched',
+      message: 'An emergency responder has been dispatched to your location.',
+      referenceId: bookingId,
+      referenceType: 'emergency_booking',
+    })
+
+    return NextResponse.json({ success: true, message: 'Emergency booking accepted — responder dispatched' })
   }
 
   if (!patientUserId) {

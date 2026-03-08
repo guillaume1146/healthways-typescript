@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { FaSearch, FaAmbulance, FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaExclamationTriangle, FaHospital, FaFireExtinguisher,  FaHeartbeat, FaShieldAlt, FaCheckCircle, FaInfoCircle, FaBell, FaStarHalfAlt, FaEnvelope, FaIdCard, FaHelicopter,  FaTruck,  FaWifi } from 'react-icons/fa'
+import { FaSearch, FaAmbulance, FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaExclamationTriangle, FaHospital, FaFireExtinguisher, FaHeartbeat, FaShieldAlt, FaCheckCircle, FaInfoCircle, FaBell, FaStarHalfAlt, FaEnvelope, FaIdCard, FaHelicopter, FaTruck, FaWifi, FaPhoneAlt } from 'react-icons/fa'
 
-import { IconType } from 'react-icons';
-import AuthBookingLink from '@/components/booking/AuthBookingLink';
-import ConnectButton from '@/components/search/ConnectButton';
-import MessageButton from '@/components/search/MessageButton';
+import { IconType } from 'react-icons'
+import AuthBookingLink from '@/components/booking/AuthBookingLink'
+import ConnectButton from '@/components/search/ConnectButton'
+import MessageButton from '@/components/search/MessageButton'
+import CallButton from '@/components/search/CallButton'
 
 // Category icons mapping
 const categoryIcons: { [key: string]: IconType } = {
@@ -18,7 +19,7 @@ const categoryIcons: { [key: string]: IconType } = {
   "Poison & Chemical": FaExclamationTriangle,
   "Mental Health": FaHeartbeat,
   "Disaster Management": FaTruck
-};
+}
 
 // Emergency Service interface (mapped from API response)
 interface EmergencyService {
@@ -48,16 +49,12 @@ interface EmergencyService {
 }
 
 // Emergency Service Card Component
-interface ServiceProps {
-  service: EmergencyService
-}
-
-const EmergencyCard = ({ service }: ServiceProps) => {
+const EmergencyCard = ({ service }: { service: EmergencyService }) => {
   const CategoryIcon = categoryIcons[service.category] || FaAmbulance
-  
+
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-red-100">
-      <div className="bg-gradient-to-r from-red-500 to-red-600 p-2 text-white text-center">
+    <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-blue-100">
+      <div className="bg-gradient-to-r from-blue-600 to-teal-500 p-2 text-white text-center">
         <span className="text-sm font-semibold flex items-center justify-center gap-2">
           <FaBell className="animate-pulse" />
           {service.availability} Emergency Service
@@ -67,11 +64,11 @@ const EmergencyCard = ({ service }: ServiceProps) => {
         {/* Header with Icon and Basic Info */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
-            <div 
-              className="w-20 h-20 rounded-full border-4 border-red-100 bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center"
+            <div
+              className="w-20 h-20 rounded-full border-4 border-blue-100 bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center"
               style={{ backgroundImage: `url(${service.avatar})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-              <CategoryIcon className="text-3xl text-red-500 opacity-0" />
+              <CategoryIcon className="text-3xl text-blue-500 opacity-0" />
             </div>
             {service.verified && (
               <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
@@ -84,15 +81,15 @@ const EmergencyCard = ({ service }: ServiceProps) => {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1">
             <h3 className="text-xl font-bold text-gray-900">{service.name}</h3>
-            <p className="text-red-600 font-medium flex items-center gap-2">
+            <p className="text-blue-600 font-medium flex items-center gap-2">
               <CategoryIcon className="text-sm" />
               {service.type}
             </p>
             <p className="text-gray-600 text-sm">{service.category}</p>
-            
+
             {/* Rating */}
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center text-yellow-500">
@@ -106,38 +103,38 @@ const EmergencyCard = ({ service }: ServiceProps) => {
             </div>
           </div>
         </div>
-        
-        {/* Emergency Response Time - Prominent Display */}
-        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 mb-4">
+
+        {/* Emergency Response Time */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 mb-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-red-700">Response Time:</span>
-            <span className="text-lg font-bold text-red-600 flex items-center gap-2">
+            <span className="text-sm font-semibold text-blue-700">Response Time:</span>
+            <span className="text-lg font-bold text-blue-600 flex items-center gap-2">
               <FaClock className="animate-pulse" />
               {service.responseTime}
             </span>
           </div>
         </div>
-        
+
         {/* Bio */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.bio}</p>
-        
+
         {/* Services */}
         <div className="flex flex-wrap gap-2 mb-4">
           {service.services.slice(0, 3).map((item: string, index: number) => (
-            <span key={index} className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded-full">
+            <span key={index} className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full">
               {item}
             </span>
           ))}
         </div>
-        
+
         {/* Key Information Grid */}
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
-            <FaMapMarkerAlt className="text-red-500" />
+            <FaMapMarkerAlt className="text-blue-500" />
             <span className="truncate">{service.location}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
-            <FaShieldAlt className="text-red-500" />
+            <FaShieldAlt className="text-blue-500" />
             <span>{service.coverage}</span>
           </div>
           {service.gpsTracking && (
@@ -147,11 +144,11 @@ const EmergencyCard = ({ service }: ServiceProps) => {
             </div>
           )}
           <div className="flex items-center gap-2 text-gray-600">
-            <FaIdCard className="text-red-500" />
+            <FaIdCard className="text-blue-500" />
             <span>{service.certifications.length} Certified</span>
           </div>
         </div>
-        
+
         {/* Vehicle Types */}
         <div className="flex flex-wrap gap-2 mb-4">
           {service.vehicleTypes.slice(0, 3).map((vehicle: string, index: number) => (
@@ -161,45 +158,37 @@ const EmergencyCard = ({ service }: ServiceProps) => {
             </span>
           ))}
         </div>
-        
-        {/* Emergency Contact - Prominent */}
-        <div className="bg-red-600 text-white rounded-lg p-4 mb-4">
+
+        {/* Emergency Contact Info */}
+        <div className="bg-gradient-to-r from-blue-600 to-teal-500 text-white rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs opacity-90">Emergency Hotline</p>
-              <p className="text-2xl font-bold">{service.phone}</p>
+              <a href={`tel:${service.phone}`} className="text-2xl font-bold hover:underline">{service.phone}</a>
             </div>
-            <AuthBookingLink
-              type="emergency"
-              className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center gap-2"
-            >
-              <FaPhone className="animate-pulse" />
-              CALL NOW
-            </AuthBookingLink>
+            {service.alternatePhone && (
+              <div className="text-right">
+                <p className="text-xs opacity-90">Alternate</p>
+                <a href={`tel:${service.alternatePhone}`} className="text-sm font-medium hover:underline">{service.alternatePhone}</a>
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Secondary Contact */}
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-          <div className="flex items-center gap-2">
-            <FaPhone className="text-xs" />
-            <span>{service.alternatePhone}</span>
-          </div>
-          <div className="flex gap-2">
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-all duration-200 font-medium flex items-center gap-1">
-              <FaInfoCircle />
-              Details
-            </button>
-            <button className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg transition-all duration-200 font-medium flex items-center gap-1">
-              <FaEnvelope />
-              Email
-            </button>
-          </div>
+
+        {/* Action Buttons — Call, Book Service, Message, Connect */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <CallButton providerId={service.id} className="w-full justify-center" />
+          <AuthBookingLink
+            type="emergency"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 transition-colors w-full"
+          >
+            <FaAmbulance className="w-4 h-4" />
+            Book Service
+          </AuthBookingLink>
         </div>
-        {/* Message & Connect Actions */}
-        <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-          <MessageButton providerId={service.id} />
-          <ConnectButton providerId={service.id} />
+        <div className="grid grid-cols-2 gap-2">
+          <MessageButton providerId={service.id} className="w-full justify-center" />
+          <ConnectButton providerId={service.id} className="w-full justify-center" />
         </div>
       </div>
     </div>
@@ -211,34 +200,30 @@ const LoadingAnimation = () => {
   return (
     <div className="flex flex-col items-center justify-center py-12">
       <div className="relative">
-        <div className="w-20 h-20 border-4 border-red-200 rounded-full animate-pulse"></div>
-        <div className="absolute top-0 left-0 w-20 h-20 border-4 border-red-600 rounded-full animate-spin border-t-transparent"></div>
-        <FaAmbulance className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-600 text-2xl animate-pulse" />
+        <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-pulse"></div>
+        <div className="absolute top-0 left-0 w-20 h-20 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+        <FaAmbulance className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-600 text-2xl animate-pulse" />
       </div>
-      <p className="mt-4 text-gray-600 font-medium animate-pulse">AI is locating emergency services...</p>
+      <p className="mt-4 text-gray-600 font-medium animate-pulse">Locating emergency services...</p>
       <div className="flex gap-1 mt-2">
-        <span className="w-2 h-2 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-        <span className="w-2 h-2 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-        <span className="w-2 h-2 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+        <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+        <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+        <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
       </div>
     </div>
   )
 }
 
 // Empty State Component
-interface EmptyStateProps {
-  onClear: () => void
-}
-
-const EmptyState = ({ onClear }: EmptyStateProps) => {
+const EmptyState = ({ onClear }: { onClear: () => void }) => {
   return (
     <div className="text-center py-12">
       <FaExclamationTriangle className="text-6xl text-gray-300 mx-auto mb-4" />
       <h3 className="text-xl font-semibold text-gray-700 mb-2">No emergency services found</h3>
       <p className="text-gray-500 mb-6">Try adjusting your search criteria or browse all services</p>
-      <button 
+      <button
         onClick={onClear}
-        className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
       >
         Clear Filters
       </button>
@@ -246,10 +231,21 @@ const EmptyState = ({ onClear }: EmptyStateProps) => {
   )
 }
 
+// Booking status filter tabs
+const STATUS_FILTERS = [
+  { value: 'all', label: 'All Services' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'dispatched', label: 'Dispatched' },
+  { value: 'on-scene', label: 'On Scene' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
 // Main Component
 export default function EmergencyPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
   const [allServices, setAllServices] = useState<EmergencyService[]>([])
   const [searchResults, setSearchResults] = useState<EmergencyService[]>([])
@@ -293,7 +289,7 @@ export default function EmergencyPage() {
         reviews: Math.floor(Math.random() * 400) + 50,
         location: s.coverageArea || 'Mauritius',
         coverage: s.coverageArea || 'Local Area',
-        phone: s.contactNumber || '911',
+        phone: s.contactNumber || '114',
         alternatePhone: s.worker?.phone || '',
         email: '',
         services: s.specializations || [],
@@ -305,7 +301,7 @@ export default function EmergencyPage() {
         verified: s.worker?.verified || false,
         governmentApproved: s.worker?.verified || false,
         bio: s.description || '',
-        avatar: s.worker?.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(s.serviceName || 'ES')}&backgroundColor=ef4444`
+        avatar: s.worker?.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(s.serviceName || 'ES')}&backgroundColor=3b82f6`
       }))
       setAllServices(mapped)
       setSearchResults(mapped)
@@ -354,6 +350,7 @@ export default function EmergencyPage() {
   const handleClearFilters = () => {
     setSearchQuery('')
     setCategory('all')
+    setStatusFilter('all')
     setSearchResults(allServices)
     setHasSearched(false)
   }
@@ -363,44 +360,45 @@ export default function EmergencyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-white">
-      
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+
       {/* Emergency Numbers Banner */}
-      <div className="bg-red-900 text-white py-3">
+      <div className="bg-blue-900 text-white py-3">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-            <span className="flex items-center gap-2">
-              <FaAmbulance /> Ambulance: <strong>911</strong>
-            </span>
-            <span className="flex items-center gap-2">
-              <FaFireExtinguisher /> Fire: <strong>995</strong>
-            </span>
-            <span className="flex items-center gap-2">
+            <span className="text-blue-200 font-medium">Real Emergency? Call:</span>
+            <a href="tel:114" className="flex items-center gap-2 hover:text-yellow-300 transition-colors">
+              <FaAmbulance /> SAMU: <strong>114</strong>
+            </a>
+            <a href="tel:115" className="flex items-center gap-2 hover:text-yellow-300 transition-colors">
+              <FaFireExtinguisher /> Fire: <strong>115</strong>
+            </a>
+            <a href="tel:999" className="flex items-center gap-2 hover:text-yellow-300 transition-colors">
               <FaShieldAlt /> Police: <strong>999</strong>
-            </span>
-            <span className="flex items-center gap-2">
+            </a>
+            <a href="tel:112" className="flex items-center gap-2 hover:text-yellow-300 transition-colors">
               <FaHospital /> Hospital: <strong>112</strong>
-            </span>
+            </a>
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Search Section */}
         <div className="relative z-10">
-          <div className="bg-white rounded-xl shadow-xl p-4 border-2 border-red-200">
+          <div className="bg-white rounded-xl shadow-xl p-4 border-2 border-blue-200">
             <div className="flex flex-col gap-4">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Describe your emergency or search for services (e.g., 'chest pain', 'fire', 'poison')"
-                  className="w-full px-4 py-3 pr-12 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors text-base"
+                  placeholder="Search emergency services (e.g., 'ambulance', 'fire rescue', 'medical transport')"
+                  className="w-full px-4 py-3 pr-12 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-base"
                 />
-                <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-red-400" />
+                <FaSearch className="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-400" />
               </div>
-              
+
               {/* Example Searches */}
               {!hasSearched && (
                 <div className="flex flex-wrap gap-2">
@@ -410,19 +408,19 @@ export default function EmergencyPage() {
                       key={index}
                       type="button"
                       onClick={() => handleExampleClick(example)}
-                      className="text-sm bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1 rounded-full transition-colors"
+                      className="text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded-full transition-colors"
                     >
                       {example}
                     </button>
                   ))}
                 </div>
               )}
-              
+
               <div className="flex flex-col md:flex-row gap-4">
-                <select 
+                <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="flex-1 px-4 py-2.5 border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-500 transition-colors"
+                  className="flex-1 px-4 py-2.5 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                 >
                   <option value="all">All Emergency Services</option>
                   <option value="medical">Medical Emergency</option>
@@ -432,11 +430,11 @@ export default function EmergencyPage() {
                   <option value="mental">Mental Health Crisis</option>
                   <option value="disaster">Natural Disaster</option>
                 </select>
-                
-                <button 
+
+                <button
                   type="button"
                   onClick={handleSearch}
-                  className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-2.5 rounded-xl hover:from-red-700 hover:to-orange-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg"
+                  className="bg-gradient-to-r from-blue-600 to-teal-500 text-white px-8 py-2.5 rounded-xl hover:from-blue-700 hover:to-teal-600 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[150px] shadow-lg"
                 >
                   <FaSearch />
                   Find Service
@@ -445,9 +443,26 @@ export default function EmergencyPage() {
             </div>
           </div>
         </div>
-        
+
+        {/* Status Filter Tabs */}
+        <div className="mt-6 flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setStatusFilter(filter.value)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === filter.value
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
         {/* Results Section */}
-        <div className="mt-12">
+        <div className="mt-8">
           {isLoading || isSearching ? (
             <LoadingAnimation />
           ) : searchResults.length > 0 ? (
@@ -459,13 +474,13 @@ export default function EmergencyPage() {
                   </p>
                   <button
                     onClick={handleClearFilters}
-                    className="text-red-600 hover:text-red-700 font-medium"
+                    className="text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Clear filters
                   </button>
                 </div>
               )}
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {searchResults.map((service) => (
                   <EmergencyCard key={service.id} service={service} />
@@ -476,212 +491,15 @@ export default function EmergencyPage() {
             <EmptyState onClear={handleClearFilters} />
           ) : null}
         </div>
-        
-        {/* Emergency Categories Grid */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Emergency Service Categories</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-red-100">
-              <FaAmbulance className="text-4xl text-red-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Medical Emergency</h3>
-              <p className="text-gray-600 text-sm mb-3">Ambulance services for medical emergencies and patient transport</p>
-              <p className="text-red-600 font-bold">Call: 911</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-orange-100">
-              <FaFireExtinguisher className="text-4xl text-orange-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Fire & Rescue</h3>
-              <p className="text-gray-600 text-sm mb-3">Fire suppression, rescue operations, and hazmat response</p>
-              <p className="text-red-600 font-bold">Call: 995</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-blue-100">
-              <FaShieldAlt className="text-4xl text-blue-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Police Emergency</h3>
-              <p className="text-gray-600 text-sm mb-3">Law enforcement for crime, accidents, and public safety</p>
-              <p className="text-red-600 font-bold">Call: 999</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-green-100">
-              <FaHospital className="text-4xl text-green-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Hospital ER</h3>
-              <p className="text-gray-600 text-sm mb-3">Emergency rooms for immediate medical treatment</p>
-              <p className="text-red-600 font-bold">Call: 112</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-purple-100">
-              <FaHelicopter className="text-4xl text-purple-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Air Ambulance</h3>
-              <p className="text-gray-600 text-sm mb-3">Helicopter and air medical transport for critical cases</p>
-              <p className="text-red-600 font-bold">Call: 988</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-yellow-100">
-              <FaExclamationTriangle className="text-4xl text-yellow-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Poison Control</h3>
-              <p className="text-gray-600 text-sm mb-3">Immediate help for poisoning and chemical exposure</p>
-              <p className="text-red-600 font-bold">Call: 977</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-cyan-100">
-              <FaHeartbeat className="text-4xl text-cyan-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Mental Health Crisis</h3>
-              <p className="text-gray-600 text-sm mb-3">Crisis intervention and psychiatric emergency support</p>
-              <p className="text-red-600 font-bold">Call: 966</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-gray-100">
-              <FaTruck className="text-4xl text-gray-600 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Disaster Response</h3>
-              <p className="text-gray-600 text-sm mb-3">Emergency management for natural disasters</p>
-              <p className="text-red-600 font-bold">Call: 933</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Emergency Preparedness Tips */}
-        <div className="mt-16 bg-yellow-50 rounded-2xl p-8 border-2 border-yellow-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <FaExclamationTriangle className="text-yellow-600" />
-            Emergency Preparedness Tips
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Keep Emergency Numbers Visible</h3>
-                <p className="text-sm text-gray-600">Post emergency numbers near all phones and save them in your mobile</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Know Your Location</h3>
-                <p className="text-sm text-gray-600">Be able to provide your exact address and nearby landmarks</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Stay Calm</h3>
-                <p className="text-sm text-gray-600">Speak clearly and answer all questions from emergency operators</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">First Aid Kit</h3>
-                <p className="text-sm text-gray-600">Keep a well-stocked first aid kit at home and in your vehicle</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Medical Information</h3>
-                <p className="text-sm text-gray-600">Keep a list of medications, allergies, and medical conditions handy</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Emergency Plan</h3>
-                <p className="text-sm text-gray-600">Have a family emergency plan and practice it regularly</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* When to Call Emergency Services */}
-        <div className="mt-16 bg-red-50 rounded-2xl p-8 border-2 border-red-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">When to Call Emergency Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <h3 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
-                <FaAmbulance />
-                Medical Emergency (911)
-              </h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Chest pain or difficulty breathing</li>
-                <li>• Unconsciousness or confusion</li>
-                <li>• Severe bleeding</li>
-                <li>• Signs of stroke</li>
-                <li>• Serious injuries</li>
-                <li>• Allergic reactions</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-orange-700 mb-3 flex items-center gap-2">
-                <FaFireExtinguisher />
-                Fire Emergency (995)
-              </h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Building fires</li>
-                <li>• Vehicle fires</li>
-                <li>• Gas leaks</li>
-                <li>• Chemical spills</li>
-                <li>• Trapped persons</li>
-                <li>• Smoke alarms</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                <FaShieldAlt />
-                Police Emergency (999)
-              </h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Crime in progress</li>
-                <li>• Violence or threats</li>
-                <li>• Traffic accidents</li>
-                <li>• Suspicious activity</li>
-                <li>• Missing persons</li>
-                <li>• Public safety threats</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        
-        {/* Important Notice */}
-        <div className="mt-16 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <FaBell className="animate-pulse" />
-            Important Emergency Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold mb-3">When Calling Emergency Services:</h3>
-              <ul className="space-y-2 text-red-100">
-                <li>✓ Stay calm and speak clearly</li>
-                <li>✓ State your emergency</li>
-                <li>✓ Give your exact location</li>
-                <li>✓ Answer all questions</li>
-                <li>✓ Follow instructions</li>
-                <li>✓ Do not hang up unless told</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">Emergency App Features:</h3>
-              <ul className="space-y-2 text-red-100">
-                <li>✓ GPS location sharing</li>
-                <li>✓ Real-time tracking</li>
-                <li>✓ Direct emergency calls</li>
-                <li>✓ Service availability status</li>
-                <li>✓ Response time estimates</li>
-                <li>✓ Multi-language support</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-6 bg-white/20 backdrop-blur-sm rounded-lg p-4">
-            <p className="text-center font-semibold">
-              This directory is for information purposes. In a real emergency, always call the appropriate emergency number directly.
-            </p>
-          </div>
-        </div>
-        
-        {/* Download App CTA */}
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Stay Prepared with Our Mobile App</h2>
-          <p className="text-gray-600 mb-6">Get instant access to emergency services with GPS tracking and one-tap calling</p>
-          <div className="flex justify-center gap-4">
-            <button className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
-              Download for iOS
-            </button>
-            <button className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
-              Download for Android
-            </button>
-          </div>
+
+        {/* Disclaimer */}
+        <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-gray-600 text-center">
+            <strong>Note:</strong> This is a booking platform for emergency services. In a life-threatening emergency, always call{' '}
+            <a href="tel:114" className="text-blue-600 font-semibold hover:underline">114</a> (SAMU),{' '}
+            <a href="tel:115" className="text-blue-600 font-semibold hover:underline">115</a> (Fire), or{' '}
+            <a href="tel:999" className="text-blue-600 font-semibold hover:underline">999</a> (Police) directly.
+          </p>
         </div>
       </div>
     </div>

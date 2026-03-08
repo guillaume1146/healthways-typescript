@@ -45,11 +45,15 @@ const Footer: React.FC = () => {
   ]
 
   return (
-    <footer role="contentinfo" className="bg-gradient-footer-dark text-white">
+    <footer role="contentinfo" className="text-gray-800"
+      style={{
+        background: 'linear-gradient(135deg, #ffffff 0%, #8ac4ee 50%, #2a9466 100%)'
+      }}
+    >
       {/* Gradient accent line at top */}
       <div className="h-1 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
       {/* Footer Content */}
-      <div className="bg-black/40 py-16">
+      <div className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
@@ -58,21 +62,21 @@ const Footer: React.FC = () => {
                 <div className="bg-white p-2 rounded-xl">
                   <span className="text-2xl">❤️</span>
                 </div>
-                <span className="text-2xl font-bold text-white">Healthwyz</span>
+                <span className="text-2xl font-bold text-gray-900">Healthwyz</span>
               </div>
-              <p className="text-white/90 mb-6 leading-relaxed">
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Your trusted healthcare platform connecting patients with qualified doctors and providing 
                 AI-powered health insights for better wellness in Mauritius.
               </p>
-              <div className="flex items-center space-x-2 text-white/80 mb-2">
+              <div className="flex items-center space-x-2 text-gray-500 mb-2">
                 <FaMapMarkerAlt />
                 <span>Port Louis, Mauritius</span>
               </div>
-              <div className="flex items-center space-x-2 text-white/80 mb-2">
+              <div className="flex items-center space-x-2 text-gray-500 mb-2">
                 <FaPhone />
                 <span>+230 123 4567</span>
               </div>
-              <div className="flex items-center space-x-2 text-white/80">
+              <div className="flex items-center space-x-2 text-gray-500">
                 <FaEnvelope />
                 <span>info@Healthwyz.mu</span>
               </div>
@@ -80,11 +84,11 @@ const Footer: React.FC = () => {
 
             {/* Quick Links */}
             <div>
-              <h5 className="text-lg font-semibold mb-4 text-white">Quick Links</h5>
+              <h5 className="text-lg font-semibold mb-4 text-gray-900">Quick Links</h5>
               <ul className="space-y-2">
                 {quickLinks.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-white/80 hover:text-white transition">
+                    <Link href={link.href} className="text-gray-500 hover:text-blue-600 transition">
                       {link.label}
                     </Link>
                   </li>
@@ -94,11 +98,11 @@ const Footer: React.FC = () => {
 
             {/* Our Services */}
             <div>
-              <h5 className="text-lg font-semibold mb-4 text-white">Our Services</h5>
+              <h5 className="text-lg font-semibold mb-4 text-gray-900">Our Services</h5>
               <ul className="space-y-2">
                 {ourServices.map((service) => (
                   <li key={service.label}>
-                    <Link href={service.href} className="text-white/80 hover:text-white transition">
+                    <Link href={service.href} className="text-gray-500 hover:text-blue-600 transition">
                       {service.label}
                     </Link>
                   </li>
@@ -108,11 +112,11 @@ const Footer: React.FC = () => {
 
             {/* About */}
             <div>
-              <h5 className="text-lg font-semibold mb-4 text-white">About</h5>
+              <h5 className="text-lg font-semibold mb-4 text-gray-900">About</h5>
               <ul className="space-y-2">
                 {aboutLinks.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="text-white/80 hover:text-white transition">
+                    <Link href={link.href} className="text-gray-500 hover:text-blue-600 transition">
                       {link.label}
                     </Link>
                   </li>
@@ -122,16 +126,16 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Social Links and Follow */}
-          <div className="border-t border-white/20 mt-12 pt-8">
+          <div className="border-t border-gray-200 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
-                <p className="text-white/80 mb-2">Follow us:</p>
+                <p className="text-gray-500 mb-2">Follow us:</p>
                 <div className="flex space-x-4">
                   {socialLinks.map((social) => (
                     <a
                       key={social.label}
                       href={social.href}
-                      className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      className="w-10 h-10 bg-white shadow-sm border border-gray-200 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                       aria-label={social.label}
                     >
                       {social.icon}
@@ -144,28 +148,28 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Copyright - All in one line */}
-          <div className="border-t border-white/20 mt-8 pt-8 text-center">
-            <div className="flex flex-wrap justify-center items-center gap-1 text-white/80 text-sm">
+          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+            <div className="flex flex-wrap justify-center items-center gap-1 text-gray-500 text-sm">
               <span>© 2025 Healthwyz. All rights reserved.</span>
               <span className="hidden md:inline mx-2">|</span>
-              <Link href="/privacy" className="hover:text-white transition">
+              <Link href="/privacy" className="text-blue-600 hover:text-blue-800 transition">
                 Privacy Policy
               </Link>
               <span className="hidden md:inline mx-2">|</span>
-              <Link href="/terms" className="hover:text-white transition">
+              <Link href="/terms" className="text-blue-600 hover:text-blue-800 transition">
                 Terms of Service
               </Link>
               <span className="hidden md:inline mx-2">|</span>
-              <Link href="/medical-disclaimer" className="hover:text-white transition">
+              <Link href="/medical-disclaimer" className="text-blue-600 hover:text-blue-800 transition">
                 Medical Disclaimer
               </Link>
             </div>
           </div>
 
           {/* Updated Medical Disclaimer (Short Version) */}
-          <div className="mt-8 p-4 bg-red-500/20 border border-red-400/30 rounded-lg">
-            <p className="text-sm text-white/90">
-              <strong>Disclaimer:</strong> HealthWyz is a platform that connects users with licensed healthcare providers. HealthWyz does not provide medical care. Consultations, prescriptions, and tests are the sole responsibility of your chosen provider. By using this platform, you acknowledge and agree to our <Link href="/terms" className="underline hover:text-white">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>. For full details, see our <Link href="/medical-disclaimer" className="underline hover:text-white">Medical Disclaimer</Link>.
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-gray-600">
+              <strong>Disclaimer:</strong> HealthWyz is a platform that connects users with licensed healthcare providers. HealthWyz does not provide medical care. Consultations, prescriptions, and tests are the sole responsibility of your chosen provider. By using this platform, you acknowledge and agree to our <Link href="/terms" className="underline text-yellow-300 hover:text-yellow-200">Terms of Service</Link> and <Link href="/privacy" className="underline text-yellow-300 hover:text-yellow-200">Privacy Policy</Link>. For full details, see our <Link href="/medical-disclaimer" className="underline text-yellow-300 hover:text-yellow-200">Medical Disclaimer</Link>.
             </p>
           </div>
         </div>

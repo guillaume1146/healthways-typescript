@@ -18,6 +18,15 @@ export function createGetActiveSectionFromPath(base: string, items: SidebarItem[
     const relative = pathname.replace(base, '').replace(/^\//, '')
     if (!relative) return 'overview'
     if (relative.startsWith('chat')) return 'chat'
+    // Handle search sub-routes: search/doctors → search-doctors
+    if (relative.startsWith('search/')) {
+      const searchType = relative.split('/')[1]
+      if (searchType) {
+        const searchId = `search-${searchType}`
+        const match = items.find((item) => item.id === searchId)
+        if (match) return match.id
+      }
+    }
     const segment = relative.split('/')[0]
     const match = items.find((item) => item.id === segment)
     return match ? match.id : 'overview'

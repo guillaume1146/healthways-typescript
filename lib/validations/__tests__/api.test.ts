@@ -131,10 +131,10 @@ describe('createDoctorBookingSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects booking with duration above maximum (480)', () => {
+  it('rejects booking with duration above maximum (1440)', () => {
     const result = createDoctorBookingSchema.safeParse({
       ...validBooking,
-      duration: 500,
+      duration: 1500,
     })
     expect(result.success).toBe(false)
   })

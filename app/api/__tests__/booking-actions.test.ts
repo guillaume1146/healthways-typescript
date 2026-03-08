@@ -7,6 +7,8 @@ vi.mock('@/lib/db', () => ({
     childcareBooking: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     labTestBooking: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     emergencyBooking: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+    emergencyWorkerProfile: { findUnique: vi.fn() },
+    conversation: { findFirst: vi.fn(), create: vi.fn() },
     patientProfile: { findUnique: vi.fn() },
     user: { findUnique: vi.fn() },
   },
@@ -168,7 +170,11 @@ describe('POST /api/bookings/action', () => {
 
   it('accepts emergency booking without payment', async () => {
     vi.mocked(validateRequest).mockReturnValue({ sub: 'ew-user-1', userType: 'ambulance', email: 'e@e.com' })
+    vi.mocked(prisma.emergencyWorkerProfile.findUnique).mockResolvedValue({ id: 'ewp-1' } as never)
+    vi.mocked(prisma.emergencyBooking.findUnique).mockResolvedValue({ id: 'eb-1', patient: { userId: 'patient-1' } } as never)
     vi.mocked(prisma.emergencyBooking.update).mockResolvedValue({ id: 'eb-1', status: 'dispatched' } as never)
+    vi.mocked(prisma.conversation.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.conversation.create).mockResolvedValue({ id: 'conv-1' } as never)
 
     const res = await postAction(createPostRequest('/api/bookings/action', {
       bookingId: 'eb-1', bookingType: 'emergency', action: 'accept',

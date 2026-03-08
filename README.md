@@ -318,7 +318,7 @@ npx eslint .            # Lint
 | `NEXT_PUBLIC_SOCKET_URL` | Socket.IO server URL | `http://localhost:3000` |
 | `NEXT_PUBLIC_APP_URL` | App base URL | `http://localhost:3000` |
 | `PORT` | Server port | `3000` |
-| `SUPER_ADMIN_EMAIL` | Super admin email (auto-created on startup) | `admin@healthwyz.mu` |
+| `SUPER_ADMIN_EMAIL` | Super admin email (auto-created on startup) | `hassan.doorgakant@healthways.mu` |
 | `SUPER_ADMIN_PASSWORD` | Super admin password | `Admin123!` |
 | `PLATFORM_COMMISSION_RATE` | Platform fee % (fallback if DB config missing) | `5` |
 | `REGIONAL_COMMISSION_RATE` | Regional admin fee % (fallback) | `10` |
@@ -612,6 +612,9 @@ After running `npx prisma db seed`, these accounts are available:
 | Insurance Rep | marie.genave@healthways.mu | Insurance123! |
 | Corporate Admin | anil.doobur@healthways.mu | Corporate123! |
 | Referral Partner | sophie.leclerc@healthways.mu | Referral123! |
+| Regional Admin (MU) | vikash.doorgakant@healthways.mu | Regional123! |
+| Regional Admin (MG) | tiana.rasoa@healthways.mg | Regional123! |
+| Regional Admin (KE) | james.mwangi@healthways.ke | Regional123! |
 | Super Admin | hassan.doorgakant@healthways.mu | Admin123! |
 
 All passwords are hashed with bcrypt in the database.

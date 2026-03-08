@@ -6,16 +6,52 @@ import Image from 'next/image'
 import { useAppConfig } from '@/hooks/useAppConfig'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 
-// Corrected Mauritius Flag Component - Horizontal orientation (static)
-const MauritiusFlag: React.FC<{ className?: string }> = ({ className = "" }) => {
-  return (
-    <div className={`inline-flex flex-col rounded-sm overflow-hidden ${className}`}>
+// Country flag components
+const flags: Record<string, React.ReactNode> = {
+  MU: ( // Mauritius
+    <div className="inline-flex flex-col rounded-sm overflow-hidden">
       <div className="h-1.5 w-6 bg-red-600" />
       <div className="h-1.5 w-6 bg-blue-600" />
       <div className="h-1.5 w-6 bg-yellow-400" />
       <div className="h-1.5 w-6 bg-green-600" />
     </div>
-  )
+  ),
+  MG: ( // Madagascar
+    <div className="inline-flex rounded-sm overflow-hidden">
+      <div className="w-2 h-6 bg-white" />
+      <div className="inline-flex flex-col">
+        <div className="h-3 w-4 bg-red-600" />
+        <div className="h-3 w-4 bg-green-600" />
+      </div>
+    </div>
+  ),
+  KE: ( // Kenya
+    <div className="inline-flex flex-col rounded-sm overflow-hidden">
+      <div className="h-1.5 w-6 bg-black" />
+      <div className="h-0.5 w-6 bg-white" />
+      <div className="h-1.5 w-6 bg-red-600" />
+      <div className="h-0.5 w-6 bg-white" />
+      <div className="h-1.5 w-6 bg-green-700" />
+    </div>
+  ),
+  IN: ( // India
+    <div className="inline-flex flex-col rounded-sm overflow-hidden">
+      <div className="h-2 w-6 bg-orange-500" />
+      <div className="h-2 w-6 bg-white" />
+      <div className="h-2 w-6 bg-green-600" />
+    </div>
+  ),
+  FR: ( // France
+    <div className="inline-flex rounded-sm overflow-hidden">
+      <div className="w-2 h-6 bg-blue-700" />
+      <div className="w-2 h-6 bg-white" />
+      <div className="w-2 h-6 bg-red-600" />
+    </div>
+  ),
+}
+
+function CountryFlag({ countryCode, className = "" }: { countryCode: string; className?: string }) {
+  return <div className={className}>{flags[countryCode] || flags.MU}</div>
 }
 
 interface HeroSectionProps {
@@ -34,9 +70,10 @@ interface HeroSectionProps {
     imageUrl: string
     sortOrder: number
   }>
+  countryCode?: string
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({ content, slides, countryCode = 'MU' }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { config } = useAppConfig()
 
@@ -144,9 +181,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
   }
 
   return (
-    <section className="relative overflow-hidden text-white py-6 sm:py-8 lg:py-14"
+    <section className="relative overflow-hidden py-6 sm:py-8 lg:py-14"
       style={{
-        background: 'linear-gradient(135deg, rgba(18, 95, 249, 0.95) 0%, rgba(0, 143, 163, 0.9) 50%, rgba(0, 165, 66, 0.85) 100%)'
+        background: 'linear-gradient(135deg, #ffffff 0%, #8ac4ee 50%, #2a9466 100%)'
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -159,11 +196,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
           >
             <motion.div 
               variants={itemVariants}
-              className="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-white/10"
+              className="inline-flex items-center bg-blue-50 rounded-lg px-3 sm:px-4 py-2 mb-4 sm:mb-6 border border-blue-200"
             >
-              <MauritiusFlag className="mr-2 sm:mr-3" />
+              <CountryFlag countryCode={countryCode} className="mr-2 sm:mr-3" />
               <motion.span 
-                className="text-xs sm:text-sm font-medium text-white"
+                className="text-xs sm:text-sm font-medium text-blue-700"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.5 }}
@@ -174,12 +211,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
 
             <motion.h1
               variants={itemVariants}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight text-white"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight text-gray-900"
             >
               {(content?.mainTitle || config.heroTitle).split(',').map((part, index) => (
                 <span
                   key={index}
-                  className={index === 1 ? "text-yellow-400" : ""}
+                  className={index === 1 ? "text-blue-600" : ""}
                 >
                   {part.trim()}
                   {index === 0 && ','}
@@ -190,7 +227,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
 
             <motion.p
               variants={itemVariants}
-              className="text-base text-left sm:text-lg lg:text-xl mb-6 sm:mb-8 text-white/90 leading-relaxed px-2 lg:px-0 max-w-xl sm:mx-auto lg:mx-0 line-clamp-3 sm:line-clamp-none"
+              className="text-base text-left sm:text-lg lg:text-xl mb-6 sm:mb-8 text-gray-600 leading-relaxed px-2 lg:px-0 max-w-xl sm:mx-auto lg:mx-0 line-clamp-3 sm:line-clamp-none"
             >
               {content?.subtitle || 'Connect with qualified doctors, get AI-powered health insights, and access medicines across Mauritius. Your trusted healthcare companion.'}
             </motion.p>
@@ -219,7 +256,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
                 <motion.button
                   key={button.label}
                   variants={itemVariants}
-                  className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className="bg-white text-blue-700 border border-blue-200 shadow-md hover:shadow-lg hover:bg-blue-50 px-3 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <span className="text-base sm:text-lg">{button.icon}</span>
                   <span className="block sm:hidden">{button.shortLabel}</span>
@@ -270,12 +307,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
                     />
                     
                     {/* Image Title */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
-                      <div className="bg-slate-900/15 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-white/10">
-                        <h3 className="text-base sm:text-xl font-bold mb-1">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+                      <div className="bg-white/90 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-gray-200">
+                        <h3 className="text-base sm:text-xl font-bold mb-1 text-gray-900">
                           {heroImages[currentImageIndex].title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-white/80 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
                           {heroImages[currentImageIndex].alt}
                         </p>
                       </div>
@@ -293,8 +330,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ content, slides }) => {
                     aria-label={`Go to slide ${index + 1}`}
                     className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${
                       index === currentImageIndex
-                        ? 'bg-yellow-400 w-8 sm:w-10 shadow-lg scale-110'
-                        : 'bg-white/30 hover:bg-white/50 w-2 sm:w-3'
+                        ? 'bg-blue-600 w-8 sm:w-10 shadow-lg scale-110'
+                        : 'bg-gray-300 hover:bg-gray-400 w-2 sm:w-3'
                     }`}
                   />
                 ))}

@@ -92,7 +92,7 @@ export default async function CountryHomePage({
 
   return (
     <>
-      <HeroSection content={heroContent} slides={slides.length > 0 ? slides : undefined} />
+      <HeroSection content={heroContent} slides={slides.length > 0 ? slides : undefined} countryCode={countryCode} />
       <StatsSection />
       <ServicesSection
         title={servicesContent?.title}

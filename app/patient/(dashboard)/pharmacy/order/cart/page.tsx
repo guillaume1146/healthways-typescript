@@ -38,7 +38,9 @@ export default function CheckoutPage() {
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('healthwyz_user_id') : null
+  const userId = typeof window !== 'undefined'
+    ? (() => { try { const u = localStorage.getItem('healthwyz_user'); return u ? JSON.parse(u).id : null } catch { return null } })()
+    : null
 
   const fetchWallet = useCallback(async () => {
     if (!userId) {
@@ -154,7 +156,7 @@ export default function CheckoutPage() {
                 View Orders
               </Link>
               <Link
-                href="/search/medicines"
+                href="/patient/search/medicines"
                 className="border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
               >
                 Continue Shopping
@@ -172,7 +174,7 @@ export default function CheckoutPage() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/search/medicines" className="text-gray-600 hover:text-green-600">
+            <Link href="/patient/search/medicines" className="text-gray-600 hover:text-green-600">
               <FaArrowLeft className="text-xl" />
             </Link>
             <div>
@@ -190,7 +192,7 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
             <p className="text-gray-500 mb-6">Add some medicines to get started.</p>
             <Link
-              href="/search/medicines"
+              href="/patient/search/medicines"
               className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
               Browse Medicines
@@ -329,7 +331,7 @@ export default function CheckoutPage() {
                 </button>
 
                 <Link
-                  href="/search/medicines"
+                  href="/patient/search/medicines"
                   className="block text-center text-green-600 hover:text-green-700 font-medium mt-3 text-sm"
                 >
                   Continue Shopping

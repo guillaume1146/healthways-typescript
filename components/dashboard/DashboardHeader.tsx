@@ -129,6 +129,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   }, [])
 
   const [autoUnreadCount, setAutoUnreadCount] = useState(0)
+  const [pendingConnectionCount, setPendingConnectionCount] = useState(0)
 
   useEffect(() => {
     if (!userId) return
@@ -149,6 +150,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
   }, [userId])
+
+  // Fetch pending connection request count
+  useEffect(() => {
+    if (!userId || !networkHref) return
+    const fetchPendingConnections = async () => {
+      try {
+        const res = await fetch(`/api/connections?userId=${userId}&type=received&status=pending`)
+        const data = await res.json()
+        if (data.success && Array.isArray(data.data)) {
+          setPendingConnectionCount(data.data.length)
+        }
+      } catch {
+        // silent
+      }
+    }
+    fetchPendingConnections()
+    const interval = setInterval(fetchPendingConnections, 30000)
+    return () => clearInterval(interval)
+  }, [userId, networkHref])
 
   const unreadCount = notifications.filter(n => !n.readAt).length || autoUnreadCount || notificationCount
 
@@ -215,10 +235,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {networkHref && (
               <Link
                 href={networkHref}
-                className="p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                aria-label="My Network"
+                className="relative p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label={`My Network${pendingConnectionCount > 0 ? `, ${pendingConnectionCount} pending requests` : ''}`}
               >
                 <FaUserFriends className="text-sm sm:text-base md:text-lg" aria-hidden="true" />
+                {pendingConnectionCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center font-bold" aria-hidden="true">
+                    {pendingConnectionCount > 9 ? '9+' : pendingConnectionCount}
+                  </span>
+                )}
               </Link>
             )}
 

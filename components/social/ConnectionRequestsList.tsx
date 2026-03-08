@@ -55,7 +55,7 @@ export default function ConnectionRequestsList({ userId }: ConnectionRequestsLis
       const res = await fetch(`/api/connections/${connectionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: action }),
+        body: JSON.stringify({ action: action === 'accepted' ? 'accept' : 'reject' }),
       })
       const data = await res.json()
       if (data.success) {

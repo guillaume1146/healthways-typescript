@@ -6,36 +6,38 @@ test.describe('Search Page', () => {
   })
 
   test('renders the search page', async ({ page }) => {
-    // The search page should have a heading
     const heading = page.locator('text=/search healthcare/i').first()
     await expect(heading).toBeVisible()
   })
 
   test('has a search input field', async ({ page }) => {
-    const searchInput = page.locator('input[placeholder*="Search"]').first()
+    // Target the main form input (not the navbar autocomplete)
+    const searchInput = page.locator('form input[placeholder*="Search doctors, nurses"]').first()
     await expect(searchInput).toBeVisible()
   })
 
   test('can type in the search box', async ({ page }) => {
-    const searchInput = page.locator('input[placeholder*="Search"]').first()
+    const searchInput = page.locator('form input[placeholder*="Search doctors, nurses"]').first()
     await searchInput.fill('Cardiology')
     await expect(searchInput).toHaveValue('Cardiology')
   })
 
   test('has a search submit button', async ({ page }) => {
-    const submitButton = page.locator('button[type="submit"]').first()
+    const form = page.locator('form').filter({ has: page.locator('input[placeholder*="Search doctors, nurses"]') })
+    const submitButton = form.locator('button[type="submit"]').first()
     await expect(submitButton).toBeVisible()
   })
 
   test('can submit a search query', async ({ page }) => {
-    const searchInput = page.locator('input[placeholder*="Search"]').first()
+    const searchInput = page.locator('form input[placeholder*="Search doctors, nurses"]').first()
     await searchInput.fill('doctor')
 
-    const submitButton = page.locator('button[type="submit"]').first()
+    const form = page.locator('form').filter({ has: page.locator('input[placeholder*="Search doctors, nurses"]') })
+    const submitButton = form.locator('button[type="submit"]').first()
     await submitButton.click()
 
-    // URL should update with the search query
-    await expect(page).toHaveURL(/q=doctor/i, { timeout: 5_000 })
+    // URL updates via router.replace after form submit
+    await expect(page).toHaveURL(/q=doctor/i, { timeout: 10_000 })
   })
 
   test('displays a back to home link', async ({ page }) => {
@@ -44,23 +46,25 @@ test.describe('Search Page', () => {
   })
 
   test('navigating back to home works', async ({ page }) => {
-    const backLink = page.locator('a[href="/"]').first()
+    const backLink = page.locator('a[href="/"]').filter({ hasText: /back to home|home/i }).first()
     await backLink.click()
-    await expect(page).toHaveURL('/')
+    await expect(page).toHaveURL('/', { timeout: 10_000 })
   })
 
   test('search with query param pre-fills the input', async ({ page }) => {
     await page.goto('/search/results?q=Neurology')
-    const searchInput = page.locator('input[placeholder*="Search"]').first()
-    await expect(searchInput).toHaveValue('Neurology')
+    // Main form input should be pre-filled after Suspense hydration
+    const searchInput = page.locator('form input[placeholder*="Search doctors, nurses"]').first()
+    await expect(searchInput).toHaveValue('Neurology', { timeout: 10_000 })
   })
 
   test('clear button appears when text is entered', async ({ page }) => {
-    const searchInput = page.locator('input[placeholder*="Search"]').first()
+    const searchInput = page.locator('form input[placeholder*="Search doctors, nurses"]').first()
     await searchInput.fill('test query')
 
-    // A clear/times button should appear near the search input
-    const clearButton = page.locator('input[placeholder*="Search"]').locator('..').locator('button').first()
+    // A clear button should appear inside the form near the input
+    const form = page.locator('form').filter({ has: page.locator('input[placeholder*="Search doctors, nurses"]') })
+    const clearButton = form.locator('button').filter({ hasNot: page.locator('[type="submit"]') }).first()
     await expect(clearButton).toBeVisible()
   })
 })

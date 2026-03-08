@@ -31,13 +31,11 @@ export async function GET(
       return NextResponse.json({ success: false, message: 'Emergency worker profile not found' }, { status: 404 })
     }
 
-    // Show all pending bookings (broadcast model) + this responder's active bookings
+    // Show only pending bookings (broadcast model — no responder assigned yet)
     const bookings = await prisma.emergencyBooking.findMany({
       where: {
-        OR: [
-          { status: 'pending', responderId: null },
-          { responderId: emergencyWorkerProfile.id },
-        ],
+        status: 'pending',
+        responderId: null,
       },
       include: {
         patient: {

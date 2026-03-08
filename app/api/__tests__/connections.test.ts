@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Mock dependencies before importing routes
 vi.mock('@/lib/db', () => ({
   default: {
-    userConnection: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
+    userConnection: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
     user: { findUnique: vi.fn(), findMany: vi.fn() },
   },
 }))
@@ -13,6 +13,7 @@ vi.mock('@/lib/auth/validate', () => ({
 }))
 
 import { GET as getConnections, POST as postConnection } from '../connections/route'
+import { PATCH as patchConnection, DELETE as deleteConnection } from '../connections/[id]/route'
 import { GET as getSuggestions } from '../connections/suggestions/route'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
@@ -146,6 +147,189 @@ describe('POST /api/connections', () => {
     expect(res.status).toBe(201)
     expect(data.success).toBe(true)
     expect(data.data.status).toBe('pending')
+  })
+})
+
+function createPatchRequest(url: string, body: Record<string, unknown>) {
+  return new NextRequest(`http://localhost:3000${url}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+function createDeleteRequest(url: string) {
+  return new NextRequest(`http://localhost:3000${url}`, { method: 'DELETE' })
+}
+
+describe('PATCH /api/connections/[id]', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 401 without auth', async () => {
+    vi.mocked(validateRequest).mockReturnValue(null)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'accept' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 400 for invalid action', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'invalid' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when sending status instead of action (old bug format)', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { status: 'accepted' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 when connection not found', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue(null)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/nonexistent', { action: 'accept' }),
+      { params: Promise.resolve({ id: 'nonexistent' }) }
+    )
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 403 when sender tries to accept own request', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-1', userType: 'patient', email: 'p@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2', status: 'pending',
+    } as never)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'accept' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 200 when receiver accepts connection', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2', status: 'pending',
+    } as never)
+    vi.mocked(prisma.userConnection.update).mockResolvedValue({
+      id: 'conn-1', status: 'accepted', createdAt: new Date(), updatedAt: new Date(),
+      sender: { id: 'user-1', firstName: 'Emma', lastName: 'Johnson', profileImage: null, userType: 'PATIENT' },
+      receiver: { id: 'user-2', firstName: 'Raj', lastName: 'Patel', profileImage: null, userType: 'DOCTOR' },
+    } as never)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'accept' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data.status).toBe('accepted')
+  })
+
+  it('returns 200 when receiver rejects connection', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2', status: 'pending',
+    } as never)
+    vi.mocked(prisma.userConnection.update).mockResolvedValue({
+      id: 'conn-1', status: 'rejected', createdAt: new Date(), updatedAt: new Date(),
+      sender: { id: 'user-1', firstName: 'Emma', lastName: 'Johnson', profileImage: null, userType: 'PATIENT' },
+      receiver: { id: 'user-2', firstName: 'Raj', lastName: 'Patel', profileImage: null, userType: 'DOCTOR' },
+    } as never)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'reject' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data.status).toBe('rejected')
+  })
+
+  it('returns 409 when connection is no longer pending', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-2', userType: 'doctor', email: 'd@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2', status: 'accepted',
+    } as never)
+
+    const res = await patchConnection(
+      createPatchRequest('/api/connections/conn-1', { action: 'accept' }),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(409)
+  })
+})
+
+describe('DELETE /api/connections/[id]', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 401 without auth', async () => {
+    vi.mocked(validateRequest).mockReturnValue(null)
+
+    const res = await deleteConnection(
+      createDeleteRequest('/api/connections/conn-1'),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 403 for unrelated user', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-3', userType: 'patient', email: 'p@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2',
+    } as never)
+
+    const res = await deleteConnection(
+      createDeleteRequest('/api/connections/conn-1'),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 200 when sender deletes connection', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'user-1', userType: 'patient', email: 'p@ex.com' })
+    vi.mocked(prisma.userConnection.findUnique).mockResolvedValue({
+      id: 'conn-1', senderId: 'user-1', receiverId: 'user-2',
+    } as never)
+    vi.mocked(prisma.userConnection.delete).mockResolvedValue({} as never)
+
+    const res = await deleteConnection(
+      createDeleteRequest('/api/connections/conn-1'),
+      { params: Promise.resolve({ id: 'conn-1' }) }
+    )
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
   })
 })
 

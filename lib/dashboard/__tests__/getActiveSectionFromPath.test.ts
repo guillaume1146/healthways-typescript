@@ -6,6 +6,8 @@ const mockItems = [
   { id: 'consultations', label: 'Consultations', icon: {} as any, color: '', bgColor: '', href: '/test/consultations' },
   { id: 'chat', label: 'Messages', icon: {} as any, color: '', bgColor: '', href: '/test/chat' },
   { id: 'settings', label: 'Settings', icon: {} as any, color: '', bgColor: '', href: '/test/settings' },
+  { id: 'search-doctors', label: 'Find Doctors', icon: {} as any, color: '', bgColor: '', href: '/test/search/doctors' },
+  { id: 'search-nurses', label: 'Find Nurses', icon: {} as any, color: '', bgColor: '', href: '/test/search/nurses' },
 ]
 
 const getActiveSectionFromPath = createGetActiveSectionFromPath('/test', mockItems)
@@ -38,5 +40,14 @@ describe('createGetActiveSectionFromPath', () => {
     const fn = createGetActiveSectionFromPath('/doctor', mockItems)
     expect(fn('/doctor')).toBe('overview')
     expect(fn('/doctor/consultations')).toBe('consultations')
+  })
+
+  it('returns search section id for search sub-routes', () => {
+    expect(getActiveSectionFromPath('/test/search/doctors')).toBe('search-doctors')
+    expect(getActiveSectionFromPath('/test/search/nurses')).toBe('search-nurses')
+  })
+
+  it('returns overview for unknown search sub-routes', () => {
+    expect(getActiveSectionFromPath('/test/search/unknown')).toBe('overview')
   })
 })

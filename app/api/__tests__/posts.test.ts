@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Mock dependencies before importing routes
 vi.mock('@/lib/db', () => ({
   default: {
-    doctorPost: { findMany: vi.fn(), count: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    doctorPost: { findMany: vi.fn(), count: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
     postLike: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     postComment: { findMany: vi.fn(), count: vi.fn(), create: vi.fn() },
     user: { findUnique: vi.fn() },
@@ -29,6 +29,7 @@ vi.mock('@/lib/validations/api', () => ({
 }))
 
 import { GET as getPosts, POST as createPost } from '../posts/route'
+import { DELETE as deletePost } from '../posts/[id]/route'
 import { POST as likePost } from '../posts/[id]/like/route'
 import { GET as getComments, POST as createComment } from '../posts/[id]/comments/route'
 import prisma from '@/lib/db'
@@ -238,5 +239,92 @@ describe('POST /api/posts/[id]/comments', () => {
     expect(res.status).toBe(201)
     expect(data.success).toBe(true)
     expect(data.data.content).toBe('Nice!')
+  })
+})
+
+describe('GET /api/posts?category=health_tips', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('filters posts by category query parameter', async () => {
+    vi.mocked(prisma.doctorPost.findMany).mockResolvedValue([
+      {
+        id: 'post-ht', content: 'A health tip', category: 'health_tips', tags: [],
+        imageUrl: null, likeCount: 2, createdAt: new Date(), updatedAt: new Date(),
+        author: { id: 'doc-1', firstName: 'Dr', lastName: 'Smith', profileImage: null, userType: 'DOCTOR', verified: true, doctorProfile: { specialty: ['General'], clinicAffiliation: 'Clinic' } },
+        _count: { comments: 0 },
+      },
+    ] as never)
+    vi.mocked(prisma.doctorPost.count).mockResolvedValue(1 as never)
+
+    const res = await getPosts(createGetRequest('/api/posts?category=health_tips'))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data.posts).toHaveLength(1)
+    expect(data.data.posts[0].category).toBe('health_tips')
+    expect(data.data.total).toBe(1)
+  })
+
+  it('returns paginated results with page and totalPages', async () => {
+    vi.mocked(prisma.doctorPost.findMany).mockResolvedValue([] as never)
+    vi.mocked(prisma.doctorPost.count).mockResolvedValue(25 as never)
+
+    const res = await getPosts(createGetRequest('/api/posts?page=2&limit=10'))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.data.page).toBe(2)
+    expect(data.data.totalPages).toBe(3)
+  })
+})
+
+describe('DELETE /api/posts/[id]', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 401 without auth', async () => {
+    vi.mocked(validateRequest).mockReturnValue(null)
+
+    const req = new NextRequest('http://localhost:3000/api/posts/post-1', { method: 'DELETE' })
+    const res = await deletePost(req, mockParams('post-1'))
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 404 when post not found', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'doc-1', userType: 'doctor', email: 'd@example.com' })
+    vi.mocked(prisma.doctorPost.findUnique).mockResolvedValue(null)
+
+    const req = new NextRequest('http://localhost:3000/api/posts/post-999', { method: 'DELETE' })
+    const res = await deletePost(req, mockParams('post-999'))
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 200 when author deletes own post', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'doc-1', userType: 'doctor', email: 'd@example.com' })
+    vi.mocked(prisma.doctorPost.findUnique).mockResolvedValue({ authorId: 'doc-1' } as never)
+    vi.mocked(prisma.doctorPost.delete).mockResolvedValue({} as never)
+
+    const req = new NextRequest('http://localhost:3000/api/posts/post-1', { method: 'DELETE' })
+    const res = await deletePost(req, mockParams('post-1'))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+  })
+
+  it('returns 403 when non-author tries to delete', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'other-user', userType: 'doctor', email: 'other@example.com' })
+    vi.mocked(prisma.doctorPost.findUnique).mockResolvedValue({ authorId: 'doc-1' } as never)
+
+    const req = new NextRequest('http://localhost:3000/api/posts/post-1', { method: 'DELETE' })
+    const res = await deletePost(req, mockParams('post-1'))
+
+    expect(res.status).toBe(403)
   })
 })

@@ -13,6 +13,7 @@ export interface SidebarItem {
   bgColor: string
   count?: number
   href: string
+  divider?: boolean
 }
 
 interface DashboardSidebarProps {
@@ -50,6 +51,19 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         const Icon = item.icon
         const isActive = activeItemId === item.id
         const label = getLabel(item)
+
+        if (item.divider) {
+          if (isCollapsedDesktop) {
+            return <div key={item.id} className="my-2 border-t border-gray-200" />
+          }
+          return (
+            <div key={item.id} className="pt-4 pb-1">
+              <p className="px-3 md:px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                {label}
+              </p>
+            </div>
+          )
+        }
 
         return (
           <Link
@@ -117,7 +131,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         </div>
 
-        <div className="h-full overflow-y-auto p-3 sm:p-4">
+        <div className="h-full overflow-y-auto scrollbar-hidden p-3 sm:p-4">
           {renderNavItems(true)}
 
           {footer && (
@@ -138,12 +152,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className={`
         flex-shrink-0
         ${isOpen ? 'w-64 lg:w-72 xl:w-80' : 'w-16'}
-        bg-gradient-to-b from-white via-white to-gray-50/80 shadow-lg border-r border-gray-200
+        bg-white
         transition-all duration-300 ease-in-out
         overflow-hidden
+        m-3 rounded-2xl border border-gray-200 shadow-sm
       `}
     >
-      <div className={`h-full overflow-y-auto ${isCollapsedDesktop ? 'p-2' : 'p-3 md:p-5 lg:p-6'}`}>
+      <div className={`h-full overflow-y-auto scrollbar-hidden ${isCollapsedDesktop ? 'p-2' : 'p-3 md:p-5 lg:p-6'}`}>
         {renderNavItems()}
 
         {footer && !isCollapsedDesktop && (

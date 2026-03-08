@@ -336,6 +336,29 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
 
   const regionalAdmins = [
     {
+      id: 'RADM000',
+      firstName: 'Hassan',
+      lastName: 'Doorgakant',
+      email: 'hassan.doorgakant@healthways.mu',
+      password: await hash('Admin123!'),
+      profileImage: null,
+      phone: '+230 5789 6000',
+      userType: UserType.REGIONAL_ADMIN,
+      dateOfBirth: new Date('1978-03-10'),
+      gender: 'Male',
+      address: 'Port Louis, Mauritius',
+      verified: true,
+      accountStatus: 'active',
+      regionalAdminProfile: {
+        create: {
+          id: 'RAPROF000',
+          region: 'National',
+          country: 'Mauritius',
+          countryCode: 'MU',
+        },
+      },
+    },
+    {
       id: 'RADM001',
       firstName: 'Vikash',
       lastName: 'Doorgakant',
