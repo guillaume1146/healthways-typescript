@@ -7,13 +7,18 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
-// Cleanup stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of store) {
-    if (entry.resetAt < now) store.delete(key)
+// Cleanup stale entries every 5 minutes (only at runtime, not during build)
+if (typeof globalThis !== 'undefined' && typeof process !== 'undefined' && process.env.NODE_ENV !== undefined) {
+  const cleanup = () => {
+    const now = Date.now()
+    for (const [key, entry] of store) {
+      if (entry.resetAt < now) store.delete(key)
+    }
   }
-}, 5 * 60 * 1000)
+  if (typeof setInterval !== 'undefined') {
+    setInterval(cleanup, 5 * 60 * 1000).unref?.()
+  }
+}
 
 /**
  * In-memory sliding window rate limiter.
