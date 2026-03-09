@@ -46,3 +46,7 @@ vertex-sa.json
 # uploaded files (keep .gitkeep)
 public/uploads/*
 !public/uploads/.gitkeep
+
+# playwright / e2e
+/test-results/
+/playwright-report/
