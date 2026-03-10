@@ -22,8 +22,8 @@ export const createVideoRoomSchema = z.object({
 export const createWebRTCSessionSchema = z.object({
   roomId: z.string().min(1),
   userId: z.string().uuid(),
-  userName: z.string().min(1),
-  userType: z.string().min(1),
+  userName: z.string().optional().default(''),
+  userType: z.string().optional().default(''),
 })
 
 export const updateWebRTCSessionSchema = z.object({

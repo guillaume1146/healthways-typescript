@@ -163,14 +163,14 @@ describe('Edge Case Validations', () => {
       expect(result.success).toBe(false)
     })
 
-    it('rejects empty userName', () => {
+    it('accepts empty userName (optional field)', () => {
       const result = createWebRTCSessionSchema.safeParse({
         roomId: 'room-123',
         userId: '550e8400-e29b-41d4-a716-446655440000',
         userName: '',
         userType: 'patient',
       })
-      expect(result.success).toBe(false)
+      expect(result.success).toBe(true)
     })
   })
 })

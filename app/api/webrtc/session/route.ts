@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { roomId, userId } = parsed.data
+    const { roomId, userId, userName, userType } = parsed.data
 
     // Find the video room
     const videoRoom = await prisma.videoRoom.findFirst({
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
         }
       })
 
+      // Track the connection with userName for display
+      if (userName) {
+        await prisma.webRTCConnection.create({
+          data: { sessionId: session.id, userId, userName, connectionState: 'new' }
+        }).catch(() => {})
+      }
+
       return NextResponse.json({
         data: {
           session: {
@@ -69,6 +76,15 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingSession) {
+      // Add this user as a connection if not already tracked
+      if (userName) {
+        await prisma.webRTCConnection.upsert({
+          where: { sessionId_userId: { sessionId: existingSession.id, userId } },
+          create: { sessionId: existingSession.id, userId, userName, connectionState: 'new' },
+          update: { userName, connectionState: 'new' },
+        }).catch(() => {})
+      }
+
       return NextResponse.json({
         data: {
           session: {
@@ -88,6 +104,13 @@ export async function POST(request: NextRequest) {
         status: 'active',
       }
     })
+
+    // Track the connection with userName for display
+    if (userName) {
+      await prisma.webRTCConnection.create({
+        data: { sessionId: session.id, userId, userName, connectionState: 'new' }
+      }).catch(() => {})
+    }
 
     return NextResponse.json({
       data: {

@@ -77,6 +77,22 @@ const ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:global.stun.twilio.com:3478' },
+  // Free TURN servers for NAT traversal (Open Relay Project)
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ]
 
 const MAX_ICE_RESTART_ATTEMPTS = 10
@@ -441,6 +457,10 @@ export function useWebRTC({
         if (prev.some(p => p.socketId === participant.socketId)) return prev
         return [...prev, participant]
       })
+      // Create a non-initiator peer — the joining user will send the offer
+      if (!peersRef.current.has(participant.socketId)) {
+        setTimeout(() => createPeer(participant.socketId, participant.userId, participant.userName, participant.userType, false), 200)
+      }
     }
 
     const handleUserReconnected = ({ oldSocketId, newSocketId, userId: reconnUserId, userName: reconnName, userType: reconnType }: { oldSocketId: string; newSocketId: string; userId: string; userName: string; userType: string }) => {
