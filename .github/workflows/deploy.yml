@@ -87,20 +87,26 @@ jobs:
           host: ${{ secrets.OCI_VM_IP }}
           username: ${{ secrets.OCI_VM_USER }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
-          command_timeout: 10m
+          command_timeout: 20m
           script: |
             cd ~/healthways-typescript
             git pull origin main
 
+            # Stop existing app container to free memory for docker load
+            docker compose stop app 2>/dev/null || true
+
             # Load the pre-built image
-            docker load < /tmp/healthwyz-app.tar.gz
-            rm /tmp/healthwyz-app.tar.gz
+            gunzip -c /tmp/healthwyz-app.tar.gz | docker load
+            rm -f /tmp/healthwyz-app.tar.gz
+
+            # Clean up old images to free disk space
+            docker image prune -f 2>/dev/null || true
 
             # Restart with the new image (no --build, uses loaded image)
             docker compose up -d
 
             # Wait for app to be ready
-            sleep 10
+            sleep 15
 
             # Apply any schema changes
             docker compose exec -T app npx prisma db push --accept-data-loss 2>/dev/null || true
