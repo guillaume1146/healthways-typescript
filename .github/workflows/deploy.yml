@@ -89,11 +89,14 @@ jobs:
           host: ${{ secrets.OCI_VM_IP }}
           username: ${{ secrets.OCI_VM_USER }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
-          command_timeout: 20m
+          command_timeout: 30m
           envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG
           script: |
             cd ~/healthways-typescript
             git pull origin main
+
+            # Free disk space before pulling
+            docker image prune -af 2>/dev/null || true
 
             # Login to GHCR and pull the image
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
@@ -106,13 +109,10 @@ jobs:
             docker compose up -d
 
             # Wait for app to be ready
-            sleep 15
+            sleep 10
 
             # Apply any schema changes
             docker compose exec -T app npx prisma db push --accept-data-loss 2>/dev/null || true
-
-            # Clean up
-            docker image prune -f 2>/dev/null || true
 
             echo "✅ Deployment complete"
         env:
