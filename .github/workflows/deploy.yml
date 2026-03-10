@@ -97,8 +97,8 @@ jobs:
             cd ~/healthways-typescript
             git pull origin main
 
-            # Free disk space before pulling
-            docker image prune -af 2>/dev/null || true
+            # Remove only dangling images (not all — keep layer cache for faster pulls)
+            docker image prune -f 2>/dev/null || true
 
             # Login to GHCR and pull the image
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
@@ -128,27 +128,30 @@ jobs:
           host: ${{ secrets.OCI_VM_IP }}
           username: ${{ secrets.OCI_VM_USER }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
-          command_timeout: 5m
+          command_timeout: 15m
           envs: APP_DOMAIN
           script: |
             # Skip if no domain configured or cert already exists
             if [ -z "$APP_DOMAIN" ]; then
-              echo "⏭️ No APP_DOMAIN set, skipping HTTPS setup"
+              echo "No APP_DOMAIN set, skipping HTTPS setup"
               exit 0
             fi
 
             if [ -f "/etc/letsencrypt/live/$APP_DOMAIN/fullchain.pem" ]; then
-              echo "✅ Certificate already exists for $APP_DOMAIN"
+              echo "Certificate already exists for $APP_DOMAIN"
               exit 0
             fi
 
-            echo "🔒 Setting up Let's Encrypt for $APP_DOMAIN..."
+            echo "Setting up Let's Encrypt for $APP_DOMAIN..."
 
             # Install certbot if not present
-            which certbot > /dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y certbot python3-certbot-nginx
+            if ! which certbot > /dev/null 2>&1; then
+              sudo apt-get update -qq
+              sudo apt-get install -y -qq certbot python3-certbot-nginx
+            fi
 
-            # Update nginx server_name
-            sudo sed -i "s/server_name _;/server_name $APP_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
+            # Update nginx server_name (handle both _ and the IP)
+            sudo sed -i "s/server_name .*;/server_name $APP_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
 
             # Reload nginx for the domain change
             sudo nginx -t && sudo systemctl reload nginx
@@ -156,7 +159,7 @@ jobs:
             # Get certificate (non-interactive)
             sudo certbot --nginx -d "$APP_DOMAIN" --non-interactive --agree-tos --email healthwyz@duckdns.org --redirect
 
-            echo "✅ HTTPS certificate installed for $APP_DOMAIN"
+            echo "HTTPS certificate installed for $APP_DOMAIN"
         env:
           APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
 
