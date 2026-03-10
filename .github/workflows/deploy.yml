@@ -76,9 +76,11 @@ jobs:
         run: |
           IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
+          DOMAIN="${{ secrets.APP_DOMAIN }}"
+          APP_URL="https://${DOMAIN:-${{ secrets.OCI_VM_IP }}}"
           docker build -t $IMAGE_TAG \
-            --build-arg NEXT_PUBLIC_APP_URL=https://${{ secrets.OCI_VM_IP }} \
-            --build-arg NEXT_PUBLIC_SOCKET_URL=https://${{ secrets.OCI_VM_IP }} \
+            --build-arg NEXT_PUBLIC_APP_URL=$APP_URL \
+            --build-arg NEXT_PUBLIC_SOCKET_URL=$APP_URL \
             .
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
@@ -120,12 +122,75 @@ jobs:
           GH_ACTOR: ${{ github.actor }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
 
+      - name: Setup HTTPS with Let's Encrypt
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.OCI_VM_IP }}
+          username: ${{ secrets.OCI_VM_USER }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          command_timeout: 5m
+          envs: APP_DOMAIN
+          script: |
+            # Skip if no domain configured or cert already exists
+            if [ -z "$APP_DOMAIN" ]; then
+              echo "⏭️ No APP_DOMAIN set, skipping HTTPS setup"
+              exit 0
+            fi
+
+            if [ -f "/etc/letsencrypt/live/$APP_DOMAIN/fullchain.pem" ]; then
+              echo "✅ Certificate already exists for $APP_DOMAIN"
+              exit 0
+            fi
+
+            echo "🔒 Setting up Let's Encrypt for $APP_DOMAIN..."
+
+            # Install certbot if not present
+            which certbot > /dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y certbot python3-certbot-nginx
+
+            # Update nginx server_name
+            sudo sed -i "s/server_name _;/server_name $APP_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
+
+            # Reload nginx for the domain change
+            sudo nginx -t && sudo systemctl reload nginx
+
+            # Get certificate (non-interactive)
+            sudo certbot --nginx -d "$APP_DOMAIN" --non-interactive --agree-tos --email healthwyz@duckdns.org --redirect
+
+            echo "✅ HTTPS certificate installed for $APP_DOMAIN"
+        env:
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+
+      - name: Update app environment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.OCI_VM_IP }}
+          username: ${{ secrets.OCI_VM_USER }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          command_timeout: 5m
+          envs: APP_DOMAIN
+          script: |
+            if [ -z "$APP_DOMAIN" ]; then exit 0; fi
+
+            cd ~/healthways-typescript
+
+            # Update .env with domain
+            sed -i "s|NEXT_PUBLIC_APP_URL=.*|NEXT_PUBLIC_APP_URL=https://$APP_DOMAIN|" .env
+            sed -i "s|NEXT_PUBLIC_SOCKET_URL=.*|NEXT_PUBLIC_SOCKET_URL=https://$APP_DOMAIN|" .env
+
+            echo "✅ Environment updated to use $APP_DOMAIN"
+        env:
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+
       - name: Verify deployment
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.OCI_VM_IP }}
           username: ${{ secrets.OCI_VM_USER }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          envs: APP_DOMAIN
           script: |
-            curl -sk https://localhost/api/auth/me 2>/dev/null && echo "✅ App responding on HTTPS" || curl -s http://localhost:3000 > /dev/null && echo "✅ App responding on HTTP" || echo "❌ App not responding"
+            DOMAIN="${APP_DOMAIN:-localhost}"
+            curl -sk "https://$DOMAIN/api/auth/me" 2>/dev/null && echo "✅ App responding on HTTPS" || curl -s http://localhost:3000 > /dev/null && echo "✅ App responding on HTTP" || echo "❌ App not responding"
             docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthwyz
+        env:
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
