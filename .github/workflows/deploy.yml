@@ -110,8 +110,8 @@ jobs:
             # Tag as healthwyz-app:latest for docker-compose
             docker tag "$IMAGE_TAG" healthwyz-app:latest
 
-            # Restart with the new image
-            docker compose up -d
+            # Restart with the pre-built image (--no-build prevents rebuilding from Dockerfile)
+            docker compose up -d --no-build
 
             # Wait for app to be ready (Next.js takes time on 1GB RAM)
             echo "Waiting for app to start..."
