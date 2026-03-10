@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL?.startsWith('https'),
   sameSite: 'lax' as const,
   path: '/',
   maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
