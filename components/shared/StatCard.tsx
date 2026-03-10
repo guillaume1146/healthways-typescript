@@ -11,24 +11,15 @@ interface StatCardProps {
 function useCountUp(target: number, duration: number = 2000) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
-  const hasAnimated = useRef(false)
-  const lastTarget = useRef(target)
-
-  // Reset animation when target changes significantly
-  useEffect(() => {
-    if (lastTarget.current !== target) {
-      lastTarget.current = target
-      hasAnimated.current = false
-    }
-  }, [target])
 
   useEffect(() => {
-    if (!ref.current || hasAnimated.current) return
+    if (!ref.current || target === 0) return
 
+    const element = ref.current
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true
+        if (entry.isIntersecting) {
+          observer.disconnect()
           const startTime = Date.now()
           const animate = () => {
             const elapsed = Date.now() - startTime
@@ -47,7 +38,7 @@ function useCountUp(target: number, duration: number = 2000) {
       { threshold: 0.3 }
     )
 
-    observer.observe(ref.current)
+    observer.observe(element)
     return () => observer.disconnect()
   }, [target, duration])
 
