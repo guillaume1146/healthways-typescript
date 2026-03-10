@@ -182,25 +182,72 @@ export async function GET(request: NextRequest) {
       take: 20,
       select: {
         id: true, startedAt: true, endedAt: true, status: true, duration: true,
-        room: { select: { roomCode: true, creatorId: true, status: true } }
+        room: { select: { roomCode: true, creatorId: true, status: true } },
+        connections: {
+          where: { userId: { not: userId } },
+          take: 1,
+          select: { userName: true, userId: true },
+        },
       }
     })
+
+    // Resolve participant names for video sessions
+    const otherUserIds = videoSessions
+      .flatMap(s => {
+        const ids: string[] = []
+        if (s.connections.length > 0) ids.push(s.connections[0].userId)
+        else if (s.room.creatorId !== userId) ids.push(s.room.creatorId)
+        return ids
+      })
+      .filter(Boolean)
+
+    const otherUsers = otherUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: otherUserIds } },
+          select: { id: true, firstName: true, lastName: true, profileImage: true, userType: true },
+        })
+      : []
+    const otherUserMap = new Map(otherUsers.map(u => [u.id, u]))
 
     // Sort all rooms by scheduledAt/startedAt descending
     const allRooms = [
       ...appointments,
-      ...videoSessions.map(s => ({
-        id: s.id,
-        roomId: s.room.roomCode,
-        scheduledAt: s.startedAt,
-        endedAt: s.endedAt,
-        status: s.status === 'active' ? 'upcoming' : s.status,
-        reason: 'Video Session',
-        duration: s.duration,
-        participantName: 'Participant',
-        participantImage: null,
-        type: 'direct_session',
-      }))
+      ...videoSessions.map(s => {
+        let pName = 'Video Session'
+        let pImage: string | null = null
+
+        // Prefer the other participant's connection name
+        if (s.connections.length > 0) {
+          const otherUser = otherUserMap.get(s.connections[0].userId)
+          if (otherUser) {
+            const prefix = otherUser.userType === 'DOCTOR' ? 'Dr. ' : ''
+            pName = `${prefix}${otherUser.firstName} ${otherUser.lastName}`
+            pImage = otherUser.profileImage
+          } else if (s.connections[0].userName) {
+            pName = s.connections[0].userName
+          }
+        } else if (s.room.creatorId !== userId) {
+          const creator = otherUserMap.get(s.room.creatorId)
+          if (creator) {
+            const prefix = creator.userType === 'DOCTOR' ? 'Dr. ' : ''
+            pName = `${prefix}${creator.firstName} ${creator.lastName}`
+            pImage = creator.profileImage
+          }
+        }
+
+        return {
+          id: s.id,
+          roomId: s.room.roomCode,
+          scheduledAt: s.startedAt,
+          endedAt: s.endedAt,
+          status: s.status === 'active' ? 'upcoming' : s.status,
+          reason: 'Video Session',
+          duration: s.duration,
+          participantName: pName,
+          participantImage: pImage,
+          type: 'direct_session',
+        }
+      })
     ]
 
     // Deduplicate by roomId

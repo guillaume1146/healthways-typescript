@@ -266,6 +266,17 @@ const VideoConsultation: React.FC<VideoConsultationProps> = ({ currentUser, pati
     try {
       setMediaError('')
 
+      // getUserMedia requires a secure context (HTTPS or localhost)
+      if (!window.isSecureContext) {
+        setMediaError('Video calls require a secure connection (HTTPS). Please access the site via HTTPS to use video calls.')
+        return
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setMediaError('Your browser does not support video calls. Please use a modern browser like Chrome or Firefox.')
+        return
+      }
+
       const existingSession = await checkExistingSession(appointment.roomId)
 
       const stream = await navigator.mediaDevices.getUserMedia({
