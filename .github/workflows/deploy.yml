@@ -97,15 +97,11 @@ jobs:
             cd ~/healthways-typescript
             git pull origin main
 
-            # ── Free memory & disk before deploy ──
-            # Stop app container first to free RAM for the pull
-            docker compose stop app 2>/dev/null || true
-
-            # Remove all unused images, containers, networks, and build cache
-            docker system prune -af 2>/dev/null || true
-
-            # Clear apt cache and system caches to free more RAM
+            # Free RAM: drop kernel caches
             sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' 2>/dev/null || true
+
+            # Remove only dangling images (keep layer cache for fast pulls)
+            docker image prune -f 2>/dev/null || true
 
             # Login to GHCR and pull the image
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
@@ -117,11 +113,22 @@ jobs:
             # Restart with the new image
             docker compose up -d
 
-            # Wait for app to be ready
-            sleep 10
+            # Wait for app to be ready (Next.js takes time on 1GB RAM)
+            echo "Waiting for app to start..."
+            for i in $(seq 1 12); do
+              sleep 10
+              if curl -s http://localhost:3000 > /dev/null 2>&1; then
+                echo "App is ready after ${i}0 seconds"
+                break
+              fi
+              echo "Still waiting... (${i}0s)"
+            done
 
             # Apply any schema changes
             docker compose exec -T app npx prisma db push --accept-data-loss 2>/dev/null || true
+
+            # Clean up old images now that app is running
+            docker image prune -f 2>/dev/null || true
 
             echo "Deployment complete"
         env:
