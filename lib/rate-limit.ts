@@ -63,9 +63,9 @@ export function rateLimit(
   return null
 }
 
-/** Auth routes: 5 requests per minute per IP (strict to prevent brute-force) */
+/** Auth routes: 30 requests per minute per IP */
 export function rateLimitAuth(request: NextRequest) {
-  return rateLimit(request, { limit: 5, windowMs: 60_000, prefix: 'auth' })
+  return rateLimit(request, { limit: 30, windowMs: 60_000, prefix: 'auth' })
 }
 
 /** Search routes: 30 requests per minute per IP */
