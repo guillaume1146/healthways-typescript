@@ -54,8 +54,8 @@ export default function FoodSearchPanel({ onSelect }: FoodSearchPanelProps) {
       if (cat !== 'All') params.set('category', cat)
       const res = await fetch(`/api/ai/health-tracker/food-db?${params.toString()}`)
       if (res.ok) {
-        const data = await res.json()
-        setResults(data.foods || data || [])
+        const json = await res.json()
+        setResults(Array.isArray(json.data) ? json.data : [])
       } else {
         setResults([])
       }

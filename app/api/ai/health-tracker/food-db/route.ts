@@ -20,15 +20,17 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q')
     const category = searchParams.get('category')
 
-    if (!query || query.trim().length === 0) {
+    if (!query && !category) {
       return NextResponse.json(
-        { success: false, message: 'q query parameter is required' },
+        { success: false, message: 'q or category query parameter is required' },
         { status: 400 }
       )
     }
 
-    const where: Record<string, unknown> = {
-      name: { contains: query.trim(), mode: 'insensitive' },
+    const where: Record<string, unknown> = {}
+
+    if (query && query.trim().length > 0) {
+      where.name = { contains: query.trim(), mode: 'insensitive' }
     }
 
     if (category) {
