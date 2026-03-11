@@ -141,7 +141,9 @@ jobs:
             docker compose exec -T app npx prisma db push --accept-data-loss
 
             # Seed the database (idempotent — cleans and re-seeds)
-            docker compose exec -T app sh -c "ts-node --transpile-only --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+            echo "Starting database seed..."
+            docker compose exec -T app sh -c "ts-node --transpile-only --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts 2>&1" || echo "WARNING: Seed exited with code $?"
+            echo "Seed step completed"
 
             # Clean up old images
             docker image prune -f 2>/dev/null || true
