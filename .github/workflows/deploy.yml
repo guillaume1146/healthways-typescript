@@ -141,7 +141,7 @@ jobs:
             docker compose exec -T app npx prisma db push --accept-data-loss
 
             # Seed the database (idempotent — cleans and re-seeds)
-            docker compose exec -T app npx prisma db seed
+            docker compose exec -T app sh -c "ts-node --transpile-only --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
 
             # Clean up old images
             docker image prune -f 2>/dev/null || true
@@ -258,7 +258,7 @@ jobs:
             done
 
             docker compose exec -T app npx prisma db push --accept-data-loss 2>/dev/null || true
-            docker compose exec -T app npx prisma db seed 2>/dev/null || true
+            docker compose exec -T app sh -c "ts-node --transpile-only --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts" 2>/dev/null || true
             docker image prune -f 2>/dev/null || true
 
             echo "Oracle deployment complete"
