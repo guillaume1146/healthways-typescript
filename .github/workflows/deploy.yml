@@ -1,4 +1,4 @@
-name: Build, Test & Deploy to Oracle Cloud VM
+name: Build, Test & Deploy
 
 on:
   push:
@@ -53,15 +53,17 @@ jobs:
       - name: Run unit tests
         run: npx vitest run
 
-  # ─── Build & Deploy ────────────────────────────────────────────────────
-  deploy:
-    name: Build & Deploy to Oracle Cloud VM
+  # ─── Build Docker Image ──────────────────────────────────────────────
+  build:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -73,34 +75,44 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
+        id: build
         run: |
           IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
-          DOMAIN="${{ secrets.APP_DOMAIN }}"
-          APP_URL="https://${DOMAIN:-${{ secrets.OCI_VM_IP }}}"
+          DOMAIN="${{ secrets.VULTR_DOMAIN }}"
+          if [ -n "$DOMAIN" ]; then
+            APP_URL="https://$DOMAIN"
+          else
+            APP_URL="http://${{ secrets.VULTR_VM_IP }}"
+          fi
           docker build -t $IMAGE_TAG \
             --build-arg NEXT_PUBLIC_APP_URL=$APP_URL \
             --build-arg NEXT_PUBLIC_SOCKET_URL=$APP_URL \
             .
           docker push $IMAGE_TAG
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Deploy on VM
+  # ─── Deploy to Vultr (Primary) ─────────────────────────────────────
+  deploy-vultr:
+    name: Deploy to Vultr
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy on Vultr VM
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.OCI_VM_IP }}
-          username: ${{ secrets.OCI_VM_USER }}
-          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.VULTR_VM_IP }}
+          username: ${{ secrets.VULTR_VM_USER }}
+          key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
           command_timeout: 30m
           envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG
           script: |
-            cd ~/healthways-typescript
-            git pull origin main
+            cd ~/healthtech-app
 
-            # Free RAM: drop kernel caches
-            sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' 2>/dev/null || true
+            # Pull latest code (for docker-compose.yml, prisma, seeds, etc.)
+            git pull origin main 2>/dev/null || true
 
-            # Remove only dangling images (keep layer cache for fast pulls)
+            # Remove dangling images
             docker image prune -f 2>/dev/null || true
 
             # Login to GHCR and pull the image
@@ -110,10 +122,130 @@ jobs:
             # Tag as healthwyz-app:latest for docker-compose
             docker tag "$IMAGE_TAG" healthwyz-app:latest
 
-            # Restart with the pre-built image (--no-build prevents rebuilding from Dockerfile)
+            # Restart with the pre-built image
             docker compose up -d --no-build
 
-            # Wait for app to be ready (Next.js takes time on 1GB RAM)
+            # Wait for app to be ready
+            echo "Waiting for app to start..."
+            for i in $(seq 1 24); do
+              sleep 5
+              if curl -s http://localhost:3000 > /dev/null 2>&1; then
+                echo "App is ready after $((i * 5)) seconds"
+                break
+              fi
+              echo "Still waiting... ($((i * 5))s)"
+            done
+
+            # Apply schema changes
+            docker compose exec -T app npx prisma db push --accept-data-loss
+
+            # Seed the database (idempotent — cleans and re-seeds)
+            docker compose exec -T app npx prisma db seed
+
+            # Clean up old images
+            docker image prune -f 2>/dev/null || true
+
+            echo "Deployment complete with seed data"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+
+      - name: Setup HTTPS with Let's Encrypt
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VULTR_VM_IP }}
+          username: ${{ secrets.VULTR_VM_USER }}
+          key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
+          command_timeout: 15m
+          envs: VULTR_DOMAIN
+          script: |
+            if [ -z "$VULTR_DOMAIN" ]; then
+              echo "No VULTR_DOMAIN set, skipping HTTPS setup"
+              exit 0
+            fi
+
+            if [ -f "/etc/letsencrypt/live/$VULTR_DOMAIN/fullchain.pem" ]; then
+              echo "Certificate already exists for $VULTR_DOMAIN"
+              exit 0
+            fi
+
+            echo "Setting up Let's Encrypt for $VULTR_DOMAIN..."
+
+            if ! which certbot > /dev/null 2>&1; then
+              sudo apt-get update -qq
+              sudo apt-get install -y -qq certbot python3-certbot-nginx
+            fi
+
+            sudo sed -i "s/server_name .*;/server_name $VULTR_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
+            sudo nginx -t && sudo systemctl reload nginx
+
+            sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email healthwyz@duckdns.org --redirect
+
+            echo "HTTPS certificate installed for $VULTR_DOMAIN"
+        env:
+          VULTR_DOMAIN: ${{ secrets.VULTR_DOMAIN }}
+
+      - name: Verify Vultr deployment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VULTR_VM_IP }}
+          username: ${{ secrets.VULTR_VM_USER }}
+          key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
+          envs: VULTR_DOMAIN
+          script: |
+            DOMAIN="${VULTR_DOMAIN:-localhost}"
+            echo "=== Container Status ==="
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep healthwyz
+
+            echo ""
+            echo "=== Health Check ==="
+            if curl -sk "https://$DOMAIN/api/auth/me" 2>/dev/null; then
+              echo "App responding on HTTPS"
+            elif curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "App responding on HTTP"
+            else
+              echo "WARNING: App not responding"
+            fi
+
+            echo ""
+            echo "=== Memory Usage ==="
+            free -h | head -2
+
+            echo ""
+            echo "=== Disk Usage ==="
+            df -h / | tail -1
+        env:
+          VULTR_DOMAIN: ${{ secrets.VULTR_DOMAIN }}
+
+  # ─── Deploy to Oracle Cloud (Keep running for testers) ───────────────
+  deploy-oracle:
+    name: Deploy to Oracle Cloud (Legacy)
+    runs-on: ubuntu-latest
+    needs: build
+    continue-on-error: true
+    steps:
+      - name: Deploy on Oracle VM
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.OCI_VM_IP }}
+          username: ${{ secrets.OCI_VM_USER }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          command_timeout: 30m
+          envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG
+          script: |
+            cd ~/healthways-typescript
+            git pull origin main 2>/dev/null || true
+
+            sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' 2>/dev/null || true
+            docker image prune -f 2>/dev/null || true
+
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+            docker pull "$IMAGE_TAG"
+            docker tag "$IMAGE_TAG" healthwyz-app:latest
+
+            docker compose up -d --no-build
+
             echo "Waiting for app to start..."
             for i in $(seq 1 12); do
               sleep 10
@@ -124,81 +256,17 @@ jobs:
               echo "Still waiting... (${i}0s)"
             done
 
-            # Apply any schema changes
             docker compose exec -T app npx prisma db push --accept-data-loss 2>/dev/null || true
-
-            # Clean up old images now that app is running
+            docker compose exec -T app npx prisma db seed 2>/dev/null || true
             docker image prune -f 2>/dev/null || true
 
-            echo "Deployment complete"
+            echo "Oracle deployment complete"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
 
-      - name: Setup HTTPS with Let's Encrypt
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.OCI_VM_IP }}
-          username: ${{ secrets.OCI_VM_USER }}
-          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
-          command_timeout: 15m
-          envs: APP_DOMAIN
-          script: |
-            # Skip if no domain configured or cert already exists
-            if [ -z "$APP_DOMAIN" ]; then
-              echo "No APP_DOMAIN set, skipping HTTPS setup"
-              exit 0
-            fi
-
-            if [ -f "/etc/letsencrypt/live/$APP_DOMAIN/fullchain.pem" ]; then
-              echo "Certificate already exists for $APP_DOMAIN"
-              exit 0
-            fi
-
-            echo "Setting up Let's Encrypt for $APP_DOMAIN..."
-
-            # Install certbot if not present
-            if ! which certbot > /dev/null 2>&1; then
-              sudo apt-get update -qq
-              sudo apt-get install -y -qq certbot python3-certbot-nginx
-            fi
-
-            # Update nginx server_name (handle both _ and the IP)
-            sudo sed -i "s/server_name .*;/server_name $APP_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
-
-            # Reload nginx for the domain change
-            sudo nginx -t && sudo systemctl reload nginx
-
-            # Get certificate (non-interactive)
-            sudo certbot --nginx -d "$APP_DOMAIN" --non-interactive --agree-tos --email healthwyz@duckdns.org --redirect
-
-            echo "HTTPS certificate installed for $APP_DOMAIN"
-        env:
-          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
-
-      - name: Update app environment
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.OCI_VM_IP }}
-          username: ${{ secrets.OCI_VM_USER }}
-          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
-          command_timeout: 5m
-          envs: APP_DOMAIN
-          script: |
-            if [ -z "$APP_DOMAIN" ]; then exit 0; fi
-
-            cd ~/healthways-typescript
-
-            # Update .env with domain
-            sed -i "s|NEXT_PUBLIC_APP_URL=.*|NEXT_PUBLIC_APP_URL=https://$APP_DOMAIN|" .env
-            sed -i "s|NEXT_PUBLIC_SOCKET_URL=.*|NEXT_PUBLIC_SOCKET_URL=https://$APP_DOMAIN|" .env
-
-            echo "✅ Environment updated to use $APP_DOMAIN"
-        env:
-          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
-
-      - name: Verify deployment
+      - name: Verify Oracle deployment
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.OCI_VM_IP }}
@@ -207,7 +275,7 @@ jobs:
           envs: APP_DOMAIN
           script: |
             DOMAIN="${APP_DOMAIN:-localhost}"
-            curl -sk "https://$DOMAIN/api/auth/me" 2>/dev/null && echo "✅ App responding on HTTPS" || curl -s http://localhost:3000 > /dev/null && echo "✅ App responding on HTTP" || echo "❌ App not responding"
+            curl -sk "https://$DOMAIN/api/auth/me" 2>/dev/null && echo "App responding on HTTPS" || curl -s http://localhost:3000 > /dev/null && echo "App responding on HTTP" || echo "App not responding"
             docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthwyz
         env:
           APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
