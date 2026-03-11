@@ -5,10 +5,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: healthwyz
-      POSTGRES_PASSWORD: healthwyz_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthwyz_secret}
       POSTGRES_DB: healthwyz
-    ports:
-      - "5432:5432"
+    # Port NOT exposed to host — only accessible via Docker network
+    # Use `docker compose exec db psql -U healthwyz` for direct access
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
