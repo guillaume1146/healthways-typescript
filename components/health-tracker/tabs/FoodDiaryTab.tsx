@@ -49,7 +49,20 @@ export default function FoodDiaryTab() {
       const res = await fetch(`/api/ai/health-tracker/food?date=${dateStr}`)
       if (!res.ok) throw new Error('Failed to load food diary')
       const json = await res.json()
-      setData(json)
+      if (!json.success) throw new Error(json.message || 'Failed to load food diary')
+      const d = json.data
+      // Flatten grouped meals into a single entries array
+      const entries: FoodEntry[] = [
+        ...(d.breakfast || []),
+        ...(d.lunch || []),
+        ...(d.dinner || []),
+        ...(d.snack || []),
+      ]
+      setData({
+        entries,
+        totalCalories: d.totalCalories ?? 0,
+        targetCalories: d.targetCalories ?? 2000,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {

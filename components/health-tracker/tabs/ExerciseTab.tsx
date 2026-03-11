@@ -52,7 +52,13 @@ export default function ExerciseTab() {
       const res = await fetch(`/api/ai/health-tracker/exercise?date=${dateStr}`)
       if (!res.ok) throw new Error('Failed to load exercises')
       const json = await res.json()
-      setData(json)
+      if (!json.success) throw new Error(json.message || 'Failed to load exercises')
+      const d = json.data
+      setData({
+        entries: d.entries,
+        totalBurned: d.totalCaloriesBurned,
+        totalMinutes: d.totalMinutes,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {

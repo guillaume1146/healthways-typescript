@@ -97,7 +97,29 @@ export default function MealPlannerTab() {
       const res = await fetch(`/api/ai/health-tracker/meal-plan?weekStart=${weekStart}`)
       if (!res.ok) throw new Error('Failed to load meal plan')
       const json = await res.json()
-      setData(json)
+      if (!json.success) throw new Error(json.message || 'Failed to load meal plan')
+      const d = json.data
+      // Map API grouped structure to component's MealPlanDay[] shape
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const days: MealPlanDay[] = dayNames.map((name, index) => {
+        const dayMeals = d.days[index] || {}
+        const meals: MealPlanMeal[] = [
+          ...(dayMeals.breakfast || []),
+          ...(dayMeals.lunch || []),
+          ...(dayMeals.dinner || []),
+          ...(dayMeals.snack || []),
+        ]
+        const totals = d.dailyTotals?.[index] || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+        return {
+          day: name,
+          meals,
+          totalCalories: totals.calories,
+          totalProtein: totals.protein,
+          totalCarbs: totals.carbs,
+          totalFat: totals.fat,
+        }
+      })
+      setData({ days, targetCalories: 2000 })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {

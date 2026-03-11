@@ -28,7 +28,13 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
       const res = await fetch('/api/ai/health-tracker/dashboard')
       if (!res.ok) throw new Error('Failed to load dashboard')
       const json = await res.json()
-      setData(json)
+      if (!json.success) throw new Error(json.message || 'Failed to load dashboard')
+      const d = json.data
+      setData({
+        calories: { consumed: d.caloriesConsumed, target: d.targetCalories, burned: d.caloriesBurned },
+        water: { consumed: d.waterConsumedMl, target: d.waterTargetMl },
+        exercise: { minutes: d.exerciseMinutes, targetMinutes: d.exerciseTargetMin, caloriesBurned: d.caloriesBurned },
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -45,7 +51,7 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
       const res = await fetch('/api/ai/health-tracker/water', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 250 }),
+        body: JSON.stringify({ amountMl: 250 }),
       })
       if (!res.ok) throw new Error('Failed to log water')
       await fetchData()

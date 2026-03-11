@@ -72,7 +72,27 @@ export default function ProgressTab() {
       const res = await fetch(`/api/ai/health-tracker/progress?period=${period}`)
       if (!res.ok) throw new Error('Failed to load progress')
       const json = await res.json()
-      setData(json)
+      if (!json.success) throw new Error(json.message || 'Failed to load progress')
+      const d = json.data
+      // Map API days to component's WeeklyEntry shape
+      const weeklyData: WeeklyEntry[] = d.days.map((day: { date: string; caloriesConsumed: number; caloriesBurned: number; waterMl: number; exerciseMinutes: number }) => ({
+        day: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }),
+        calories: day.caloriesConsumed,
+        exerciseMinutes: day.exerciseMinutes,
+      }))
+      // Today is the last entry in the days array
+      const today = d.days[d.days.length - 1] || { caloriesConsumed: 0, caloriesBurned: 0, waterMl: 0 }
+      setData({
+        todayCalories: today.caloriesConsumed,
+        todayBurned: today.caloriesBurned,
+        todayWater: today.waterMl,
+        todayNetCalories: today.caloriesConsumed - today.caloriesBurned,
+        weeklyData,
+        weeklyAvgCalories: d.averages.calories,
+        weeklyTotalBurned: d.totals.burned,
+        weeklyNetCalories: d.totals.calories - d.totals.burned,
+        weeklyAvgWater: d.averages.water,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {

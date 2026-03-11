@@ -12,10 +12,10 @@ interface ProfileData {
   activityLevel: string
   weightGoal: string
   dietaryPreferences: string[]
-  allergens: string[]
+  allergenSettings: string[]
   targetCalories: number
-  targetWater: number
-  targetExerciseMinutes: number
+  targetWaterMl: number
+  targetExerciseMin: number
   waterReminders: boolean
 }
 
@@ -87,7 +87,9 @@ export default function ProfileGoalsTab() {
       setError('')
       const res = await fetch('/api/ai/health-tracker/profile')
       if (!res.ok) throw new Error('Failed to load profile')
-      const data: ProfileData = await res.json()
+      const json = await res.json()
+      if (!json.success) throw new Error(json.message || 'Failed to load profile')
+      const data: ProfileData = json.data
       setAge(data.age || 25)
       setGender(data.gender || 'male')
       setHeightCm(data.heightCm || 170)
@@ -95,10 +97,10 @@ export default function ProfileGoalsTab() {
       setActivityLevel(data.activityLevel || 'moderately_active')
       setWeightGoal(data.weightGoal || 'maintain')
       setDietaryPreferences(data.dietaryPreferences || [])
-      setAllergens(data.allergens || [])
+      setAllergens(data.allergenSettings || [])
       setTargetCalories(data.targetCalories || 2000)
-      setTargetWater(data.targetWater || 2000)
-      setTargetExerciseMinutes(data.targetExerciseMinutes || 30)
+      setTargetWater(data.targetWaterMl || 2000)
+      setTargetExerciseMinutes(data.targetExerciseMin || 30)
       setWaterReminders(data.waterReminders || false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -127,10 +129,10 @@ export default function ProfileGoalsTab() {
           activityLevel,
           weightGoal,
           dietaryPreferences,
-          allergens,
+          allergenSettings: allergens,
           targetCalories,
-          targetWater,
-          targetExerciseMinutes,
+          targetWaterMl: targetWater,
+          targetExerciseMin: targetExerciseMinutes,
           waterReminders,
         }),
       })
