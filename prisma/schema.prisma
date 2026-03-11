@@ -54,6 +54,33 @@ enum Priority {
   critical
 }
 
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
+enum ActivityLevel {
+  sedentary
+  lightly_active
+  moderately_active
+  very_active
+  extra_active
+}
+
+enum WeightGoal {
+  lose
+  maintain
+  gain
+}
+
+enum ExerciseIntensity {
+  light
+  moderate
+  vigorous
+}
+
 // ─── Base User Model (auth + shared fields) ──────────────────────────────────
 
 model User {
@@ -105,6 +132,14 @@ model User {
   // AI Chat relations
   aiChatSessions    AiChatSession[]
   aiPatientInsights AiPatientInsight[]
+
+  // Health Tracker relations
+  healthTrackerProfile  HealthTrackerProfile?
+  foodEntries           FoodEntry[]
+  exerciseEntries       ExerciseEntry[]
+  waterEntries          WaterEntry[]
+  dailyGoalSnapshots    DailyGoalSnapshot[]
+  mealPlanEntries       MealPlanEntry[]
 
   // Provider reviews
   reviewsReceived   ProviderReview[] @relation("ReviewsReceived")
@@ -1292,6 +1327,135 @@ model AiPatientInsight {
   @@index([userId, date])
   @@index([userId, category])
   @@index([createdAt])
+}
+
+// ─── Health Tracker Models ──────────────────────────────────────────────────
+
+model HealthTrackerProfile {
+  id                  String        @id @default(cuid())
+  userId              String        @unique
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  heightCm            Float?
+  weightKg            Float?
+  age                 Int?
+  gender              String?
+  activityLevel       ActivityLevel @default(moderately_active)
+  weightGoal          WeightGoal    @default(maintain)
+  targetCalories      Int?
+  targetWaterMl       Int           @default(2000)
+  targetExerciseMin   Int           @default(30)
+  dietaryPreferences  String[]
+  allergenSettings    String[]
+  tdeeCalories        Int?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model FoodEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        DateTime
+  mealType    MealType
+  name        String
+  calories    Int
+  protein     Float    @default(0)
+  carbs       Float    @default(0)
+  fat         Float    @default(0)
+  fiber       Float    @default(0)
+  quantity    Float    @default(1)
+  unit        String   @default("serving")
+  servingSize String?
+  foodDbId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, date])
+  @@index([userId, mealType])
+}
+
+model ExerciseEntry {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           DateTime
+  exerciseType   String
+  durationMin    Int
+  caloriesBurned Int
+  intensity      ExerciseIntensity @default(moderate)
+  notes          String?
+  createdAt      DateTime          @default(now())
+
+  @@index([userId, date])
+}
+
+model WaterEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime
+  amountMl  Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model DailyGoalSnapshot {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              DateTime
+  caloriesConsumed  Int      @default(0)
+  caloriesBurned    Int      @default(0)
+  waterConsumedMl   Int      @default(0)
+  exerciseMinutes   Int      @default(0)
+  targetCalories    Int
+  targetWaterMl     Int
+  targetExerciseMin Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model MealPlanEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime
+  dayOfWeek     Int
+  mealType      MealType
+  name          String
+  description   String?
+  calories      Int
+  protein       Float    @default(0)
+  carbs         Float    @default(0)
+  fat           Float    @default(0)
+  isGenerated   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, weekStartDate])
+  @@index([userId, dayOfWeek])
+}
+
+model FoodDatabase {
+  id          String  @id @default(cuid())
+  name        String
+  category    String
+  calories    Int
+  protein     Float   @default(0)
+  carbs       Float   @default(0)
+  fat         Float   @default(0)
+  fiber       Float   @default(0)
+  servingSize String
+  unit        String  @default("serving")
+  isLocal     Boolean @default(false)
+
+  @@index([category])
+  @@index([name])
 }
 
 // ─── Generic Provider Reviews ───────────────────────────────────────────────

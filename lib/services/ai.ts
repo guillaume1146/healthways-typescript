@@ -232,9 +232,68 @@ JSON ARRAY:`
   }
 }
 
+// ─── Health Tracker Context ─────────────────────────────────────────────────
+
+/**
+ * Get today's health tracker data to inject into the AI coach context.
+ */
+export async function getTrackerContext(userId: string): Promise<string> {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  try {
+    const [foodEntries, exerciseEntries, waterEntries, profile] = await Promise.all([
+      prisma.foodEntry.aggregate({
+        where: { userId, date: { gte: today, lt: tomorrow } },
+        _sum: { calories: true, protein: true, carbs: true, fat: true },
+      }),
+      prisma.exerciseEntry.aggregate({
+        where: { userId, date: { gte: today, lt: tomorrow } },
+        _sum: { caloriesBurned: true, durationMin: true },
+      }),
+      prisma.waterEntry.aggregate({
+        where: { userId, date: { gte: today, lt: tomorrow } },
+        _sum: { amountMl: true },
+      }),
+      prisma.healthTrackerProfile.findUnique({
+        where: { userId },
+        select: { targetCalories: true, targetWaterMl: true, targetExerciseMin: true, weightGoal: true, dietaryPreferences: true },
+      }),
+    ])
+
+    const caloriesConsumed = foodEntries._sum.calories || 0
+    const caloriesBurned = exerciseEntries._sum.caloriesBurned || 0
+    const waterMl = waterEntries._sum.amountMl || 0
+    const exerciseMin = exerciseEntries._sum.durationMin || 0
+    const targetCal = profile?.targetCalories || 2000
+    const targetWater = profile?.targetWaterMl || 2000
+    const targetExercise = profile?.targetExerciseMin || 30
+
+    const lines = [
+      `\nTODAY'S HEALTH TRACKER DATA:`,
+      `- Calories consumed: ${caloriesConsumed} / ${targetCal} cal (${Math.round(caloriesConsumed/targetCal*100)}%)`,
+      `- Calories burned: ${caloriesBurned} cal`,
+      `- Net calories: ${caloriesConsumed - caloriesBurned} cal`,
+      `- Water intake: ${waterMl}ml / ${targetWater}ml (${Math.round(waterMl/targetWater*100)}%)`,
+      `- Exercise: ${exerciseMin} / ${targetExercise} min`,
+      `- Weight goal: ${profile?.weightGoal || 'maintain'}`,
+    ]
+
+    if (profile?.dietaryPreferences && profile.dietaryPreferences.length > 0) {
+      lines.push(`- Dietary preferences: ${profile.dietaryPreferences.join(', ')}`)
+    }
+
+    return lines.join('\n')
+  } catch {
+    return '' // Silent failure — tracker data is optional
+  }
+}
+
 // ─── System Prompt Builder ───────────────────────────────────────────────────
 
-function buildSystemPrompt(context: PatientContext, insightsSummary: string): string {
+function buildSystemPrompt(context: PatientContext, insightsSummary: string, trackerContext: string = ''): string {
   const conditionDietaryNotes: string[] = []
 
   for (const condition of context.chronicConditions) {
@@ -303,6 +362,7 @@ ${diagnosisNote ? `- ${diagnosisNote}` : ''}
 ${conditionDietaryNotes.length > 0 ? 'CONDITION-SPECIFIC DIETARY GUIDANCE:\n' + conditionDietaryNotes.join('\n') : ''}
 
 ${insightsSummary}
+${trackerContext}
 
 YOUR ROLE AND GUIDELINES:
 1. Provide personalized wellness, diet, nutrition, and exercise recommendations based on the patient's health profile and recent history above.
@@ -354,6 +414,9 @@ export async function chatWithAssistant(
   // Tool call #1: Retrieve recent dietary/health insights from DB
   const insightsSummary = await getRecentInsights(userId, 14)
 
+  // Get today's health tracker data for personalized context
+  const trackerContext = await getTrackerContext(userId)
+
   // Create or retrieve session
   let session: { id: string; title: string }
   if (sessionId) {
@@ -381,7 +444,7 @@ export async function chatWithAssistant(
   })
 
   // Build the message array with patient context + dietary history
-  const systemPrompt = buildSystemPrompt(patientContext, insightsSummary)
+  const systemPrompt = buildSystemPrompt(patientContext, insightsSummary, trackerContext)
   const groqMessages: GroqMessage[] = [
     { role: 'system', content: systemPrompt },
     ...previousMessages.map(m => ({

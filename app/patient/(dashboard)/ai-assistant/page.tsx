@@ -1,9 +1,9 @@
 'use client'
 
 import { usePatientData } from '../context'
-import BotHealthAssistant from '../components/BotHealthAssistant'
+import HealthTrackerTabs from '@/components/health-tracker/HealthTrackerTabs'
 
 export default function AiAssistantPage() {
   const patientData = usePatientData()
-  return <BotHealthAssistant patientData={patientData} />
+  return <HealthTrackerTabs patientData={patientData} />
 }

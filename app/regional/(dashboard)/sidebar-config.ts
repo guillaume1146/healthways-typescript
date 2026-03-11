@@ -1,4 +1,4 @@
-import { FaHome, FaNewspaper, FaUsers, FaFileAlt, FaShieldAlt, FaComments, FaVideo, FaMoneyBillWave, FaToggleOn, FaClipboardList, FaBell, FaSearch, FaUserMd, FaUserNurse, FaBaby, FaFlask, FaAmbulance, FaCapsules } from 'react-icons/fa'
+import { FaHome, FaNewspaper, FaUsers, FaFileAlt, FaShieldAlt, FaComments, FaVideo, FaMoneyBillWave, FaToggleOn, FaClipboardList, FaBell, FaSearch, FaUserMd, FaUserNurse, FaBaby, FaFlask, FaAmbulance, FaCapsules, FaRobot } from 'react-icons/fa'
 import type { SidebarItem } from '@/components/dashboard/DashboardSidebar'
 import { createGetActiveSectionFromPath } from '@/lib/dashboard/getActiveSectionFromPath'
 
@@ -16,6 +16,7 @@ export const REGIONAL_ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
   { id: 'role-config', label: 'Role Config', labelKey: 'nav.roleConfig', icon: FaToggleOn, color: 'text-indigo-600', bgColor: 'bg-indigo-50', href: `${base}/role-config` },
   { id: 'required-documents', label: 'Documents Config', labelKey: 'nav.requiredDocs', icon: FaClipboardList, color: 'text-amber-600', bgColor: 'bg-amber-50', href: `${base}/required-documents` },
   { id: 'notifications', label: 'Notifications', labelKey: 'nav.notifications', icon: FaBell, color: 'text-yellow-600', bgColor: 'bg-yellow-50', href: `${base}/notifications` },
+  { id: 'ai-assistant', label: 'AI Health Assistant', labelKey: 'nav.aiAssistant', icon: FaRobot, color: 'text-indigo-600', bgColor: 'bg-indigo-50', href: `${base}/ai-assistant` },
   { id: 'divider-search', label: 'Search & Browse', icon: FaSearch, color: 'text-gray-400', bgColor: 'bg-gray-50', href: '', divider: true },
   { id: 'search-doctors', label: 'Find Doctors', icon: FaUserMd, color: 'text-blue-600', bgColor: 'bg-blue-50', href: `${base}/search/doctors` },
   { id: 'search-nurses', label: 'Find Nurses', icon: FaUserNurse, color: 'text-purple-600', bgColor: 'bg-purple-50', href: `${base}/search/nurses` },

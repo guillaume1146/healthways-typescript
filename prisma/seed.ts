@@ -22,6 +22,8 @@ import { seedRoleConfig } from './seeds/20-role-config.seed'
 import { seedRequiredDocuments } from './seeds/21-required-documents.seed'
 import { seedProviderReviews } from './seeds/22-provider-reviews.seed'
 import { seedConnections } from './seeds/23-connections.seed'
+import { seedFoodDatabase } from './seeds/24-food-database.seed'
+import { seedHealthTrackerDemo } from './seeds/25-health-tracker-demo.seed'
 
 const prisma = new PrismaClient()
 
@@ -53,6 +55,15 @@ async function main() {
   await prisma.labTestCatalog.deleteMany()
   await prisma.emergencyServiceListing.deleteMany()
   await prisma.insurancePlanListing.deleteMany()
+
+  // 0d. Health Tracker tables
+  await prisma.mealPlanEntry.deleteMany()
+  await prisma.dailyGoalSnapshot.deleteMany()
+  await prisma.waterEntry.deleteMany()
+  await prisma.exerciseEntry.deleteMany()
+  await prisma.foodEntry.deleteMany()
+  await prisma.healthTrackerProfile.deleteMany()
+  await prisma.foodDatabase.deleteMany()
 
   // 1. Cross-cutting models
   await prisma.notification.deleteMany()
@@ -142,6 +153,8 @@ async function main() {
   await seedRequiredDocuments(prisma)
   await seedProviderReviews(prisma)
   await seedConnections(prisma)
+  await seedFoodDatabase(prisma)
+  await seedHealthTrackerDemo(prisma)
 
   console.log('Database seeded successfully!')
 }
