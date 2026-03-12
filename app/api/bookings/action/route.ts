@@ -4,6 +4,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { processServicePayment } from '@/lib/commission'
 import { createNotification } from '@/lib/notifications'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { resolveAndConfirmBooking, resolveAndDenyBooking } from '@/lib/bookings/resolve-booking'
 import { z } from 'zod'
 
 const actionSchema = z.object({
@@ -15,8 +16,6 @@ const actionSchema = z.object({
 /**
  * POST /api/bookings/action
  * Unified accept/deny endpoint for all booking types.
- * On accept: confirms booking + processes payment via commission system.
- * On deny: sets status to 'cancelled' and notifies patient.
  */
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -40,239 +39,120 @@ export async function POST(request: NextRequest) {
     const { bookingId, bookingType, action } = parsed.data
 
     if (action === 'deny') {
-      return handleDeny(bookingId, bookingType, auth.sub)
+      const denyResult = await resolveAndDenyBooking(bookingId, bookingType, auth.sub)
+      if (denyResult.error) {
+        return NextResponse.json({ success: false, message: denyResult.error.message }, { status: denyResult.error.status })
+      }
+      if (denyResult.patientUserId) {
+        await createNotification({
+          userId: denyResult.patientUserId,
+          type: 'booking_declined',
+          title: 'Booking Declined',
+          message: `Your ${denyResult.description} request has been declined by the provider.`,
+          referenceId: bookingId,
+          referenceType: bookingType === 'doctor' ? 'appointment' : `${bookingType}_booking`,
+        })
+      }
+      return NextResponse.json({ success: true, message: 'Booking declined' })
     }
 
-    // Accept flow — delegates to confirm logic
-    return handleAccept(bookingId, bookingType, auth.sub)
+    // Accept flow — emergency has special handling
+    if (bookingType === 'emergency') {
+      const responderProfile = await prisma.emergencyWorkerProfile.findUnique({
+        where: { userId: auth.sub },
+        select: { id: true },
+      })
+      if (!responderProfile) {
+        return NextResponse.json({ success: false, message: 'Responder profile not found' }, { status: 404 })
+      }
+      const booking = await prisma.emergencyBooking.findUnique({
+        where: { id: bookingId },
+        include: { patient: { select: { userId: true } } },
+      })
+      if (!booking) {
+        return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
+      }
+      await prisma.emergencyBooking.update({
+        where: { id: bookingId },
+        data: { status: 'dispatched', responderId: responderProfile.id },
+      })
+
+      // Auto-create conversation between responder and patient
+      try {
+        const existing = await prisma.conversation.findFirst({
+          where: {
+            type: 'direct',
+            AND: [
+              { participants: { some: { userId: auth.sub } } },
+              { participants: { some: { userId: booking.patient.userId } } },
+            ],
+          },
+        })
+        if (!existing) {
+          await prisma.conversation.create({
+            data: {
+              type: 'direct',
+              participants: { create: [{ userId: auth.sub }, { userId: booking.patient.userId }] },
+            },
+          })
+        }
+      } catch { /* conversation creation is best-effort */ }
+
+      await createNotification({
+        userId: booking.patient.userId,
+        type: 'booking_confirmed',
+        title: 'Emergency Responder Dispatched',
+        message: 'An emergency responder has been dispatched to your location.',
+        referenceId: bookingId,
+        referenceType: 'emergency_booking',
+      })
+
+      return NextResponse.json({ success: true, message: 'Emergency booking accepted — responder dispatched' })
+    }
+
+    // Standard accept flow using shared resolver
+    const result = await resolveAndConfirmBooking(bookingId, bookingType, auth.sub)
+    if (result.error) {
+      return NextResponse.json({ success: false, message: result.error.message }, { status: result.error.status })
+    }
+
+    const { patientUserId, amount, description, serviceType } = result.data!
+
+    const paymentResult = await processServicePayment({
+      patientUserId,
+      providerUserId: result.data!.providerUserId,
+      amount,
+      description,
+      serviceType,
+      referenceId: bookingId,
+    })
+
+    if (!paymentResult.success) {
+      if (paymentResult.error === 'INSUFFICIENT_BALANCE') {
+        return NextResponse.json({ success: false, message: 'Patient has insufficient balance' }, { status: 400 })
+      }
+      if (paymentResult.error === 'WALLET_NOT_FOUND') {
+        return NextResponse.json({ success: false, message: 'Patient wallet not found' }, { status: 400 })
+      }
+      return NextResponse.json({ success: false, message: 'Payment processing failed' }, { status: 500 })
+    }
+
+    await createNotification({
+      userId: patientUserId,
+      type: 'booking_confirmed',
+      title: 'Booking Confirmed',
+      message: `Your ${description} has been confirmed. Rs ${amount} has been charged.`,
+      referenceId: bookingId,
+      referenceType: bookingType === 'doctor' ? 'appointment' : `${bookingType}_booking`,
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Booking confirmed and payment processed',
+      data: { amount, description },
+    })
   } catch (error) {
     console.error('POST /api/bookings/action error:', error)
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
-}
-
-async function handleDeny(bookingId: string, bookingType: string, providerUserId: string) {
-  let patientUserId: string | null = null
-  let description = ''
-
-  if (bookingType === 'doctor') {
-    const booking = await prisma.appointment.findUnique({
-      where: { id: bookingId },
-      include: { doctor: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (booking.doctor.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    description = 'Doctor consultation'
-    await prisma.appointment.update({ where: { id: bookingId }, data: { status: 'cancelled' } })
-
-  } else if (bookingType === 'nurse') {
-    const booking = await prisma.nurseBooking.findUnique({
-      where: { id: bookingId },
-      include: { nurse: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (booking.nurse.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    description = 'Nurse visit'
-    await prisma.nurseBooking.update({ where: { id: bookingId }, data: { status: 'cancelled' } })
-
-  } else if (bookingType === 'nanny') {
-    const booking = await prisma.childcareBooking.findUnique({
-      where: { id: bookingId },
-      include: { nanny: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (booking.nanny.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    description = 'Childcare session'
-    await prisma.childcareBooking.update({ where: { id: bookingId }, data: { status: 'cancelled' } })
-
-  } else if (bookingType === 'lab_test') {
-    const booking = await prisma.labTestBooking.findUnique({
-      where: { id: bookingId },
-      include: { labTech: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (!booking.labTech || booking.labTech.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    description = `Lab test: ${booking.testName}`
-    await prisma.labTestBooking.update({ where: { id: bookingId }, data: { status: 'cancelled' } })
-
-  } else if (bookingType === 'emergency') {
-    const booking = await prisma.emergencyBooking.findUnique({
-      where: { id: bookingId },
-      include: { patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    patientUserId = booking.patient.userId
-    description = 'Emergency request'
-    await prisma.emergencyBooking.update({ where: { id: bookingId }, data: { status: 'cancelled' } })
-  }
-
-  if (patientUserId) {
-    await createNotification({
-      userId: patientUserId,
-      type: 'booking_declined',
-      title: 'Booking Declined',
-      message: `Your ${description} request has been declined by the provider.`,
-      referenceId: bookingId,
-      referenceType: bookingType === 'doctor' ? 'appointment' : `${bookingType}_booking`,
-    })
-  }
-
-  return NextResponse.json({ success: true, message: 'Booking declined' })
-}
-
-async function handleAccept(bookingId: string, bookingType: string, providerUserId: string) {
-  let patientUserId: string | null = null
-  let amount = 0
-  let description = ''
-
-  if (bookingType === 'doctor') {
-    const appointment = await prisma.appointment.findUnique({
-      where: { id: bookingId },
-      include: {
-        doctor: { select: { userId: true, consultationFee: true, videoConsultationFee: true } },
-        patient: { select: { userId: true } },
-      },
-    })
-    if (!appointment) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (appointment.doctor.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = appointment.patient.userId
-    amount = appointment.servicePrice
-      ?? (appointment.type === 'video' ? appointment.doctor.videoConsultationFee : appointment.doctor.consultationFee)
-    description = appointment.serviceName
-      ? `Doctor: ${appointment.serviceName} (${appointment.type})`
-      : `Doctor consultation (${appointment.type})`
-    await prisma.appointment.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
-
-  } else if (bookingType === 'nurse') {
-    const booking = await prisma.nurseBooking.findUnique({
-      where: { id: bookingId },
-      include: { nurse: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (booking.nurse.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    amount = booking.servicePrice ?? 500
-    description = booking.serviceName ? `Nurse: ${booking.serviceName} (${booking.type})` : `Nurse visit (${booking.type})`
-    await prisma.nurseBooking.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
-
-  } else if (bookingType === 'nanny') {
-    const booking = await prisma.childcareBooking.findUnique({
-      where: { id: bookingId },
-      include: { nanny: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (booking.nanny.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    amount = booking.servicePrice ?? 400
-    description = booking.serviceName ? `Childcare: ${booking.serviceName} (${booking.type})` : `Childcare session (${booking.type})`
-    await prisma.childcareBooking.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
-
-  } else if (bookingType === 'lab_test') {
-    const booking = await prisma.labTestBooking.findUnique({
-      where: { id: bookingId },
-      include: { labTech: { select: { userId: true } }, patient: { select: { userId: true } } },
-    })
-    if (!booking) return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    if (!booking.labTech || booking.labTech.userId !== providerUserId) return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 })
-    patientUserId = booking.patient.userId
-    amount = booking.price ?? 500
-    description = `Lab test: ${booking.testName}`
-    await prisma.labTestBooking.update({ where: { id: bookingId }, data: { status: 'upcoming' } })
-
-  } else if (bookingType === 'emergency') {
-    // Resolve responder profile ID from user ID
-    const responderProfile = await prisma.emergencyWorkerProfile.findUnique({
-      where: { userId: providerUserId },
-      select: { id: true },
-    })
-    if (!responderProfile) {
-      return NextResponse.json({ success: false, message: 'Responder profile not found' }, { status: 404 })
-    }
-    const booking = await prisma.emergencyBooking.findUnique({
-      where: { id: bookingId },
-      include: { patient: { select: { userId: true } } },
-    })
-    if (!booking) {
-      return NextResponse.json({ success: false, message: 'Booking not found' }, { status: 404 })
-    }
-    await prisma.emergencyBooking.update({
-      where: { id: bookingId },
-      data: { status: 'dispatched', responderId: responderProfile.id },
-    })
-
-    // Auto-create conversation between responder and patient
-    try {
-      const existing = await prisma.conversation.findFirst({
-        where: {
-          type: 'direct',
-          AND: [
-            { participants: { some: { userId: providerUserId } } },
-            { participants: { some: { userId: booking.patient.userId } } },
-          ],
-        },
-      })
-      if (!existing) {
-        await prisma.conversation.create({
-          data: {
-            type: 'direct',
-            participants: { create: [{ userId: providerUserId }, { userId: booking.patient.userId }] },
-          },
-        })
-      }
-    } catch { /* silent */ }
-
-    await createNotification({
-      userId: booking.patient.userId,
-      type: 'booking_confirmed',
-      title: 'Emergency Responder Dispatched',
-      message: 'An emergency responder has been dispatched to your location.',
-      referenceId: bookingId,
-      referenceType: 'emergency_booking',
-    })
-
-    return NextResponse.json({ success: true, message: 'Emergency booking accepted — responder dispatched' })
-  }
-
-  if (!patientUserId) {
-    return NextResponse.json({ success: false, message: 'Could not determine patient' }, { status: 400 })
-  }
-
-  // Process payment with commission split
-  const paymentResult = await processServicePayment({
-    patientUserId,
-    providerUserId,
-    amount,
-    description,
-    serviceType: bookingType === 'lab_test' ? 'lab_test' : bookingType === 'doctor' ? 'consultation' : bookingType,
-    referenceId: bookingId,
-  })
-
-  if (!paymentResult.success) {
-    if (paymentResult.error === 'INSUFFICIENT_BALANCE') {
-      return NextResponse.json({ success: false, message: 'Patient has insufficient balance' }, { status: 400 })
-    }
-    if (paymentResult.error === 'WALLET_NOT_FOUND') {
-      return NextResponse.json({ success: false, message: 'Patient wallet not found' }, { status: 400 })
-    }
-    return NextResponse.json({ success: false, message: 'Payment processing failed' }, { status: 500 })
-  }
-
-  await createNotification({
-    userId: patientUserId,
-    type: 'booking_confirmed',
-    title: 'Booking Confirmed',
-    message: `Your ${description} has been confirmed. Rs ${amount} has been charged.`,
-    referenceId: bookingId,
-    referenceType: bookingType === 'doctor' ? 'appointment' : `${bookingType}_booking`,
-  })
-
-  return NextResponse.json({
-    success: true,
-    message: 'Booking confirmed and payment processed',
-    data: { amount, description },
-  })
 }

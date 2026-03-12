@@ -10,14 +10,14 @@ export async function POST(request: NextRequest) {
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 
   try {
     const body = await request.json()
     const parsed = createWebRTCSessionSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: parsed.error.issues[0].message },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
@@ -30,41 +30,10 @@ export async function POST(request: NextRequest) {
     })
 
     if (!videoRoom) {
-      // Create room on-the-fly if it doesn't exist
-      const newRoom = await prisma.videoRoom.create({
-        data: {
-          roomCode: roomId,
-          creatorId: userId,
-          status: 'active',
-          maxParticipants: 2
-        }
-      })
-
-      const session = await prisma.videoCallSession.create({
-        data: {
-          roomId: newRoom.id,
-          userId,
-          status: 'active',
-        }
-      })
-
-      // Track the connection with userName for display
-      if (userName) {
-        await prisma.webRTCConnection.create({
-          data: { sessionId: session.id, userId, userName, connectionState: 'new' }
-        }).catch(() => {})
-      }
-
-      return NextResponse.json({
-        data: {
-          session: {
-            id: session.id,
-            roomId,
-            status: session.status,
-            isActive: true
-          }
-        }
-      })
+      return NextResponse.json(
+        { success: false, message: 'Video room not found. Create a room via /api/video/room first.' },
+        { status: 404 }
+      )
     }
 
     // Check for existing active session
@@ -125,7 +94,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to create session:', error)
     return NextResponse.json(
-      { error: 'Failed to create session' },
+      { success: false, message: 'Failed to create session' },
       { status: 500 }
     )
   }
@@ -137,7 +106,7 @@ export async function GET(request: NextRequest) {
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 
   try {
     const { searchParams } = new URL(request.url)
@@ -145,7 +114,7 @@ export async function GET(request: NextRequest) {
 
     if (!roomId) {
       return NextResponse.json(
-        { error: 'roomId is required' },
+        { success: false, message: 'roomId is required' },
         { status: 400 }
       )
     }
@@ -181,7 +150,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to check session:', error)
     return NextResponse.json(
-      { error: 'Failed to check session' },
+      { success: false, message: 'Failed to check session' },
       { status: 500 }
     )
   }
@@ -193,7 +162,7 @@ export async function PATCH(request: NextRequest) {
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 
   try {
     const body = await request.json()
@@ -201,7 +170,7 @@ export async function PATCH(request: NextRequest) {
 
     if (!sessionId) {
       return NextResponse.json(
-        { error: 'sessionId is required' },
+        { success: false, message: 'sessionId is required' },
         { status: 400 }
       )
     }
@@ -217,7 +186,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error('Failed to update session:', error)
     return NextResponse.json(
-      { error: 'Failed to update session' },
+      { success: false, message: 'Failed to update session' },
       { status: 500 }
     )
   }
@@ -229,7 +198,7 @@ export async function DELETE(request: NextRequest) {
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
 
   try {
     const { searchParams } = new URL(request.url)
@@ -237,7 +206,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!sessionId) {
       return NextResponse.json(
-        { error: 'sessionId is required' },
+        { success: false, message: 'sessionId is required' },
         { status: 400 }
       )
     }
@@ -254,7 +223,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Failed to end session:', error)
     return NextResponse.json(
-      { error: 'Failed to end session' },
+      { success: false, message: 'Failed to end session' },
       { status: 500 }
     )
   }

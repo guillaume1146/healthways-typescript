@@ -39,6 +39,7 @@ export default function FoodDiaryTab() {
   const [error, setError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [addMealType, setAddMealType] = useState('breakfast')
+  const [actionError, setActionError] = useState('')
 
   const dateStr = selectedDate.toISOString().split('T')[0]
 
@@ -80,7 +81,8 @@ export default function FoodDiaryTab() {
       if (!res.ok) throw new Error('Failed to delete')
       await fetchData()
     } catch {
-      // Refresh anyway
+      setActionError('Failed to delete food entry')
+      setTimeout(() => setActionError(''), 4000)
       await fetchData()
     }
   }
@@ -105,7 +107,8 @@ export default function FoodDiaryTab() {
       setShowAddModal(false)
       await fetchData()
     } catch {
-      // Keep modal open on error
+      setActionError('Failed to add food entry')
+      setTimeout(() => setActionError(''), 4000)
     }
   }
 
@@ -138,6 +141,12 @@ export default function FoodDiaryTab() {
 
   return (
     <div className="p-4 space-y-4">
+      {actionError && (
+        <div className="mx-4 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex justify-between items-center">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError('')} className="text-red-500 hover:text-red-700 ml-2">&#10005;</button>
+        </div>
+      )}
       {/* Date Selector */}
       <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-3">
         <button

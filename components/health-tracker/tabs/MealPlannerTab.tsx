@@ -152,22 +152,19 @@ export default function MealPlannerTab() {
   const handleAddToDiary = async (meal: MealPlanMeal) => {
     try {
       setAddingMealId(meal.id)
+      const today = new Date().toISOString().split('T')[0]
       const res = await fetch('/api/ai/health-tracker/meal-plan/add-to-diary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mealPlanMealId: meal.id,
-          name: meal.name,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fat: meal.fat,
-          mealType: meal.mealType,
+          mealPlanEntryId: meal.id,
+          date: today,
         }),
       })
       if (!res.ok) throw new Error('Failed to add to diary')
     } catch {
-      // Silently fail
+      setError('Failed to add meal to diary')
+      setTimeout(() => setError(''), 4000)
     } finally {
       setAddingMealId(null)
     }

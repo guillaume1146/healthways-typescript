@@ -56,7 +56,8 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
       if (!res.ok) throw new Error('Failed to log water')
       await fetchData()
     } catch {
-      // Silently fail, data will refresh
+      setError('Failed to log water')
+      setTimeout(() => setError(''), 4000)
     }
   }
 

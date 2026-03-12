@@ -79,6 +79,33 @@ export async function POST(request: NextRequest) {
         throw { code: 'OUT_OF_STOCK', details: unavailable }
       }
 
+      // Check prescription requirements
+      const prescriptionRequired: string[] = []
+      for (let i = 0; i < items.length; i++) {
+        const med = medicines[i]
+        if (med?.requiresPrescription) {
+          prescriptionRequired.push(med.name)
+        }
+      }
+      if (prescriptionRequired.length > 0) {
+        // Check if patient has a valid prescription for these medicines
+        const prescriptionMeds = await tx.prescriptionMedicine.findMany({
+          where: {
+            prescription: {
+              patientId: patientProfile.id,
+              isActive: true,
+            },
+            medicine: { name: { in: prescriptionRequired } },
+          },
+          select: { medicine: { select: { name: true } } },
+        })
+        const coveredMedicines = new Set(prescriptionMeds.map((pm: { medicine: { name: string } }) => pm.medicine.name))
+        const uncovered = prescriptionRequired.filter(name => !coveredMedicines.has(name))
+        if (uncovered.length > 0) {
+          throw { code: 'PRESCRIPTION_REQUIRED', details: uncovered }
+        }
+      }
+
       // Calculate total
       const total = items.reduce((sum, item, i) => {
         return sum + medicines[i]!.price * item.quantity
@@ -238,6 +265,17 @@ export async function POST(request: NextRequest) {
             message: 'Insufficient wallet balance',
             required: err.required,
             available: err.available,
+          },
+          { status: 400 }
+        )
+      }
+
+      if (err.code === 'PRESCRIPTION_REQUIRED') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Prescription required for some medicines',
+            details: err.details,
           },
           { status: 400 }
         )

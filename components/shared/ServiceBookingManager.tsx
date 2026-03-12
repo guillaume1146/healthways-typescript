@@ -566,7 +566,7 @@ export function nannyBookingConfig(): ServiceBookingConfig {
         return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">{type.replace(/_/g, ' ')}</span>
       }},
       { key: 'children', label: 'Children', accessor: (b) => {
-        const names = b.childrenNames as string[] | undefined
+        const names = (b.children ?? b.childrenNames) as string[] | undefined
         return <span className="text-sm text-gray-700">{names?.join(', ') || '-'}</span>
       }},
       { key: 'scheduledAt', label: 'Date', accessor: 'scheduledAt' },

@@ -34,6 +34,7 @@ export default function ExerciseTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   // Form state
   const [formExerciseType, setFormExerciseType] = useState('Walking')
@@ -76,6 +77,8 @@ export default function ExerciseTab() {
       if (!res.ok) throw new Error('Failed to delete')
       await fetchData()
     } catch {
+      setActionError('Failed to delete exercise')
+      setTimeout(() => setActionError(''), 4000)
       await fetchData()
     }
   }
@@ -100,7 +103,8 @@ export default function ExerciseTab() {
       resetForm()
       await fetchData()
     } catch {
-      // Keep modal open
+      setActionError('Failed to log exercise')
+      setTimeout(() => setActionError(''), 4000)
     } finally {
       setSubmitting(false)
     }
@@ -132,6 +136,12 @@ export default function ExerciseTab() {
 
   return (
     <div className="p-4 space-y-4">
+      {actionError && (
+        <div className="mx-4 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex justify-between items-center">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError('')} className="text-red-500 hover:text-red-700 ml-2">&#10005;</button>
+        </div>
+      )}
       {/* Date Selector */}
       <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-3">
         <button
