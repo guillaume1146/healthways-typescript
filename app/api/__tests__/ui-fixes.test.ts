@@ -185,8 +185,8 @@ describe('Fix 8: Wallet Reset', () => {
   })
 
   it('should not allow resetting another users wallet', () => {
-    const authUserId = 'PAT001'
-    const targetUserId = 'PAT002'
+    const authUserId: string = 'PAT001'
+    const targetUserId: string = 'PAT002'
 
     // Ownership check
     expect(authUserId === targetUserId).toBe(false)
