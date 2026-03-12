@@ -51,9 +51,10 @@ function timeAgo(dateStr: string): string {
 }
 
 function getNotificationHref(n: NotificationItem, profileHref: string): string | null {
-  if (!n.referenceType) return null
   const base = profileHref.replace(/\/profile$/, '')
-  switch (n.referenceType) {
+  const key = n.referenceType || n.type || ''
+
+  switch (key) {
     case 'appointment':
     case 'doctor_booking':
     case 'nurse_booking':
@@ -61,6 +62,7 @@ function getNotificationHref(n: NotificationItem, profileHref: string): string |
       return `${base}/appointments`
     case 'lab_test_booking':
     case 'lab-test':
+    case 'lab_result':
       return `${base}/health-records`
     case 'emergency_booking':
     case 'emergency':
@@ -72,8 +74,25 @@ function getNotificationHref(n: NotificationItem, profileHref: string): string |
     case 'connection':
       return `${base}/network`
     default:
-      return null
+      break
   }
+
+  // Fallback: match on title keywords
+  const title = n.title.toLowerCase()
+  if (title.includes('appointment') || title.includes('consultation') || title.includes('booking'))
+    return `${base}/appointments`
+  if (title.includes('prescription') || title.includes('refill') || title.includes('medication'))
+    return `${base}/prescriptions`
+  if (title.includes('lab') || title.includes('result') || title.includes('test'))
+    return `${base}/health-records`
+  if (title.includes('message') || title.includes('chat'))
+    return `${base}/chat`
+  if (title.includes('connection') || title.includes('network') || title.includes('request'))
+    return `${base}/network`
+  if (title.includes('emergency'))
+    return `${base}/emergency`
+
+  return null
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -291,7 +310,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </button>
 
               {showDropdown && (
-                <div role="region" aria-label="Notifications" aria-live="polite" className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[70vh] overflow-hidden">
+                <div role="region" aria-label="Notifications" aria-live="polite" className="fixed left-0 right-0 top-[52px] sm:absolute sm:left-auto sm:right-0 sm:top-full mt-0 sm:mt-2 w-full sm:w-96 bg-white sm:rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-52px)] sm:max-h-[70vh] overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
                     <h3 className="font-semibold text-gray-900 text-sm" id="notifications-heading">Notifications</h3>
                     {notifications.some(n => !n.readAt) && (
