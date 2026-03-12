@@ -35,14 +35,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Accept any image type — normalize unknown types to the file's declared type
+    // Accept images, PDFs, and Word documents
     const fileType = file.type || 'application/octet-stream'
     const isImage = fileType.startsWith('image/')
     const isPdf = fileType === 'application/pdf'
+    const isWord = fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      || fileType === 'application/msword'
 
-    if (!isImage && !isPdf) {
+    if (!isImage && !isPdf && !isWord) {
       return NextResponse.json(
-        { success: false, message: 'Unsupported file type. Use an image (PNG, JPG, WEBP, etc.) or PDF.' },
+        { success: false, message: 'Unsupported file type. Use an image (PNG, JPG, WEBP, etc.), PDF, or Word document.' },
         { status: 400 }
       )
     }

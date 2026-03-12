@@ -1,9 +1,10 @@
-// ─── Document Verification via Groq VLM (Llama 4 Scout) ─────────────────────
-// Uses a Vision-Language Model instead of traditional OCR (Tesseract) for:
-// - Spatial awareness (understands document layout)
-// - Better accuracy on rotated/shadowed/complex documents
-// - Structured JSON extraction from the model
-// - Support for all image formats and PDFs
+// ─── Document Verification via Groq LLM / VLM ───────────────────────────────
+// ALL verification is done by the AI model — no regex, no manual name matching.
+//
+// - Images (PNG, JPG, WEBP, etc.) → VLM (Llama 4 Scout) analyzes visually
+// - PDFs → extract text via pdfjs-dist → send text to LLM for analysis
+// - Word docs (.docx) → extract text via mammoth → send text to LLM for analysis
+// - Scanned PDFs (no text) → fallback to manual review
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,92 +19,13 @@ export interface VerificationResult {
   confidence: number
   nameFound: boolean
   matchDetails: MatchDetails
-  method: 'vlm' | 'pdf-text' | 'vlm-fallback'
+  method: 'vlm' | 'llm-text' | 'fallback'
   extractedTextPreview: string
 }
 
-// ─── Text Normalization (kept for PDF text fallback) ─────────────────────────
+// ─── Groq API Response ───────────────────────────────────────────────────────
 
-function normalize(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-// ─── Name Matching (used for PDF text extraction path) ───────────────────────
-
-function levenshtein(a: string, b: string): number {
-  if (a.length === 0) return b.length
-  if (b.length === 0) return a.length
-  const matrix: number[][] = []
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i]
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      const cost = b[i - 1] === a[j - 1] ? 0 : 1
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
-      )
-    }
-  }
-  return matrix[b.length][a.length]
-}
-
-export function matchName(
-  fullName: string,
-  ocrText: string
-): { nameFound: boolean; confidence: number; details: MatchDetails } {
-  const normalizedText = normalize(ocrText)
-  const nameParts = normalize(fullName)
-    .split(' ')
-    .filter((p) => p.length >= 2)
-
-  if (nameParts.length === 0) {
-    return {
-      nameFound: false,
-      confidence: 0,
-      details: { searchedParts: [], foundParts: [], missingParts: [] },
-    }
-  }
-
-  const ocrWords = normalizedText.split(' ').filter((w) => w.length >= 2)
-  const foundParts: string[] = []
-  const missingParts: string[] = []
-
-  for (const part of nameParts) {
-    let found = false
-    if (normalizedText.includes(part)) found = true
-    if (!found) {
-      const maxDistance = part.length <= 4 ? 1 : 2
-      for (const word of ocrWords) {
-        if (Math.abs(word.length - part.length) > maxDistance) continue
-        if (levenshtein(part, word) <= maxDistance) {
-          found = true
-          break
-        }
-      }
-    }
-    if (found) foundParts.push(part)
-    else missingParts.push(part)
-  }
-
-  const confidence = Math.round((foundParts.length / nameParts.length) * 100)
-  return {
-    nameFound: missingParts.length === 0,
-    confidence,
-    details: { searchedParts: nameParts, foundParts, missingParts },
-  }
-}
-
-// ─── Groq VLM Verification ───────────────────────────────────────────────────
-
-interface GroqVLMResponse {
+interface GroqVerificationResponse {
   name_found: boolean
   confidence: number
   extracted_name: string
@@ -113,54 +35,59 @@ interface GroqVLMResponse {
   reasoning: string
 }
 
-/**
- * Convert a buffer to a base64 data URL for the Groq VLM API.
- */
-function bufferToBase64DataUrl(buffer: Buffer, mimeType: string): string {
-  const base64 = buffer.toString('base64')
-  return `data:${mimeType};base64,${base64}`
-}
+// ─── Verification Prompt (shared between VLM and LLM) ───────────────────────
 
-/**
- * Verify a document using Groq's Llama 4 Scout VLM.
- * The model analyzes the image/document visually and checks if the given name appears.
- */
-async function verifyWithVLM(
-  base64DataUrl: string,
-  fullName: string,
-  documentType: string
-): Promise<GroqVLMResponse | null> {
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) {
-    console.error('GROQ_API_KEY not set — cannot use VLM verification')
-    return null
-  }
-
+function buildVerificationPrompt(fullName: string, documentType: string): string {
   const nameParts = fullName.trim().split(/\s+/)
-
-  const prompt = `You are a document verification assistant. Analyze this document image and verify if the person's name appears in it.
+  return `You are a document verification assistant. Your task is to verify if a person's name appears in a document.
 
 Person's full name to verify: "${fullName}"
 Name parts to search for: ${JSON.stringify(nameParts)}
 Expected document type: "${documentType}"
 
 Instructions:
-1. Look at the entire document carefully — examine all text, headers, fields, stamps, and signatures.
-2. Check if the name "${fullName}" (or close variations) appears anywhere in the document.
+1. Examine all text, headers, fields, stamps, signatures, and any visible content.
+2. Check if the name "${fullName}" (or close variations, misspellings, different orderings) appears.
 3. For each part of the name (${nameParts.join(', ')}), determine if it is present.
-4. Assess your confidence (0-100) that this document belongs to the named person.
+4. Assess your confidence (0-100) that this document belongs to or references the named person.
 5. Identify what type of document this appears to be.
+6. Be lenient with minor spelling differences, accent marks, or character variations.
 
-Respond ONLY with a valid JSON object (no markdown, no code blocks):
+Respond ONLY with a valid JSON object (no markdown, no code blocks, no extra text):
 {
-  "name_found": true/false,
-  "confidence": 0-100,
+  "name_found": true or false,
+  "confidence": number between 0 and 100,
   "extracted_name": "the name as it appears in the document, or empty string if not found",
   "found_parts": ["list", "of", "found", "name", "parts"],
   "missing_parts": ["list", "of", "missing", "name", "parts"],
-  "document_type_detected": "e.g. National ID, Passport, Medical License, etc.",
+  "document_type_detected": "e.g. National ID, Passport, Medical License, Business Plan, etc.",
   "reasoning": "brief explanation of how you verified"
 }`
+}
+
+// ─── VLM: Verify image documents visually ────────────────────────────────────
+
+async function verifyImageWithVLM(
+  buffer: Buffer,
+  mimeType: string,
+  fullName: string,
+  documentType: string
+): Promise<GroqVerificationResponse | null> {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    console.error('GROQ_API_KEY not set — VLM verification unavailable')
+    return null
+  }
+
+  // Base64 encode (Groq limit ~4MB for encoded images)
+  if (buffer.length > 4 * 1024 * 1024) {
+    console.error('Image too large for VLM (>4MB)')
+    return null
+  }
+
+  const base64 = buffer.toString('base64')
+  const dataUrl = `data:${mimeType};base64,${base64}`
+  const prompt = buildVerificationPrompt(fullName, documentType)
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -171,18 +98,13 @@ Respond ONLY with a valid JSON object (no markdown, no code blocks):
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              {
-                type: 'image_url',
-                image_url: { url: base64DataUrl },
-              },
-            ],
-          },
-        ],
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: dataUrl } },
+          ],
+        }],
         temperature: 0.1,
         max_completion_tokens: 512,
         response_format: { type: 'json_object' },
@@ -190,8 +112,8 @@ Respond ONLY with a valid JSON object (no markdown, no code blocks):
     })
 
     if (!response.ok) {
-      const errorBody = await response.text()
-      console.error('Groq VLM API error:', response.status, errorBody)
+      const err = await response.text()
+      console.error('Groq VLM error:', response.status, err)
       return null
     }
 
@@ -199,15 +121,66 @@ Respond ONLY with a valid JSON object (no markdown, no code blocks):
     const content = data.choices?.[0]?.message?.content
     if (!content) return null
 
-    const parsed = JSON.parse(content) as GroqVLMResponse
-    return parsed
+    return JSON.parse(content) as GroqVerificationResponse
   } catch (err) {
-    console.error('Groq VLM verification failed:', err)
+    console.error('VLM verification failed:', err)
     return null
   }
 }
 
-// ─── PDF Text Extraction (kept as fast path for text-based PDFs) ─────────────
+// ─── LLM: Verify text-based documents ────────────────────────────────────────
+
+async function verifyTextWithLLM(
+  extractedText: string,
+  fullName: string,
+  documentType: string
+): Promise<GroqVerificationResponse | null> {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    console.error('GROQ_API_KEY not set — LLM verification unavailable')
+    return null
+  }
+
+  const prompt = buildVerificationPrompt(fullName, documentType)
+  const textSnippet = extractedText.slice(0, 3000) // Limit text to avoid token overflow
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        messages: [{
+          role: 'user',
+          content: `${prompt}\n\nHere is the extracted text from the document:\n---\n${textSnippet}\n---`,
+        }],
+        temperature: 0.1,
+        max_completion_tokens: 512,
+        response_format: { type: 'json_object' },
+      }),
+    })
+
+    if (!response.ok) {
+      const err = await response.text()
+      console.error('Groq LLM error:', response.status, err)
+      return null
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content
+    if (!content) return null
+
+    return JSON.parse(content) as GroqVerificationResponse
+  } catch (err) {
+    console.error('LLM text verification failed:', err)
+    return null
+  }
+}
+
+// ─── Text Extraction: PDF ────────────────────────────────────────────────────
 
 async function extractPdfText(buffer: Buffer): Promise<string | null> {
   try {
@@ -230,24 +203,53 @@ async function extractPdfText(buffer: Buffer): Promise<string | null> {
   }
 }
 
-// ─── Convert PDF first page to image for VLM ────────────────────────────────
+// ─── Text Extraction: Word (.docx) ──────────────────────────────────────────
 
-/**
- * For PDFs, we extract the first page as an image for VLM analysis.
- * If pdfjs can render to canvas, we use that. Otherwise we send the raw PDF
- * and let the VLM handle it (Llama 4 Scout can process some PDF layouts).
- */
+async function extractWordText(buffer: Buffer): Promise<string | null> {
+  try {
+    const mammoth = await import('mammoth')
+    const result = await mammoth.extractRawText({ buffer })
+    const text = result.value?.trim()
+    return text && text.length > 10 ? text : null
+  } catch {
+    return null
+  }
+}
+
+// ─── Build result from Groq response ─────────────────────────────────────────
+
+function buildResult(
+  groqResult: GroqVerificationResponse,
+  method: 'vlm' | 'llm-text',
+  nameParts: string[]
+): VerificationResult {
+  return {
+    success: groqResult.name_found && groqResult.confidence >= 70,
+    confidence: groqResult.confidence,
+    nameFound: groqResult.name_found,
+    matchDetails: {
+      searchedParts: nameParts,
+      foundParts: groqResult.found_parts || [],
+      missingParts: groqResult.missing_parts || [],
+    },
+    method,
+    extractedTextPreview: groqResult.extracted_name
+      ? `Name: ${groqResult.extracted_name} | Doc: ${groqResult.document_type_detected} | ${groqResult.reasoning}`
+      : `Doc: ${groqResult.document_type_detected} | ${groqResult.reasoning}`,
+  }
+}
 
 // ─── Main Verification Function ──────────────────────────────────────────────
 
 /**
- * Verify a document using Groq VLM (primary) with PDF text extraction fallback.
+ * Verify a document using Groq AI:
  *
- * Flow:
- * 1. For PDFs with embedded text → extract text, match name (fast path)
- * 2. For images (PNG, JPG, WEBP, etc.) → send to Groq VLM for visual analysis
- * 3. For scanned PDFs (no text) → send to Groq VLM
- * 4. If VLM fails → return graceful failure
+ * - Images → VLM (visual analysis by Llama 4 Scout)
+ * - PDF with text → extract text → LLM text analysis
+ * - PDF scanned → fallback (manual review)
+ * - Word (.docx) → extract text → LLM text analysis
+ *
+ * All name matching is done by the AI model — no regex or manual matching.
  */
 export async function verifyDocument(
   buffer: Buffer,
@@ -255,77 +257,50 @@ export async function verifyDocument(
   fullName: string,
   documentType: string = 'identity document'
 ): Promise<VerificationResult> {
-  const nameParts = normalize(fullName)
-    .split(' ')
-    .filter((p) => p.length >= 2)
+  const nameParts = fullName.trim().split(/\s+/)
 
-  const emptyResult: VerificationResult = {
+  const fallbackResult: VerificationResult = {
     success: false,
     confidence: 0,
     nameFound: false,
     matchDetails: { searchedParts: nameParts, foundParts: [], missingParts: nameParts },
-    method: 'vlm',
-    extractedTextPreview: '(verification unavailable)',
+    method: 'fallback',
+    extractedTextPreview: '(verification unavailable — manual review required)',
   }
 
-  // ── Fast path: PDF with embedded text ────────────────────────────────────
+  // ── PDF ──────────────────────────────────────────────────────────────────
   if (mimeType === 'application/pdf') {
     const pdfText = await extractPdfText(buffer)
     if (pdfText) {
-      const { nameFound, confidence, details } = matchName(fullName, pdfText)
-      return {
-        success: nameFound,
-        confidence,
-        nameFound,
-        matchDetails: details,
-        method: 'pdf-text',
-        extractedTextPreview: pdfText.slice(0, 200),
-      }
+      const result = await verifyTextWithLLM(pdfText, fullName, documentType)
+      if (result) return buildResult(result, 'llm-text', nameParts)
     }
-    // Scanned PDF — no text, will try VLM below
+    // Scanned PDF with no extractable text
+    return { ...fallbackResult, extractedTextPreview: '(scanned PDF — no text extracted, manual review required)' }
   }
 
-  // ── VLM path: send image to Groq Llama 4 Scout ──────────────────────────
-  // Ensure buffer is under 4MB for Groq's base64 limit
-  if (buffer.length > 4 * 1024 * 1024) {
-    return {
-      ...emptyResult,
-      extractedTextPreview: '(file too large for VLM analysis — max 4MB)',
+  // ── Word (.docx) ─────────────────────────────────────────────────────────
+  const isWord = mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    || mimeType === 'application/msword'
+  if (isWord) {
+    const wordText = await extractWordText(buffer)
+    if (wordText) {
+      const result = await verifyTextWithLLM(wordText, fullName, documentType)
+      if (result) return buildResult(result, 'llm-text', nameParts)
     }
+    return { ...fallbackResult, extractedTextPreview: '(Word document — could not extract text)' }
   }
 
-  // For scanned PDFs, we can't send PDF directly as image — return graceful failure
-  if (mimeType === 'application/pdf') {
-    return {
-      ...emptyResult,
-      method: 'vlm-fallback',
-      extractedTextPreview: '(scanned PDF — manual review required)',
+  // ── Images (PNG, JPG, WEBP, BMP, TIFF, GIF, etc.) ───────────────────────
+  if (mimeType.startsWith('image/')) {
+    if (buffer.length > 4 * 1024 * 1024) {
+      return { ...fallbackResult, extractedTextPreview: '(image too large for VLM — max 4MB)' }
     }
+    const result = await verifyImageWithVLM(buffer, mimeType, fullName, documentType)
+    if (result) return buildResult(result, 'vlm', nameParts)
+    return { ...fallbackResult, extractedTextPreview: '(VLM service unavailable — manual review required)' }
   }
 
-  const base64DataUrl = bufferToBase64DataUrl(buffer, mimeType)
-  const vlmResult = await verifyWithVLM(base64DataUrl, fullName, documentType)
-
-  if (!vlmResult) {
-    return {
-      ...emptyResult,
-      method: 'vlm-fallback',
-      extractedTextPreview: '(VLM service unavailable — manual review required)',
-    }
-  }
-
-  return {
-    success: vlmResult.name_found && vlmResult.confidence >= 70,
-    confidence: vlmResult.confidence,
-    nameFound: vlmResult.name_found,
-    matchDetails: {
-      searchedParts: nameParts,
-      foundParts: vlmResult.found_parts.map((p) => normalize(p)),
-      missingParts: vlmResult.missing_parts.map((p) => normalize(p)),
-    },
-    method: 'vlm',
-    extractedTextPreview: vlmResult.extracted_name
-      ? `Name: ${vlmResult.extracted_name} | Doc: ${vlmResult.document_type_detected} | ${vlmResult.reasoning}`
-      : `Doc: ${vlmResult.document_type_detected} | ${vlmResult.reasoning}`,
-  }
+  // ── Unsupported type ─────────────────────────────────────────────────────
+  return { ...fallbackResult, extractedTextPreview: `(unsupported file type: ${mimeType})` }
 }
