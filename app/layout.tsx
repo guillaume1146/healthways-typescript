@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
@@ -7,6 +7,14 @@ import { CartProvider } from '@/app/search/medicines/contexts/CartContext'
 import ToastProvider from '@/components/shared/ToastProvider'
 
 const inter = Inter({ subsets: ['latin'] })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   title: {
