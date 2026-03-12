@@ -6,6 +6,7 @@ import { createNurseBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 import { checkPatientBalance } from '@/lib/booking/check-balance'
+import { ensurePatientProfile } from '@/lib/bookings/ensure-patient-profile'
 
 const DEFAULT_NURSE_FEE = 500 // Fallback when no service price specified
 
@@ -53,18 +54,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Look up patient profile
-    const patientProfile = await prisma.patientProfile.findUnique({
-      where: { userId: auth.sub },
-      select: { id: true },
-    })
-
-    if (!patientProfile) {
-      return NextResponse.json(
-        { success: false, message: 'Patient profile not found' },
-        { status: 404 }
-      )
-    }
+    // Find or auto-create patient profile (any user type can book a nurse)
+    const patientProfile = await ensurePatientProfile(auth.sub)
 
     // Look up nurse profile (try profile ID first, then user ID)
     let nurseProfile = await prisma.nurseProfile.findUnique({

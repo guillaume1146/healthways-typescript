@@ -9,7 +9,7 @@ vi.mock('@/lib/db', () => ({
     emergencyBooking: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     emergencyWorkerProfile: { findUnique: vi.fn() },
     conversation: { findFirst: vi.fn(), create: vi.fn() },
-    patientProfile: { findUnique: vi.fn() },
+    patientProfile: { findUnique: vi.fn(), create: vi.fn() },
     user: { findUnique: vi.fn() },
   },
 }))
@@ -257,14 +257,17 @@ describe('POST /api/bookings/cancel', () => {
     }))
   })
 
-  it('returns 404 when patient profile not found', async () => {
+  it('auto-creates patient profile when not found (any user can cancel bookings)', async () => {
     vi.mocked(validateRequest).mockReturnValue({ sub: 'p-1', userType: 'patient', email: 'p@e.com' })
     vi.mocked(prisma.patientProfile.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.patientProfile.create).mockResolvedValue({ id: 'auto-pat-1' } as never)
+    vi.mocked(prisma.appointment.findFirst).mockResolvedValue(null)
 
     const res = await postCancel(createPostRequest('/api/bookings/cancel', {
       bookingId: 'apt-1', bookingType: 'doctor',
     }))
 
+    // Profile is auto-created, then booking lookup returns 404 (not the profile)
     expect(res.status).toBe(404)
   })
 

@@ -3,6 +3,7 @@ import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { createOrderSchema } from '@/lib/validations/api'
+import { ensurePatientProfile } from '@/lib/bookings/ensure-patient-profile'
 
 // ─── POST — Create a medicine order ────────────────────────────────────────────
 
@@ -27,18 +28,8 @@ export async function POST(request: NextRequest) {
 
     const { items } = parsed.data
 
-    // Find patient profile
-    const patientProfile = await prisma.patientProfile.findUnique({
-      where: { userId: auth.sub },
-      select: { id: true },
-    })
-
-    if (!patientProfile) {
-      return NextResponse.json(
-        { success: false, message: 'Patient profile not found' },
-        { status: 404 }
-      )
-    }
+    // Find or auto-create patient profile (any user type can order medicine)
+    const patientProfile = await ensurePatientProfile(auth.sub)
 
     // Execute the entire order flow inside a transaction
     const result = await prisma.$transaction(async (tx) => {

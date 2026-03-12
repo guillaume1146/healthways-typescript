@@ -4,6 +4,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { createNotification } from '@/lib/notifications'
 import { createEmergencyBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { ensurePatientProfile } from '@/lib/bookings/ensure-patient-profile'
 
 export async function POST(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -25,18 +26,8 @@ export async function POST(request: NextRequest) {
     }
     const { emergencyType, location, contactNumber, notes, priority } = parsed.data
 
-    // Look up patient profile
-    const patientProfile = await prisma.patientProfile.findUnique({
-      where: { userId: auth.sub },
-      select: { id: true },
-    })
-
-    if (!patientProfile) {
-      return NextResponse.json(
-        { success: false, message: 'Patient profile not found' },
-        { status: 404 }
-      )
-    }
+    // Find or auto-create patient profile (any user type can request emergency)
+    const patientProfile = await ensurePatientProfile(auth.sub)
 
     // No wallet debit for emergency bookings (free during trial)
     const booking = await prisma.emergencyBooking.create({

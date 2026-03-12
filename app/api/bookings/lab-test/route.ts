@@ -6,6 +6,7 @@ import { createLabTestBookingSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { validateSlotAvailability } from '@/lib/booking/validate-availability'
 import { checkPatientBalance } from '@/lib/booking/check-balance'
+import { ensurePatientProfile } from '@/lib/bookings/ensure-patient-profile'
 
 const DEFAULT_LAB_TEST_PRICE = 500
 
@@ -29,18 +30,8 @@ export async function POST(request: NextRequest) {
     }
     const { labTechId: rawLabTechId, testName, scheduledDate, scheduledTime, sampleType, notes, price } = parsed.data
 
-    // Look up patient profile
-    const patientProfile = await prisma.patientProfile.findUnique({
-      where: { userId: auth.sub },
-      select: { id: true },
-    })
-
-    if (!patientProfile) {
-      return NextResponse.json(
-        { success: false, message: 'Patient profile not found' },
-        { status: 404 }
-      )
-    }
+    // Find or auto-create patient profile (any user type can book lab tests)
+    const patientProfile = await ensurePatientProfile(auth.sub)
 
     // If labTechId provided, verify it exists (try profile ID first, then user ID)
     let labTechUserId: string | null = null
