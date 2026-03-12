@@ -59,7 +59,7 @@ function getNotificationHref(n: NotificationItem, profileHref: string): string |
     case 'doctor_booking':
     case 'nurse_booking':
     case 'nanny_booking':
-      return `${base}/appointments`
+      return `${base}/consultations`
     case 'lab_test_booking':
     case 'lab-test':
     case 'lab_result':
@@ -73,21 +73,25 @@ function getNotificationHref(n: NotificationItem, profileHref: string): string |
       return `${base}/chat`
     case 'connection':
       return `${base}/network`
+    case 'booking':
+      return `${base}/bookings`
     default:
       break
   }
 
   // Fallback: match on title keywords
   const title = n.title.toLowerCase()
-  if (title.includes('appointment') || title.includes('consultation') || title.includes('booking'))
-    return `${base}/appointments`
-  if (title.includes('prescription') || title.includes('refill') || title.includes('medication'))
+  if (title.includes('appointment') || title.includes('consultation'))
+    return `${base}/consultations`
+  if (title.includes('booking'))
+    return `${base}/bookings`
+  if (title.includes('prescription') || title.includes('refill') || title.includes('medication') || title.includes('pickup'))
     return `${base}/prescriptions`
   if (title.includes('lab') || title.includes('result') || title.includes('test'))
     return `${base}/health-records`
   if (title.includes('message') || title.includes('chat'))
     return `${base}/chat`
-  if (title.includes('connection') || title.includes('network') || title.includes('request'))
+  if (title.includes('connection') || title.includes('network'))
     return `${base}/network`
   if (title.includes('emergency'))
     return `${base}/emergency`
