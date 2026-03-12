@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { type Nurse } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import ConnectButton from '@/components/search/ConnectButton'
@@ -189,6 +189,7 @@ const NURSE_SPECIALTIES = [
 function NursesSearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   const initialQuery = searchParams.get('q') || ''
   const initialSpecialty = searchParams.get('specialization') || searchParams.get('specialty') || ''
@@ -229,7 +230,7 @@ function NursesSearchContent() {
     if (f.minRating) params.set('minRating', f.minRating)
     if (f.available) params.set('available', f.available)
     const qs = params.toString()
-    router.replace(`/search/nurses${qs ? `?${qs}` : ''}`, { scroll: false })
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false })
   }, [router])
 
   const fetchNurses = useCallback(async (query = '', spec = '') => {
@@ -319,7 +320,7 @@ function NursesSearchContent() {
     setFilters(cleared)
     setSearchResults(allNurses)
     setHasSearched(false)
-    router.replace('/search/nurses', { scroll: false })
+    router.replace(pathname, { scroll: false })
   }
 
   const handleExampleClick = (example: string) => {

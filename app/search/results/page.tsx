@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
   FaSearch, FaArrowLeft, FaSpinner, FaHistory, FaTimes, FaTrash,
@@ -14,6 +14,7 @@ import type { UnifiedSearchResult } from '@/app/api/search/route'
 function SearchResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   // Read initial values from URL params
   const initialQuery = searchParams.get('q') || ''
@@ -51,7 +52,7 @@ function SearchResultsContent() {
     if (f.minRating) params.set('minRating', f.minRating)
     if (f.available) params.set('available', f.available)
     if (p > 1) params.set('page', String(p))
-    router.replace(`/search/results?${params.toString()}`, { scroll: false })
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }, [router])
 
   // Fetch results from unified API

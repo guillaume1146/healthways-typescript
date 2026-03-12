@@ -155,7 +155,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         bg-white
         transition-all duration-300 ease-in-out
         overflow-hidden
-        m-3 rounded-2xl border border-gray-200 shadow-sm
+        m-3 sm:m-4 md:m-5 lg:m-6 xl:m-8 rounded-2xl border border-gray-200 shadow-sm
       `}
     >
       <div className={`h-full overflow-y-auto scrollbar-hidden ${isCollapsedDesktop ? 'p-2' : 'p-3 md:p-5 lg:p-6'}`}>

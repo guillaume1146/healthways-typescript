@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { FaSearch, FaPills, FaStar, FaMapMarkerAlt, FaClock, FaTruck, FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaLeaf, FaExclamationTriangle,  FaHeadset, FaUndo, FaHeart, FaBrain, FaBaby, FaEye, FaTooth, FaBone, FaHandHoldingMedical, FaMedkit, FaPercent,  FaPlus, FaMinus, FaTrash, FaHistory, FaTimes } from 'react-icons/fa'
 import { useCart } from '@/app/search/medicines/contexts/CartContext'
 import { useSearchHistory } from '@/hooks/useSearchHistory'
@@ -448,6 +448,7 @@ const EmptyState = ({ onClear }: EmptyStateProps) => {
 function MedicinesContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   const initialQuery = searchParams.get('q') || ''
   const initialCategory = searchParams.get('category') || 'all'
@@ -477,7 +478,7 @@ function MedicinesContent() {
     if (q) params.set('q', q)
     if (cat && cat !== 'all') params.set('category', cat)
     const qs = params.toString()
-    router.replace(`/search/medicines${qs ? `?${qs}` : ''}`, { scroll: false })
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false })
   }, [router])
 
   const fetchMedicines = useCallback(async () => {
@@ -526,7 +527,7 @@ function MedicinesContent() {
     setCategory('all')
     setSearchResults(allMedicines)
     setHasSearched(false)
-    router.replace('/search/medicines', { scroll: false })
+    router.replace(pathname, { scroll: false })
   }
 
   const handleExampleClick = (example: string) => {
