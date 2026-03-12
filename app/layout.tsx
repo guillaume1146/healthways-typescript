@@ -164,6 +164,20 @@ export default function RootLayout({
                   });
                 });
               }
+              // Force mobile viewport when "Desktop site" is enabled in Chrome Android
+              // Chrome's "Desktop site" ignores width=device-width, so we use the actual screen width
+              (function() {
+                var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                var screenW = window.screen.width;
+                if (isMobile && screenW < 768 && window.innerWidth > screenW) {
+                  var vp = document.querySelector('meta[name="viewport"]');
+                  if (vp) {
+                    vp.setAttribute('content',
+                      'width=' + screenW + ', initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
+                    );
+                  }
+                }
+              })();
             `,
           }}
         />
