@@ -142,7 +142,7 @@ jobs:
 
             # Seed the database (idempotent — cleans and re-seeds)
             echo "Starting database seed..."
-            docker compose exec -T app sh -c "npx ts-node --transpile-only --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts 2>&1" || echo "WARNING: Seed exited with code $?"
+            docker compose exec -T app sh -c "npx ts-node --skipProject --transpile-only --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"esModuleInterop\":true}' prisma/seed.ts 2>&1" || echo "WARNING: Seed exited with code $?"
             echo "Seed step completed"
 
             # Clean up old images
