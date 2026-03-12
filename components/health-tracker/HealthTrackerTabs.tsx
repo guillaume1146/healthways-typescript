@@ -15,7 +15,8 @@ import MealPlannerTab from './tabs/MealPlannerTab'
 import ProfileGoalsTab from './tabs/ProfileGoalsTab'
 
 interface HealthTrackerTabsProps {
-  patientData?: any
+  userName?: string
+  healthScore?: number
 }
 
 const TABS = [
@@ -28,7 +29,7 @@ const TABS = [
   { id: 'profile', label: 'Profile', icon: FaUser },
 ]
 
-export default function HealthTrackerTabs({ patientData }: HealthTrackerTabsProps) {
+export default function HealthTrackerTabs({ userName, healthScore }: HealthTrackerTabsProps) {
   const [activeTab, setActiveTab] = useState(0)
 
   const renderTab = () => {
@@ -36,7 +37,7 @@ export default function HealthTrackerTabs({ patientData }: HealthTrackerTabsProp
       case 0: return <DashboardTab onNavigateToTab={setActiveTab} />
       case 1: return <FoodDiaryTab />
       case 2: return <ExerciseTab />
-      case 3: return <AiCoachTab patientData={patientData} />
+      case 3: return <AiCoachTab userName={userName} healthScore={healthScore} />
       case 4: return <ProgressTab />
       case 5: return <MealPlannerTab />
       case 6: return <ProfileGoalsTab />

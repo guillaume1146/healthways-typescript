@@ -5,5 +5,5 @@ import HealthTrackerTabs from '@/components/health-tracker/HealthTrackerTabs'
 
 export default function AiAssistantPage() {
   const patientData = usePatientData()
-  return <HealthTrackerTabs patientData={patientData} />
+  return <HealthTrackerTabs userName={patientData?.firstName} healthScore={patientData?.healthScore} />
 }

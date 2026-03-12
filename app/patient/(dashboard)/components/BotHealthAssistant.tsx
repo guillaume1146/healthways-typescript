@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { Patient } from '@/lib/data/patients'
 import {
   FaRobot,
   FaUtensils,
@@ -18,7 +17,8 @@ import {
 } from 'react-icons/fa'
 
 interface Props {
-  patientData: Patient
+  userName?: string
+  healthScore?: number
 }
 
 interface ChatMessage {
@@ -36,7 +36,7 @@ interface ChatSession {
   _count: { messages: number }
 }
 
-const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
+const BotHealthAssistant: React.FC<Props> = ({ userName, healthScore }) => {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -45,8 +45,21 @@ const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isLoadingSessions, setIsLoadingSessions] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState(userName || '')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Fetch user name if not provided
+  useEffect(() => {
+    if (!userName) {
+      fetch('/api/auth/me')
+        .then(r => r.json())
+        .then(data => {
+          if (data.user?.firstName) setDisplayName(data.user.firstName)
+        })
+        .catch(() => {})
+    }
+  }, [userName])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -558,10 +571,12 @@ const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
               </p>
             </div>
           </div>
-          <div className="text-right hidden sm:block">
-            <p className="text-xs text-purple-100">Health Score</p>
-            <p className="text-xl font-bold">{patientData.healthScore}%</p>
-          </div>
+          {healthScore != null && (
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-purple-100">Health Score</p>
+              <p className="text-xl font-bold">{healthScore}%</p>
+            </div>
+          )}
         </div>
 
         {/* Chat Messages */}
@@ -572,7 +587,7 @@ const BotHealthAssistant: React.FC<Props> = ({ patientData }) => {
                 <FaRobot className="text-3xl text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Hello, {patientData.firstName}!
+                Hello{displayName ? `, ${displayName}` : ''}!
               </h3>
               <p className="text-gray-500 mb-6 max-w-md text-sm">
                 I am your AI Health Assistant. I can help you with diet and

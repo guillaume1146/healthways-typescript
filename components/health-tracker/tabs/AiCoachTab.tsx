@@ -3,13 +3,14 @@
 import BotHealthAssistant from '@/app/patient/(dashboard)/components/BotHealthAssistant'
 
 interface AiCoachTabProps {
-  patientData: any
+  userName?: string
+  healthScore?: number
 }
 
-export default function AiCoachTab({ patientData }: AiCoachTabProps) {
+export default function AiCoachTab({ userName, healthScore }: AiCoachTabProps) {
   return (
     <div className="h-full">
-      <BotHealthAssistant patientData={patientData} />
+      <BotHealthAssistant userName={userName} healthScore={healthScore} />
     </div>
   )
 }
