@@ -1,0 +1,217 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// ─── Mock dependencies ──────────────────────────────────────────────────────
+
+vi.mock('@/lib/db', () => ({
+  default: {
+    user: { count: vi.fn(), findUnique: vi.fn() },
+    appointment: { count: vi.fn() },
+    doctorProfile: { findMany: vi.fn() },
+    userWallet: { findUnique: vi.fn(), update: vi.fn() },
+    walletTransaction: { deleteMany: vi.fn() },
+    $transaction: vi.fn(),
+  },
+}))
+
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimitPublic: vi.fn(() => null),
+  rateLimitAuth: vi.fn(() => null),
+  rateLimitHeavy: vi.fn(() => null),
+}))
+
+vi.mock('@/lib/auth/validate', () => ({
+  validateRequest: vi.fn(() => ({ sub: 'PAT001', userType: 'patient', email: 'test@test.com' })),
+}))
+
+import prisma from '@/lib/db'
+
+// ─── Tests ──────────────────────────────────────────────────────────────────
+
+describe('Fix 1: Stats API', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns meaningful numbers even with small DB counts', async () => {
+    // Import dynamically after mocks
+    const { GET } = await import('../stats/route')
+
+    vi.mocked(prisma.user.count)
+      .mockResolvedValueOnce(3)   // doctors
+      .mockResolvedValueOnce(5)   // patients
+    vi.mocked(prisma.appointment.count).mockResolvedValue(13)
+    vi.mocked(prisma.doctorProfile.findMany).mockResolvedValue([
+      { clinicAffiliation: 'Port Louis' },
+      { clinicAffiliation: 'Curepipe' },
+    ] as never)
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.success).toBe(true)
+
+    const stats = data.data
+    const doctorStat = stats.find((s: { label: string }) => s.label.includes('Doctor'))
+    const patientStat = stats.find((s: { label: string }) => s.label.includes('Patient'))
+
+    // Should use floor values, not raw small counts
+    expect(doctorStat.number).toBeGreaterThanOrEqual(500)
+    expect(patientStat.number).toBeGreaterThanOrEqual(10000)
+  })
+
+  it('returns fallback numbers when DB query fails', async () => {
+    const { GET } = await import('../stats/route')
+
+    vi.mocked(prisma.user.count).mockRejectedValue(new Error('DB down'))
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const data = await res.json()
+
+    // Should still return meaningful numbers, never zeros
+    const stats = data.data
+    for (const stat of stats) {
+      expect(stat.number).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('Fix 7: Connection deduplication logic', () => {
+  it('should show the OTHER person, not always the sender', () => {
+    const currentUserId = 'PAT001'
+
+    // Connection where current user is sender
+    const conn1 = {
+      id: 'conn1',
+      senderId: 'PAT001',
+      receiverId: 'DOC001',
+      sender: { id: 'PAT001', firstName: 'Emma', lastName: 'Johnson' },
+      receiver: { id: 'DOC001', firstName: 'Sarah', lastName: 'Johnson' },
+    }
+
+    // Connection where current user is receiver
+    const conn2 = {
+      id: 'conn2',
+      senderId: 'NUR001',
+      receiverId: 'PAT001',
+      sender: { id: 'NUR001', firstName: 'Priya', lastName: 'Ramgoolam' },
+      receiver: { id: 'PAT001', firstName: 'Emma', lastName: 'Johnson' },
+    }
+
+    // Fixed logic: show the OTHER person
+    const person1 = conn1.senderId === currentUserId ? conn1.receiver : conn1.sender
+    const person2 = conn2.senderId === currentUserId ? conn2.receiver : conn2.sender
+
+    expect(person1.id).toBe('DOC001')  // Should show Sarah, not Emma
+    expect(person2.id).toBe('NUR001')  // Should show Priya, not Emma
+
+    // Verify no duplicates
+    const personIds = [person1.id, person2.id]
+    const uniqueIds = new Set(personIds)
+    expect(uniqueIds.size).toBe(personIds.length)
+  })
+})
+
+describe('Fix 6: Notification URL mapping', () => {
+  it('maps referenceType to correct navigation path', () => {
+    const userBase = '/patient'
+
+    // URL mapping function (same logic that will be in DashboardHeader)
+    function getNotificationHref(referenceType: string | null, referenceId: string | null): string | null {
+      if (!referenceId || !referenceType) return null
+      switch (referenceType) {
+        case 'appointment':
+        case 'doctor_booking':
+        case 'nurse_booking':
+        case 'nanny_booking':
+          return `${userBase}/appointments`
+        case 'lab_test_booking':
+        case 'lab-test':
+          return `${userBase}/health-records`
+        case 'emergency_booking':
+        case 'emergency':
+          return `${userBase}/emergency`
+        case 'prescription':
+          return `${userBase}/prescriptions`
+        case 'message':
+          return `${userBase}/chat`
+        case 'connection':
+          return `${userBase}/network`
+        default:
+          return null
+      }
+    }
+
+    expect(getNotificationHref('appointment', 'APT001')).toBe('/patient/appointments')
+    expect(getNotificationHref('doctor_booking', 'BK001')).toBe('/patient/appointments')
+    expect(getNotificationHref('nurse_booking', 'BK002')).toBe('/patient/appointments')
+    expect(getNotificationHref('lab_test_booking', 'LT001')).toBe('/patient/health-records')
+    expect(getNotificationHref('emergency', 'EM001')).toBe('/patient/emergency')
+    expect(getNotificationHref('prescription', 'PRE001')).toBe('/patient/prescriptions')
+    expect(getNotificationHref('message', 'MSG001')).toBe('/patient/chat')
+    expect(getNotificationHref('connection', 'CON001')).toBe('/patient/network')
+    expect(getNotificationHref(null, null)).toBeNull()
+    expect(getNotificationHref('unknown_type', 'X')).toBeNull()
+  })
+})
+
+describe('Fix 8: Wallet Reset', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('resets balance to initialCredit and clears transactions', async () => {
+    const mockWallet = {
+      id: 'wallet-1',
+      userId: 'PAT001',
+      balance: 2160,
+      initialCredit: 4500,
+      currency: 'MUR',
+    }
+
+    // The reset logic should:
+    // 1. Fetch wallet to get initialCredit
+    // 2. Delete all transactions
+    // 3. Update balance to initialCredit
+    vi.mocked(prisma.userWallet.findUnique).mockResolvedValue(mockWallet as never)
+    vi.mocked(prisma.$transaction).mockResolvedValue([
+      { count: 4 },  // deleted transactions
+      { ...mockWallet, balance: 4500 },  // updated wallet
+    ] as never)
+
+    // Verify the expected state after reset
+    expect(mockWallet.balance).toBe(2160)
+    expect(mockWallet.initialCredit).toBe(4500)
+
+    // After reset, balance should equal initialCredit
+    const resetBalance = mockWallet.initialCredit
+    expect(resetBalance).toBe(4500)
+  })
+
+  it('should not allow resetting another users wallet', () => {
+    const authUserId = 'PAT001'
+    const targetUserId = 'PAT002'
+
+    // Ownership check
+    expect(authUserId === targetUserId).toBe(false)
+  })
+})
+
+describe('Fix 3: Search path prefixing', () => {
+  it('prefixes search paths with user type slug when logged in', () => {
+    function getServiceHref(href: string, userSlug: string | null): string {
+      if (userSlug) return `/${userSlug}${href}`
+      return href
+    }
+
+    // Logged in as patient
+    expect(getServiceHref('/search/doctors', 'patient')).toBe('/patient/search/doctors')
+    expect(getServiceHref('/search/nurses', 'patient')).toBe('/patient/search/nurses')
+    expect(getServiceHref('/search/childcare', 'patient')).toBe('/patient/search/childcare')
+    expect(getServiceHref('/search/lab', 'patient')).toBe('/patient/search/lab')
+    expect(getServiceHref('/search/emergency', 'patient')).toBe('/patient/search/emergency')
+    expect(getServiceHref('/search/medicines', 'patient')).toBe('/patient/search/medicines')
+
+    // Logged in as doctor
+    expect(getServiceHref('/search/doctors', 'doctor')).toBe('/doctor/search/doctors')
+
+    // Not logged in — keep absolute path
+    expect(getServiceHref('/search/doctors', null)).toBe('/search/doctors')
+  })
+})

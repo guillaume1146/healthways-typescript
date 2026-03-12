@@ -41,23 +41,24 @@ describe('GET /api/stats', () => {
     expect(data.success).toBe(true)
     expect(data.data).toHaveLength(4)
 
+    // Values are Math.max(actual, floor) — floors: 500, 10000, 25000, 20
     expect(data.data[0]).toEqual({
-      number: 15,
+      number: 500, // max(15, 500)
       label: 'Qualified Doctors',
       color: 'text-blue-500',
     })
     expect(data.data[1]).toEqual({
-      number: 200,
+      number: 10000, // max(200, 10000)
       label: 'Happy Patients',
       color: 'text-green-500',
     })
     expect(data.data[2]).toEqual({
-      number: 350,
+      number: 25000, // max(350, 25000)
       label: 'Consultations',
       color: 'text-purple-500',
     })
     expect(data.data[3]).toEqual({
-      number: 3,
+      number: 20, // max(3, 20)
       label: 'Cities Covered',
       color: 'text-orange-500',
     })
@@ -88,8 +89,8 @@ describe('GET /api/stats', () => {
     const res = await GET()
     const data = await res.json()
 
-    // cities.length is 0, so cities.length || 1 should be 1
-    expect(data.data[3].number).toBe(1)
+    // cities floor is 20 when actual count is 0
+    expect(data.data[3].number).toBe(20)
   })
 
   it('returns zero stats on database error', async () => {
@@ -98,14 +99,14 @@ describe('GET /api/stats', () => {
     const res = await GET()
     const data = await res.json()
 
-    // The error handler returns success: true with all zeroes
+    // The error handler returns success: true with floor values
     expect(res.status).toBe(200)
     expect(data.success).toBe(true)
     expect(data.data).toHaveLength(4)
-    expect(data.data[0].number).toBe(0)
-    expect(data.data[1].number).toBe(0)
-    expect(data.data[2].number).toBe(0)
-    expect(data.data[3].number).toBe(0)
+    expect(data.data[0].number).toBe(500)
+    expect(data.data[1].number).toBe(10000)
+    expect(data.data[2].number).toBe(25000)
+    expect(data.data[3].number).toBe(20)
   })
 
   it('returns correct labels and colors in fallback data', async () => {

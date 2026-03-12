@@ -5,15 +5,19 @@ import { FaCheck, FaTimes, FaUserMd, FaUserNurse, FaChild, FaFlask, FaAmbulance,
 import { getUserTypeColor, getUserTypeLabel } from '@/lib/constants/userTypeStyles'
 import UserSuggestions from './UserSuggestions'
 
+interface ConnectionPerson {
+  id: string
+  firstName: string
+  lastName: string
+  profileImage: string | null
+  userType: string
+}
+
 interface ConnectionRequest {
   id: string
-  sender: {
-    id: string
-    firstName: string
-    lastName: string
-    profileImage: string | null
-    userType: string
-  }
+  senderId: string
+  sender: ConnectionPerson
+  receiver: ConnectionPerson
   createdAt: string
   status: string
 }
@@ -219,7 +223,7 @@ export default function ConnectionRequestsList({ userId }: ConnectionRequestsLis
               ) : (
                 <div className="divide-y">
                   {connections.map(conn => {
-                    const person = conn.sender
+                    const person = conn.senderId === userId ? conn.receiver : conn.sender
                     const colors = getUserTypeColor(person.userType)
                     return (
                       <div key={conn.id} className="p-4 flex items-center gap-4 hover:bg-gray-50 transition">

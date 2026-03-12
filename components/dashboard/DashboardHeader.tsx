@@ -50,6 +50,32 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
+function getNotificationHref(n: NotificationItem, profileHref: string): string | null {
+  if (!n.referenceType) return null
+  const base = profileHref.replace(/\/profile$/, '')
+  switch (n.referenceType) {
+    case 'appointment':
+    case 'doctor_booking':
+    case 'nurse_booking':
+    case 'nanny_booking':
+      return `${base}/appointments`
+    case 'lab_test_booking':
+    case 'lab-test':
+      return `${base}/health-records`
+    case 'emergency_booking':
+    case 'emergency':
+      return `${base}/emergency`
+    case 'prescription':
+      return `${base}/prescriptions`
+    case 'message':
+      return `${base}/chat`
+    case 'connection':
+      return `${base}/network`
+    default:
+      return null
+  }
+}
+
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName,
   userImage,
@@ -290,24 +316,33 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         No notifications yet
                       </div>
                     ) : (
-                      notifications.map(n => (
-                        <div
-                          key={n.id}
-                          role="listitem"
-                          className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition ${!n.readAt ? 'bg-blue-50/50' : ''}`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{n.title}</p>
-                              <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.message}</p>
+                      notifications.map(n => {
+                        const notifHref = getNotificationHref(n, profileHref)
+                        const content = (
+                          <>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{n.title}</p>
+                                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.message}</p>
+                              </div>
+                              {!n.readAt && (
+                                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" aria-label="Unread" />
+                              )}
                             </div>
-                            {!n.readAt && (
-                              <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" aria-label="Unread" />
-                            )}
+                            <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                          </>
+                        )
+                        const className = `block px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${!n.readAt ? 'bg-blue-50/50' : ''}`
+                        return notifHref ? (
+                          <Link key={n.id} href={notifHref} role="listitem" className={className} onClick={() => setShowDropdown(false)}>
+                            {content}
+                          </Link>
+                        ) : (
+                          <div key={n.id} role="listitem" className={className}>
+                            {content}
                           </div>
-                          <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
-                        </div>
-                      ))
+                        )
+                      })
                     )}
                   </div>
                 </div>

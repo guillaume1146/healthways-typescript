@@ -798,8 +798,8 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
         </div>
       </div>
 
-      {/* Mobile Accordion / Desktop Tabs */}
-      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      {/* Desktop/Mobile Tabs + Content */}
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 overflow-hidden pb-20 sm:pb-0">
         {/* Desktop Tab Navigation */}
         <div className="hidden sm:block border-b">
           <div className="flex overflow-x-auto">
@@ -808,8 +808,8 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-4 text-center font-medium transition-all ${
-                  activeTab === tab.id 
-                    ? `text-${tab.color}-600 border-b-2 border-current bg-${tab.color}-50` 
+                  activeTab === tab.id
+                    ? `text-${tab.color}-600 border-b-2 border-current bg-${tab.color}-50`
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
@@ -820,49 +820,33 @@ const EmergencyServices: React.FC<Props> = ({ patientData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-${section.color}-50` : 'bg-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span className={`font-medium ${
-                    expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                  }`}>
-                    {section.label}
-                  </span>
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white">
-                  {section.id === 'emergency' && renderEmergencyPanel()}
-                  {section.id === 'contacts' && renderEmergencyContacts()}
-                  {section.id === 'history' && renderEmergencyHistory()}
-                  {section.id === 'chat' && renderEmergencyChat()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6">
           {activeTab === 'emergency' && renderEmergencyPanel()}
           {activeTab === 'contacts' && renderEmergencyContacts()}
           {activeTab === 'history' && renderEmergencyHistory()}
           {activeTab === 'chat' && renderEmergencyChat()}
         </div>
+      </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-2 px-1 z-50">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button
+              key={section.id}
+              onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${
+                isActive ? 'text-blue-600' : 'text-gray-400'
+              }`}
+            >
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

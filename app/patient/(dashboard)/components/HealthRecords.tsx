@@ -23,7 +23,6 @@ import {
   FaNutritionix,
   FaPlus,
   FaShare,
-  FaPrint,
   FaInfoCircle,
   FaChevronDown,
   FaChevronUp,
@@ -52,7 +51,6 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState<'records' | 'vitals' | 'metrics' | 'timeline'>('records')
-  const [expandedSection, setExpandedSection] = useState<string>('records')
 
   // Self-fetch medical records
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -167,15 +165,6 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
     { id: 'metrics', label: 'Health Metrics', icon: FaChartLine, color: 'green' },
     { id: 'timeline', label: 'Timeline', icon: FaHistory, color: 'purple' }
   ]
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   const renderRecords = () => (
     <div className="space-y-3 sm:space-y-4">
@@ -895,44 +884,8 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50` : 'bg-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span className={`font-medium ${
-                    expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                  }`}>
-                    {section.label}
-                  </span>
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white">
-                  {section.id === 'records' && renderRecords()}
-                  {section.id === 'vitals' && renderVitals()}
-                  {section.id === 'metrics' && renderMetrics()}
-                  {section.id === 'timeline' && renderTimeline()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content — always visible */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-6">
           {activeTab === 'records' && renderRecords()}
           {activeTab === 'vitals' && renderVitals()}
           {activeTab === 'metrics' && renderMetrics()}
@@ -940,35 +893,24 @@ const HealthRecords: React.FC<Props> = ({ patientData }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-white">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <button className="bg-gradient-to-br from-indigo-400/20 to-purple-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-indigo-400/30 hover:to-purple-400/30 transition text-left">
-            <FaDownload className="text-xl sm:text-2xl mb-1 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Download Records</p>
-            <p className="text-xs sm:text-sm opacity-80 hidden md:block">Export all health data</p>
-          </button>
-          
-          <button className="bg-gradient-to-br from-green-400/20 to-emerald-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-green-400/30 hover:to-emerald-400/30 transition text-left">
-            <FaShare className="text-xl sm:text-2xl mb-1 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Share with Doctor</p>
-            <p className="text-xs sm:text-sm opacity-80 hidden md:block">Send records securely</p>
-          </button>
-          
-          <button className="bg-gradient-to-br from-blue-400/20 to-cyan-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-blue-400/30 hover:to-cyan-400/30 transition text-left">
-            <FaPrint className="text-xl sm:text-2xl mb-1 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Print Summary</p>
-            <p className="text-xs sm:text-sm opacity-80 hidden md:block">Physical copy for visits</p>
-          </button>
-          
-          <button className="bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 hover:from-purple-400/30 hover:to-pink-400/30 transition text-left">
-            <FaPlus className="text-xl sm:text-2xl mb-1 sm:mb-2" />
-            <p className="font-medium text-xs sm:text-sm md:text-base">Add Record</p>
-            <p className="text-xs sm:text-sm opacity-80 hidden md:block">Upload new documents</p>
-          </button>
-        </div>
+      {/* Mobile fixed bottom tab bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button
+              key={section.id}
+              onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
+            >
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
+
     </div>
   )
 }

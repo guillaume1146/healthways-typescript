@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaWallet, FaArrowDown, FaArrowUp, FaChevronDown, FaChevronUp } from 'react-icons/fa'
+import { FaWallet, FaArrowDown, FaArrowUp, FaChevronDown, FaChevronUp, FaRedo } from 'react-icons/fa'
 import WalletTransactionHistory from './WalletTransactionHistory'
 
 interface Transaction {
@@ -32,29 +32,48 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState(false)
+  const [resetting, setResetting] = useState(false)
+
+  const fetchWallet = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/users/${userId}/wallet`)
+      const json = await res.json()
+      if (json.success && json.data) {
+        setWallet(json.data)
+      } else {
+        setWallet(null)
+      }
+    } catch {
+      setError('Failed to load wallet data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!userId) return
-
-    const fetchWallet = async () => {
-      try {
-        setLoading(true)
-        const res = await fetch(`/api/users/${userId}/wallet`)
-        const json = await res.json()
-        if (json.success && json.data) {
-          setWallet(json.data)
-        } else {
-          setWallet(null)
-        }
-      } catch {
-        setError('Failed to load wallet data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchWallet()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
+
+  const handleResetTrial = async () => {
+    if (!confirm('Reset your trial balance to the initial credit amount?')) return
+    try {
+      setResetting(true)
+      const res = await fetch(`/api/users/${userId}/wallet/reset`, { method: 'POST' })
+      const json = await res.json()
+      if (json.success) {
+        await fetchWallet()
+      } else {
+        alert(json.message || 'Failed to reset trial')
+      }
+    } catch {
+      alert('Failed to reset trial')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   if (!userId) return null
 
@@ -113,9 +132,19 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({ userId }) => {
             style={{ width: `${Math.min(percentage, 100)}%` }}
           />
         </div>
-        <p className="text-xs sm:text-sm text-white/80">
-          {percentage}% remaining of Rs {wallet.initialCredit.toLocaleString()}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs sm:text-sm text-white/80">
+            {percentage}% remaining of Rs {wallet.initialCredit.toLocaleString()}
+          </p>
+          <button
+            onClick={handleResetTrial}
+            disabled={resetting || wallet.balance === wallet.initialCredit}
+            className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors flex items-center gap-1.5"
+          >
+            <FaRedo className={`text-[10px] ${resetting ? 'animate-spin' : ''}`} />
+            {resetting ? 'Resetting...' : 'Reset Trial'}
+          </button>
+        </div>
 
         {/* Recent Transactions Mini-List */}
         {recentTransactions.length > 0 && (

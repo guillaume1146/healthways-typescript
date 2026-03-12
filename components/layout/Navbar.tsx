@@ -66,6 +66,7 @@ const Navbar: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
   const [profileHref, setProfileHref] = useState('/login')
+  const [userSlug, setUserSlug] = useState<string | null>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -87,6 +88,7 @@ const Navbar: React.FC = () => {
       const cookieVal = decodeURIComponent(match.trim().split('=')[1] ?? '')
       const slug = COOKIE_TO_SLUG[cookieVal] || 'patient'
       setProfileHref(`/${slug}/profile`)
+      setUserSlug(slug)
     }
   }, [])
 
@@ -105,6 +107,8 @@ const Navbar: React.FC = () => {
   }
 
   const isLoggedIn = !!authUser
+
+  const getServiceHref = (href: string) => userSlug ? `/${userSlug}${href}` : href
 
   return (
     <nav role="navigation" aria-label="Main navigation" className="sticky top-0 z-50">
@@ -160,7 +164,7 @@ const Navbar: React.FC = () => {
                           {services.map((service) => (
                             <Link
                               key={service.href}
-                              href={service.href}
+                              href={getServiceHref(service.href)}
                               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 transition-colors duration-200 group/item"
                             >
                               <service.icon className="text-blue-600 group-hover/item:text-green-600 transition-colors" />
@@ -272,7 +276,7 @@ const Navbar: React.FC = () => {
                     {Object.values(serviceCategories).flat().map((service) => (
                       <Link
                         key={service.href}
-                        href={service.href}
+                        href={getServiceHref(service.href)}
                         className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-blue-50 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                         aria-label={service.label}
@@ -306,7 +310,7 @@ const Navbar: React.FC = () => {
                           {services.map((service) => (
                             <Link
                               key={service.href}
-                              href={service.href}
+                              href={getServiceHref(service.href)}
                               className="flex items-center space-x-3 py-2.5 px-3 text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 rounded-lg transition-colors"
                               onClick={() => setIsMenuOpen(false)}
                             >
