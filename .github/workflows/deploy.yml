@@ -106,12 +106,31 @@ jobs:
           username: ${{ secrets.VULTR_VM_USER }}
           key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
           command_timeout: 30m
-          envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG
+          envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG,APP_URL,DB_URL,JWT_SECRET,GROQ_API_KEY,POSTGRES_PASSWORD,SUPER_ADMIN_EMAIL,SUPER_ADMIN_PASSWORD,SUPER_ADMIN_FIRST_NAME,SUPER_ADMIN_LAST_NAME
           script: |
             cd ~/healthtech-app
 
             # Pull latest code (for docker-compose.yml, prisma, seeds, etc.)
             git pull origin main 2>/dev/null || true
+
+            # ── Generate .env from GitHub Secrets ──────────────────────────
+            echo "Writing .env from CI/CD secrets..."
+            cat > .env <<ENVEOF
+            DATABASE_URL=$DB_URL
+            GROQ_API_KEY=$GROQ_API_KEY
+            NEXT_PUBLIC_SOCKET_URL=$APP_URL
+            NEXT_PUBLIC_APP_URL=$APP_URL
+            JWT_SECRET=$JWT_SECRET
+            PORT=3000
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            SUPER_ADMIN_EMAIL=$SUPER_ADMIN_EMAIL
+            SUPER_ADMIN_PASSWORD=$SUPER_ADMIN_PASSWORD
+            SUPER_ADMIN_FIRST_NAME=$SUPER_ADMIN_FIRST_NAME
+            SUPER_ADMIN_LAST_NAME=$SUPER_ADMIN_LAST_NAME
+            ENVEOF
+            # Remove leading whitespace from heredoc
+            sed -i 's/^[[:space:]]*//' .env
+            echo ".env written with $(wc -l < .env) variables"
 
             # Remove dangling images
             docker image prune -f 2>/dev/null || true
@@ -153,6 +172,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          APP_URL: ${{ secrets.VULTR_DOMAIN != '' && format('https://{0}', secrets.VULTR_DOMAIN) || format('http://{0}', secrets.VULTR_VM_IP) }}
+          DB_URL: postgresql://healthwyz:${{ secrets.POSTGRES_PASSWORD }}@db:5432/healthwyz
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_PASSWORD: ${{ secrets.SUPER_ADMIN_PASSWORD }}
+          SUPER_ADMIN_FIRST_NAME: ${{ secrets.SUPER_ADMIN_FIRST_NAME }}
+          SUPER_ADMIN_LAST_NAME: ${{ secrets.SUPER_ADMIN_LAST_NAME }}
 
       - name: Setup HTTPS with Let's Encrypt
         uses: appleboy/ssh-action@v1
