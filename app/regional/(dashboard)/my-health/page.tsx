@@ -16,7 +16,7 @@ const InsuranceContent = dynamic(() => import('../my-insurance/page'), { ssr: fa
 function TabLoading() {
   return (
     <div className="flex items-center justify-center py-20">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600" />
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
     </div>
   )
 }
@@ -50,11 +50,11 @@ export default function MyHealthPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   isActive
-                    ? 'border-red-600 text-red-600'
+                    ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <Icon className={isActive ? 'text-red-600' : 'text-gray-400'} />
+                <Icon className={isActive ? 'text-blue-600' : 'text-gray-400'} />
                 {tab.label}
               </button>
             )
@@ -82,12 +82,12 @@ export default function MyHealthPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center justify-center p-0.5 min-w-[32px] ${
-                isActive ? 'text-red-600' : 'text-gray-400'
+                isActive ? 'text-blue-600' : 'text-gray-400'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-red-600' : 'text-gray-400'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
               <span className="text-[8px] mt-0.5">{tab.label}</span>
-              {isActive && <div className="w-1 h-1 bg-red-600 rounded-full mt-0.5" />}
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-0.5" />}
             </button>
           )
         })}
