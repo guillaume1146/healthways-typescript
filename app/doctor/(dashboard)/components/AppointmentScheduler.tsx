@@ -92,6 +92,10 @@ interface DoctorData {
 interface Props {
   doctorData: DoctorData
   onVideoCall?: (appointment?: Appointment) => void
+  /** When set, the component uses this tab instead of its own state */
+  externalActiveTab?: 'today' | 'upcoming' | 'past' | 'schedule' | 'calendar'
+  /** When true, hides the built-in tab bar and bottom bar (parent controls tabs) */
+  hideTabBar?: boolean
 }
 
 interface FilterOptions {
@@ -102,13 +106,14 @@ interface FilterOptions {
 
 /* ---------- Component ---------- */
 
-const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
-  const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'past' | 'schedule' | 'calendar'>('today')
+const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall, externalActiveTab, hideTabBar }) => {
+  const [internalTab, setInternalTab] = useState<'today' | 'upcoming' | 'past' | 'schedule' | 'calendar'>('today')
+  const activeTab = externalActiveTab ?? internalTab
+  const setActiveTab = (tab: typeof internalTab) => setInternalTab(tab)
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterOptions>({ type: 'all', status: 'all', dateRange: 'all' })
   const [expandedAppointment, setExpandedAppointment] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [expandedSection, setExpandedSection] = useState<string>('today')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedTime, setSelectedTime] = useState('')
 
@@ -147,15 +152,6 @@ const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
     { id: 'schedule', label: 'Schedule New', icon: FaCalendarPlus, color: 'purple' },
     { id: 'calendar', label: 'Calendar View', icon: FaCalendarAlt, color: 'indigo' }
   ]
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   const getStatusColor = (status: AppointmentStatus) => {
     switch (status) {
@@ -570,6 +566,7 @@ const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
       {/* Mobile Accordion / Desktop Tabs */}
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         {/* Desktop Tab Navigation */}
+        {!hideTabBar && (
         <div className="hidden sm:block border-b border-gray-200">
           <div className="flex overflow-x-auto">
             {sections.map((tab) => (
@@ -593,72 +590,9 @@ const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
             ))}
           </div>
         </div>
+        )}
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50` : 'bg-white/80'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span
-                    className={`font-medium ${
-                      expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                  {section.count !== undefined && section.count > 0 && (
-                    <span className="bg-gray-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                      {section.count}
-                    </span>
-                  )}
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white/60">
-                  {section.id === 'today' && renderTodaySchedule()}
-                  {section.id === 'upcoming' && (
-                    <div className="space-y-3 sm:space-y-4">
-                      {filterAppointments(upcomingAppointments).map(renderAppointmentCard)}
-                      {filterAppointments(upcomingAppointments).length === 0 && (
-                        <div className="text-center py-8">
-                          <FaCalendarAlt className="text-gray-400 text-4xl mx-auto mb-3" />
-                          <p className="text-gray-500">No upcoming appointments</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {section.id === 'past' && (
-                    <div className="space-y-3 sm:space-y-4">
-                      {filterAppointments(pastAppointments).map(renderAppointmentCard)}
-                      {filterAppointments(pastAppointments).length === 0 && (
-                        <div className="text-center py-8">
-                          <FaHistory className="text-gray-400 text-4xl mx-auto mb-3" />
-                          <p className="text-gray-500">No past appointments</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {section.id === 'schedule' && renderScheduleNew()}
-                  {section.id === 'calendar' && renderCalendarView()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="hidden sm:block p-4 md:p-6">
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {activeTab === 'today' && renderTodaySchedule()}
           {activeTab === 'upcoming' && (
             <div className="space-y-3 sm:space-y-4">
@@ -686,6 +620,20 @@ const AppointmentScheduler: React.FC<Props> = ({ doctorData, onVideoCall }) => {
           {activeTab === 'calendar' && renderCalendarView()}
         </div>
       </div>
+
+      {!hideTabBar && <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button key={section.id} onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
+      </div>}
     </div>
   )
 }

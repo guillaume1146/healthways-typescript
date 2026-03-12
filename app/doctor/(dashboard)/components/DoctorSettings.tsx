@@ -15,8 +15,6 @@ import {
   FaVolumeUp,
   FaMobileAlt,
   FaCalendarAlt,
-  FaChevronDown,
-  FaChevronUp,
   FaSave,
   FaTimes,
   FaKey,
@@ -167,8 +165,6 @@ const DoctorSettings: React.FC<Props> = ({ doctorData, setDoctorData }) => {
   const [activeTab, setActiveTab] = useState<'notifications' | 'privacy' | 'language' | 'subscription' | 'account'>(
     'notifications'
   )
-  const [expandedSection, setExpandedSection] = useState<string>('notifications')
-
   const initialSettings: Settings = {
     notifications: { ...defaultNotifications, ...(doctorData.notificationSettings ?? {}) },
     privacy: { ...defaultPrivacy, ...(doctorData.privacySettings ?? {}) },
@@ -188,15 +184,6 @@ const DoctorSettings: React.FC<Props> = ({ doctorData, setDoctorData }) => {
     { id: 'subscription', label: 'Subscription', icon: FaCreditCard, color: 'orange' },
     { id: 'account', label: 'Account', icon: FaUser, color: 'red' }
   ] as const
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   // Type-safe updaters
   const updateNotifications = <K extends keyof NotificationSettings>(field: K, value: NotificationSettings[K]) => {
@@ -902,56 +889,29 @@ const DoctorSettings: React.FC<Props> = ({ doctorData, setDoctorData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id
-                    ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50`
-                    : 'bg-white/80'
-                }`}
-                type="button"
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span
-                    className={`font-medium ${
-                      expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white/60">
-                  {section.id === 'notifications' && renderNotifications()}
-                  {section.id === 'privacy' && renderPrivacy()}
-                  {section.id === 'language' && renderLanguage()}
-                  {section.id === 'subscription' && renderSubscription()}
-                  {section.id === 'account' && renderAccount()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {activeTab === 'notifications' && renderNotifications()}
           {activeTab === 'privacy' && renderPrivacy()}
           {activeTab === 'language' && renderLanguage()}
           {activeTab === 'subscription' && renderSubscription()}
           {activeTab === 'account' && renderAccount()}
         </div>
+      </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button key={section.id} onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

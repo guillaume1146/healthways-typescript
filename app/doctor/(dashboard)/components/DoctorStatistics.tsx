@@ -16,8 +16,6 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaDownload,
-  FaChevronDown,
-  FaChevronUp,
   FaMedal,
   FaAward,
   FaCheckCircle,
@@ -118,7 +116,6 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'patients' | 'financial' | 'appointments' | 'treatments'>(
     'overview'
   )
-  const [expandedSection, setExpandedSection] = useState<string>('overview')
   const [filters, setFilters] = useState<FilterOptions>({
     dateRange: 'month',
     metric: 'patients'
@@ -169,15 +166,6 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
     { id: 'appointments', label: 'Appointments', icon: FaCalendarAlt, color: 'orange' },
     { id: 'treatments', label: 'Treatments', icon: FaStethoscope, color: 'red' }
   ] as const
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   const renderOverview = () => (
     <div className="space-y-4 sm:space-y-6">
@@ -874,53 +862,28 @@ const DoctorStatistics: React.FC<Props> = ({ doctorData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50` : 'bg-white/80'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span
-                    className={`font-medium ${
-                      expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white/60">
-                  {section.id === 'overview' && renderOverview()}
-                  {section.id === 'patients' && renderPatients()}
-                  {section.id === 'financial' && renderFinancial()}
-                  {section.id === 'appointments' && renderAppointments()}
-                  {section.id === 'treatments' && renderTreatments()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'patients' && renderPatients()}
           {activeTab === 'financial' && renderFinancial()}
           {activeTab === 'appointments' && renderAppointments()}
           {activeTab === 'treatments' && renderTreatments()}
         </div>
+      </div>
+
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button key={section.id} onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

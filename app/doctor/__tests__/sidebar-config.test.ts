@@ -5,9 +5,9 @@ import {
 } from '../(dashboard)/sidebar-config'
 
 describe('Doctor sidebar config', () => {
-  it('has at least 12 core sidebar items', () => {
+  it('has at least 7 core sidebar items', () => {
     const coreItems = DOCTOR_SIDEBAR_ITEMS.filter(i => !i.divider && !i.id.startsWith('search-'))
-    expect(coreItems.length).toBeGreaterThanOrEqual(12)
+    expect(coreItems.length).toBeGreaterThanOrEqual(7)
   })
 
   it('all items have required properties', () => {
@@ -40,20 +40,17 @@ describe('Doctor sidebar config', () => {
   it('contains expected menu items', () => {
     const labels = DOCTOR_SIDEBAR_ITEMS.map((i) => i.label)
     expect(labels).toContain('Dashboard')
-    expect(labels).toContain('Appointments')
-    expect(labels).toContain('Booking Requests')
-    expect(labels).toContain('Patients')
-    expect(labels).toContain('Prescriptions')
-    expect(labels).toContain('My Posts')
+    expect(labels).toContain('My Practice')
     expect(labels).toContain('Billing & Earnings')
     expect(labels).toContain('Video Call')
     expect(labels).toContain('Messages')
+    expect(labels).toContain('My Health')
   })
 
-  it('booking requests href points to /doctor/booking-requests', () => {
-    const item = DOCTOR_SIDEBAR_ITEMS.find((i) => i.id === 'booking-requests')
+  it('practice href points to /doctor/practice', () => {
+    const item = DOCTOR_SIDEBAR_ITEMS.find((i) => i.id === 'practice')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/doctor/booking-requests')
+    expect(item!.href).toBe('/doctor/practice')
   })
 
   it('overview href points to /doctor', () => {
@@ -73,20 +70,12 @@ describe('getActiveSectionFromPath', () => {
     expect(getActiveSectionFromPath('/doctor')).toBe('overview')
   })
 
-  it('returns appointments for /doctor/appointments', () => {
-    expect(getActiveSectionFromPath('/doctor/appointments')).toBe('appointments')
+  it('returns practice for /doctor/practice', () => {
+    expect(getActiveSectionFromPath('/doctor/practice')).toBe('practice')
   })
 
-  it('returns booking-requests for /doctor/booking-requests', () => {
-    expect(getActiveSectionFromPath('/doctor/booking-requests')).toBe('booking-requests')
-  })
-
-  it('returns patients for /doctor/patients', () => {
-    expect(getActiveSectionFromPath('/doctor/patients')).toBe('patients')
-  })
-
-  it('returns posts for /doctor/posts', () => {
-    expect(getActiveSectionFromPath('/doctor/posts')).toBe('posts')
+  it('returns my-health for /doctor/my-health', () => {
+    expect(getActiveSectionFromPath('/doctor/my-health')).toBe('my-health')
   })
 
   it('returns billing for /doctor/billing', () => {

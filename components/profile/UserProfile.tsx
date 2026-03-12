@@ -21,8 +21,14 @@ import {
   FaTrash,
   FaExclamationTriangle,
   FaSpinner,
+  FaStar,
+  FaPenFancy,
 } from 'react-icons/fa'
 import dynamic from 'next/dynamic'
+
+const ProviderReviews = dynamic(() => import('@/components/shared/ProviderReviews'), { ssr: false })
+const PostFeed = dynamic(() => import('@/components/posts/PostFeed'), { ssr: false })
+const CreatePostForm = dynamic(() => import('@/components/posts/CreatePostForm'), { ssr: false })
 
 const PdfViewer = dynamic(() => import('@/components/shared/PdfViewer'), {
   ssr: false,
@@ -108,13 +114,15 @@ interface UserData {
 
 /* ─── Tab config ─────────────────────────────────────────────────────────── */
 
-type TabId = 'overview' | 'documents' | 'info'
+type TabId = 'overview' | 'documents' | 'info' | 'reviews' | 'posts'
 
 interface TabConfig {
   id: TabId
   label: string
   icon: React.ComponentType<{ className?: string }>
 }
+
+const PROVIDER_TYPES = ['DOCTOR', 'NURSE', 'NANNY', 'PHARMACIST', 'LAB_TECHNICIAN', 'EMERGENCY_WORKER']
 
 function getTabsForUserType(userType: string): TabConfig[] {
   const tabs: TabConfig[] = [
@@ -126,6 +134,14 @@ function getTabsForUserType(userType: string): TabConfig[] {
     tabs.push({ id: 'info', label: 'Medical Info', icon: FaNotesMedical })
   } else {
     tabs.push({ id: 'info', label: 'Professional Info', icon: FaBriefcaseMedical })
+  }
+
+  if (PROVIDER_TYPES.includes(userType)) {
+    tabs.push({ id: 'reviews', label: 'Reviews', icon: FaStar })
+  }
+
+  if (userType === 'DOCTOR') {
+    tabs.push({ id: 'posts', label: 'Posts', icon: FaPenFancy })
   }
 
   return tabs
@@ -1131,6 +1147,19 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'documents' && renderDocuments()}
           {activeTab === 'info' && renderInfo()}
+          {activeTab === 'reviews' && PROVIDER_TYPES.includes(userType) && (
+            <ProviderReviews
+              providerUserId={userId}
+              providerLabel={USER_TYPE_LABELS[userType] || userType}
+              isOwner
+            />
+          )}
+          {activeTab === 'posts' && userType === 'DOCTOR' && (
+            <div className="space-y-6">
+              <CreatePostForm />
+              <PostFeed currentUserId={userId} currentUserType={userType} />
+            </div>
+          )}
         </div>
       </div>
 

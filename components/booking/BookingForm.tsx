@@ -24,6 +24,7 @@ export interface BookingSubmitData {
   reason: string
   notes?: string
   duration?: number
+  serviceId?: string
   // Lab-specific
   testName?: string
   sampleType?: string
@@ -36,6 +37,15 @@ export interface BookingSubmitData {
   children?: string[]
 }
 
+interface ServiceOption {
+  id: string
+  serviceName: string
+  category: string
+  description: string
+  price: number
+  duration?: number
+}
+
 interface BookingFormProps {
   providerType: 'doctor' | 'nurse' | 'nanny' | 'lab-test' | 'emergency'
   providerId?: string // profile ID for availability check
@@ -45,6 +55,7 @@ interface BookingFormProps {
   providerLocation?: string
   showConsultationType?: boolean // true for doctor/nurse/nanny
   price?: number // consultation fee
+  services?: ServiceOption[] // provider's service catalog
   onSubmit: (data: BookingSubmitData) => Promise<void>
   isSubmitting?: boolean
   walletBalance?: number
@@ -187,6 +198,7 @@ export default function BookingForm({
   providerLocation,
   showConsultationType,
   price,
+  services,
   onSubmit,
   isSubmitting = false,
   walletBalance,
@@ -197,6 +209,9 @@ export default function BookingForm({
   const [consultationType, setConsultationType] = useState<
     'in_person' | 'home_visit' | 'video' | undefined
   >(undefined)
+  const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>(undefined)
+  const selectedService = services?.find(s => s.id === selectedServiceId)
+  const displayPrice = selectedService?.price ?? price
   const [scheduledDate, setScheduledDate] = useState(providerType === 'emergency' ? todayISO() : '')
   const [scheduledTime, setScheduledTime] = useState('')
   const [reason, setReason] = useState('')
@@ -255,7 +270,8 @@ export default function BookingForm({
       scheduledTime,
       reason,
       notes: notes || undefined,
-      duration,
+      duration: selectedService?.duration ?? duration,
+      serviceId: selectedServiceId,
     }
     if (showConsultationType || providerType === 'doctor' || providerType === 'nurse' || providerType === 'nanny') {
       data.consultationType = consultationType
@@ -333,10 +349,13 @@ export default function BookingForm({
               )}
             </div>
 
-            {price !== undefined && price > 0 && (
+            {displayPrice !== undefined && displayPrice > 0 && (
               <div className="text-right flex-shrink-0">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Fee</p>
-                <p className="text-lg font-bold text-green-600">Rs {price.toLocaleString()}</p>
+                <p className="text-lg font-bold text-green-600">Rs {displayPrice.toLocaleString()}</p>
+                {selectedService && (
+                  <p className="text-xs text-gray-400">{selectedService.serviceName}</p>
+                )}
               </div>
             )}
           </div>
@@ -445,6 +464,50 @@ export default function BookingForm({
                   </button>
                 )
               })}
+            </div>
+          )}
+
+          {/* Service selection (when provider has a service catalog) */}
+          {services && services.length > 0 && (providerType === 'doctor' || providerType === 'nurse' || providerType === 'nanny') && (
+            <div className={consultationType ? 'mt-6' : ''}>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Select a Service (optional)</h3>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {services.map((svc) => {
+                  const isSelected = selectedServiceId === svc.id
+                  return (
+                    <button
+                      key={svc.id}
+                      type="button"
+                      onClick={() => setSelectedServiceId(isSelected ? undefined : svc.id)}
+                      className={`text-left p-4 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-600 ring-offset-1'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          <p className={`font-semibold text-sm ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}>
+                            {svc.serviceName}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">{svc.category}</p>
+                          {svc.description && (
+                            <p className="text-xs text-gray-400 mt-1 line-clamp-2">{svc.description}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <p className={`font-bold text-sm ${isSelected ? 'text-green-600' : 'text-gray-700'}`}>
+                            Rs {svc.price.toLocaleString()}
+                          </p>
+                          {svc.duration && (
+                            <p className="text-xs text-gray-400">{svc.duration} min</p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           )}
 
@@ -755,12 +818,20 @@ export default function BookingForm({
                   </div>
                 )}
 
+                {/* Service */}
+                {selectedService && (
+                  <div>
+                    <span className="text-gray-500">Service</span>
+                    <p className="font-semibold text-gray-900">{selectedService.serviceName}</p>
+                  </div>
+                )}
+
                 {/* Fee */}
-                {price !== undefined && price > 0 && (
+                {displayPrice !== undefined && displayPrice > 0 && (
                   <div>
                     <span className="text-gray-500">Consultation Fee</span>
                     <p className="font-bold text-green-600 text-base">
-                      Rs {price.toLocaleString()}
+                      Rs {displayPrice.toLocaleString()}
                     </p>
                   </div>
                 )}
@@ -779,12 +850,12 @@ export default function BookingForm({
                 Your trial balance:{' '}
                 <span className="font-bold text-blue-600">Rs {walletBalance.toLocaleString()}</span>
               </p>
-              {price !== undefined && price > 0 && walletBalance < price && (
+              {displayPrice !== undefined && displayPrice > 0 && walletBalance < displayPrice && (
                 <div className="mt-3 flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                   <span className="text-yellow-600 font-bold text-lg leading-none">!</span>
                   <p className="text-sm text-yellow-800">
                     Your wallet balance (Rs {walletBalance.toLocaleString()}) is less than the
-                    consultation fee (Rs {price.toLocaleString()}). You may not be able to complete
+                    consultation fee (Rs {displayPrice.toLocaleString()}). You may not be able to complete
                     this booking.
                   </p>
                 </div>

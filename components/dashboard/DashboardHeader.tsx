@@ -50,51 +50,77 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
-function getNotificationHref(n: NotificationItem, profileHref: string): string | null {
-  const base = profileHref.replace(/\/profile$/, '')
-  const key = n.referenceType || n.type || ''
+// Per-user-type route mapping for notification clicks
+const NOTIFICATION_ROUTES: Record<string, Record<string, string>> = {
+  patient:             { appointment: '/consultations', booking: '/bookings', prescription: '/prescriptions', message: '/chat', lab_result: '/health-records', emergency: '/emergency', connection: '/network' },
+  doctor:              { appointment: '/appointments', booking: '/booking-requests', prescription: '/prescriptions', message: '/messages', connection: '/network' },
+  nurse:               { appointment: '/appointments', booking: '/booking-requests', message: '/messages', connection: '/network' },
+  nanny:               { appointment: '/bookings', booking: '/booking-requests', message: '/messages', connection: '/network' },
+  pharmacist:          { prescription: '/orders', booking: '/orders', message: '/messages', connection: '/network' },
+  'lab-technician':    { lab_result: '/results', booking: '/booking-requests', message: '/messages', connection: '/network' },
+  responder:           { booking: '/booking-requests', emergency: '/calls', message: '/messages', connection: '/network' },
+  insurance:           { booking: '/claims', message: '/messages', connection: '/network' },
+  corporate:           { message: '/messages', connection: '/network' },
+  'referral-partner':  { message: '/messages', connection: '/network' },
+  regional:            { message: '/messages', connection: '/network' },
+}
 
-  switch (key) {
+// Normalize notification type/referenceType to a canonical key
+function normalizeNotifKey(raw: string): string {
+  switch (raw) {
     case 'appointment':
     case 'doctor_booking':
     case 'nurse_booking':
     case 'nanny_booking':
-      return `${base}/consultations`
+      return 'appointment'
     case 'lab_test_booking':
     case 'lab-test':
     case 'lab_result':
-      return `${base}/health-records`
+      return 'lab_result'
     case 'emergency_booking':
     case 'emergency':
-      return `${base}/emergency`
+      return 'emergency'
     case 'prescription':
-      return `${base}/prescriptions`
+      return 'prescription'
     case 'message':
-      return `${base}/chat`
+      return 'message'
     case 'connection':
-      return `${base}/network`
+      return 'connection'
     case 'booking':
-      return `${base}/bookings`
+      return 'booking'
     default:
-      break
+      return raw
+  }
+}
+
+function getNotificationHref(n: NotificationItem, profileHref: string): string | null {
+  const base = profileHref.replace(/\/profile$/, '')
+  const userSlug = base.split('/')[1] || 'patient'
+  const routes = NOTIFICATION_ROUTES[userSlug] || NOTIFICATION_ROUTES.patient
+
+  // Try referenceType first, then type
+  const rawKey = n.referenceType || n.type || ''
+  if (rawKey) {
+    const canonical = normalizeNotifKey(rawKey)
+    if (routes[canonical]) return `${base}${routes[canonical]}`
   }
 
   // Fallback: match on title keywords
   const title = n.title.toLowerCase()
   if (title.includes('appointment') || title.includes('consultation'))
-    return `${base}/consultations`
+    return routes.appointment ? `${base}${routes.appointment}` : null
   if (title.includes('booking'))
-    return `${base}/bookings`
+    return routes.booking ? `${base}${routes.booking}` : null
   if (title.includes('prescription') || title.includes('refill') || title.includes('medication') || title.includes('pickup'))
-    return `${base}/prescriptions`
+    return routes.prescription ? `${base}${routes.prescription}` : null
   if (title.includes('lab') || title.includes('result') || title.includes('test'))
-    return `${base}/health-records`
+    return routes.lab_result ? `${base}${routes.lab_result}` : null
   if (title.includes('message') || title.includes('chat'))
-    return `${base}/chat`
+    return routes.message ? `${base}${routes.message}` : null
   if (title.includes('connection') || title.includes('network'))
-    return `${base}/network`
+    return routes.connection ? `${base}${routes.connection}` : null
   if (title.includes('emergency'))
-    return `${base}/emergency`
+    return routes.emergency ? `${base}${routes.emergency}` : null
 
   return null
 }

@@ -120,7 +120,6 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
   })
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [expandedSection, setExpandedSection] = useState<string>('overview')
   const [showAddPayment, setShowAddPayment] = useState(false)
   const [showAddBank, setShowAddBank] = useState(false)
 
@@ -175,15 +174,6 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
     { id: 'payments', label: 'Payment Methods', icon: FaCreditCard, color: 'purple', count: receiveMethods.length },
     { id: 'analytics', label: 'Analytics', icon: FaChartPie, color: 'orange' }
   ]
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   const getStatusColor = (status: TransactionStatus | string) => {
     switch (status) {
@@ -801,61 +791,8 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id
-                    ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50`
-                    : 'bg-white/80'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span
-                    className={`font-medium ${
-                      expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                  {section.count !== undefined && section.count > 0 && (
-                    <span className="bg-gray-500 text-white text-xs px-1.5 py-0.5 rounded-full">{section.count}</span>
-                  )}
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white/60">
-                  {section.id === 'overview' && renderEarningsOverview()}
-                  {section.id === 'transactions' && (
-                    <div className="space-y-3">
-                      {filterTransactions(transactions).map(renderTransactionCard)}
-                      {filterTransactions(transactions).length === 0 && (
-                        <div className="text-center py-8">
-                          <FaFileInvoice className="text-gray-400 text-4xl mx-auto mb-3" />
-                          <p className="text-gray-500">No transactions found</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {section.id === 'payments' && renderPaymentMethods()}
-                  {section.id === 'analytics' && renderAnalytics()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {activeTab === 'overview' && renderEarningsOverview()}
           {activeTab === 'transactions' && (
             <div className="space-y-3 sm:space-y-4">
@@ -871,6 +808,21 @@ const BillingEarnings: React.FC<Props> = ({ doctorData }) => {
           {activeTab === 'payments' && renderPaymentMethods()}
           {activeTab === 'analytics' && renderAnalytics()}
         </div>
+      </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button key={section.id} onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

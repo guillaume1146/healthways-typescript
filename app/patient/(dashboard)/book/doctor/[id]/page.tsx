@@ -8,6 +8,15 @@ import type { BookingSubmitData } from '@/components/booking/BookingForm'
 import BookingSuccessTicket from '@/components/booking/BookingSuccessTicket'
 import { getUserId } from '@/hooks/useUser'
 
+interface ServiceOption {
+  id: string
+  serviceName: string
+  category: string
+  description: string
+  price: number
+  duration?: number
+}
+
 interface DoctorInfo {
   id: string
   firstName: string
@@ -30,6 +39,7 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params)
 
   const [doctor, setDoctor] = useState<DoctorInfo | null>(null)
+  const [services, setServices] = useState<ServiceOption[]>([])
   const [walletBalance, setWalletBalance] = useState<number | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,6 +65,17 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
           }
         } else {
           setError('Failed to load doctor information')
+        }
+
+        // Fetch doctor's services
+        try {
+          const servicesRes = await fetch(`/api/doctor/services?userId=${id}`)
+          const servicesData = await servicesRes.json()
+          if (servicesData.success && servicesData.data) {
+            setServices(servicesData.data)
+          }
+        } catch {
+          // Services are optional — ignore errors
         }
 
         // Fetch wallet balance
@@ -92,6 +113,7 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
           reason: data.reason,
           notes: data.notes,
           duration: data.duration,
+          serviceId: data.serviceId,
         }),
       })
 
@@ -177,6 +199,7 @@ export default function BookDoctorPage({ params }: { params: Promise<{ id: strin
         providerLocation={doctor.location}
         showConsultationType={true}
         price={doctor.consultationFee}
+        services={services}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         walletBalance={walletBalance}

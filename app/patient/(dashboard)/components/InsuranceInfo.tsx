@@ -13,8 +13,6 @@ import {
   FaDownload,
   FaPhone,
   FaMoneyBillWave,
-  FaChevronDown,
-  FaChevronUp,
   FaUserMd,
   FaStethoscope,
   FaBaby,
@@ -100,9 +98,6 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
     )
   }
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSection(expandedSection === sectionId ? '' : sectionId)
-  }
 
   const sections = [
     { id: 'coverage', label: 'Coverage Details', icon: FaShieldAlt, color: 'blue' },
@@ -744,45 +739,8 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-${section.color}-50` : 'bg-white bg-opacity-50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span className={`font-medium ${
-                    expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                  }`}>
-                    {section.label}
-                  </span>
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white bg-opacity-50">
-                  {section.id === 'coverage' && renderCoverageDetails()}
-                  {section.id === 'billing' && renderBillingPayment()}
-                  {section.id === 'subscription' && renderSubscriptionPlan()}
-                  {section.id === 'claims' && renderClaimsHistory()}
-                  {section.id === 'benefits' && renderBenefitsUsage()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {expandedSection === 'coverage' && renderCoverageDetails()}
           {expandedSection === 'billing' && renderBillingPayment()}
           {expandedSection === 'subscription' && renderSubscriptionPlan()}
@@ -819,6 +777,21 @@ const InsuranceInfo: React.FC<Props> = ({ patientData }) => {
             <p className="text-xs sm:text-sm opacity-90">Network hospitals</p>
           </button>
         </div>
+      </div>
+
+      {/* Fixed Bottom Tab Bar - Mobile */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = expandedSection === section.id
+          return (
+            <button key={section.id} onClick={() => setExpandedSection(section.id)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

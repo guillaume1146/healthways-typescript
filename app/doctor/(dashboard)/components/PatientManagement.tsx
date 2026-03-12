@@ -86,8 +86,6 @@ const PatientManagement: React.FC<Props> = ({ doctorData, onVideoCall, onPrescri
   })
   const [expandedPatient, setExpandedPatient] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [expandedSection, setExpandedSection] = useState<string>('current')
-
   const allPatients: Patient[] = [
     ...(doctorData.patients?.current ?? []),
     ...(doctorData.patients?.past ?? [])
@@ -122,15 +120,6 @@ const PatientManagement: React.FC<Props> = ({ doctorData, onVideoCall, onPrescri
     { id: 'past', label: 'Past Patients', icon: FaHistory, color: 'orange', count: doctorData.patients?.past?.length ?? 0 },
     { id: 'add', label: 'Add New Patient', icon: FaUserPlus, color: 'blue' }
   ] as const
-
-  const toggleSection = (sectionId: string) => {
-    if (expandedSection === sectionId) {
-      setExpandedSection('')
-    } else {
-      setExpandedSection(sectionId)
-      setActiveTab(sectionId as typeof activeTab)
-    }
-  }
 
   const renderPatientCard = (patient: Patient) => (
     <div
@@ -474,54 +463,8 @@ const PatientManagement: React.FC<Props> = ({ doctorData, onVideoCall, onPrescri
           </div>
         </div>
 
-        {/* Mobile Accordion */}
-        <div className="sm:hidden">
-          {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-200">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
-                  expandedSection === section.id ? `bg-gradient-to-r from-${section.color}-50 to-${section.color}-100/50` : 'bg-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <section.icon className={`text-${section.color}-500`} />
-                  <span
-                    className={`font-medium ${
-                      expandedSection === section.id ? `text-${section.color}-700` : 'text-gray-700'
-                    }`}
-                  >
-                    {section.label}
-                  </span>
-                  {'count' in section && section.count! > 0 && (
-                    <span className="bg-gray-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                      {section.count}
-                    </span>
-                  )}
-                </div>
-                {expandedSection === section.id ? (
-                  <FaChevronUp className={`text-${section.color}-500`} />
-                ) : (
-                  <FaChevronDown className="text-gray-400" />
-                )}
-              </button>
-              {expandedSection === section.id && (
-                <div className="p-4 bg-white">
-                  {section.id === 'current' && (
-                    <div className="space-y-3 sm:space-y-4">{filteredPatients.map(renderPatientCard)}</div>
-                  )}
-                  {section.id === 'past' && (
-                    <div className="space-y-3 sm:space-y-4">{filteredPatients.map(renderPatientCard)}</div>
-                  )}
-                  {section.id === 'add' && renderAddPatient()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Content */}
-        <div className="hidden sm:block p-4 md:p-6">
+        {/* Content */}
+        <div className="p-4 md:p-6 pb-20 sm:pb-0">
           {activeTab === 'current' && (
             <div className="space-y-3 sm:space-y-4">
               {filteredPatients.map(renderPatientCard)}
@@ -546,6 +489,21 @@ const PatientManagement: React.FC<Props> = ({ doctorData, onVideoCall, onPrescri
           )}
           {activeTab === 'add' && renderAddPatient()}
         </div>
+      </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 px-1 z-50 shadow-lg">
+        {sections.map((section) => {
+          const Icon = section.icon
+          const isActive = activeTab === section.id
+          return (
+            <button key={section.id} onClick={() => setActiveTab(section.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+              {isActive && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1" />}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

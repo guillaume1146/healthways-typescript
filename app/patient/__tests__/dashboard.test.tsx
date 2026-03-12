@@ -3,25 +3,17 @@ import { PATIENT_SIDEBAR_ITEMS, getActiveSectionFromPath } from '../(dashboard)/
 
 describe('Patient Sidebar Config', () => {
   it('has the expected number of menu items', () => {
-    expect(PATIENT_SIDEBAR_ITEMS.length).toBeGreaterThan(10)
+    expect(PATIENT_SIDEBAR_ITEMS.length).toBeGreaterThan(6)
   })
 
   it('contains all required sidebar item ids', () => {
     const ids = PATIENT_SIDEBAR_ITEMS.map((i) => i.id)
     expect(ids).toContain('feed')
     expect(ids).toContain('overview')
-    expect(ids).toContain('consultations')
-    expect(ids).toContain('prescriptions')
-    expect(ids).toContain('health-records')
-    expect(ids).toContain('lab-results')
+    expect(ids).toContain('health')
+    expect(ids).toContain('billing')
     expect(ids).toContain('video')
     expect(ids).toContain('chat')
-    expect(ids).toContain('ai-assistant')
-    expect(ids).toContain('nurse-services')
-    expect(ids).toContain('childcare')
-    expect(ids).toContain('emergency')
-    expect(ids).toContain('insurance')
-    expect(ids).toContain('billing')
   })
 
   it('has correct href for each item based on /patient base', () => {
@@ -61,20 +53,12 @@ describe('Patient getActiveSectionFromPath', () => {
     expect(getActiveSectionFromPath('/patient/feed')).toBe('feed')
   })
 
-  it('resolves /patient/consultations to consultations', () => {
-    expect(getActiveSectionFromPath('/patient/consultations')).toBe('consultations')
+  it('resolves /patient/health to health', () => {
+    expect(getActiveSectionFromPath('/patient/health')).toBe('health')
   })
 
-  it('resolves /patient/prescriptions to prescriptions', () => {
-    expect(getActiveSectionFromPath('/patient/prescriptions')).toBe('prescriptions')
-  })
-
-  it('resolves /patient/health-records to health-records', () => {
-    expect(getActiveSectionFromPath('/patient/health-records')).toBe('health-records')
-  })
-
-  it('resolves /patient/lab-results to lab-results', () => {
-    expect(getActiveSectionFromPath('/patient/lab-results')).toBe('lab-results')
+  it('resolves /patient/billing to billing', () => {
+    expect(getActiveSectionFromPath('/patient/billing')).toBe('billing')
   })
 
   it('resolves /patient/video to video', () => {
@@ -87,18 +71,6 @@ describe('Patient getActiveSectionFromPath', () => {
 
   it('resolves /patient/chat/some-conversation-id to chat', () => {
     expect(getActiveSectionFromPath('/patient/chat/conv-123')).toBe('chat')
-  })
-
-  it('resolves /patient/ai-assistant to ai-assistant', () => {
-    expect(getActiveSectionFromPath('/patient/ai-assistant')).toBe('ai-assistant')
-  })
-
-  it('resolves /patient/billing to billing', () => {
-    expect(getActiveSectionFromPath('/patient/billing')).toBe('billing')
-  })
-
-  it('resolves /patient/emergency to emergency', () => {
-    expect(getActiveSectionFromPath('/patient/emergency')).toBe('emergency')
   })
 
   it('resolves unknown path to overview fallback', () => {
