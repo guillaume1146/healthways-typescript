@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { FaStethoscope, FaPills, FaFileAlt, FaRobot, FaUserNurse, FaBaby, FaAmbulance, FaFlask, FaShieldAlt } from 'react-icons/fa'
+import { FaStethoscope, FaPills, FaFileAlt, FaUserNurse, FaBaby, FaAmbulance, FaFlask, FaShieldAlt } from 'react-icons/fa'
 
 const ConsultationsContent = dynamic(() => import('../consultations/page'), { ssr: false, loading: () => <TabLoading /> })
 const PrescriptionsContent = dynamic(() => import('../prescriptions/page'), { ssr: false, loading: () => <TabLoading /> })
 const HealthRecordsContent = dynamic(() => import('../health-records/page'), { ssr: false, loading: () => <TabLoading /> })
-const AiAssistantContent = dynamic(() => import('../ai-assistant/page'), { ssr: false, loading: () => <TabLoading /> })
 const NurseServicesContent = dynamic(() => import('../nurse-services/page'), { ssr: false, loading: () => <TabLoading /> })
 const ChildcareContent = dynamic(() => import('../childcare/page'), { ssr: false, loading: () => <TabLoading /> })
 const EmergencyContent = dynamic(() => import('../emergency/page'), { ssr: false, loading: () => <TabLoading /> })
@@ -23,7 +22,6 @@ function TabLoading() {
 }
 
 const TABS = [
-  { id: 'ai', label: 'AI', icon: FaRobot },
   { id: 'consult', label: 'Consult', icon: FaStethoscope },
   { id: 'rx', label: 'Rx', icon: FaPills },
   { id: 'records', label: 'Records', icon: FaFileAlt },
@@ -37,7 +35,7 @@ const TABS = [
 type TabId = typeof TABS[number]['id']
 
 export default function PatientHealthPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('ai')
+  const [activeTab, setActiveTab] = useState<TabId>('consult')
 
   return (
     <div className="pb-20 sm:pb-0">
@@ -65,7 +63,6 @@ export default function PatientHealthPage() {
       </div>
 
       <div>
-        {activeTab === 'ai' && <AiAssistantContent />}
         {activeTab === 'consult' && <ConsultationsContent />}
         {activeTab === 'rx' && <PrescriptionsContent />}
         {activeTab === 'records' && <HealthRecordsContent />}

@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { FaRobot, FaStethoscope, FaPills, FaFileAlt, FaUserNurse, FaBaby, FaAmbulance, FaFlask, FaShieldAlt } from 'react-icons/fa'
+import { FaStethoscope, FaPills, FaFileAlt, FaUserNurse, FaBaby, FaAmbulance, FaFlask, FaShieldAlt } from 'react-icons/fa'
 
-const AiAssistantContent = dynamic(() => import('../ai-assistant/page'), { ssr: false, loading: () => <TabLoading /> })
 const ConsultationsContent = dynamic(() => import('../my-consultations/page'), { ssr: false, loading: () => <TabLoading /> })
 const PrescriptionsContent = dynamic(() => import('../my-prescriptions/page'), { ssr: false, loading: () => <TabLoading /> })
 const HealthRecordsContent = dynamic(() => import('../my-health-records/page'), { ssr: false, loading: () => <TabLoading /> })
@@ -23,7 +22,6 @@ function TabLoading() {
 }
 
 const TABS = [
-  { id: 'ai', label: 'AI', icon: FaRobot },
   { id: 'consult', label: 'Consult', icon: FaStethoscope },
   { id: 'rx', label: 'Rx', icon: FaPills },
   { id: 'records', label: 'Records', icon: FaFileAlt },
@@ -37,7 +35,7 @@ const TABS = [
 type TabId = typeof TABS[number]['id']
 
 export default function MyHealthPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('ai')
+  const [activeTab, setActiveTab] = useState<TabId>('consult')
 
   return (
     <div className="pb-20 sm:pb-0">
@@ -65,7 +63,6 @@ export default function MyHealthPage() {
       </div>
 
       <div>
-        {activeTab === 'ai' && <AiAssistantContent />}
         {activeTab === 'consult' && <ConsultationsContent />}
         {activeTab === 'rx' && <PrescriptionsContent />}
         {activeTab === 'records' && <HealthRecordsContent />}
@@ -98,3 +95,4 @@ export default function MyHealthPage() {
     </div>
   )
 }
+
