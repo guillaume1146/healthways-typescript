@@ -5,6 +5,7 @@ import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
 import ConditionalFooter from '@/components/layout/ConditionalFooter'
 import { CartProvider } from '@/app/search/medicines/contexts/CartContext'
 import ToastProvider from '@/components/shared/ToastProvider'
+import DesktopModeWarning from '@/components/shared/DesktopModeWarning'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -153,6 +154,7 @@ export default function RootLayout({
           </main>
           <ConditionalFooter />
           <ToastProvider />
+          <DesktopModeWarning />
         </CartProvider>
         <script
           dangerouslySetInnerHTML={{

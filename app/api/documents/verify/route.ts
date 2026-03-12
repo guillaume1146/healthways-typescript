@@ -3,7 +3,16 @@ import { verifyDocument } from '@/lib/ocr/verify-document'
 import { rateLimitHeavy } from '@/lib/rate-limit'
 import { validateRequest } from '@/lib/auth/validate'
 
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/bmp',
+  'image/tiff',
+  'image/gif',
+]
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(request: NextRequest) {
@@ -17,7 +26,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const fullName = formData.get('fullName') as string | null
-    const documentType = formData.get('documentType') as string | null
+    const documentType = (formData.get('documentType') as string) || 'identity document'
 
     if (!file || !fullName) {
       return NextResponse.json(
@@ -26,9 +35,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Accept any image type — normalize unknown types to the file's declared type
+    const fileType = file.type || 'application/octet-stream'
+    const isImage = fileType.startsWith('image/')
+    const isPdf = fileType === 'application/pdf'
+
+    if (!isImage && !isPdf) {
       return NextResponse.json(
-        { success: false, message: 'Unsupported file type. Use PDF, JPG, or PNG.' },
+        { success: false, message: 'Unsupported file type. Use an image (PNG, JPG, WEBP, etc.) or PDF.' },
         { status: 400 }
       )
     }
@@ -43,7 +57,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const result = await verifyDocument(buffer, file.type, fullName)
+    const result = await verifyDocument(buffer, fileType, fullName, documentType)
 
     return NextResponse.json({
       success: true,

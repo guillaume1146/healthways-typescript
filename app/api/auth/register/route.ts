@@ -73,22 +73,15 @@ export async function POST(request: NextRequest) {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
 
     // ── Determine account status ───────────────────────────────────────────
-    // Patients are activated immediately (unless they skipped required documents).
-    // Professional types with all documents OCR-verified (≥70% confidence) are auto-activated.
-    // Corporate and regional-admin always require manual approval.
-    // Users who skipped required documents are set to pending.
-    const requiresManualApproval = prismaUserType === UserType.CORPORATE_ADMIN || prismaUserType === UserType.REGIONAL_ADMIN
+    // Only REGIONAL_ADMIN requires super-admin approval (always pending).
+    // All other user types are auto-activated:
+    //   - Patients: always active
+    //   - Professionals: active if docs verified (≥70%), otherwise active anyway (manual review later)
+    //   - Users who skipped docs: active but flagged for follow-up
+    const requiresManualApproval = prismaUserType === UserType.REGIONAL_ADMIN
     const hasSkippedDocuments = data.skippedDocuments.length > 0
-    const allDocsVerified = data.documentVerifications.length > 0 &&
-      data.documentVerifications.every(v => v.verified && v.confidence >= 70)
 
-    const accountStatus = hasSkippedDocuments
-      ? 'pending'
-      : prismaUserType === UserType.PATIENT
-        ? 'active'
-        : (allDocsVerified && !requiresManualApproval)
-          ? 'active'
-          : 'pending'
+    const accountStatus = requiresManualApproval ? 'pending' : 'active'
 
     // ── Create User + profile in a single transaction ──────────────────────
     const user = await prisma.$transaction(async (tx) => {
@@ -333,16 +326,12 @@ export async function POST(request: NextRequest) {
 
     // ── Return success ─────────────────────────────────────────────────────
     let message: string
-    if (hasSkippedDocuments) {
-      message = 'Registration submitted. Please upload your remaining documents from your account settings to complete verification.'
-    } else if (accountStatus === 'active') {
-      message = prismaUserType === UserType.PATIENT
-        ? 'Registration successful. You can now log in.'
-        : 'Registration successful. Your documents were verified — you can log in immediately.'
+    if (requiresManualApproval) {
+      message = 'Registration submitted. Your account requires super-admin approval and will be reviewed within 2-5 business days.'
+    } else if (hasSkippedDocuments) {
+      message = 'Registration successful! You can log in now. Please upload your remaining documents from your account settings.'
     } else {
-      message = requiresManualApproval
-        ? 'Registration submitted. Your account requires administrator approval and will be reviewed within 2-5 business days.'
-        : 'Registration submitted. Your account will be verified within 2-5 business days.'
+      message = 'Registration successful! You can now log in.'
     }
 
     return NextResponse.json(
