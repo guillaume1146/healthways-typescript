@@ -164,6 +164,17 @@ jobs:
             docker compose exec -T app sh -c "npx ts-node --skipProject --transpile-only --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"esModuleInterop\":true}' prisma/seed.ts 2>&1" || echo "WARNING: Seed exited with code $?"
             echo "Seed step completed"
 
+            # Verify env vars are loaded in the container
+            echo "=== Verifying container env ==="
+            docker compose exec -T app sh -c 'echo "DB_URL set: $([ -n \"$DATABASE_URL\" ] && echo YES || echo NO)"'
+            docker compose exec -T app sh -c 'echo "GROQ_KEY set: $([ -n \"$GROQ_API_KEY\" ] && echo YES || echo NO)"'
+            docker compose exec -T app sh -c 'echo "JWT_SECRET set: $([ -n \"$JWT_SECRET\" ] && echo YES || echo NO)"'
+
+            # Quick login test
+            echo "=== Login smoke test ==="
+            LOGIN_RESULT=$(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{"email":"sarah.johnson@healthwyz.mu","password":"Doctor123!"}')
+            echo "Login result: $LOGIN_RESULT"
+
             # Clean up old images
             docker image prune -f 2>/dev/null || true
 
