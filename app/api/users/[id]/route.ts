@@ -122,7 +122,7 @@ export async function GET(
       profile = userWithProfile?.[profileRelation as keyof typeof userWithProfile] ?? null
     }
 
-    return NextResponse.json({ data: { ...user, profile } })
+    return NextResponse.json({ success: true, data: { ...user, profile } })
   } catch (error) {
     console.error('GET /api/users/[id] error:', error)
     return serverErrorResponse()
@@ -220,7 +220,7 @@ export async function PATCH(
       await updateTypeProfile(id, updatedUser.userType, profileData)
     }
 
-    return NextResponse.json({ data: updatedUser })
+    return NextResponse.json({ success: true, data: updatedUser })
   } catch (error) {
     console.error('PATCH /api/users/[id] error:', error)
     return serverErrorResponse()
