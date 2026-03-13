@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
     // Filter out already-booked slots
     const availableSlots = allSlots.filter(slot => !bookedHours.includes(slot))
 
-    return NextResponse.json({ success: true, slots: availableSlots })
+    return NextResponse.json({ success: true, slots: availableSlots, bookedSlots: bookedHours })
   } catch (error) {
     console.error('Error fetching available slots:', error)
     return NextResponse.json(

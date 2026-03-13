@@ -25,6 +25,7 @@ interface DaySlots {
   date: string
   dateLabel: string
   slots: string[]
+  bookedSlots: string[]
 }
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -99,12 +100,13 @@ export default function WeeklySlotPicker({
             `/api/bookings/available-slots?providerId=${providerId}&date=${day.date}&providerType=${providerType}`
           )
           const data = await res.json()
-          if (data.success && data.slots && data.slots.length > 0) {
+          if (data.success && ((data.slots && data.slots.length > 0) || (data.bookedSlots && data.bookedSlots.length > 0))) {
             return {
               dayName: day.dayName,
               date: day.date,
               dateLabel: `${day.shortDay}, ${day.dateLabel}`,
-              slots: data.slots,
+              slots: data.slots || [],
+              bookedSlots: data.bookedSlots || [],
             }
           }
         } catch {
@@ -193,26 +195,42 @@ export default function WeeklySlotPicker({
           }`}>
             <FaClock className="text-xs text-gray-400" />
             <span className="text-sm font-medium text-gray-700">{day.dateLabel}</span>
-            <span className="text-xs text-gray-400">({day.slots.length} slots)</span>
+            <span className="text-xs text-gray-400">({day.slots.length} available{day.bookedSlots.length > 0 ? `, ${day.bookedSlots.length} booked` : ''})</span>
           </div>
           <div className="p-2 flex flex-wrap gap-1.5">
-            {day.slots.map((slot) => {
-              const selected = isSlotSelected(day.date, slot)
-              return (
-                <button
-                  key={`${day.date}-${slot}`}
-                  type="button"
-                  onClick={() => handleSlotClick(day.date, slot)}
-                  className={`px-2.5 py-1.5 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                    selected
-                      ? `${colors.selected} shadow-md`
-                      : `border-gray-200 text-gray-700 ${colors.hover}`
-                  }`}
-                >
-                  {formatTime(slot)}
-                </button>
-              )
-            })}
+            {/* All slots sorted chronologically — available ones clickable, booked ones grayed out */}
+            {[...day.slots.map(s => ({ time: s, booked: false })), ...day.bookedSlots.map(s => ({ time: s, booked: true }))]
+              .sort((a, b) => a.time.localeCompare(b.time))
+              .map(({ time: slot, booked }) => {
+                if (booked) {
+                  return (
+                    <button
+                      key={`${day.date}-${slot}-booked`}
+                      type="button"
+                      disabled
+                      className="px-2.5 py-1.5 border-2 border-gray-100 rounded-lg text-xs sm:text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed line-through"
+                      title="This slot is already booked"
+                    >
+                      {formatTime(slot)}
+                    </button>
+                  )
+                }
+                const selected = isSlotSelected(day.date, slot)
+                return (
+                  <button
+                    key={`${day.date}-${slot}`}
+                    type="button"
+                    onClick={() => handleSlotClick(day.date, slot)}
+                    className={`px-2.5 py-1.5 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      selected
+                        ? `${colors.selected} shadow-md`
+                        : `border-gray-200 text-gray-700 ${colors.hover}`
+                    }`}
+                  >
+                    {formatTime(slot)}
+                  </button>
+                )
+              })}
           </div>
         </div>
       ))}

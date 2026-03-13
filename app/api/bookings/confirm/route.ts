@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { processServicePayment } from '@/lib/commission'
-import { createNotification } from '@/lib/notifications'
 import { rateLimitPublic } from '@/lib/rate-limit'
 import { resolveAndConfirmBooking } from '@/lib/bookings/resolve-booking'
 import { z } from 'zod'
@@ -71,14 +70,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Payment processing failed' }, { status: 500 })
     }
 
-    await createNotification({
-      userId: patientUserId,
-      type: 'booking_confirmed',
-      title: 'Booking Confirmed',
-      message: `Your ${description} has been confirmed. Rs ${amount} has been charged.`,
-      referenceId: bookingId,
-      referenceType: bookingType === 'doctor' ? 'appointment' : `${bookingType}_booking`,
-    })
+    // NOTE: Notification is NOT created here — /api/bookings/action is the
+    // primary endpoint and already sends the booking_confirmed notification.
+    // Creating one here too caused duplicate notifications.
 
     return NextResponse.json({
       success: true,
