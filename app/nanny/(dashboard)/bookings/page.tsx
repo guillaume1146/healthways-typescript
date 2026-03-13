@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import {
   FaSpinner, FaCalendarCheck, FaSearch, FaClock,
   FaChild, FaHome, FaVideo, FaHospital, FaUser,
-  FaThLarge, FaCalendarAlt, FaCheckCircle, FaTimesCircle
+  FaThLarge, FaCalendarAlt, FaCheckCircle, FaTimesCircle,
+  FaCheck, FaTimes
 } from 'react-icons/fa'
 import { useUser } from '@/hooks/useUser'
 
@@ -31,6 +32,32 @@ export default function NannyBookingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: 'accept' | 'deny' } | null>(null)
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    setActionLoading({ id: bookingId, action })
+    try {
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, bookingType: 'nanny', action }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        if (action === 'deny') {
+          setBookings(prev => prev.filter(b => b.id !== bookingId))
+        } else {
+          setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'upcoming' } : b))
+        }
+      } else {
+        alert(data.message || 'Action failed')
+      }
+    } catch {
+      alert('Something went wrong')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   useEffect(() => {
     if (!userId) return
@@ -301,6 +328,27 @@ export default function NannyBookingsPage() {
                     <p className="text-xs text-gray-500 mt-2 bg-gray-50 rounded-lg p-2">
                       <span className="font-medium">Special Instructions:</span> {booking.specialInstructions}
                     </p>
+                  )}
+
+                  {booking.status === 'pending' && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => handleBookingAction(booking.id, 'accept')}
+                        disabled={actionLoading?.id === booking.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                      >
+                        {actionLoading?.id === booking.id && actionLoading.action === 'accept' ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleBookingAction(booking.id, 'deny')}
+                        disabled={actionLoading?.id === booking.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                      >
+                        {actionLoading?.id === booking.id && actionLoading.action === 'deny' ? <FaSpinner className="animate-spin" /> : <FaTimes />}
+                        Decline
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import {
-  FaSpinner, FaCalendarCheck, FaSearch, FaFilter,
+  FaSpinner, FaCalendarCheck, FaSearch,
   FaClock, FaUser, FaVideo, FaHome, FaHospital,
-  FaThLarge, FaCalendarAlt, FaCheckCircle, FaTimesCircle
+  FaThLarge, FaCalendarAlt, FaCheckCircle, FaTimesCircle,
+  FaCheck, FaTimes
 } from 'react-icons/fa'
 import { useUser } from '@/hooks/useUser'
 
@@ -30,6 +31,7 @@ export default function NurseAppointmentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: 'accept' | 'deny' } | null>(null)
 
   useEffect(() => {
     if (!userId) return
@@ -113,6 +115,32 @@ export default function NurseAppointmentsPage() {
 
     fetchAppointments()
   }, [userId])
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny') => {
+    setActionLoading({ id: bookingId, action })
+    try {
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, bookingType: 'nurse', action }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        // Update locally: remove or change status
+        if (action === 'deny') {
+          setAppointments(prev => prev.filter(a => a.id !== bookingId))
+        } else {
+          setAppointments(prev => prev.map(a => a.id === bookingId ? { ...a, status: 'upcoming' } : a))
+        }
+      } else {
+        alert(data.message || 'Action failed')
+      }
+    } catch {
+      alert('Something went wrong')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -280,6 +308,26 @@ export default function NurseAppointmentsPage() {
                       <span className="text-gray-500">{apt.duration} min</span>
                     )}
                   </div>
+                  {apt.status === 'pending' && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => handleBookingAction(apt.id, 'accept')}
+                        disabled={actionLoading?.id === apt.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                      >
+                        {actionLoading?.id === apt.id && actionLoading.action === 'accept' ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleBookingAction(apt.id, 'deny')}
+                        disabled={actionLoading?.id === apt.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                      >
+                        {actionLoading?.id === apt.id && actionLoading.action === 'deny' ? <FaSpinner className="animate-spin" /> : <FaTimes />}
+                        Decline
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

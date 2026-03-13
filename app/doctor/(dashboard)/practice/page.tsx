@@ -3,24 +3,21 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  FaSpinner, FaCalendarAlt, FaClipboardList, FaUsers, FaPrescriptionBottle, FaBriefcaseMedical,
-  FaVideo, FaSearch, FaFilter, FaPlus, FaClock, FaUser, FaMapMarkerAlt,
-  FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaEllipsisH
+  FaSpinner, FaCalendarAlt, FaUsers, FaPrescriptionBottle, FaBriefcaseMedical,
+  FaVideo, FaSearch, FaPlus, FaClock, FaCheck, FaTimes,
+  FaCheckCircle, FaTimesCircle, FaExclamationTriangle
 } from 'react-icons/fa'
 import { useDoctorData } from '../context'
 import PatientManagement from '../components/PatientManagement'
 import PrescriptionSystem from '../components/PrescriptionSystem'
-import BookingRequestsManager from '@/components/shared/BookingRequestsManager'
-import type { BookingRequestConfig } from '@/components/shared/BookingRequestsManager'
 import ServiceCatalogManager from '@/components/shared/ServiceCatalogManager'
 import type { ServiceCatalogConfig } from '@/components/shared/ServiceCatalogManager'
 import { DOCTOR_SERVICE_CATEGORIES } from '@/lib/validations/service-catalog'
 
-/* ── Tab definitions (6 tabs) ──────────────────────────────────────────────── */
+/* ── Tab definitions (5 tabs — requests merged into appointments) ──────────── */
 
 const TABS = [
   { id: 'appointments', label: 'Appointments', icon: FaCalendarAlt },
-  { id: 'requests', label: 'Requests', icon: FaClipboardList },
   { id: 'patients', label: 'Patients', icon: FaUsers },
   { id: 'prescriptions', label: 'Rx', icon: FaPrescriptionBottle },
   { id: 'services', label: 'Services', icon: FaBriefcaseMedical },
@@ -30,12 +27,6 @@ const TABS = [
 type TabId = typeof TABS[number]['id']
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
-
-const bookingConfig: BookingRequestConfig = {
-  fetchPath: '/api/doctors/{userId}/booking-requests',
-  bookingType: 'doctor',
-  accentColor: 'blue',
-}
 
 const serviceConfig: ServiceCatalogConfig = {
   title: 'My Services',
@@ -66,6 +57,7 @@ interface MappedAppointment {
   roomId?: string
   location?: string
   notes?: string
+  bookingType?: string // for pending request actions
 }
 
 interface ApiAppointment {
@@ -104,6 +96,7 @@ function getStatusBadge(status: string, date: string) {
   const today = new Date()
   const isToday = aptDate.toDateString() === today.toDateString()
 
+  if (status === 'pending') return { label: 'Pending', color: 'bg-orange-100 text-orange-800', icon: FaClock }
   if (status === 'scheduled' || status === 'upcoming') {
     if (isToday) return { label: 'Today', color: 'bg-blue-100 text-blue-800', icon: FaClock }
     return { label: 'Upcoming', color: 'bg-green-100 text-green-800', icon: FaCheckCircle }
@@ -126,22 +119,31 @@ export default function DoctorPracticePage() {
   const user = useDoctorData()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const tabParam = searchParams.get('tab') as TabId | null
-  const [activeTab, setActiveTab] = useState<TabId>(tabParam && ['appointments', 'requests', 'patients', 'prescriptions', 'services', 'calendar'].includes(tabParam) ? tabParam : 'appointments')
+  const rawTab = searchParams.get('tab')
+  // Map ?tab=requests to appointments (requests merged into appointments)
+  const effectiveTab = rawTab === 'requests' ? 'appointments' : rawTab
+  const isRequestsTab = rawTab === 'requests'
+  const validTabs: TabId[] = ['appointments', 'patients', 'prescriptions', 'services', 'calendar']
+  const [activeTab, setActiveTab] = useState<TabId>(effectiveTab && validTabs.includes(effectiveTab as TabId) ? effectiveTab as TabId : 'appointments')
   const [loading, setLoading] = useState(true)
 
   // Sync activeTab when ?tab= query param changes (e.g. notification click)
+  // Also auto-filter to pending when navigating from a booking request notification
   useEffect(() => {
-    if (tabParam && (['appointments', 'requests', 'patients', 'prescriptions', 'services', 'calendar'] as const).includes(tabParam as TabId)) {
-      setActiveTab(tabParam as TabId)
+    const mapped = rawTab === 'requests' ? 'appointments' : rawTab
+    if (mapped && validTabs.includes(mapped as TabId)) {
+      setActiveTab(mapped as TabId)
     }
-  }, [tabParam])
+    if (rawTab === 'requests') {
+      setStatusFilter('pending')
+    }
+  }, [rawTab])
 
   // Appointment data
   const [allAppointments, setAllAppointments] = useState<MappedAppointment[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [showScheduleForm, setShowScheduleForm] = useState(false)
+  const [actionLoading, setActionLoading] = useState<{ id: string; action: 'accept' | 'deny' } | null>(null)
 
   // Patient data
   const [patientData, setPatientData] = useState<any>(null)
@@ -168,20 +170,35 @@ export default function DoctorPracticePage() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [upcomingRes, pastRes, patientRes, prescRes] = await Promise.all([
+      const [upcomingRes, pastRes, pendingRes, patientRes, prescRes] = await Promise.all([
         fetch(`/api/doctors/${user.id}/appointments?status=upcoming`),
         fetch(`/api/doctors/${user.id}/appointments?status=completed`),
+        fetch(`/api/doctors/${user.id}/booking-requests`),
         fetch(`/api/doctors/${user.id}/patients`),
         fetch(`/api/doctors/${user.id}/prescriptions`),
       ])
-      const [upcoming, past, patientJson, prescJson] = await Promise.all([
-        upcomingRes.json(), pastRes.json(), patientRes.json(), prescRes.json(),
+      const [upcoming, past, pending, patientJson, prescJson] = await Promise.all([
+        upcomingRes.json(), pastRes.json(), pendingRes.json(), patientRes.json(), prescRes.json(),
       ])
 
+      // Map pending booking requests into the same shape
+      const pendingMapped: MappedAppointment[] = (pending.data || []).map((apt: ApiAppointment) => ({
+        ...mapAppointment(apt),
+        status: 'pending',
+        bookingType: 'doctor',
+      }))
+
+      // Merge all, dedup by id
+      const seen = new Set<string>()
       const all = [
+        ...pendingMapped,
         ...(upcoming.data || []).map(mapAppointment),
         ...(past.data || []).map(mapAppointment),
-      ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      ].filter(a => {
+        if (seen.has(a.id)) return false
+        seen.add(a.id)
+        return true
+      })
       setAllAppointments(all)
 
       if (patientJson.success) {
@@ -229,8 +246,12 @@ export default function DoctorPracticePage() {
         a.type.toLowerCase().includes(q)
       )
     }
-    // Sort: today first, then upcoming by date, then past
+    // Sort: pending first, then today, then upcoming by date, then past
     return list.sort((a, b) => {
+      const aPending = a.status === 'pending' ? 0 : 1
+      const bPending = b.status === 'pending' ? 0 : 1
+      if (aPending !== bPending) return aPending - bPending
+
       const now = Date.now()
       const aTime = new Date(a.date).getTime()
       const bTime = new Date(b.date).getTime()
@@ -242,12 +263,35 @@ export default function DoctorPracticePage() {
   }, [allAppointments, statusFilter, searchQuery])
 
   // Stats
+  const pendingCount = allAppointments.filter(a => a.status === 'pending').length
   const todayCount = useMemo(() => {
     const todayStr = new Date().toDateString()
-    return allAppointments.filter(a => new Date(a.date).toDateString() === todayStr && a.status !== 'cancelled').length
+    return allAppointments.filter(a => new Date(a.date).toDateString() === todayStr && a.status !== 'cancelled' && a.status !== 'pending').length
   }, [allAppointments])
   const upcomingCount = allAppointments.filter(a => a.status === 'scheduled' || a.status === 'upcoming').length
   const completedCount = allAppointments.filter(a => a.status === 'completed').length
+
+  const handleBookingAction = async (bookingId: string, action: 'accept' | 'deny', bookingType: string) => {
+    setActionLoading({ id: bookingId, action })
+    try {
+      const res = await fetch('/api/bookings/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, bookingType, action }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        // Refresh all data so the appointment moves from pending to upcoming (or is removed)
+        await fetchAll()
+      } else {
+        alert(data.message || 'Action failed')
+      }
+    } catch {
+      alert('Something went wrong')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   const handleCreatePrescription = async (data: any) => {
     const res = await fetch(`/api/doctors/${user.id}/prescriptions`, {
@@ -314,7 +358,12 @@ export default function DoctorPracticePage() {
       {activeTab === 'appointments' && (
         <div className="p-4 sm:p-6">
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <button onClick={() => setStatusFilter(statusFilter === 'pending' ? '' : 'pending')}
+              className={`rounded-xl p-3 sm:p-4 border transition-all text-left ${statusFilter === 'pending' ? 'border-orange-400 bg-orange-50 ring-1 ring-orange-400' : 'border-gray-200 bg-white hover:border-orange-200'}`}>
+              <p className="text-xs text-gray-500 font-medium">Pending</p>
+              <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
+            </button>
             <button onClick={() => setStatusFilter(statusFilter === 'today' ? '' : 'today')}
               className={`rounded-xl p-3 sm:p-4 border transition-all text-left ${statusFilter === 'today' ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400' : 'border-gray-200 bg-white hover:border-blue-200'}`}>
               <p className="text-xs text-gray-500 font-medium">Today</p>
@@ -343,6 +392,7 @@ export default function DoctorPracticePage() {
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
               <option value="">All Status</option>
+              <option value="pending">Pending</option>
               <option value="today">Today</option>
               <option value="scheduled">Upcoming</option>
               <option value="completed">Completed</option>
@@ -411,14 +461,33 @@ export default function DoctorPracticePage() {
                           <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate">{apt.reason || '—'}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">{apt.duration} min</td>
                           <td className="px-4 py-3 text-right">
-                            {(apt.status === 'scheduled' || apt.status === 'upcoming') && apt.type === 'video' && (
+                            {apt.status === 'pending' && apt.bookingType ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => handleBookingAction(apt.id, 'accept', apt.bookingType!)}
+                                  disabled={actionLoading?.id === apt.id}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                                >
+                                  {actionLoading?.id === apt.id && actionLoading.action === 'accept' ? <FaSpinner className="animate-spin text-[10px]" /> : <FaCheck className="text-[10px]" />}
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={() => handleBookingAction(apt.id, 'deny', apt.bookingType!)}
+                                  disabled={actionLoading?.id === apt.id}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                >
+                                  {actionLoading?.id === apt.id && actionLoading.action === 'deny' ? <FaSpinner className="animate-spin text-[10px]" /> : <FaTimes className="text-[10px]" />}
+                                  Decline
+                                </button>
+                              </div>
+                            ) : (apt.status === 'scheduled' || apt.status === 'upcoming') && apt.type === 'video' ? (
                               <button onClick={() => {
                                 if (apt.roomId) router.push(`/doctor/video?roomId=${apt.roomId}`)
                                 else router.push('/doctor/video')
                               }} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Start Video Call">
                                 <FaVideo />
                               </button>
-                            )}
+                            ) : null}
                           </td>
                         </tr>
                       )
@@ -453,14 +522,33 @@ export default function DoctorPracticePage() {
                         <span>{apt.duration} min</span>
                       </div>
                       {apt.reason && <p className="text-xs text-gray-500 truncate">{apt.reason}</p>}
-                      {(apt.status === 'scheduled' || apt.status === 'upcoming') && apt.type === 'video' && (
+                      {apt.status === 'pending' && apt.bookingType ? (
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => handleBookingAction(apt.id, 'accept', apt.bookingType!)}
+                            disabled={actionLoading?.id === apt.id}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {actionLoading?.id === apt.id && actionLoading.action === 'accept' ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleBookingAction(apt.id, 'deny', apt.bookingType!)}
+                            disabled={actionLoading?.id === apt.id}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {actionLoading?.id === apt.id && actionLoading.action === 'deny' ? <FaSpinner className="animate-spin" /> : <FaTimes />}
+                            Decline
+                          </button>
+                        </div>
+                      ) : (apt.status === 'scheduled' || apt.status === 'upcoming') && apt.type === 'video' ? (
                         <button onClick={() => {
                           if (apt.roomId) router.push(`/doctor/video?roomId=${apt.roomId}`)
                           else router.push('/doctor/video')
                         }} className="mt-2 text-xs text-green-600 font-medium flex items-center gap-1">
                           <FaVideo /> Join Video Call
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   )
                 })}
@@ -489,7 +577,6 @@ export default function DoctorPracticePage() {
       )}
 
       {/* ── Other Tabs ────────────────────────────────────────────────────────── */}
-      {activeTab === 'requests' && <BookingRequestsManager config={bookingConfig} />}
       {activeTab === 'patients' && patientData && (
         <PatientManagement
           doctorData={patientData}

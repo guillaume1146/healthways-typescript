@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { FaCalendarCheck, FaClipboardList, FaUsers, FaMedkit } from 'react-icons/fa'
+import { FaCalendarCheck, FaUsers, FaMedkit } from 'react-icons/fa'
 
 const AppointmentsContent = dynamic(() => import('../appointments/page'), { ssr: false, loading: () => <TabLoading /> })
-const BookingRequestsContent = dynamic(() => import('../booking-requests/page'), { ssr: false, loading: () => <TabLoading /> })
 const PatientsContent = dynamic(() => import('../patients/page'), { ssr: false, loading: () => <TabLoading /> })
 const ServicesContent = dynamic(() => import('../services/page'), { ssr: false, loading: () => <TabLoading /> })
 
@@ -20,7 +19,6 @@ function TabLoading() {
 
 const TABS = [
   { id: 'appointments', label: 'Appointments', icon: FaCalendarCheck },
-  { id: 'requests', label: 'Requests', icon: FaClipboardList },
   { id: 'patients', label: 'Patients', icon: FaUsers },
   { id: 'services', label: 'Services', icon: FaMedkit },
 ] as const
@@ -29,15 +27,19 @@ type TabId = typeof TABS[number]['id']
 
 export default function NursePracticePage() {
   const searchParams = useSearchParams()
-  const tabParam = searchParams.get('tab') as TabId | null
+  const tabParam = searchParams.get('tab')
+  // Map ?tab=requests to appointments (requests merged into appointments)
+  const effectiveTab = tabParam === 'requests' ? 'appointments' : tabParam
+  const validTabs: TabId[] = ['appointments', 'patients', 'services']
   const [activeTab, setActiveTab] = useState<TabId>(
-    tabParam && (['appointments', 'requests', 'patients', 'services'] as const).includes(tabParam as TabId) ? tabParam : 'appointments'
+    effectiveTab && validTabs.includes(effectiveTab as TabId) ? effectiveTab as TabId : 'appointments'
   )
 
   // Sync activeTab when ?tab= query param changes (e.g. notification click)
   useEffect(() => {
-    if (tabParam && (['appointments', 'requests', 'patients', 'services'] as const).includes(tabParam as TabId)) {
-      setActiveTab(tabParam as TabId)
+    const mapped = tabParam === 'requests' ? 'appointments' : tabParam
+    if (mapped && validTabs.includes(mapped as TabId)) {
+      setActiveTab(mapped as TabId)
     }
   }, [tabParam])
 
@@ -70,7 +72,6 @@ export default function NursePracticePage() {
       {/* Tab content */}
       <div>
         {activeTab === 'appointments' && <AppointmentsContent />}
-        {activeTab === 'requests' && <BookingRequestsContent />}
         {activeTab === 'patients' && <PatientsContent />}
         {activeTab === 'services' && <ServicesContent />}
       </div>
