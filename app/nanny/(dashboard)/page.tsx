@@ -120,7 +120,7 @@ export default function CaregiverDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard icon={FaCalendarCheck} title="Upcoming Bookings" value={loading ? '...' : stats.upcomingBookings} color="bg-blue-500" />
         <StatCard icon={FaUserFriends} title="Families Helped" value={loading ? '...' : stats.familiesHelped} color="bg-green-500" />
-        <StatCard icon={FaDollarSign} title="Wallet Balance" value={loading ? '...' : `Rs ${stats.walletBalance.toLocaleString()}`} color="bg-purple-500" />
+        <StatCard icon={FaDollarSign} title="Wallet Balance" value={loading ? '...' : `Rs ${(stats.walletBalance ?? 0).toLocaleString()}`} color="bg-purple-500" />
         <StatCard icon={FaStar} title="This Month Completed" value={loading ? '...' : stats.monthlyCompletedBookings} color="bg-yellow-500" />
       </div>
 
@@ -181,7 +181,7 @@ export default function CaregiverDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
                 <p className="text-gray-500 text-sm">Wallet Balance</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">Rs {stats.walletBalance.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">Rs {(stats.walletBalance ?? 0).toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-gray-500 text-sm">Families Helped</p>

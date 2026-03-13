@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { type Nanny } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import ConnectButton from '@/components/search/ConnectButton'
-import MessageButton from '@/components/search/MessageButton'
 import {
   FaSearch, FaBaby, FaStar, FaMapMarkerAlt, FaClock, FaCalendarAlt,
    FaGraduationCap,
@@ -19,152 +18,111 @@ interface NannyProps {
 
 const NannyCard = ({ nanny }: NannyProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
-      <div className="p-6 flex-1 flex flex-col">
-        {/* Nanny Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative">
-            <Image 
-              src={nanny.profileImage} 
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-3">
+        {/* Left: Avatar + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
+            <Image
+              src={nanny.profileImage}
               alt={`${nanny.firstName} ${nanny.lastName}`}
-              width={80} 
-              height={80}
-              className="rounded-full object-cover border-4 border-purple-100"
+              width={48}
+              height={48}
+              className="rounded-full object-cover border-2 border-pink-100"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = `https://ui-avatars.com/api/?name=${nanny.firstName}+${nanny.lastName}&background=random&color=fff&size=80`;
+                target.src = `https://ui-avatars.com/api/?name=${nanny.firstName}+${nanny.lastName}&background=random&color=fff&size=48`;
               }}
             />
             {nanny.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
-                <FaCheckCircle className="text-xs" />
+              <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full p-0.5">
+                <FaCheckCircle className="text-[10px]" />
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-1">
-              {nanny.firstName} {nanny.lastName}
-            </h3>
-            <p className="text-purple-600 font-medium mb-2">
-              {nanny.specialization.join(', ')}
-            </p>
-            
-            {/* Age Groups Badge */}
-            <div className="mb-2">
-              <span className="text-xs px-2 py-1 rounded-full font-medium bg-pink-100 text-pink-700">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <h3 className="text-sm font-bold text-gray-900 truncate">
+                {nanny.firstName} {nanny.lastName}
+              </h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap bg-pink-50 text-pink-700 border-pink-200">
                 {nanny.ageGroups.slice(0, 2).join(', ')}
-                {nanny.ageGroups.length > 2 && ` +${nanny.ageGroups.length - 2} more`}
+                {nanny.ageGroups.length > 2 && ` +${nanny.ageGroups.length - 2}`}
               </span>
             </div>
-            
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex items-center text-yellow-500">
-                {[...Array(Math.floor(nanny.rating))].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-                {nanny.rating % 1 !== 0 && <FaStar className="text-sm opacity-50" />}
-              </div>
-              <span className="text-sm font-semibold text-gray-700">{nanny.rating}</span>
-              <span className="text-sm text-gray-500">({nanny.reviews} reviews)</span>
+            <p className="text-xs text-purple-600 font-medium truncate mb-1">
+              {nanny.specialization.join(', ')}
+            </p>
+
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1.5">
+              <span className="flex items-center gap-1">
+                <FaStar className="text-yellow-500 text-[10px]" />
+                <span className="font-semibold text-gray-700">{nanny.rating}</span>
+                <span className="text-gray-400">({nanny.reviews})</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaMapMarkerAlt className="text-[10px] text-gray-400" />
+                <span className="truncate max-w-[120px]">{nanny.location}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaLanguage className="text-[10px] text-gray-400" />
+                <span>{nanny.languages.slice(0, 2).join(', ')}</span>
+                {nanny.languages.length > 2 && <span className="text-gray-400">+{nanny.languages.length - 2}</span>}
+              </span>
             </div>
 
-            {/* Languages */}
-            <div className="flex items-center gap-2 mb-2">
-              <FaLanguage className="text-purple-500 text-sm" />
-              <span className="text-sm text-gray-600">{nanny.languages.slice(0, 2).join(', ')}</span>
-              {nanny.languages.length > 2 && <span className="text-sm text-gray-400">+{nanny.languages.length - 2}</span>}
-            </div>
-
-            {/* Location */}
-            <div className="flex items-center gap-2">
-              <FaMapMarkerAlt className="text-purple-500 text-sm" />
-              <span className="text-sm text-gray-700">{nanny.location}</span>
+            {/* Tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                <FaClock className="text-[8px]" /> {nanny.nextAvailable}
+              </span>
+              {nanny.careTypes.includes('Full-time Care') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">
+                  <FaHome className="text-[8px]" /> Full-time
+                </span>
+              )}
+              {nanny.careTypes.includes('Part-time Care') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">
+                  <FaClock className="text-[8px]" /> Part-time
+                </span>
+              )}
+              {nanny.careTypes.includes('Date Night Sitting') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
+                  <FaCalendarAlt className="text-[8px]" /> Date Night
+                </span>
+              )}
+              {nanny.emergencyAvailable && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
+                  <FaExclamationCircle className="text-[8px]" /> Emergency
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Service Types */}
-        <div className="mb-4">
-          <div className="grid grid-cols-2 gap-2">
-            {nanny.careTypes.includes("Full-time Care") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <FaHome className="text-green-600" />
-                <span className="text-green-700 font-medium text-sm">Full-time</span>
-              </div>
-            )}
-            {nanny.careTypes.includes("Part-time Care") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <FaClock className="text-purple-600" />
-                <span className="text-purple-700 font-medium text-sm">Part-time</span>
-              </div>
-            )}
-            {nanny.careTypes.includes("Date Night Sitting") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <FaCalendarAlt className="text-blue-600" />
-                <span className="text-blue-700 font-medium text-sm">Date Night</span>
-              </div>
-            )}
-            {nanny.careTypes.includes("Educational Support") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <FaGraduationCap className="text-orange-600" />
-                <span className="text-orange-700 font-medium text-sm">Educational</span>
-              </div>
+        {/* Right: Price + Buttons */}
+        <div className="flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-4 border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+          <div className="sm:text-right">
+            <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+              Rs {(nanny.hourlyRate ?? 0).toLocaleString()}/hr
+            </p>
+            {(nanny.overnightRate ?? 0) > 0 && (
+              <p className="text-[10px] text-gray-400 whitespace-nowrap">
+                Overnight: Rs {(nanny.overnightRate ?? 0).toLocaleString()}
+              </p>
             )}
           </div>
-          
-          {/* Emergency Available - Fixed height container */}
-          <div className="mt-2 h-10 flex items-center">
-            {nanny.emergencyAvailable && (
-              <div className="w-full flex items-center justify-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                <FaExclamationCircle className="text-red-600" />
-                <span className="text-red-700 font-medium text-sm">Emergency Available</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Next Availability */}
-        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
           <div className="flex items-center gap-2">
-            <FaClock className="text-purple-600" />
-            <div>
-              <p className="text-xs text-purple-600 font-medium">Next Available</p>
-              <p className="text-sm font-semibold text-purple-800">{nanny.nextAvailable}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Spacer to push pricing/actions to bottom */}
-        <div className="flex-1"></div>
-
-        {/* Pricing & Actions - Fixed at bottom */}
-        <div className="mt-auto">
-          {/* Pricing */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Hourly Rate:</span>
-              <span className="text-lg font-bold text-green-600">Rs {nanny.hourlyRate.toLocaleString()}/hr</span>
-            </div>
-            {nanny.overnightRate > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Overnight:</span>
-                <span className="text-lg font-bold text-green-600">Rs {nanny.overnightRate.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
-            <Link href={`/search/childcare/${nanny.id}`} className="flex-1 min-w-[80px]">
-              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+            <Link href={`/search/childcare/${nanny.id}`} className="flex-1 sm:flex-none">
+              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors">
                 Details
               </button>
             </Link>
-            <AuthBookingLink type="nanny" providerId={nanny.id} className="flex-1 min-w-[80px] w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+            <AuthBookingLink type="nanny" providerId={nanny.id} className="flex-1 sm:flex-none bg-purple-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors text-center">
               Book
             </AuthBookingLink>
-            <MessageButton providerId={nanny.id} />
-            <ConnectButton providerId={nanny.id} />
+            <ConnectButton providerId={nanny.id} className="flex-1 sm:flex-none !px-3 !py-2 !text-xs" />
           </div>
         </div>
       </div>
@@ -369,7 +327,7 @@ export default function NanniesSearchPage() {
                 </div>
               )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-4">
                 {searchResults.map((nanny) => (
                   <NannyCard key={nanny.id} nanny={nanny} />
                 ))}

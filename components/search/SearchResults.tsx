@@ -14,23 +14,15 @@ import type { UnifiedSearchResult } from '@/app/api/search/route'
 
 function ResultCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 animate-pulse">
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-16 h-16 rounded-full bg-gray-200 flex-shrink-0" />
-        <div className="flex-1">
-          <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-          <div className="h-3 bg-gray-200 rounded w-1/3" />
-        </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 animate-pulse flex items-center gap-4">
+      <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="h-5 bg-gray-200 rounded w-1/3 mb-2" />
+        <div className="h-4 bg-gray-200 rounded w-1/4 mb-2" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
       </div>
-      <div className="flex gap-2 mb-3">
-        <div className="h-6 bg-gray-200 rounded-full w-20" />
-        <div className="h-6 bg-gray-200 rounded-full w-16" />
-      </div>
-      <div className="h-4 bg-gray-200 rounded w-full mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-2/3 mb-4" />
-      <div className="flex justify-between pt-3 border-t border-gray-100">
-        <div className="h-6 bg-gray-200 rounded w-24" />
+      <div className="flex flex-col gap-2 flex-shrink-0">
+        <div className="h-8 bg-gray-200 rounded w-20" />
         <div className="h-8 bg-gray-200 rounded w-20" />
       </div>
     </div>
@@ -39,7 +31,7 @@ function ResultCardSkeleton() {
 
 export function SearchResultsSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="flex flex-col gap-3">
       {Array.from({ length: count }).map((_, i) => (
         <ResultCardSkeleton key={i} />
       ))}
@@ -105,21 +97,22 @@ function ResultCard({ result }: { result: UnifiedSearchResult }) {
   const config = TYPE_CONFIG[result.type] || TYPE_CONFIG.doctor
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden flex flex-col h-full">
-      <div className="p-5 flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-start gap-3 mb-3">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4">
+        {/* Left: Avatar + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          {/* Avatar */}
           <div className="relative flex-shrink-0">
             {result.profileImage ? (
               <Image
                 src={result.profileImage}
                 alt={result.name}
-                width={56}
-                height={56}
+                width={52}
+                height={52}
                 className="rounded-full object-cover border-2 border-gray-100"
               />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl text-gray-400">
+              <div className="w-13 h-13 rounded-full bg-gray-100 flex items-center justify-center text-xl text-gray-400" style={{ width: 52, height: 52 }}>
                 {config.icon}
               </div>
             )}
@@ -129,127 +122,94 @@ function ResultCard({ result }: { result: UnifiedSearchResult }) {
               </div>
             )}
           </div>
+
+          {/* Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-gray-900 truncate">{result.name}</h3>
-            <p className="text-sm text-blue-600 font-medium truncate">
-              {result.specialty.slice(0, 2).join(', ')}
-            </p>
-            {/* Type badge + category */}
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${config.badgeColor}`}>
+            <div className="flex items-center gap-2 mb-0.5">
+              <h3 className="text-sm font-bold text-gray-900 truncate">{result.name}</h3>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap ${config.badgeColor}`}>
                 {config.badge}
               </span>
-              {result.category && result.type !== 'medicine' && (
-                <span className="text-[10px] text-gray-400">{result.category}</span>
+            </div>
+            <p className="text-xs text-blue-600 font-medium truncate mb-1">
+              {result.specialty.slice(0, 2).join(', ')}
+            </p>
+
+            {/* Meta row: rating, location, languages */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+              {result.rating > 0 && (
+                <span className="flex items-center gap-1">
+                  <FaStar className="text-yellow-500 text-[10px]" />
+                  <span className="font-semibold text-gray-700">{result.rating.toFixed(1)}</span>
+                  {result.reviewCount > 0 && <span className="text-gray-400">({result.reviewCount})</span>}
+                </span>
+              )}
+              {result.city && (
+                <span className="flex items-center gap-1">
+                  <FaMapMarkerAlt className="text-[10px] text-gray-400" />
+                  <span className="truncate max-w-[120px]">{result.city}</span>
+                </span>
+              )}
+              {result.languages.length > 0 && (
+                <span className="flex items-center gap-1">
+                  <FaLanguage className="text-[10px] text-gray-400" />
+                  <span className="truncate max-w-[120px]">{result.languages.slice(0, 3).join(', ')}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Tags row: availability + consultation types */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                result.available
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }`}>
+                {result.available ? <FaCheckCircle className="text-[8px]" /> : <FaClock className="text-[8px]" />}
+                {result.available
+                  ? (result.nextAvailable === 'Available Today' || result.nextAvailable === 'In Stock' ? result.nextAvailable : `Next: ${result.nextAvailable}`)
+                  : `Next: ${result.nextAvailable}`}
+              </span>
+              {result.type !== 'medicine' && result.consultationTypes.includes('In-Person') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">
+                  <FaHome className="text-[8px]" /> In-Person
+                </span>
+              )}
+              {result.type !== 'medicine' && result.consultationTypes.includes('Video Consultation') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-200">
+                  <FaVideo className="text-[8px]" /> Video
+                </span>
+              )}
+              {result.emergencyAvailable && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-200">
+                  <FaExclamationCircle className="text-[8px]" /> Emergency
+                </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Rating + Location */}
-        <div className="space-y-1.5 mb-3">
-          {result.rating > 0 && (
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center text-yellow-500">
-                {[...Array(Math.floor(result.rating))].map((_, i) => (
-                  <FaStar key={i} className="text-[10px]" />
-                ))}
-                {result.rating % 1 >= 0.5 && <FaStar className="text-[10px] opacity-50" />}
-              </div>
-              <span className="text-xs font-semibold text-gray-700">{result.rating.toFixed(1)}</span>
-              {result.reviewCount > 0 && (
-                <span className="text-xs text-gray-400">({result.reviewCount})</span>
-              )}
-            </div>
-          )}
-          {result.city && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <FaMapMarkerAlt className="text-[10px] text-gray-400" />
-              <span className="truncate">{result.city}</span>
-            </div>
-          )}
-          {result.languages.length > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <FaLanguage className="text-[10px] text-gray-400" />
-              <span className="truncate">{result.languages.slice(0, 3).join(', ')}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Availability Status */}
-        <div className="mb-3">
-          <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg ${
-            result.available
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-amber-50 text-amber-700 border border-amber-200'
-          }`}>
-            {result.available ? (
-              <>
-                <FaCheckCircle className="text-[10px]" />
-                <span>{result.nextAvailable === 'Available Today' || result.nextAvailable === 'In Stock' ? result.nextAvailable : `Next: ${result.nextAvailable}`}</span>
-              </>
-            ) : (
-              <>
-                <FaClock className="text-[10px]" />
-                <span>Next: {result.nextAvailable}</span>
-              </>
+        {/* Right: Price + Action buttons */}
+        <div className="flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-4 border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+          <div className="sm:text-right">
+            {result.consultationFee !== null && result.consultationFee > 0 && (
+              <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                Rs {result.consultationFee.toLocaleString()}
+                {result.type === 'medicine' ? '' : <span className="text-[10px] font-normal text-gray-400"> /session</span>}
+              </p>
+            )}
+            {result.videoConsultationFee !== null && result.videoConsultationFee > 0 && (
+              <p className="text-[10px] text-gray-400 whitespace-nowrap">
+                Video: Rs {result.videoConsultationFee.toLocaleString()}
+              </p>
             )}
           </div>
-        </div>
-
-        {/* Consultation types (for providers) */}
-        {result.type !== 'medicine' && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {result.consultationTypes.includes('In-Person') && (
-              <span className="flex items-center gap-1 text-[10px] bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-200">
-                <FaHome className="text-[8px]" />
-                In-Person
-              </span>
-            )}
-            {result.consultationTypes.includes('Video Consultation') && (
-              <span className="flex items-center gap-1 text-[10px] bg-purple-50 text-purple-600 px-2 py-1 rounded border border-purple-200">
-                <FaVideo className="text-[8px]" />
-                Video
-              </span>
-            )}
-            {result.emergencyAvailable && (
-              <span className="flex items-center gap-1 text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200">
-                <FaExclamationCircle className="text-[8px]" />
-                Emergency
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Bio (truncated) */}
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3">{result.bio}</p>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Footer: Pricing + Actions */}
-        <div className="pt-3 border-t border-gray-100 mt-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              {result.consultationFee !== null && result.consultationFee > 0 && (
-                <p className="text-base font-bold text-gray-900">
-                  Rs {result.consultationFee.toLocaleString()}
-                  {result.type === 'medicine' ? '' : <span className="text-xs font-normal text-gray-400"> /session</span>}
-                </p>
-              )}
-              {result.videoConsultationFee !== null && result.videoConsultationFee > 0 && (
-                <p className="text-xs text-gray-400">
-                  Video: Rs {result.videoConsultationFee.toLocaleString()}
-                </p>
-              )}
-            </div>
-            <Link
-              href={result.detailHref}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              {result.type === 'medicine' ? 'View' : 'Details'}
-            </Link>
-          </div>
+          <Link
+            href={result.detailHref}
+            className="px-4 py-2.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors whitespace-nowrap text-center"
+          >
+            {result.type === 'medicine' ? 'View' : 'View Profile'}
+          </Link>
         </div>
       </div>
     </div>
@@ -371,8 +331,8 @@ export default function SearchResults({
         )}
       </div>
 
-      {/* Results grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {/* Results list */}
+      <div className="flex flex-col gap-4">
         {results.map(result => (
           <ResultCard key={`${result.type}-${result.id}`} result={result} />
         ))}

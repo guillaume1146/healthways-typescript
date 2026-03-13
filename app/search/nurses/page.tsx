@@ -7,7 +7,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { type Nurse } from '@/lib/data'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import ConnectButton from '@/components/search/ConnectButton'
-import MessageButton from '@/components/search/MessageButton'
 import SearchFilters, { type SearchFilterValues } from '@/components/search/SearchFilters'
 import { SearchResultsSkeleton, NoResults } from '@/components/search/SearchResults'
 import { useSearchHistory } from '@/hooks/useSearchHistory'
@@ -23,148 +22,112 @@ interface NurseProps {
 
 const NurseCard = ({ nurse }: NurseProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
-      <div className="p-6 flex-1 flex flex-col">
-        {/* Nurse Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-3">
+        {/* Left: Avatar + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
             <Image
               src={nurse.profileImage}
               alt={`${nurse.firstName} ${nurse.lastName}`}
-              width={80}
-              height={80}
-              className="rounded-full object-cover border-4 border-blue-100"
+              width={48}
+              height={48}
+              className="rounded-full object-cover border-2 border-teal-100"
             />
             {nurse.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
-                <FaCheckCircle className="text-xs" />
+              <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full p-0.5">
+                <FaCheckCircle className="text-[10px]" />
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-1">
-              {nurse.firstName} {nurse.lastName}
-            </h3>
-            <p className="text-blue-600 font-medium mb-2">
-              {nurse.specialization.join(', ')}
-            </p>
-
-            {/* Type Badge */}
-            <div className="mb-2">
-              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <h3 className="text-sm font-bold text-gray-900 truncate">
+                {nurse.firstName} {nurse.lastName}
+              </h3>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap ${
                 nurse.type === 'Registered Nurse'
-                  ? 'bg-purple-100 text-purple-700'
+                  ? 'bg-purple-50 text-purple-700 border-purple-200'
                   : nurse.type === 'Licensed Practical Nurse'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-blue-100 text-blue-700'
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-blue-50 text-blue-700 border-blue-200'
               }`}>
                 {nurse.type}
               </span>
             </div>
+            <p className="text-xs text-blue-600 font-medium truncate mb-1">
+              {nurse.specialization.join(', ')}
+            </p>
 
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex items-center text-yellow-500">
-                {[...Array(Math.floor(nurse.rating))].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-                {nurse.rating % 1 !== 0 && <FaStar className="text-sm opacity-50" />}
-              </div>
-              <span className="text-sm font-semibold text-gray-700">{nurse.rating}</span>
-              <span className="text-sm text-gray-500">({nurse.reviews} reviews)</span>
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1.5">
+              <span className="flex items-center gap-1">
+                <FaStar className="text-yellow-500 text-[10px]" />
+                <span className="font-semibold text-gray-700">{nurse.rating}</span>
+                <span className="text-gray-400">({nurse.reviews})</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaMapMarkerAlt className="text-[10px] text-gray-400" />
+                <span className="truncate max-w-[120px]">{nurse.location}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaLanguage className="text-[10px] text-gray-400" />
+                <span>{nurse.languages.slice(0, 2).join(', ')}</span>
+                {nurse.languages.length > 2 && <span className="text-gray-400">+{nurse.languages.length - 2}</span>}
+              </span>
             </div>
 
-            {/* Languages */}
-            <div className="flex items-center gap-2 mb-2">
-              <FaLanguage className="text-blue-500 text-sm" />
-              <span className="text-sm text-gray-600">{nurse.languages.slice(0, 2).join(', ')}</span>
-              {nurse.languages.length > 2 && <span className="text-sm text-gray-400">+{nurse.languages.length - 2}</span>}
-            </div>
-
-            {/* Location */}
-            <div className="flex items-center gap-2">
-              <FaMapMarkerAlt className="text-blue-500 text-sm" />
-              <span className="text-sm text-gray-700">{nurse.location}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Service Types - Bigger Display */}
-        <div className="mb-4">
-          <div className="grid grid-cols-2 gap-2">
-            {nurse.consultationTypes.includes("In-Person") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <FaHome className="text-green-600" />
-                <span className="text-green-700 font-medium text-sm">In-Person</span>
-              </div>
-            )}
-            {nurse.consultationTypes.includes("Video Consultation") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <FaVideo className="text-purple-600" />
-                <span className="text-purple-700 font-medium text-sm">Video Call</span>
-              </div>
-            )}
-            {nurse.consultationTypes.includes("Home Visit") && (
-              <div className="flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <FaHome className="text-blue-600" />
-                <span className="text-blue-700 font-medium text-sm">Home Visit</span>
-              </div>
-            )}
-          </div>
-
-          {/* Emergency Available - Fixed height container */}
-          <div className="mt-2 h-10 flex items-center">
-            {nurse.emergencyAvailable && (
-              <div className="w-full flex items-center justify-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                <FaExclamationCircle className="text-red-600" />
-                <span className="text-red-700 font-medium text-sm">Emergency Available</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Next Availability */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FaClock className="text-blue-600" />
-            <div>
-              <p className="text-xs text-blue-600 font-medium">Next Available</p>
-              <p className="text-sm font-semibold text-blue-800">{nurse.nextAvailable}</p>
+            {/* Tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                <FaClock className="text-[8px]" /> {nurse.nextAvailable}
+              </span>
+              {nurse.consultationTypes.includes('In-Person') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">
+                  <FaHome className="text-[8px]" /> In-Person
+                </span>
+              )}
+              {nurse.consultationTypes.includes('Video Consultation') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">
+                  <FaVideo className="text-[8px]" /> Video
+                </span>
+              )}
+              {nurse.consultationTypes.includes('Home Visit') && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
+                  <FaHome className="text-[8px]" /> Home Visit
+                </span>
+              )}
+              {nurse.emergencyAvailable && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
+                  <FaExclamationCircle className="text-[8px]" /> Emergency
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Spacer to push pricing/actions to bottom */}
-        <div className="flex-1"></div>
-
-        {/* Pricing & Actions - Fixed at bottom */}
-        <div className="mt-auto">
-          {/* Pricing */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Hourly Rate:</span>
-              <span className="text-lg font-bold text-green-600">Rs {nurse.hourlyRate}/hr</span>
-            </div>
+        {/* Right: Price + Buttons */}
+        <div className="flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-4 border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+          <div className="sm:text-right">
+            <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+              Rs {nurse.hourlyRate}/hr
+            </p>
             {nurse.videoConsultationRate > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Video Rate:</span>
-                <span className="text-lg font-bold text-green-600">Rs {nurse.videoConsultationRate}/hr</span>
-              </div>
+              <p className="text-[10px] text-gray-400 whitespace-nowrap">
+                Video: Rs {nurse.videoConsultationRate}/hr
+              </p>
             )}
           </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
-            <Link href={`/search/nurses/${nurse.id}`} className="flex-1 min-w-[80px]">
-              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+          <div className="flex items-center gap-2">
+            <Link href={`/search/nurses/${nurse.id}`} className="flex-1 sm:flex-none">
+              <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors">
                 Details
               </button>
             </Link>
-            <AuthBookingLink type="nurse" providerId={nurse.id} className="flex-1 min-w-[80px] w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            <AuthBookingLink type="nurse" providerId={nurse.id} className="flex-1 sm:flex-none bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors text-center">
               Book
             </AuthBookingLink>
-            <MessageButton providerId={nurse.id} />
-            <ConnectButton providerId={nurse.id} />
+            <ConnectButton providerId={nurse.id} className="flex-1 sm:flex-none !px-3 !py-2 !text-xs" />
           </div>
         </div>
       </div>
@@ -515,7 +478,7 @@ function NursesSearchContent() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-4">
                   {searchResults.map((nurse) => (
                     <NurseCard key={nurse.id} nurse={nurse} />
                   ))}

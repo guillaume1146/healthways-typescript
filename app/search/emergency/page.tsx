@@ -6,7 +6,6 @@ import { FaSearch, FaAmbulance, FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaExcl
 import { IconType } from 'react-icons'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import ConnectButton from '@/components/search/ConnectButton'
-import MessageButton from '@/components/search/MessageButton'
 import CallButton from '@/components/search/CallButton'
 
 // Category icons mapping
@@ -53,142 +52,91 @@ const EmergencyCard = ({ service }: { service: EmergencyService }) => {
   const CategoryIcon = categoryIcons[service.category] || FaAmbulance
 
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-blue-100">
-      <div className="bg-gradient-to-r from-blue-600 to-teal-500 p-2 text-white text-center">
-        <span className="text-sm font-semibold flex items-center justify-center gap-2">
-          <FaBell className="animate-pulse" />
-          {service.availability} Emergency Service
-        </span>
-      </div>
-      <div className="p-6">
-        {/* Header with Icon and Basic Info */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-3">
+        {/* Left: Avatar + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
             <div
-              className="w-20 h-20 rounded-full border-4 border-blue-100 bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center"
+              className="w-12 h-12 rounded-full border-2 border-blue-100 bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center"
               style={{ backgroundImage: `url(${service.avatar})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-              <CategoryIcon className="text-3xl text-blue-500 opacity-0" />
+              <CategoryIcon className="text-xl text-blue-500 opacity-0" />
             </div>
             {service.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
-                <FaCheckCircle className="text-white text-xs" />
-              </div>
-            )}
-            {service.governmentApproved && (
-              <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
-                <FaShieldAlt className="text-white text-xs" />
+              <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 text-white rounded-full p-0.5">
+                <FaCheckCircle className="text-[10px]" />
               </div>
             )}
           </div>
-
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900">{service.name}</h3>
-            <p className="text-blue-600 font-medium flex items-center gap-2">
-              <CategoryIcon className="text-sm" />
-              {service.type}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <h3 className="text-sm font-bold text-gray-900 truncate">{service.name}</h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap bg-blue-50 text-blue-700 border-blue-200">
+                {service.type}
+              </span>
+              {service.governmentApproved && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap bg-green-50 text-green-700 border-green-200">
+                  <FaShieldAlt className="inline text-[8px] mr-0.5" /> Govt. Approved
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-blue-600 font-medium truncate mb-1">
+              {service.category} &middot; {service.coverage}
             </p>
-            <p className="text-gray-600 text-sm">{service.category}</p>
 
-            {/* Rating */}
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center text-yellow-500">
-                {[...Array(Math.floor(service.rating))].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-                {service.rating % 1 !== 0 && <FaStarHalfAlt className="text-sm" />}
-              </div>
-              <span className="text-sm font-medium text-gray-700">{service.rating}</span>
-              <span className="text-sm text-gray-500">({service.reviews} reviews)</span>
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1.5">
+              <span className="flex items-center gap-1">
+                <FaStar className="text-yellow-500 text-[10px]" />
+                <span className="font-semibold text-gray-700">{service.rating}</span>
+                <span className="text-gray-400">({service.reviews})</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaMapMarkerAlt className="text-[10px] text-gray-400" />
+                <span className="truncate max-w-[120px]">{service.location}</span>
+              </span>
+              <span className="flex items-center gap-1 font-semibold text-blue-600">
+                <FaClock className="text-[10px]" /> {service.responseTime}
+              </span>
+            </div>
+
+            {/* Tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                <FaBell className="text-[8px]" /> {service.availability}
+              </span>
+              {service.gpsTracking && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
+                  <FaWifi className="text-[8px]" /> GPS
+                </span>
+              )}
+              {service.services.slice(0, 2).map((s, i) => (
+                <span key={i} className="inline-flex items-center text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">
+                  {s}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Emergency Response Time */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-blue-700">Response Time:</span>
-            <span className="text-lg font-bold text-blue-600 flex items-center gap-2">
-              <FaClock className="animate-pulse" />
-              {service.responseTime}
-            </span>
+        {/* Right: Phone + Buttons */}
+        <div className="flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-4 border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+          <div className="sm:text-right">
+            <a href={`tel:${service.phone}`} className="text-sm font-bold text-blue-600 whitespace-nowrap hover:underline">
+              {service.phone}
+            </a>
           </div>
-        </div>
-
-        {/* Bio */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.bio}</p>
-
-        {/* Services */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {service.services.slice(0, 3).map((item: string, index: number) => (
-            <span key={index} className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full">
-              {item}
-            </span>
-          ))}
-        </div>
-
-        {/* Key Information Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaMapMarkerAlt className="text-blue-500" />
-            <span className="truncate">{service.location}</span>
+          <div className="flex items-center gap-2">
+            <CallButton providerId={service.id} className="flex-1 sm:flex-none !px-3 !py-2 !text-xs" />
+            <AuthBookingLink
+              type="emergency"
+              className="flex-1 sm:flex-none bg-teal-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-teal-700 transition-colors text-center"
+            >
+              Book
+            </AuthBookingLink>
+            <ConnectButton providerId={service.id} className="flex-1 sm:flex-none !px-3 !py-2 !text-xs" />
           </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaShieldAlt className="text-blue-500" />
-            <span>{service.coverage}</span>
-          </div>
-          {service.gpsTracking && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <FaWifi className="text-green-500" />
-              <span className="text-green-600 font-medium">GPS Tracking</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaIdCard className="text-blue-500" />
-            <span>{service.certifications.length} Certified</span>
-          </div>
-        </div>
-
-        {/* Vehicle Types */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {service.vehicleTypes.slice(0, 3).map((vehicle: string, index: number) => (
-            <span key={index} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded flex items-center gap-1">
-              <FaTruck className="text-xs" />
-              {vehicle}
-            </span>
-          ))}
-        </div>
-
-        {/* Emergency Contact Info */}
-        <div className="bg-gradient-to-r from-blue-600 to-teal-500 text-white rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs opacity-90">Emergency Hotline</p>
-              <a href={`tel:${service.phone}`} className="text-2xl font-bold hover:underline">{service.phone}</a>
-            </div>
-            {service.alternatePhone && (
-              <div className="text-right">
-                <p className="text-xs opacity-90">Alternate</p>
-                <a href={`tel:${service.alternatePhone}`} className="text-sm font-medium hover:underline">{service.alternatePhone}</a>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Action Buttons — Call, Book Service, Message, Connect */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <CallButton providerId={service.id} className="w-full justify-center" />
-          <AuthBookingLink
-            type="emergency"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 transition-colors w-full"
-          >
-            <FaAmbulance className="w-4 h-4" />
-            Book Service
-          </AuthBookingLink>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <MessageButton providerId={service.id} className="w-full justify-center" />
-          <ConnectButton providerId={service.id} className="w-full justify-center" />
         </div>
       </div>
     </div>
@@ -481,7 +429,7 @@ export default function EmergencyPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-4">
                 {searchResults.map((service) => (
                   <EmergencyCard key={service.id} service={service} />
                 ))}

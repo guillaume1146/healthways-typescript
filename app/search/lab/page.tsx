@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import AuthBookingLink from '@/components/booking/AuthBookingLink'
 import ConnectButton from '@/components/search/ConnectButton'
-import MessageButton from '@/components/search/MessageButton'
 import { FaSearch, FaFlask, FaStar, FaMapMarkerAlt, FaClock,FaCheckCircle, FaStarHalfAlt, FaShoppingCart, FaLock,  FaHome, FaExclamationTriangle, FaCertificate, FaHeadset,  FaHeart,  FaBaby, FaHandHoldingMedical,  FaVial, FaPercent,  FaUserMd,  FaFileAlt, FaTint, FaMicroscope, FaViruses, FaAmbulance,  FaClipboardList } from 'react-icons/fa'
 
 interface ApiLabTest {
@@ -75,165 +74,92 @@ interface LabTestProps {
 
 const LabTestCard = ({ test }: LabTestProps) => {
   const CategoryIcon = categoryIcons[test.category as keyof typeof categoryIcons] || FaFlask
-  
+
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100">
-      <div className="p-6">
-        {/* Header with Icon and Basic Info */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-lg border-2 border-purple-100 bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
-              <CategoryIcon className="text-3xl text-purple-600" />
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-3">
+        {/* Left: Icon + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg border-2 border-purple-100 bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
+              <CategoryIcon className="text-xl text-purple-600" />
             </div>
-            {test.homeCollection && (
-              <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
-                <FaHome className="text-white text-xs" />
-              </div>
-            )}
             {test.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-                <FaCheckCircle className="text-white text-xs" />
+              <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full p-0.5">
+                <FaCheckCircle className="text-[10px]" />
               </div>
             )}
           </div>
-          
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900">{test.name}</h3>
-            <p className="text-purple-600 font-medium flex items-center gap-2">
-              <CategoryIcon className="text-sm" />
-              {test.category}
-            </p>
-            <p className="text-gray-600 text-sm">{test.testCode}</p>
-            
-            {/* Rating */}
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center text-yellow-500">
-                {[...Array(Math.floor(test.rating))].map((_, i) => (
-                  <FaStar key={i} className="text-sm" />
-                ))}
-                {test.rating % 1 !== 0 && <FaStarHalfAlt className="text-sm" />}
-              </div>
-              <span className="text-sm font-medium text-gray-700">{test.rating}</span>
-              <span className="text-sm text-gray-500">({test.reviews})</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Popularity and Type Badges */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
-            {test.category}
-          </span>
-          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
-            {test.popularity}
-          </span>
-          {test.fastingRequired && (
-            <span className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded-full">
-              Fasting Required
-            </span>
-          )}
-        </div>
-        
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{test.description}</p>
-        
-        {/* Components */}
-        <div className="mb-3">
-          <span className="text-xs text-gray-500 block mb-1">Test Components:</span>
-          <div className="flex flex-wrap gap-1">
-            {test.components.slice(0, 3).map((component, index) => (
-              <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                {component}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <h3 className="text-sm font-bold text-gray-900 truncate">{test.name}</h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium border whitespace-nowrap bg-purple-50 text-purple-700 border-purple-200">
+                {test.category}
               </span>
-            ))}
-            {test.components.length > 3 && (
-              <span className="text-xs text-gray-500">+{test.components.length - 3} more</span>
-            )}
-          </div>
-        </div>
-        
-        {/* Key Information Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaVial className="text-purple-500" />
-            <span>{test.sampleType}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaClock className="text-blue-500" />
-            <span>{test.resultTime}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaMapMarkerAlt className="text-green-500" />
-            <span>{test.labLocation}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <FaClipboardList className="text-orange-500" />
-            <span>{test.bookings} bookings</span>
-          </div>
-        </div>
-        
-        {/* Service Features */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {test.homeCollection && (
-            <div className="flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
-              <FaHome />
-              <span>Home Collection</span>
             </div>
-          )}
-          {test.verified && (
-            <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-              <FaCheckCircle />
-              <span>Verified Lab</span>
+            <p className="text-xs text-purple-600 font-medium truncate mb-1">
+              {test.testCode} &middot; {test.sampleType}
+            </p>
+
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1.5">
+              <span className="flex items-center gap-1">
+                <FaStar className="text-yellow-500 text-[10px]" />
+                <span className="font-semibold text-gray-700">{test.rating.toFixed(1)}</span>
+                <span className="text-gray-400">({test.reviews})</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaClock className="text-[10px] text-gray-400" />
+                <span>{test.resultTime}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <FaMapMarkerAlt className="text-[10px] text-gray-400" />
+                <span className="truncate max-w-[120px]">{test.labLocation}</span>
+              </span>
             </div>
-          )}
-          <div className="flex items-center gap-1 text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded">
-            <FaPercent />
-            <span>{test.discount}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-            <FaFileAlt />
-            <span>{test.reportDelivery}</span>
-          </div>
-        </div>
-        
-        {/* Availability Status */}
-        <div className="mb-4">
-          {test.available ? (
-            <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-              <FaCheckCircle className="text-xs" />
-              Available Today
-            </span>
-          ) : (
-            <span className="text-sm text-red-600 font-medium flex items-center gap-1">
-              <FaExclamationTriangle className="text-xs" />
-              Temporarily Unavailable
-            </span>
-          )}
-        </div>
-        
-        {/* Footer with Price and CTA */}
-        <div className="pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold text-gray-900">{test.price}</p>
-                <span className="text-sm text-gray-500 line-through">{test.originalPrice}</span>
-              </div>
-              <p className="text-xs text-green-600 font-medium">{test.discount}</p>
-            </div>
-            <div className="flex gap-2">
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm">
-                Details
-              </button>
-              <AuthBookingLink type="lab-test" providerId={test.id} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 text-sm">
-                <FaShoppingCart />
-                Book Test
-              </AuthBookingLink>
+
+            {/* Tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {test.available ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                  <FaCheckCircle className="text-[8px]" /> Available
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                  <FaExclamationTriangle className="text-[8px]" /> Unavailable
+                </span>
+              )}
+              {test.homeCollection && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">
+                  <FaHome className="text-[8px]" /> Home Collection
+                </span>
+              )}
+              {test.fastingRequired && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full border border-orange-200">
+                  Fasting Required
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">
+                <FaPercent className="text-[8px]" /> {test.discount}
+              </span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <MessageButton providerId={test.id} />
-            <ConnectButton providerId={test.id} />
+        </div>
+
+        {/* Right: Price + Buttons */}
+        <div className="flex flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-4 border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+          <div className="sm:text-right">
+            <p className="text-sm font-bold text-gray-900 whitespace-nowrap">{test.price}</p>
+            <p className="text-[10px] text-gray-400 line-through whitespace-nowrap">{test.originalPrice}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex-1 sm:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors">
+              Details
+            </button>
+            <AuthBookingLink type="lab-test" providerId={test.id} className="flex-1 sm:flex-none bg-purple-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors text-center inline-flex items-center gap-1">
+              <FaShoppingCart className="text-[10px]" /> Book
+            </AuthBookingLink>
+            <ConnectButton providerId={test.id} className="flex-1 sm:flex-none !px-3 !py-2 !text-xs" />
           </div>
         </div>
       </div>
@@ -482,7 +408,7 @@ export default function LabTestingPage() {
                 </div>
               )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-4">
                 {searchResults.map((test) => (
                   <LabTestCard key={test.id} test={test} />
                 ))}
