@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { FaUpload, FaFileAlt, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from 'react-icons/fa'
+import { FaUpload, FaFileAlt, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaRobot } from 'react-icons/fa'
 import { useUser } from '@/hooks/useUser'
 
 export interface DocumentField {
@@ -21,6 +21,7 @@ interface DocumentUploadState {
   status: 'idle' | 'uploading' | 'verified' | 'failed'
   message?: string
   confidence?: number
+  analysisReport?: string
 }
 
 const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
@@ -86,6 +87,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
             status: 'verified',
             message: `Document verified (confidence: ${Math.round((data.confidence || 0) * 100)}%)`,
             confidence: data.confidence,
+            analysisReport: data.analysisReport,
           },
         }))
       } else {
@@ -97,6 +99,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
             message: data.nameFound
               ? 'Document verified but name match was low confidence. Please re-upload a clearer document.'
               : 'Could not verify your name on this document. Please ensure the document is clear and contains your full name.',
+            analysisReport: data.analysisReport,
           },
         }))
       }
@@ -195,6 +198,47 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ documents }) => {
                   {state.status === 'failed' && <FaExclamationTriangle />}
                   {state.status === 'verified' && <FaCheckCircle />}
                   {state.message}
+                </div>
+              )}
+              {/* AI Analysis Report */}
+              {state.status !== 'uploading' && state.analysisReport && (
+                <div className={`mt-3 rounded-lg border p-3 ${
+                  state.status === 'verified'
+                    ? 'bg-emerald-50/50 border-emerald-200'
+                    : 'bg-amber-50/50 border-amber-200'
+                }`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <FaRobot className={`text-xs ${
+                      state.status === 'verified' ? 'text-emerald-600' : 'text-amber-600'
+                    }`} />
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${
+                      state.status === 'verified' ? 'text-emerald-700' : 'text-amber-700'
+                    }`}>
+                      AI Automated Analysis
+                    </span>
+                  </div>
+                  <p className={`text-xs leading-relaxed ${
+                    state.status === 'verified' ? 'text-emerald-800' : 'text-amber-800'
+                  }`}>
+                    {state.analysisReport}
+                  </p>
+                  <p className="text-[9px] text-gray-400 mt-1.5 italic">
+                    This analysis was performed automatically by AI. No human has reviewed this document yet.
+                  </p>
+                </div>
+              )}
+              {/* Scanning animation */}
+              {state.status === 'uploading' && (
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FaRobot className="text-xs text-blue-600 animate-pulse" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                      AI Scanning in Progress
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    Our AI is analyzing your document and verifying it against your profile information...
+                  </p>
                 </div>
               )}
             </div>

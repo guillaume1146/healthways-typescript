@@ -8,6 +8,7 @@ export interface DocumentVerificationStatus {
   confidence: number
   nameFound: boolean
   message: string
+  analysisReport?: string
 }
 
 export function useDocumentVerification(fullName: string) {
@@ -50,6 +51,7 @@ export function useDocumentVerification(fullName: string) {
               confidence: result.confidence,
               nameFound: result.nameFound,
               message: `Name verified (${result.confidence}% confidence)`,
+              analysisReport: result.analysisReport,
             },
           }))
         } else {
@@ -62,6 +64,7 @@ export function useDocumentVerification(fullName: string) {
               nameFound: result.nameFound || false,
               message:
                 'Name not found in document. This will require manual review.',
+              analysisReport: result.analysisReport,
             },
           }))
         }

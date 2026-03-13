@@ -21,6 +21,7 @@ export interface VerificationResult {
   matchDetails: MatchDetails
   method: 'vlm' | 'llm-text' | 'fallback'
   extractedTextPreview: string
+  analysisReport: string
 }
 
 // ─── Groq API Response ───────────────────────────────────────────────────────
@@ -33,13 +34,14 @@ interface GroqVerificationResponse {
   missing_parts: string[]
   document_type_detected: string
   reasoning: string
+  detailed_analysis: string
 }
 
 // ─── Verification Prompt (shared between VLM and LLM) ───────────────────────
 
 function buildVerificationPrompt(fullName: string, documentType: string): string {
   const nameParts = fullName.trim().split(/\s+/)
-  return `You are a document verification assistant. Your task is to verify if a person's name appears in a document.
+  return `You are an AI Document Compliance Analyst for Healthwyz, a healthcare platform. Your task is to verify a document submitted during user registration.
 
 Person's full name to verify: "${fullName}"
 Name parts to search for: ${JSON.stringify(nameParts)}
@@ -52,6 +54,7 @@ Instructions:
 4. Assess your confidence (0-100) that this document belongs to or references the named person.
 5. Identify what type of document this appears to be.
 6. Be lenient with minor spelling differences, accent marks, or character variations.
+7. Write a DETAILED analysis report (see "detailed_analysis" below) explaining your findings.
 
 Respond ONLY with a valid JSON object (no markdown, no code blocks, no extra text):
 {
@@ -61,7 +64,8 @@ Respond ONLY with a valid JSON object (no markdown, no code blocks, no extra tex
   "found_parts": ["list", "of", "found", "name", "parts"],
   "missing_parts": ["list", "of", "missing", "name", "parts"],
   "document_type_detected": "e.g. National ID, Passport, Medical License, Business Plan, etc.",
-  "reasoning": "brief explanation of how you verified"
+  "reasoning": "brief one-line summary",
+  "detailed_analysis": "Write a thorough 4-8 sentence analysis report. Start with: 'AI Document Scan Report — [Document Type Detected]'. Then describe: (1) what type of document was detected and its key visual/textual elements (headers, logos, stamps, signatures, fields), (2) whether the registrant's name '${fullName}' was found in the document and where exactly (which field/section), (3) if the document type matches what was expected ('${documentType}') and why, (4) any concerns or reasons the document may not be compliant (wrong document type, name mismatch, low quality, missing elements), (5) your final verdict: COMPLIANT or NEEDS MANUAL REVIEW, with a clear explanation. Be specific and descriptive so the user understands exactly what the AI analyzed."
 }`
 }
 
@@ -106,7 +110,7 @@ async function verifyImageWithVLM(
           ],
         }],
         temperature: 0.1,
-        max_completion_tokens: 512,
+        max_completion_tokens: 1024,
         response_format: { type: 'json_object' },
       }),
     })
@@ -158,7 +162,7 @@ async function verifyTextWithLLM(
           content: `${prompt}\n\nHere is the extracted text from the document:\n---\n${textSnippet}\n---`,
         }],
         temperature: 0.1,
-        max_completion_tokens: 512,
+        max_completion_tokens: 1024,
         response_format: { type: 'json_object' },
       }),
     })
@@ -236,6 +240,7 @@ function buildResult(
     extractedTextPreview: groqResult.extracted_name
       ? `Name: ${groqResult.extracted_name} | Doc: ${groqResult.document_type_detected} | ${groqResult.reasoning}`
       : `Doc: ${groqResult.document_type_detected} | ${groqResult.reasoning}`,
+    analysisReport: groqResult.detailed_analysis || groqResult.reasoning || '',
   }
 }
 
@@ -266,6 +271,7 @@ export async function verifyDocument(
     matchDetails: { searchedParts: nameParts, foundParts: [], missingParts: nameParts },
     method: 'fallback',
     extractedTextPreview: '(verification unavailable — manual review required)',
+    analysisReport: 'AI Document Scan Report — Automated verification was not possible for this document. The document will be queued for manual review by the Healthwyz compliance team. This may take 2-5 business days. You can proceed with registration and your account will be activated once the review is complete.',
   }
 
   // ── PDF ──────────────────────────────────────────────────────────────────

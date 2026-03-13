@@ -1,4 +1,4 @@
-import { FaUpload, FaCheck, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSpinner, FaClock } from 'react-icons/fa'
+import { FaUpload, FaCheck, FaFileAlt, FaTimes, FaCheckCircle, FaExclamationTriangle, FaSpinner, FaClock, FaRobot } from 'react-icons/fa'
 import { Document } from './types'
 import type { DocumentVerificationStatus } from './hooks/useDocumentVerification'
 
@@ -99,28 +99,79 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
                 </div>
                 {/* Document Verification Status */}
                 {verificationResults[doc.id] && (
-                  <div className={`mt-2 flex items-center gap-2 text-sm px-4 py-2 rounded-lg ${
-                    verificationResults[doc.id].status === 'verifying'
-                      ? 'bg-blue-50 text-blue-700'
-                      : verificationResults[doc.id].status === 'verified'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : verificationResults[doc.id].status === 'failed'
-                          ? 'bg-yellow-50 text-yellow-700'
-                          : 'bg-red-50 text-red-700'
-                  }`}>
+                  <div className="mt-3 space-y-2">
+                    {/* Status badge */}
+                    <div className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg ${
+                      verificationResults[doc.id].status === 'verifying'
+                        ? 'bg-blue-50 text-blue-700'
+                        : verificationResults[doc.id].status === 'verified'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : verificationResults[doc.id].status === 'failed'
+                            ? 'bg-yellow-50 text-yellow-700'
+                            : 'bg-red-50 text-red-700'
+                    }`}>
+                      {verificationResults[doc.id].status === 'verifying' && (
+                        <FaSpinner className="animate-spin" />
+                      )}
+                      {verificationResults[doc.id].status === 'verified' && (
+                        <FaCheckCircle />
+                      )}
+                      {verificationResults[doc.id].status === 'failed' && (
+                        <FaExclamationTriangle />
+                      )}
+                      {verificationResults[doc.id].status === 'error' && (
+                        <FaTimes />
+                      )}
+                      <span>{verificationResults[doc.id].message}</span>
+                    </div>
+
+                    {/* AI Analysis Report */}
+                    {verificationResults[doc.id].status !== 'verifying' && verificationResults[doc.id].analysisReport && (
+                      <div className={`rounded-lg border p-4 ${
+                        verificationResults[doc.id].status === 'verified'
+                          ? 'bg-emerald-50/50 border-emerald-200'
+                          : verificationResults[doc.id].status === 'failed'
+                            ? 'bg-amber-50/50 border-amber-200'
+                            : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <FaRobot className={`text-sm ${
+                            verificationResults[doc.id].status === 'verified' ? 'text-emerald-600' : 'text-amber-600'
+                          }`} />
+                          <span className={`text-xs font-semibold uppercase tracking-wide ${
+                            verificationResults[doc.id].status === 'verified' ? 'text-emerald-700' : 'text-amber-700'
+                          }`}>
+                            AI Automated Analysis
+                          </span>
+                          <span className="text-xs text-gray-400 ml-auto">
+                            Powered by Healthwyz AI
+                          </span>
+                        </div>
+                        <p className={`text-sm leading-relaxed ${
+                          verificationResults[doc.id].status === 'verified' ? 'text-emerald-800' : 'text-amber-800'
+                        }`}>
+                          {verificationResults[doc.id].analysisReport}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-2 italic">
+                          This analysis was performed automatically by AI. No human has reviewed this document yet.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Scanning animation */}
                     {verificationResults[doc.id].status === 'verifying' && (
-                      <FaSpinner className="animate-spin" />
+                      <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FaRobot className="text-sm text-blue-600 animate-pulse" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                            AI Scanning in Progress
+                          </span>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Our AI is analyzing your document, extracting text, and verifying it against your registration information. This usually takes a few seconds...
+                        </p>
+                      </div>
                     )}
-                    {verificationResults[doc.id].status === 'verified' && (
-                      <FaCheckCircle />
-                    )}
-                    {verificationResults[doc.id].status === 'failed' && (
-                      <FaExclamationTriangle />
-                    )}
-                    {verificationResults[doc.id].status === 'error' && (
-                      <FaTimes />
-                    )}
-                    <span>{verificationResults[doc.id].message}</span>
                   </div>
                 )}
               </div>

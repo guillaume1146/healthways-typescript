@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       nameFound: result.nameFound,
       method: result.method,
       matchDetails: result.matchDetails,
+      analysisReport: result.analysisReport,
     })
   } catch (error) {
     void error
