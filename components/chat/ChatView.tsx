@@ -493,6 +493,13 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   // ---- Fetch messages when selected conversation changes ----
   useEffect(() => {
     if (!selectedId) return
+
+    // Synthetic new-connection entries have no messages yet — skip fetch
+    if (selectedId.startsWith('connection:')) {
+      setMessages([])
+      return
+    }
+
     let cancelled = false
 
     async function fetchMessages() {
@@ -520,11 +527,11 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
     if (!connected) return
 
     const prev = previousConversationRef.current
-    if (prev && prev !== selectedId) {
+    if (prev && prev !== selectedId && !prev.startsWith('connection:')) {
       leaveConversation(prev)
     }
 
-    if (selectedId) {
+    if (selectedId && !selectedId.startsWith('connection:')) {
       joinConversation(selectedId)
       markRead(selectedId)
 
@@ -619,14 +626,52 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
       clearTimeout(typingTimeoutRef.current)
       typingTimeoutRef.current = null
     }
-    stopTyping(selectedId)
+
+    let conversationId = selectedId
+
+    // If the selected conversation is still a synthetic "new connection" entry,
+    // create the real conversation first before sending
+    if (selectedId.startsWith('connection:')) {
+      const syntheticConv = conversationsRef.current.find((c) => c.id === selectedId)
+      const otherId = syntheticConv?.participants[0]?.userId
+      if (!otherId) return
+
+      try {
+        const res = await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ participantIds: [otherId] }),
+        })
+        const json = await res.json()
+        if (json.success) {
+          const realConv: ConversationSummary = {
+            ...json.data,
+            participants: json.data.participants ?? syntheticConv?.participants ?? [],
+            unreadCount: 0,
+          }
+          setConversations((prev) => [
+            realConv,
+            ...prev.filter((c) => c.id !== selectedId),
+          ])
+          setSelectedId(realConv.id)
+          conversationId = realConv.id
+        } else {
+          return // Can't send without a real conversation
+        }
+      } catch {
+        return // Network error — can't create conversation
+      }
+    }
+
+    stopTyping(conversationId)
 
     // Send via socket for real-time delivery
-    sendMessage(selectedId, text, senderFullName, currentUser.userType)
+    sendMessage(conversationId, text, senderFullName, currentUser.userType)
 
     // Also persist via REST API
     try {
-      await fetch(`/api/conversations/${selectedId}/messages`, {
+      await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -672,8 +717,13 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   // ---- Conversation selection ----
   const [creatingConversation, setCreatingConversation] = useState(false)
 
-  const handleSelectConversation = useCallback(async (id: string) => {
-    // If this is a synthetic "new connection" entry, create a real conversation first
+  const handleSelectConversation = useCallback((id: string) => {
+    // Select immediately — works for both real conversations and synthetic "new connection" entries.
+    // The synthetic entry exists in the conversations array, so selectedConversation will find it.
+    setSelectedId(id)
+    setMobileShowMessages(true)
+
+    // For new connections, create a real conversation in the background
     if (id.startsWith('connection:')) {
       const syntheticConv = conversationsRef.current.find((c) => c.id === id)
       if (!syntheticConv) return
@@ -681,37 +731,33 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
       if (!otherId) return
 
       setCreatingConversation(true)
-      try {
-        const res = await fetch('/api/conversations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ participantIds: [otherId] }),
-        })
-        const json = await res.json()
-        if (res.ok && json.success) {
-          const realConv: ConversationSummary = {
-            ...json.data,
-            participants: json.data.participants ?? syntheticConv.participants,
-            unreadCount: 0,
+      fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ participantIds: [otherId] }),
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success) {
+            const realConv: ConversationSummary = {
+              ...json.data,
+              participants: json.data.participants ?? syntheticConv.participants,
+              unreadCount: 0,
+            }
+            setConversations((prev) => [
+              realConv,
+              ...prev.filter((c) => c.id !== id),
+            ])
+            setSelectedId(realConv.id)
           }
-          setConversations((prev) => [
-            realConv,
-            ...prev.filter((c) => c.id !== id),
-          ])
-          setSelectedId(realConv.id)
-          setMobileShowMessages(true)
-        }
-      } catch {
-        // Fall through — let user retry
-      } finally {
-        setCreatingConversation(false)
-      }
-      return
+        })
+        .catch(() => {
+          // Conversation creation failed — user can still see the chat panel
+          // and will retry when they send a message
+        })
+        .finally(() => setCreatingConversation(false))
     }
-
-    setSelectedId(id)
-    setMobileShowMessages(true)
   }, [])
 
   const handleMobileBack = useCallback(() => {
