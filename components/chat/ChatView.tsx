@@ -664,14 +664,23 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   )
 
   // ---- Conversation selection ----
+  const [creatingConversation, setCreatingConversation] = useState(false)
+
   const handleSelectConversation = useCallback(async (id: string) => {
     // If this is a synthetic "new connection" entry, create a real conversation first
     if (id.startsWith('connection:')) {
-      const syntheticConv = conversations.find((c) => c.id === id)
+      // Use functional state accessor to avoid stale closure
+      let syntheticConv: ConversationSummary | undefined
+      setConversations((prev) => {
+        syntheticConv = prev.find((c) => c.id === id)
+        return prev
+      })
+
       if (!syntheticConv) return
       const otherId = syntheticConv.participants[0]?.userId
       if (!otherId) return
 
+      setCreatingConversation(true)
       try {
         const res = await fetch('/api/conversations', {
           method: 'POST',
@@ -684,6 +693,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
           const realConv: ConversationSummary = {
             ...json.data,
             participants: json.data.participants ?? syntheticConv.participants,
+            unreadCount: 0,
           }
           setConversations((prev) => [
             realConv,
@@ -691,17 +701,18 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
           ])
           setSelectedId(realConv.id)
           setMobileShowMessages(true)
-          return
         }
       } catch {
         // Fall through — let user retry
+      } finally {
+        setCreatingConversation(false)
       }
       return
     }
 
     setSelectedId(id)
     setMobileShowMessages(true)
-  }, [conversations])
+  }, [])
 
   const handleMobileBack = useCallback(() => {
     setMobileShowMessages(false)
@@ -757,7 +768,12 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
         </div>
 
         {/* Conversation list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto relative">
+          {creatingConversation && (
+            <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
           {loadingConversations ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
