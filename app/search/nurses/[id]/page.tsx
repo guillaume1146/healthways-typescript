@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+
 import { useParams } from 'next/navigation'
 import { type Nurse } from '@/lib/data'
 import {
@@ -80,11 +80,12 @@ export default function NurseDetailsPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-start gap-6">
                 <div className="relative">
-                  <Image 
-                    src={nurse.profileImage} 
+                  <img
+                    src={nurse.profileImage}
                     alt={`${nurse.firstName} ${nurse.lastName}`}
-                    width={120} 
+                    width={120}
                     height={120}
+                    loading="lazy"
                     className="rounded-full object-cover border-4 border-blue-100"
                   />
                   {nurse.verified && (
@@ -317,11 +318,12 @@ export default function NurseDetailsPage() {
                         {nurse.patientComments.map((comment) => (
                           <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-start gap-4">
-                              <Image 
-                                src={comment.patientProfileImage} 
+                              <img
+                                src={comment.patientProfileImage}
                                 alt={`${comment.patientFirstName} ${comment.patientLastName}`}
-                                width={40} 
+                                width={40}
                                 height={40}
+                                loading="lazy"
                                 className="rounded-full object-cover"
                               />
                               <div className="flex-1">

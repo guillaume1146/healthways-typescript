@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+
 import {
   FaUsersCog, FaCheckCircle, FaClock, FaEye,
   FaSearch, FaDownload,
@@ -209,11 +209,12 @@ export default function RegionalAdminsPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
-                      <Image
+                      <img
                         src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${admin.name}`}
                         alt={admin.name}
                         width={60}
                         height={60}
+                        loading="lazy"
                         className="rounded-full"
                       />
                       <div>

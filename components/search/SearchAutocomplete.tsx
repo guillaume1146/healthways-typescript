@@ -13,7 +13,7 @@ import {
   FaClinicMedical,
   FaTimes,
 } from 'react-icons/fa'
-import Image from 'next/image'
+// Using <img> for user-uploaded profile images (SVG/dynamic content)
 import type { IconType } from 'react-icons'
 
 type SearchCategory = 'all' | 'doctors' | 'nurses' | 'nannies' | 'medicines' | 'emergency' | 'pharmacy' | 'lab'
@@ -289,12 +289,13 @@ export default function SearchAutocomplete({ variant = 'hero', placeholder }: Se
                       result.image ? '' : colorClass.split(' ')[1]
                     }`}>
                       {result.image ? (
-                        <Image
+                        <img
                           src={result.image}
                           alt={result.label}
                           width={40}
                           height={40}
                           className="rounded-full object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <CategoryIcon className={`text-lg ${colorClass.split(' ')[0]}`} />

@@ -1,5 +1,7 @@
 const { createServer } = require('http')
 const { parse } = require('url')
+const path = require('path')
+const fs = require('fs')
 const next = require('next')
 const { Server } = require('socket.io')
 const { PrismaClient } = require('@prisma/client')
@@ -153,8 +155,46 @@ async function startServer() {
 
   await app.prepare()
 
+  // MIME type map for static file serving
+  const MIME_TYPES = {
+    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+    '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf', '.ico': 'image/x-icon',
+  }
+
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true)
+
+    // Serve uploaded files directly from public/uploads/ (standalone mode doesn't serve public/)
+    if (parsedUrl.pathname && parsedUrl.pathname.startsWith('/uploads/')) {
+      const safePath = path.normalize(parsedUrl.pathname).replace(/^(\.\.[/\\])+/, '')
+      const filePath = path.join(process.cwd(), 'public', safePath)
+
+      // Prevent directory traversal
+      if (!filePath.startsWith(path.join(process.cwd(), 'public', 'uploads'))) {
+        res.writeHead(403)
+        res.end('Forbidden')
+        return
+      }
+
+      fs.stat(filePath, (err, stats) => {
+        if (err || !stats.isFile()) {
+          res.writeHead(404)
+          res.end('Not Found')
+          return
+        }
+        const ext = path.extname(filePath).toLowerCase()
+        const contentType = MIME_TYPES[ext] || 'application/octet-stream'
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Content-Length': stats.size,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        })
+        fs.createReadStream(filePath).pipe(res)
+      })
+      return
+    }
+
     handle(req, res, parsedUrl)
   })
 

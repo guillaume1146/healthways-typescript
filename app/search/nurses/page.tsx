@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { type Nurse } from '@/lib/data'
@@ -27,11 +27,12 @@ const NurseCard = ({ nurse }: NurseProps) => {
         {/* Left: Avatar + Info */}
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="relative flex-shrink-0">
-            <Image
+            <img
               src={nurse.profileImage}
               alt={`${nurse.firstName} ${nurse.lastName}`}
               width={48}
               height={48}
+              loading="lazy"
               className="rounded-full object-cover border-2 border-teal-100"
             />
             {nurse.verified && (
