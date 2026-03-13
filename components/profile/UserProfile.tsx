@@ -339,19 +339,34 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
 
   // Profile image upload
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false)
+  const [profileImageError, setProfileImageError] = useState('')
+  const [profileImageSuccess, setProfileImageSuccess] = useState(false)
   const profileImageInputRef = useRef<HTMLInputElement>(null)
 
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Validate file before uploading
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      setProfileImageError('File too large. Maximum size is 10MB.')
+      return
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setProfileImageError('Only JPG, PNG, and WebP images are allowed.')
+      return
+    }
+
     setUploadingProfileImage(true)
+    setProfileImageError('')
+    setProfileImageSuccess(false)
     try {
       const fd = new FormData()
       fd.append('file', file)
       const uploadRes = await fetch('/api/upload/local', { method: 'POST', body: fd })
       const uploadResult = await uploadRes.json()
-      if (!uploadResult.success) throw new Error(uploadResult.message)
+      if (!uploadResult.success) throw new Error(uploadResult.message || 'Upload failed')
 
       // Update user profile image in DB
       const patchRes = await fetch(`/api/users/${userId}`, {
@@ -359,16 +374,19 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profileImage: uploadResult.data.url }),
       })
-      if (!patchRes.ok) throw new Error('Failed to update profile image')
+      const patchResult = await patchRes.json()
+      if (!patchRes.ok || !patchResult.success) throw new Error(patchResult.message || 'Failed to update profile image')
 
       // Update local state
       setUserData(prev => prev ? { ...prev, profileImage: uploadResult.data.url } : prev)
       updateUser({ profileImage: uploadResult.data.url })
+      setProfileImageSuccess(true)
+      setTimeout(() => setProfileImageSuccess(false), 3000)
     } catch (err) {
       console.error('Profile image upload failed:', err)
+      setProfileImageError(err instanceof Error ? err.message : 'Failed to update profile picture')
     } finally {
       setUploadingProfileImage(false)
-      // Reset file input
       if (profileImageInputRef.current) profileImageInputRef.current.value = ''
     }
   }
@@ -1198,6 +1216,16 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
               onChange={handleProfileImageUpload}
             />
           </div>
+          {profileImageError && (
+            <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+              <FaExclamationTriangle className="text-[10px]" /> {profileImageError}
+            </p>
+          )}
+          {profileImageSuccess && (
+            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+              <FaCheckCircle className="text-[10px]" /> Profile picture updated
+            </p>
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold text-gray-900">

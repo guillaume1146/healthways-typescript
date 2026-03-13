@@ -159,6 +159,9 @@ jobs:
             # Apply schema changes
             docker compose exec -T app npx prisma db push --accept-data-loss
 
+            # Ensure uploads directory exists and is writable inside the volume
+            docker compose exec -T -u root app sh -c "mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads" || true
+
             # Seed the database (idempotent — cleans and re-seeds)
             echo "Starting database seed..."
             docker compose exec -T app sh -c "npx ts-node --skipProject --transpile-only --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"esModuleInterop\":true}' prisma/seed.ts 2>&1" || echo "WARNING: Seed exited with code $?"

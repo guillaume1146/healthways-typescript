@@ -34,9 +34,12 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8080
+    volumes:
+      - uploads:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   pgdata:
+  uploads:
