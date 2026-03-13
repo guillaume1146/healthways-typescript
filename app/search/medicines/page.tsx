@@ -254,14 +254,7 @@ const MedicineCard = ({ medicine }: MedicineProps) => {
               </span>
             ) : (
               <button
-                onClick={() => addToCart({
-                  id: medicine.id,
-                  name: medicine.name,
-                  brand: medicine.brand,
-                  price: medicine.price,
-                  quantity: 1,
-                  image: medicine.image,
-                })}
+                onClick={() => addToCart(medicine)}
                 disabled={!medicine.inStock}
                 className="flex-1 sm:flex-none bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1"
               >
