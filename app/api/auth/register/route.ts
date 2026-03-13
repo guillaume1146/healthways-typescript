@@ -98,6 +98,8 @@ export async function POST(request: NextRequest) {
           address: data.address,
           verified: false,
           accountStatus,
+          ...(data.regionId ? { regionId: data.regionId } : {}),
+          ...(data.profileImage ? { profileImage: data.profileImage } : {}),
         },
       })
 
@@ -271,6 +273,35 @@ export async function POST(request: NextRequest) {
           initialCredit: 4500,
         },
       })
+
+      // Create Document records for uploaded files
+      if (data.documentUrls.length > 0) {
+        await tx.document.createMany({
+          data: data.documentUrls.map(doc => ({
+            userId: newUser.id,
+            name: doc.name,
+            type: doc.type,
+            url: doc.url,
+            size: doc.size ?? null,
+          })),
+        })
+      }
+
+      // Create UserPreference with language from region
+      if (data.regionId) {
+        const region = await tx.region.findUnique({
+          where: { id: data.regionId },
+          select: { language: true },
+        })
+        if (region) {
+          await tx.userPreference.create({
+            data: {
+              userId: newUser.id,
+              language: region.language as 'en' | 'fr' | 'mfe',
+            },
+          })
+        }
+      }
 
       // Process referral code if provided
       if (data.referralCode) {

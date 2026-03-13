@@ -52,9 +52,9 @@ describe('Fix 1: Stats API', () => {
     const doctorStat = stats.find((s: { label: string }) => s.label.includes('Doctor'))
     const patientStat = stats.find((s: { label: string }) => s.label.includes('Patient'))
 
-    // Should use floor values, not raw small counts
-    expect(doctorStat.number).toBeGreaterThanOrEqual(500)
-    expect(patientStat.number).toBeGreaterThanOrEqual(10000)
+    // Should return real DB counts (mocked: 3 doctors, 5 patients)
+    expect(doctorStat.number).toBe(3)
+    expect(patientStat.number).toBe(5)
   })
 
   it('returns fallback numbers when DB query fails', async () => {
@@ -66,10 +66,10 @@ describe('Fix 1: Stats API', () => {
     expect(res.status).toBe(200)
     const data = await res.json()
 
-    // Should still return meaningful numbers, never zeros
+    // Should return zeros on error (no fake data)
     const stats = data.data
     for (const stat of stats) {
-      expect(stat.number).toBeGreaterThan(0)
+      expect(stat.number).toBe(0)
     }
   })
 })

@@ -3,6 +3,7 @@ import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
 import { updateUserProfileSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { unauthorizedResponse, forbiddenResponse, notFoundResponse, errorResponse, serverErrorResponse } from '@/lib/api-response'
 
 // Allowed fields per profile type to prevent mass-assignment
 const ALLOWED_PROFILE_FIELDS: Record<string, string[]> = {
@@ -76,11 +77,11 @@ export async function GET(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return unauthorizedResponse()
 
   try {
     const { id } = await params
-    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.sub !== id) return forbiddenResponse()
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -102,7 +103,7 @@ export async function GET(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return notFoundResponse('User not found')
     }
 
     // Fetch the type-specific profile (with emergency contact for patients)
@@ -123,8 +124,8 @@ export async function GET(
 
     return NextResponse.json({ data: { ...user, profile } })
   } catch (error) {
-    void error
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('GET /api/users/[id] error:', error)
+    return serverErrorResponse()
   }
 }
 
@@ -136,19 +137,16 @@ export async function PATCH(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return unauthorizedResponse()
 
   try {
     const { id } = await params
-    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.sub !== id) return forbiddenResponse()
 
     const body = await request.json()
     const parsed = updateUserProfileSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      )
+      return errorResponse(parsed.error.issues[0].message)
     }
 
     const {
@@ -159,6 +157,7 @@ export async function PATCH(
       dateOfBirth,
       gender,
       address,
+      profileImage,
       emergencyContact,
       profileData,
     } = parsed.data
@@ -172,6 +171,7 @@ export async function PATCH(
     if (dateOfBirth !== undefined) userData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null
     if (gender !== undefined) userData.gender = gender
     if (address !== undefined) userData.address = address
+    if (profileImage !== undefined) userData.profileImage = profileImage
 
     // Update the user
     const updatedUser = await prisma.user.update({
@@ -222,7 +222,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: updatedUser })
   } catch (error) {
-    void error
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('PATCH /api/users/[id] error:', error)
+    return serverErrorResponse()
   }
 }

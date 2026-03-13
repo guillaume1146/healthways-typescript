@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 20)
 
   try {
+    // Get current user's regionId for regional filtering
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { regionId: true },
+    })
+
     // Get all user IDs already connected to
     const existingConnections = await prisma.userConnection.findMany({
       where: {
@@ -33,24 +39,72 @@ export async function GET(request: NextRequest) {
       connectedIds.add(conn.receiverId)
     }
 
-    // Find users not connected to
-    const suggestions = await prisma.user.findMany({
-      where: {
-        id: { notIn: Array.from(connectedIds) },
-        accountStatus: 'active',
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        profileImage: true,
-        userType: true,
-        doctorProfile: { select: { specialty: true } },
-        nurseProfile: { select: { specializations: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    })
+    const baseWhere = {
+      id: { notIn: Array.from(connectedIds) },
+      accountStatus: 'active',
+    }
+
+    // If user has a region, prioritize same-region users
+    let suggestions
+    if (currentUser?.regionId) {
+      // First get same-region users
+      const sameRegion = await prisma.user.findMany({
+        where: { ...baseWhere, regionId: currentUser.regionId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profileImage: true,
+          userType: true,
+          doctorProfile: { select: { specialty: true } },
+          nurseProfile: { select: { specializations: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      })
+
+      // If not enough, fill with other users
+      if (sameRegion.length < limit) {
+        const sameRegionIds = sameRegion.map(u => u.id)
+        const others = await prisma.user.findMany({
+          where: {
+            ...baseWhere,
+            id: { notIn: [...Array.from(connectedIds), ...sameRegionIds] },
+            regionId: { not: currentUser.regionId },
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImage: true,
+            userType: true,
+            doctorProfile: { select: { specialty: true } },
+            nurseProfile: { select: { specializations: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: limit - sameRegion.length,
+        })
+        suggestions = [...sameRegion, ...others]
+      } else {
+        suggestions = sameRegion
+      }
+    } else {
+      // No region — show all users (backwards compat)
+      suggestions = await prisma.user.findMany({
+        where: baseWhere,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          profileImage: true,
+          userType: true,
+          doctorProfile: { select: { specialty: true } },
+          nurseProfile: { select: { specializations: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      })
+    }
 
     const data = suggestions.map(u => ({
       id: u.id,

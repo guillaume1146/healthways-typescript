@@ -1,6 +1,14 @@
-import { ChangeEvent } from 'react'
-import { FaEye, FaEyeSlash, FaUsers } from 'react-icons/fa'
+import { ChangeEvent, useState, useEffect, useRef } from 'react'
+import { FaEye, FaEyeSlash, FaUsers, FaCamera } from 'react-icons/fa'
 import { SignupFormData, UserType } from './types'
+
+interface Region {
+  id: string
+  name: string
+  countryCode: string
+  language: string
+  flag: string | null
+}
 
 interface BasicInfoStepProps {
   formData: SignupFormData;
@@ -10,32 +18,121 @@ interface BasicInfoStepProps {
   onFormChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onPasswordToggle: () => void;
   onConfirmPasswordToggle: () => void;
+  onProfileImageChange?: (url: string) => void;
 }
 
-export default function BasicInfoStep({ 
-  formData, 
-  selectedType, 
-  showPassword, 
-  showConfirmPassword, 
-  onFormChange, 
-  onPasswordToggle, 
-  onConfirmPasswordToggle 
+export default function BasicInfoStep({
+  formData,
+  selectedType,
+  showPassword,
+  showConfirmPassword,
+  onFormChange,
+  onPasswordToggle,
+  onConfirmPasswordToggle,
+  onProfileImageChange,
 }: BasicInfoStepProps) {
   const SelectedIcon = selectedType?.icon
+  const [regions, setRegions] = useState<Region[]>([])
+  const [profilePreview, setProfilePreview] = useState<string | null>(formData.profileImageUrl || null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/regions')
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) setRegions(result.data)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleProfileImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Show preview immediately
+    const reader = new FileReader()
+    reader.onload = (ev) => setProfilePreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+
+    // Upload to server
+    setUploadingImage(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload/registration', { method: 'POST', body: fd })
+      const result = await res.json()
+      if (result.success) {
+        onProfileImageChange?.(result.data.url)
+      }
+    } catch {
+      // Silently fail — user can try again
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedType?.color}`}>
-          {SelectedIcon && <SelectedIcon className="text-3xl" />}
+        {/* Profile Picture Upload */}
+        <div
+          className={`relative w-16 h-16 rounded-full flex items-center justify-center cursor-pointer group overflow-hidden ${selectedType?.color}`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {profilePreview ? (
+            <img src={profilePreview} alt="Profile" className="w-full h-full object-cover rounded-full" />
+          ) : (
+            SelectedIcon && <SelectedIcon className="text-3xl" />
+          )}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+            {uploadingImage ? (
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+            ) : (
+              <FaCamera className="text-white text-lg" />
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleProfileImageUpload}
+          />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{selectedType?.label} Registration</h2>
           <p className="text-gray-600">Please provide your basic information</p>
+          <p className="text-xs text-blue-500 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            Click avatar to upload profile picture
+          </p>
         </div>
       </div>
 
       <form className="space-y-6">
+        {/* Region Selection */}
+        {regions.length > 0 && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">Select Your Region</h3>
+            <select
+              name="regionId"
+              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-green-600"
+              value={formData.regionId || ''}
+              onChange={onFormChange}
+            >
+              <option value="">Select your country/region</option>
+              {regions.map(r => (
+                <option key={r.id} value={r.id}>
+                  {r.flag ? `${r.flag} ` : ''}{r.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-gray-500 text-sm mt-2">
+              This helps connect you with healthcare providers in your area.
+            </p>
+          </div>
+        )}
+
         {/* Referral Code Section - Universal for all user types */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">

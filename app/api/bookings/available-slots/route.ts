@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
     if (!providerId || !date || !providerType) {
       return NextResponse.json(
-        { error: 'Missing required query parameters: providerId, date, providerType' },
+        { success: false, message: 'Missing required query parameters: providerId, date, providerType' },
         { status: 400 }
       )
     }
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     const validProviderTypes: ProviderType[] = ['doctor', 'nurse', 'nanny', 'lab-test']
     if (!validProviderTypes.includes(providerType)) {
       return NextResponse.json(
-        { error: 'Invalid providerType. Must be one of: doctor, nurse, nanny, lab-test' },
+        { success: false, message: 'Invalid providerType. Must be one of: doctor, nurse, nanny, lab-test' },
         { status: 400 }
       )
     }
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
     const provider = await resolveProvider(providerId, providerType)
     if (!provider) {
       return NextResponse.json(
-        { error: 'Provider not found' },
+        { success: false, message: 'Provider not found' },
         { status: 404 }
       )
     }
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching available slots:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     )
   }

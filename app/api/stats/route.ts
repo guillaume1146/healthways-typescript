@@ -21,10 +21,10 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: [
-        { number: Math.max(doctorCount, 500), label: 'Qualified Doctors', color: 'text-blue-500' },
-        { number: Math.max(patientCount, 10000), label: 'Happy Patients', color: 'text-green-500' },
-        { number: Math.max(appointmentCount, 25000), label: 'Consultations', color: 'text-purple-500' },
-        { number: Math.max(cities.length, 20), label: 'Cities Covered', color: 'text-orange-500' },
+        { number: doctorCount, label: 'Qualified Doctors', color: 'text-blue-500' },
+        { number: patientCount, label: 'Happy Patients', color: 'text-green-500' },
+        { number: appointmentCount, label: 'Consultations', color: 'text-purple-500' },
+        { number: cities.length, label: 'Cities Covered', color: 'text-orange-500' },
       ],
     })
   } catch (error) {
@@ -32,10 +32,10 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: [
-        { number: 500, label: 'Qualified Doctors', color: 'text-blue-500' },
-        { number: 10000, label: 'Happy Patients', color: 'text-green-500' },
-        { number: 25000, label: 'Consultations', color: 'text-purple-500' },
-        { number: 20, label: 'Cities Covered', color: 'text-orange-500' },
+        { number: 0, label: 'Qualified Doctors', color: 'text-blue-500' },
+        { number: 0, label: 'Happy Patients', color: 'text-green-500' },
+        { number: 0, label: 'Consultations', color: 'text-purple-500' },
+        { number: 0, label: 'Cities Covered', color: 'text-orange-500' },
       ],
     })
   }

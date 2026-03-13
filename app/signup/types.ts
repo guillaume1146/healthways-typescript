@@ -29,10 +29,16 @@ export interface SignupFormData {
   dateOfBirth: string;
   gender: string;
   address: string;
-  
+
   // User Type
   userType: string;
-  
+
+  // Region
+  regionId?: string;
+
+  // Profile Picture
+  profileImageUrl?: string;
+
   // Referral Information (new field for all users)
   referralCode?: string;
   

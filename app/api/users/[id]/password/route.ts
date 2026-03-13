@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import prisma from '@/lib/db'
 import bcrypt from 'bcrypt'
 import { validateRequest } from '@/lib/auth/validate'
 import { changePasswordSchema } from '@/lib/validations/api'
 import { rateLimitAuth } from '@/lib/rate-limit'
+import { successResponse, unauthorizedResponse, forbiddenResponse, errorResponse, notFoundResponse, serverErrorResponse } from '@/lib/api-response'
 
 export async function PATCH(
   request: NextRequest,
@@ -13,19 +14,16 @@ export async function PATCH(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return unauthorizedResponse()
 
   try {
     const { id } = await params
-    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.sub !== id) return forbiddenResponse()
 
     const body = await request.json()
     const parsed = changePasswordSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      )
+      return errorResponse(parsed.error.issues[0].message)
     }
 
     const { currentPassword, newPassword } = parsed.data
@@ -37,13 +35,13 @@ export async function PATCH(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return notFoundResponse('User not found')
     }
 
     // Verify current password
     const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) {
-      return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
+      return errorResponse('Current password is incorrect')
     }
 
     // Hash new password and update
@@ -53,9 +51,9 @@ export async function PATCH(
       data: { password: hashedPassword },
     })
 
-    return NextResponse.json({ success: true, message: 'Password updated successfully' })
+    return successResponse({ message: 'Password updated successfully' })
   } catch (error) {
-    void error
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('PATCH /api/users/[id]/password error:', error)
+    return serverErrorResponse()
   }
 }

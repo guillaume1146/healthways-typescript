@@ -6,7 +6,12 @@ import { validateRequest } from '@/lib/auth/validate'
  * GET /api/admin/role-config
  * Returns all role feature configurations grouped by userType.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const configs = await prisma.roleFeatureConfig.findMany({
       orderBy: [{ userType: 'asc' }, { featureKey: 'asc' }],

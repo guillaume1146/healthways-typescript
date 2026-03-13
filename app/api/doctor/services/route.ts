@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { validateRequest } from '@/lib/auth/validate'
+import { doctorServiceSchema } from '@/lib/validations/service-catalog'
 
 export async function GET(request: NextRequest) {
   // Public access: ?userId=xxx returns active services for a doctor (for booking flow)
@@ -61,14 +62,15 @@ export async function POST(request: NextRequest) {
     if (!profile) return NextResponse.json({ success: false, message: 'Doctor profile not found' }, { status: 404 })
 
     const body = await request.json()
-    const serviceName = body.serviceName?.toString().trim()
-    const category = body.category?.toString().trim()
-    const description = body.description?.toString().trim()
-    const price = body.price !== undefined && body.price !== '' ? Number(body.price) : null
-
-    if (!serviceName || !category || !description || price === null || isNaN(price) || price < 0) {
-      return NextResponse.json({ success: false, message: 'All required fields must be filled: service name, category, description, and a valid price' }, { status: 400 })
+    const parsed = doctorServiceSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, message: parsed.error.issues[0].message },
+        { status: 400 }
+      )
     }
+
+    const { serviceName, category, description, price, currency, duration, isActive } = parsed.data
 
     const service = await prisma.doctorServiceCatalog.create({
       data: {
@@ -77,9 +79,9 @@ export async function POST(request: NextRequest) {
         category,
         description,
         price,
-        currency: body.currency?.toString().trim() || 'MUR',
-        duration: body.duration ? Number(body.duration) : 30,
-        isActive: body.isActive !== false,
+        currency,
+        duration,
+        isActive,
       },
     })
 

@@ -41,24 +41,24 @@ describe('GET /api/stats', () => {
     expect(data.success).toBe(true)
     expect(data.data).toHaveLength(4)
 
-    // Values are Math.max(actual, floor) — floors: 500, 10000, 25000, 20
+    // Values are real DB counts — no floor values
     expect(data.data[0]).toEqual({
-      number: 500, // max(15, 500)
+      number: 15,
       label: 'Qualified Doctors',
       color: 'text-blue-500',
     })
     expect(data.data[1]).toEqual({
-      number: 10000, // max(200, 10000)
+      number: 200,
       label: 'Happy Patients',
       color: 'text-green-500',
     })
     expect(data.data[2]).toEqual({
-      number: 25000, // max(350, 25000)
+      number: 350,
       label: 'Consultations',
       color: 'text-purple-500',
     })
     expect(data.data[3]).toEqual({
-      number: 20, // max(3, 20)
+      number: 3,
       label: 'Cities Covered',
       color: 'text-orange-500',
     })
@@ -81,7 +81,7 @@ describe('GET /api/stats', () => {
     })
   })
 
-  it('returns at least 1 for city count when no cities found', async () => {
+  it('returns 0 for city count when no cities found', async () => {
     vi.mocked(prisma.user.count).mockResolvedValue(0)
     vi.mocked(prisma.appointment.count).mockResolvedValue(0)
     vi.mocked(prisma.doctorProfile.findMany).mockResolvedValue([])
@@ -89,8 +89,7 @@ describe('GET /api/stats', () => {
     const res = await GET()
     const data = await res.json()
 
-    // cities floor is 20 when actual count is 0
-    expect(data.data[3].number).toBe(20)
+    expect(data.data[3].number).toBe(0)
   })
 
   it('returns zero stats on database error', async () => {
@@ -99,14 +98,14 @@ describe('GET /api/stats', () => {
     const res = await GET()
     const data = await res.json()
 
-    // The error handler returns success: true with floor values
+    // The error handler returns success: true with zero values
     expect(res.status).toBe(200)
     expect(data.success).toBe(true)
     expect(data.data).toHaveLength(4)
-    expect(data.data[0].number).toBe(500)
-    expect(data.data[1].number).toBe(10000)
-    expect(data.data[2].number).toBe(25000)
-    expect(data.data[3].number).toBe(20)
+    expect(data.data[0].number).toBe(0)
+    expect(data.data[1].number).toBe(0)
+    expect(data.data[2].number).toBe(0)
+    expect(data.data[3].number).toBe(0)
   })
 
   it('returns correct labels and colors in fallback data', async () => {

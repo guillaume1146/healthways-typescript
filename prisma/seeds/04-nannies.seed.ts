@@ -16,6 +16,7 @@ export async function seedNannies(prisma: PrismaClient) {
       userType: UserType.NANNY,
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       nannyProfile: {
         create: {
           id: 'NAPROF001',
@@ -35,6 +36,7 @@ export async function seedNannies(prisma: PrismaClient) {
       userType: UserType.NANNY,
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       nannyProfile: {
         create: {
           id: 'NAPROF002',

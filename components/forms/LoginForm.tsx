@@ -16,23 +16,51 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{email?: string; password?: string}>({})
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   })
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) return 'Email is required'
+    if (!EMAIL_REGEX.test(email)) return 'Please enter a valid email address'
+    return undefined
+  }
+
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) return 'Password is required'
+    return undefined
+  }
 
   const router = useRouter()
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setError('')
+    setFieldErrors(prev => ({ ...prev, [name]: undefined }))
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleBlurEmail = () => {
+    const emailError = validateEmail(formData.email)
+    if (emailError) setFieldErrors(prev => ({ ...prev, email: emailError }))
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
+
+    const emailError = validateEmail(formData.email)
+    const passwordError = validatePassword(formData.password)
+    if (emailError || passwordError) {
+      setFieldErrors({ email: emailError, password: passwordError })
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -97,9 +125,13 @@ const LoginForm: React.FC = () => {
               className="w-full px-4 py-3 pl-10 border rounded-lg focus:outline-none focus:border-primary-blue"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlurEmail}
             />
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
+          {fieldErrors.email && (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+          )}
         </div>
 
         <div>
@@ -126,6 +158,9 @@ const LoginForm: React.FC = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
+          {fieldErrors.password && (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

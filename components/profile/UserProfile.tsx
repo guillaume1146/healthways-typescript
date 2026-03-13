@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useUser } from '@/hooks/useUser'
 import {
   FaUser,
@@ -23,6 +23,7 @@ import {
   FaSpinner,
   FaStar,
   FaPenFancy,
+  FaCamera,
 } from 'react-icons/fa'
 import dynamic from 'next/dynamic'
 
@@ -169,6 +170,18 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   imaging: 'Imaging',
   insurance: 'Insurance',
   id_proof: 'ID Proof',
+  license: 'License',
+  national_id: 'National ID',
+  'national-id': 'National ID/Passport',
+  'proof-address': 'Proof of Address',
+  'insurance-card': 'Health Insurance Card',
+  'medical-history': 'Medical History',
+  'medical-degree': 'Medical Degree',
+  'medical-license': 'Professional License',
+  'nursing-degree': 'Nursing Degree',
+  'nursing-license': 'Nursing License',
+  'registration-cert': 'Registration Certificate',
+  'work-certificate': 'Work Certificate',
   other: 'Other',
 }
 
@@ -178,6 +191,18 @@ const DOCUMENT_TYPE_COLORS: Record<string, string> = {
   imaging: 'bg-purple-100 text-purple-700',
   insurance: 'bg-yellow-100 text-yellow-700',
   id_proof: 'bg-red-100 text-red-700',
+  license: 'bg-indigo-100 text-indigo-700',
+  national_id: 'bg-orange-100 text-orange-700',
+  'national-id': 'bg-orange-100 text-orange-700',
+  'proof-address': 'bg-teal-100 text-teal-700',
+  'insurance-card': 'bg-yellow-100 text-yellow-700',
+  'medical-history': 'bg-pink-100 text-pink-700',
+  'medical-degree': 'bg-indigo-100 text-indigo-700',
+  'medical-license': 'bg-indigo-100 text-indigo-700',
+  'nursing-degree': 'bg-cyan-100 text-cyan-700',
+  'nursing-license': 'bg-cyan-100 text-cyan-700',
+  'registration-cert': 'bg-violet-100 text-violet-700',
+  'work-certificate': 'bg-amber-100 text-amber-700',
   other: 'bg-gray-100 text-gray-700',
 }
 
@@ -312,6 +337,52 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [tagInput, setTagInput] = useState<Record<string, string>>({})
 
+  // Profile image upload
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false)
+  const profileImageInputRef = useRef<HTMLInputElement>(null)
+
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingProfileImage(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const uploadRes = await fetch('/api/upload/local', { method: 'POST', body: fd })
+      const uploadResult = await uploadRes.json()
+      if (!uploadResult.success) throw new Error(uploadResult.message)
+
+      // Update user profile image in DB
+      const patchRes = await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileImage: uploadResult.data.url }),
+      })
+      if (!patchRes.ok) throw new Error('Failed to update profile image')
+
+      // Update local state
+      setUserData(prev => prev ? { ...prev, profileImage: uploadResult.data.url } : prev)
+      updateUser({ profileImage: uploadResult.data.url })
+    } catch (err) {
+      console.error('Profile image upload failed:', err)
+    } finally {
+      setUploadingProfileImage(false)
+      // Reset file input
+      if (profileImageInputRef.current) profileImageInputRef.current.value = ''
+    }
+  }
+
+  // Document file upload handler
+  const handleDocumentFileUpload = async (file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const uploadRes = await fetch('/api/upload/local', { method: 'POST', body: fd })
+    const uploadResult = await uploadRes.json()
+    if (!uploadResult.success) throw new Error(uploadResult.message)
+    return uploadResult.data
+  }
+
   const tabs = getTabsForUserType(userType)
 
   /* ─── Fetch user data ──────────────────────────────────────────────────── */
@@ -394,7 +465,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
       })
       if (!res.ok) {
         const json = await res.json()
-        throw new Error(json.error || 'Failed to save')
+        throw new Error(json.message || json.error || 'Failed to save')
       }
       // Re-fetch profile
       const profileRes = await fetch(`/api/users/${userId}`)
@@ -634,14 +705,26 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Document URL</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
               <input
-                type="url"
-                value={uploadUrl}
-                onChange={(e) => setUploadUrl(e.target.value)}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try {
+                    const result = await handleDocumentFileUpload(file)
+                    setUploadUrl(result.url)
+                    if (!uploadName.trim()) setUploadName(file.name.replace(/\.[^.]+$/, ''))
+                  } catch {
+                    setDocError('Failed to upload file')
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://..."
               />
+              {uploadUrl && (
+                <p className="text-xs text-green-600 mt-1">File uploaded successfully</p>
+              )}
             </div>
             {docError && (
               <p className="text-sm text-red-600 flex items-center gap-1">
@@ -651,7 +734,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
             <div className="flex gap-2">
               <button
                 onClick={handleUpload}
-                disabled={uploading}
+                disabled={uploading || !uploadUrl}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2"
               >
                 {uploading ? <FaSpinner className="animate-spin" /> : <FaSave />}
@@ -661,6 +744,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
                 onClick={() => {
                   setUploadOpen(false)
                   setDocError('')
+                  setUploadUrl('')
                 }}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
               >
@@ -708,7 +792,7 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                   <button
                     onClick={() => setViewingDoc(doc)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm"
@@ -716,6 +800,14 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
                   >
                     View
                   </button>
+                  <a
+                    href={doc.url}
+                    download
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-sm"
+                    title="Download document"
+                  >
+                    Download
+                  </a>
                   <button
                     onClick={() => handleDeleteDoc(doc.id)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -1081,12 +1173,30 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
       {/* Header card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+          <div
+            className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 cursor-pointer group overflow-hidden"
+            onClick={() => profileImageInputRef.current?.click()}
+            title="Click to change profile picture"
+          >
             {userData.profileImage ? (
               <img src={userData.profileImage} alt={`${userData.firstName || ''} ${userData.lastName || ''} profile photo`} className="w-20 h-20 rounded-full object-cover" loading="lazy" />
             ) : (
               `${userData.firstName?.[0] || ''}${userData.lastName?.[0] || ''}`
             )}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+              {uploadingProfileImage ? (
+                <FaSpinner className="animate-spin text-white text-lg" />
+              ) : (
+                <FaCamera className="text-white text-lg" />
+              )}
+            </div>
+            <input
+              ref={profileImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleProfileImageUpload}
+            />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -1163,13 +1273,28 @@ export default function UserProfile({ userId, userType, settingsPath }: UserProf
         </div>
       </div>
 
-      {/* PDF Viewer overlay */}
+      {/* Document Viewer overlay */}
       {viewingDoc && (
-        <PdfViewer
-          url={viewingDoc.url}
-          title={viewingDoc.name}
-          onClose={() => setViewingDoc(null)}
-        />
+        viewingDoc.url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+          <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setViewingDoc(null)}>
+            <div className="bg-white rounded-xl max-w-3xl max-h-[90vh] overflow-auto p-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900">{viewingDoc.name}</h3>
+                <div className="flex items-center gap-2">
+                  <a href={viewingDoc.url} download className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Download</a>
+                  <button onClick={() => setViewingDoc(null)} className="p-2 text-gray-500 hover:text-gray-700"><FaTimes /></button>
+                </div>
+              </div>
+              <img src={viewingDoc.url} alt={viewingDoc.name} className="max-w-full rounded-lg" />
+            </div>
+          </div>
+        ) : (
+          <PdfViewer
+            url={viewingDoc.url}
+            title={viewingDoc.name}
+            onClose={() => setViewingDoc(null)}
+          />
+        )
       )}
     </div>
   )

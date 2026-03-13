@@ -23,6 +23,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Royal Road, Port Louis, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       pharmacistProfile: {
         create: {
           id: 'PHPROF001',
@@ -47,6 +48,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'St Jean Road, Quatre Bornes, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       pharmacistProfile: {
         create: {
           id: 'PHPROF002',
@@ -86,6 +88,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Curepipe, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       labTechProfile: {
         create: {
           id: 'LTPROF001',
@@ -109,6 +112,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Rose Hill, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       labTechProfile: {
         create: {
           id: 'LTPROF002',
@@ -147,6 +151,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Port Louis, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       emergencyWorkerProfile: {
         create: {
           id: 'EWPROF001',
@@ -171,6 +176,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Vacoas, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       emergencyWorkerProfile: {
         create: {
           id: 'EWPROF002',
@@ -210,6 +216,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Ebene, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       insuranceRepProfile: {
         create: {
           id: 'IRPROF001',
@@ -233,6 +240,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Floreal, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       insuranceRepProfile: {
         create: {
           id: 'IRPROF002',
@@ -271,6 +279,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Ebene Cybercity, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       corporateAdminProfile: {
         create: {
           id: 'CAPROF001',
@@ -310,6 +319,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Grand Baie, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       referralPartnerProfile: {
         create: {
           id: 'RPPROF001',
@@ -349,6 +359,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Port Louis, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       regionalAdminProfile: {
         create: {
           id: 'RAPROF000',
@@ -372,6 +383,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Port Louis, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       regionalAdminProfile: {
         create: {
           id: 'RAPROF001',
@@ -395,6 +407,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Antananarivo, Madagascar',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MG',
       regionalAdminProfile: {
         create: {
           id: 'RAPROF002',
@@ -418,6 +431,7 @@ export async function seedNewUserTypes(prisma: PrismaClient) {
       address: 'Nairobi, Kenya',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-KE',
       regionalAdminProfile: {
         create: {
           id: 'RAPROF003',

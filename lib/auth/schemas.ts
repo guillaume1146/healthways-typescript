@@ -65,6 +65,20 @@ export const registerSchema = z.object({
   agreeToPrivacy: z.boolean().refine(val => val === true, 'You must agree to the privacy policy'),
   agreeToDisclaimer: z.boolean().refine(val => val === true, 'You must agree to the medical disclaimer'),
 
+  // Region
+  regionId: z.string().optional(),
+
+  // Profile image URL (uploaded during registration)
+  profileImage: z.string().optional(),
+
+  // Document URLs (uploaded during registration, saved to Document table)
+  documentUrls: z.array(z.object({
+    name: z.string().min(1),
+    type: z.string().min(1),
+    url: z.string().min(1),
+    size: z.number().optional(),
+  })).optional().default([]),
+
   // Document verification results from OCR
   documentVerifications: z.array(z.object({
     documentId: z.string(),

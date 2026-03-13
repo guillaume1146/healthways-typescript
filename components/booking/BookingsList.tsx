@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   FaCalendarAlt,
   FaClock,
@@ -103,7 +104,14 @@ export default function BookingsList({
   if (bookings.length === 0) {
     return (
       <div className="bg-gray-50 rounded-xl p-6 sm:p-8 text-center border border-gray-200">
+        <FaCalendarAlt className="text-3xl text-gray-300 mx-auto mb-3" />
         <p className="text-gray-500 text-sm sm:text-base">{emptyMessage || `No ${providerLabel.toLowerCase()} bookings yet.`}</p>
+        <Link
+          href={`/search/${providerLabel.toLowerCase()}`}
+          className={`inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-gradient-to-r ${accent.from} ${accent.to} text-white text-sm font-medium rounded-lg hover:opacity-90 transition`}
+        >
+          Book a {providerLabel}
+        </Link>
       </div>
     )
   }
@@ -219,7 +227,7 @@ export default function BookingsList({
                     <button
                       onClick={() => onVideoCall(booking)}
                       className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition"
-                      title="Video Call"
+                      aria-label="Start video call"
                     >
                       <FaVideo className="text-sm" />
                     </button>
@@ -227,7 +235,7 @@ export default function BookingsList({
                   <button
                     onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
                     className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition"
-                    title="Details"
+                    aria-label="View booking details"
                   >
                     <FaEye className="text-sm" />
                   </button>

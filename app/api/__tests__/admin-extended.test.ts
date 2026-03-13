@@ -194,13 +194,14 @@ describe('GET /api/admin/required-documents', () => {
   })
 
   it('returns grouped document configs', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'admin1', userType: 'admin' } as never)
     vi.mocked(prisma.requiredDocumentConfig.findMany).mockResolvedValue([
       { userType: 'PATIENT', documentName: 'national-id', required: true },
       { userType: 'PATIENT', documentName: 'proof-address', required: true },
       { userType: 'DOCTOR', documentName: 'national-id', required: true },
     ] as never)
 
-    const res = await getRequiredDocuments()
+    const res = await getRequiredDocuments(createGetRequest('/api/admin/required-documents'))
     const data = await res.json()
 
     expect(res.status).toBe(200)

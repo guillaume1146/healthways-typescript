@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { FaUserPlus, FaUserMd, FaUserNurse, FaChild, FaFlask, FaAmbulance } from 'react-icons/fa'
 import { getUserTypeColor, getUserTypeLabel } from '@/lib/constants/userTypeStyles'
@@ -32,24 +32,28 @@ const typeIcons: Record<string, React.ReactNode> = {
 export default function UserSuggestions({ currentUserId, maxResults = 5, className = '' }: UserSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [sendingTo, setSendingTo] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      try {
-        const res = await fetch(`/api/connections/suggestions?userId=${currentUserId}&limit=${maxResults}`)
-        const data = await res.json()
-        if (data.success) {
-          setSuggestions(data.data)
-        }
-      } catch {
-        // silent
-      } finally {
-        setLoading(false)
+  const fetchSuggestions = useCallback(async () => {
+    try {
+      setError('')
+      setLoading(true)
+      const res = await fetch(`/api/connections/suggestions?userId=${currentUserId}&limit=${maxResults}`)
+      const data = await res.json()
+      if (data.success) {
+        setSuggestions(data.data)
       }
+    } catch {
+      setError('Failed to load suggestions. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    fetchSuggestions()
   }, [currentUserId, maxResults])
+
+  useEffect(() => {
+    fetchSuggestions()
+  }, [fetchSuggestions])
 
   const handleConnect = async (targetId: string) => {
     setSendingTo(targetId)
@@ -86,6 +90,20 @@ export default function UserSuggestions({ currentUserId, maxResults = 5, classNa
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={`bg-white rounded-xl shadow-sm border p-4 ${className}`}>
+        <h3 className="font-semibold text-gray-900 mb-3">People You May Know</h3>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-600 text-sm mb-3">{error}</p>
+          <button onClick={fetchSuggestions} className="text-sm text-red-700 font-medium hover:text-red-800 underline">
+            Try again
+          </button>
         </div>
       </div>
     )
@@ -131,7 +149,7 @@ export default function UserSuggestions({ currentUserId, maxResults = 5, classNa
                   onClick={() => handleConnect(user.id)}
                   disabled={sendingTo === user.id}
                   className="flex-shrink-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
-                  title="Connect"
+                  aria-label="Send connection request"
                 >
                   {sendingTo === user.id ? (
                     <span className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent inline-block" />

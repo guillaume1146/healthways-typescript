@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
   const auth = validateRequest(request)
   if (!auth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
   }
 
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const parsed = recoverWebRTCSessionSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: parsed.error.issues[0].message },
+        { success: false, message: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to recover session:', error)
     return NextResponse.json(
-      { error: 'Failed to recover session' },
+      { success: false, message: 'Failed to recover session' },
       { status: 500 }
     )
   }

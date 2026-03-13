@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(config)
   } catch {
     return NextResponse.json(
-      { error: 'Failed to load configuration' },
+      { success: false, message: 'Failed to load configuration' },
       { status: 500 }
     )
   }

@@ -96,6 +96,7 @@ export const updateUserProfileSchema = z.object({
   dateOfBirth: z.string().optional(),
   gender: z.string().optional(),
   address: z.string().max(500).optional(),
+  profileImage: z.string().max(500).optional(),
   emergencyContact: z.object({
     name: z.string().min(1),
     relationship: z.string().min(1),
@@ -225,4 +226,21 @@ export const updatePreferencesSchema = z.object({
 export const adminAccountActionSchema = z.object({
   userId: z.string().min(1),
   action: z.enum(['approve', 'reject', 'suspend']),
+})
+
+// ─── Regions ───────────────────────────────────────────────────────────────
+
+export const createRegionSchema = z.object({
+  name: z.string().min(1, 'Region name is required'),
+  countryCode: z.string().length(2, 'Country code must be exactly 2 characters').toUpperCase(),
+  language: z.string().optional().default('en'),
+  flag: z.string().optional(),
+})
+
+export const updateRegionSchema = z.object({
+  name: z.string().min(1, 'Region name is required').optional(),
+  countryCode: z.string().length(2, 'Country code must be exactly 2 characters').transform(s => s.toUpperCase()).optional(),
+  language: z.string().optional(),
+  flag: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
 })

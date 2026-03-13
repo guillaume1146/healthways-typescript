@@ -63,7 +63,7 @@ describe('GET /api/users/[id]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.message).toBe('Unauthorized')
   })
 
   it('returns 403 when auth.sub does not match id', async () => {
@@ -73,7 +73,7 @@ describe('GET /api/users/[id]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(403)
-    expect(data.error).toBe('Forbidden')
+    expect(data.message).toBe('Forbidden')
   })
 
   it('returns 200 with user data when authenticated', async () => {
@@ -115,7 +115,7 @@ describe('GET /api/users/[id]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(404)
-    expect(data.error).toBe('User not found')
+    expect(data.message).toBe('User not found')
   })
 })
 
@@ -134,7 +134,7 @@ describe('PATCH /api/users/[id]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.message).toBe('Unauthorized')
   })
 
   it('returns 403 when auth.sub does not match id', async () => {
@@ -147,7 +147,7 @@ describe('PATCH /api/users/[id]', () => {
     const data = await res.json()
 
     expect(res.status).toBe(403)
-    expect(data.error).toBe('Forbidden')
+    expect(data.message).toBe('Forbidden')
   })
 
   it('returns 200 with updated user data', async () => {

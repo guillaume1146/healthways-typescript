@@ -17,6 +17,7 @@ export async function seedNurses(prisma: PrismaClient) {
       userType: UserType.NURSE,
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       // Nested NurseProfile
       nurseProfile: {
         create: {
@@ -38,6 +39,7 @@ export async function seedNurses(prisma: PrismaClient) {
       userType: UserType.NURSE,
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       nurseProfile: {
         create: {
           id: 'NPROF002',

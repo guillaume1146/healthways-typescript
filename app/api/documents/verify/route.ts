@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       analysisReport: result.analysisReport,
     })
   } catch (error) {
-    void error
+    console.error('POST /api/documents/verify error:', error)
     return NextResponse.json(
       { success: false, message: 'Verification failed. Please try again.' },
       { status: 500 }

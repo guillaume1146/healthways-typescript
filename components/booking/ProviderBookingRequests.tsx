@@ -84,6 +84,7 @@ export default function ProviderBookingRequests({
 }: ProviderBookingRequestsProps) {
   const [bookings, setBookings] = useState<BookingRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [actioning, setActioning] = useState<string | null>(null)
@@ -92,13 +93,14 @@ export default function ProviderBookingRequests({
 
   const fetchBookings = useCallback(async () => {
     try {
+      setError('')
       const res = await fetch(apiEndpoint)
       const data = await res.json()
       if (data.success) {
         setBookings(data.data || [])
       }
     } catch {
-      // silent
+      setError('Failed to load bookings. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -149,6 +151,17 @@ export default function ProviderBookingRequests({
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <p className="text-red-600 text-sm mb-3">{error}</p>
+        <button onClick={fetchBookings} className="text-sm text-red-700 font-medium hover:text-red-800 underline">
+          Try again
+        </button>
       </div>
     )
   }

@@ -6,7 +6,12 @@ import { validateRequest } from '@/lib/auth/validate'
  * GET /api/admin/required-documents
  * Returns all required document configurations grouped by userType.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = validateRequest(request)
+  if (!auth || !['admin', 'regional-admin'].includes(auth.userType)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const configs = await prisma.requiredDocumentConfig.findMany({
       orderBy: [{ userType: 'asc' }, { documentName: 'asc' }],

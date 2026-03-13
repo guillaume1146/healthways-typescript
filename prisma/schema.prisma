@@ -81,6 +81,20 @@ enum ExerciseIntensity {
   vigorous
 }
 
+// ─── Region Model ────────────────────────────────────────────────────────────
+
+model Region {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  countryCode String   @unique
+  language    String   @default("en")
+  flag        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
 // ─── Base User Model (auth + shared fields) ──────────────────────────────────
 
 model User {
@@ -98,6 +112,8 @@ model User {
   verified      Boolean   @default(false)
   accountStatus  String    @default("active") // active, suspended, pending
   referredByCode String?   // Referral code used at signup
+  regionId       String?
+  region         Region?   @relation(fields: [regionId], references: [id])
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -155,6 +171,7 @@ model User {
   @@index([email])
   @@index([userType])
   @@index([verified, accountStatus])
+  @@index([regionId])
 }
 
 // ─── Profile Tables (type-specific fields only) ─────────────────────────────

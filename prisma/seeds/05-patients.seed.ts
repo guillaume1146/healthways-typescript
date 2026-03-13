@@ -19,6 +19,7 @@ export async function seedPatients(prisma: PrismaClient) {
       address: 'Rose Hill, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       patientProfile: {
         create: {
           id: 'PPROF001',
@@ -45,6 +46,7 @@ export async function seedPatients(prisma: PrismaClient) {
       address: 'Curepipe, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       patientProfile: {
         create: {
           id: 'PPROF002',
@@ -70,6 +72,7 @@ export async function seedPatients(prisma: PrismaClient) {
       address: 'Port Louis, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       patientProfile: {
         create: {
           id: 'PPROF003',
@@ -95,6 +98,7 @@ export async function seedPatients(prisma: PrismaClient) {
       address: 'Vacoas, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       patientProfile: {
         create: {
           id: 'PPROF004',
@@ -120,6 +124,7 @@ export async function seedPatients(prisma: PrismaClient) {
       address: 'Moka, Mauritius',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       patientProfile: {
         create: {
           id: 'PPROF005',

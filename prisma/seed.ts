@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { seedRegions } from './seeds/00-regions.seed'
 import { seedMedicines } from './seeds/01-medicines.seed'
 import { seedDoctors } from './seeds/02-doctors.seed'
 import { seedNurses } from './seeds/03-nurses.seed'
@@ -24,6 +25,8 @@ import { seedProviderReviews } from './seeds/22-provider-reviews.seed'
 import { seedConnections } from './seeds/23-connections.seed'
 import { seedFoodDatabase } from './seeds/24-food-database.seed'
 import { seedHealthTrackerDemo } from './seeds/25-health-tracker-demo.seed'
+import { seedMultiCountryUsers } from './seeds/27-multi-country-users.seed'
+import { seedDocumentsAndFiles } from './seeds/28-seed-documents.seed'
 
 const prisma = new PrismaClient()
 
@@ -127,8 +130,12 @@ async function main() {
   // 8. User table (last — all FKs cleared above)
   await prisma.user.deleteMany()
 
+  // 9. Regions (after users, since users have optional FK to regions)
+  await prisma.region.deleteMany()
+
   console.log('Seeding database...')
 
+  await seedRegions(prisma)
   await seedMedicines(prisma)
   await seedDoctors(prisma)
   await seedNurses(prisma)
@@ -155,6 +162,8 @@ async function main() {
   await seedConnections(prisma)
   await seedFoodDatabase(prisma)
   await seedHealthTrackerDemo(prisma)
+  await seedMultiCountryUsers(prisma)
+  await seedDocumentsAndFiles(prisma)
 
   console.log('Database seeded successfully!')
 }

@@ -33,13 +33,15 @@ describe('GET /api/admin/role-config', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns configs grouped by userType', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'admin1', userType: 'admin' } as any)
     vi.mocked(prisma.roleFeatureConfig.findMany).mockResolvedValue([
       { id: '1', userType: 'DOCTOR', featureKey: 'video', enabled: true, createdAt: new Date(), updatedAt: new Date() },
       { id: '2', userType: 'DOCTOR', featureKey: 'billing', enabled: false, createdAt: new Date(), updatedAt: new Date() },
       { id: '3', userType: 'NURSE', featureKey: 'video', enabled: true, createdAt: new Date(), updatedAt: new Date() },
     ] as any)
 
-    const res = await getRoleConfig()
+    const req = createRequest('http://localhost:3000/api/admin/role-config')
+    const res = await getRoleConfig(req)
     const json = await res.json()
 
     expect(json.success).toBe(true)
@@ -101,12 +103,14 @@ describe('GET /api/admin/required-documents', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns docs grouped by userType', async () => {
+    vi.mocked(validateRequest).mockReturnValue({ sub: 'admin1', userType: 'admin' } as any)
     vi.mocked(prisma.requiredDocumentConfig.findMany).mockResolvedValue([
       { id: '1', userType: 'DOCTOR', documentName: 'Medical License', required: true, createdAt: new Date(), updatedAt: new Date() },
       { id: '2', userType: 'DOCTOR', documentName: 'ID Card', required: false, createdAt: new Date(), updatedAt: new Date() },
     ] as any)
 
-    const res = await getRequiredDocs()
+    const req = createRequest('http://localhost:3000/api/admin/required-documents')
+    const res = await getRequiredDocs(req)
     const json = await res.json()
 
     expect(json.success).toBe(true)

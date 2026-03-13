@@ -262,6 +262,39 @@ export default function BookingForm({
     return hasDate && hasTime && hasReason
   }, [scheduledDate, scheduledTime, reason, isReasonRequired])
 
+  // Helper text shown below the "Next" button when it is disabled
+  const stepHint = useMemo(() => {
+    if (step === 1 && !canAdvanceStep1) {
+      switch (providerType) {
+        case 'doctor':
+        case 'nurse':
+        case 'nanny':
+          return 'Please select a consultation type'
+        case 'lab-test': {
+          const missing: string[] = []
+          if (!testName.trim()) missing.push('test name')
+          if (!sampleType.trim()) missing.push('sample type')
+          return `Please enter ${missing.join(' and ')}`
+        }
+        case 'emergency': {
+          const missing: string[] = []
+          if (!emergencyType.trim()) missing.push('emergency type')
+          if (!location.trim()) missing.push('location')
+          if (!contactNumber.trim()) missing.push('contact number')
+          return `Please provide ${missing.join(', ')}`
+        }
+      }
+    }
+    if (step === 2 && !canAdvanceStep2) {
+      const missing: string[] = []
+      if (!scheduledDate) missing.push('a date')
+      if (!scheduledTime) missing.push('a time')
+      if (isReasonRequired && !reason.trim()) missing.push('a reason for visit')
+      return `Please select ${missing.join(' and ')}`
+    }
+    return null
+  }, [step, canAdvanceStep1, canAdvanceStep2, providerType, consultationType, testName, sampleType, emergencyType, location, contactNumber, scheduledDate, scheduledTime, reason, isReasonRequired])
+
   // ── Build submit data ───────────────────────────────────────────────────────
 
   function buildSubmitData(): BookingSubmitData {
@@ -906,15 +939,20 @@ export default function BookingForm({
         )}
 
         {step < totalSteps ? (
-          <button
-            type="button"
-            onClick={goNext}
-            disabled={step === 1 ? !canAdvanceStep1 : !canAdvanceStep2}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-            <FaArrowRight className="text-sm" />
-          </button>
+          <div className="flex flex-col items-end">
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={step === 1 ? !canAdvanceStep1 : !canAdvanceStep2}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <FaArrowRight className="text-sm" />
+            </button>
+            {stepHint && (
+              <p className="text-xs text-amber-600 mt-1">{stepHint}</p>
+            )}
+          </div>
         ) : (
           <button
             type="button"

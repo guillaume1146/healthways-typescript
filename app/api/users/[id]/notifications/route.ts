@@ -4,6 +4,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { parsePagination } from '@/lib/api-utils'
 import { markNotificationsReadSchema } from '@/lib/validations/api'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { successResponse, unauthorizedResponse, forbiddenResponse, errorResponse, serverErrorResponse } from '@/lib/api-response'
 
 export async function GET(
   request: NextRequest,
@@ -13,11 +14,11 @@ export async function GET(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return unauthorizedResponse()
 
   try {
     const { id } = await params
-    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.sub !== id) return forbiddenResponse()
     const { searchParams } = new URL(request.url)
     const unreadOnly = searchParams.get('unread') === 'true'
     const { limit } = parsePagination(searchParams)
@@ -42,7 +43,7 @@ export async function GET(
     })
   } catch (error) {
     console.error('GET /api/users/[id]/notifications error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse()
   }
 }
 
@@ -54,18 +55,15 @@ export async function PATCH(
   if (limited) return limited
 
   const auth = validateRequest(request)
-  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!auth) return unauthorizedResponse()
 
   try {
     const { id } = await params
-    if (auth.sub !== id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.sub !== id) return forbiddenResponse()
     const body = await request.json()
     const parsed = markNotificationsReadSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      )
+      return errorResponse(parsed.error.issues[0].message)
     }
     const { notificationIds } = parsed.data
 
@@ -85,6 +83,6 @@ export async function PATCH(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('PATCH /api/users/[id]/notifications error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse()
   }
 }

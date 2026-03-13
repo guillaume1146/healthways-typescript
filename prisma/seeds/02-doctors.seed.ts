@@ -22,6 +22,7 @@ export async function seedDoctors(prisma: PrismaClient) {
       address: '45 Royal Road, Port Louis',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       // Nested DoctorProfile
       doctorProfile: {
         create: {
@@ -71,6 +72,7 @@ export async function seedDoctors(prisma: PrismaClient) {
       address: '12 Main Street, Rose Hill',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       doctorProfile: {
         create: {
           id: 'DPROF002',
@@ -118,6 +120,7 @@ export async function seedDoctors(prisma: PrismaClient) {
       address: '78 St Jean Road, Quatre Bornes',
       verified: true,
       accountStatus: 'active',
+      regionId: 'REG-MU',
       doctorProfile: {
         create: {
           id: 'DPROF003',

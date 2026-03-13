@@ -42,6 +42,8 @@ export default function RegistrationForm() {
     gender: '',
     address: '',
     userType: 'patient',
+    regionId: '',
+    profileImageUrl: '',
     referralCode: searchParams.get('promo') || '',
     emergencyContactName: '',
     emergencyContactPhone: '',
@@ -189,10 +191,39 @@ export default function RegistrationForm() {
         .filter(doc => doc.required && doc.skipped)
         .map(doc => doc.id)
 
+      // Upload document files and collect URLs for database storage
+      const documentUrls: { name: string; type: string; url: string; size?: number }[] = []
+      for (const doc of documents) {
+        if (doc.file && doc.uploaded && !doc.skipped) {
+          try {
+            const fd = new FormData()
+            fd.append('file', doc.file)
+            const uploadRes = await fetch('/api/upload/registration', { method: 'POST', body: fd })
+            const uploadResult = await uploadRes.json()
+            if (uploadResult.success) {
+              documentUrls.push({
+                name: doc.name,
+                type: doc.id,
+                url: uploadResult.data.url,
+                size: uploadResult.data.size,
+              })
+            }
+          } catch {
+            // Continue with other documents if one fails
+          }
+        }
+      }
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, documentVerifications, skippedDocuments }),
+        body: JSON.stringify({
+          ...formData,
+          profileImage: formData.profileImageUrl || undefined,
+          documentUrls,
+          documentVerifications,
+          skippedDocuments,
+        }),
       })
 
       const result = await response.json()
@@ -292,7 +323,7 @@ export default function RegistrationForm() {
 
                   {/* Step 2: Basic Information */}
                   {currentStep === 2 && (
-                    <BasicInfoStep 
+                    <BasicInfoStep
                       formData={formData}
                       selectedType={selectedType}
                       showPassword={showPassword}
@@ -300,6 +331,7 @@ export default function RegistrationForm() {
                       onFormChange={handleChange}
                       onPasswordToggle={() => setShowPassword(!showPassword)}
                       onConfirmPasswordToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onProfileImageChange={(url) => setFormData(prev => ({ ...prev, profileImageUrl: url }))}
                     />
                   )}
 
