@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="450" viewBox="0 0 650 450">
+  <rect width="650" height="450" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="3"/>
+  <rect x="20" y="20" width="610" height="50" rx="6" fill="#7c3aed"/>
+  <text x="325" y="52" font-family="Arial" font-size="20" font-weight="bold" fill="white" text-anchor="middle">MEDICAL COUNCIL OF MAURITIUS — PROFESSIONAL LICENSE</text>
+  <text x="325" y="110" font-family="Arial" font-size="16" fill="#6b7280" text-anchor="middle">License to Practice Medicine</text>
+  <rect x="40" y="130" width="570" height="220" rx="8" fill="white" stroke="#e9d5ff" stroke-width="1"/>
+  <text x="60" y="165" font-family="Arial" font-size="14" fill="#6b7280">Licensed Practitioner:</text>
+  <text x="250" y="165" font-family="Arial" font-size="16" font-weight="bold" fill="#1e1b4b">Dr. Test User Doorgakant</text>
+  <text x="60" y="200" font-family="Arial" font-size="14" fill="#6b7280">License Number:</text>
+  <text x="250" y="200" font-family="Arial" font-size="16" fill="#1e1b4b">MCM-2021-DOC-00123</text>
+  <text x="60" y="235" font-family="Arial" font-size="14" fill="#6b7280">Specialty:</text>
+  <text x="250" y="235" font-family="Arial" font-size="16" fill="#1e1b4b">General Medicine</text>
+  <text x="60" y="270" font-family="Arial" font-size="14" fill="#6b7280">Date of Issue:</text>
+  <text x="250" y="270" font-family="Arial" font-size="16" fill="#1e1b4b">01 March 2021</text>
+  <text x="60" y="305" font-family="Arial" font-size="14" fill="#6b7280">Expiry Date:</text>
+  <text x="250" y="305" font-family="Arial" font-size="16" fill="#1e1b4b">28 February 2027</text>
+  <text x="60" y="340" font-family="Arial" font-size="14" fill="#6b7280">Status:</text>
+  <rect x="250" y="322" width="70" height="24" rx="4" fill="#dcfce7"/>
+  <text x="285" y="340" font-family="Arial" font-size="13" font-weight="bold" fill="#166534" text-anchor="middle">ACTIVE</text>
+  <line x1="40" y1="380" x2="300" y2="380" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="170" y="400" font-family="Arial" font-size="12" fill="#7c3aed" text-anchor="middle">Registrar, Medical Council</text>
+  <text x="325" y="435" font-family="Arial" font-size="10" fill="#a8a29e" text-anchor="middle">FOR TESTING PURPOSES ONLY</text>
+</svg>

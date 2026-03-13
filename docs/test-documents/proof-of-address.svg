@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="500" viewBox="0 0 600 500">
+  <rect width="600" height="500" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="40" y="50" font-family="Arial" font-size="22" font-weight="bold" fill="#92400e">CEB — Central Electricity Board</text>
+  <text x="40" y="75" font-family="Arial" font-size="13" fill="#78716c">Royal Road, Curepipe, Mauritius</text>
+  <line x1="40" y1="90" x2="560" y2="90" stroke="#d4a574" stroke-width="1"/>
+  <text x="400" y="120" font-family="Arial" font-size="14" fill="#78716c">Date: 01/02/2026</text>
+  <text x="400" y="140" font-family="Arial" font-size="14" fill="#78716c">Bill No: CEB-2026-12345</text>
+  <text x="40" y="170" font-family="Arial" font-size="16" font-weight="bold" fill="#1c1917">UTILITY BILL — PROOF OF ADDRESS</text>
+  <rect x="40" y="190" width="520" height="130" rx="6" fill="white" stroke="#e7e5e4" stroke-width="1"/>
+  <text x="60" y="220" font-family="Arial" font-size="14" fill="#78716c">Customer Name:</text>
+  <text x="220" y="220" font-family="Arial" font-size="14" font-weight="bold" fill="#1c1917">Test User Doorgakant</text>
+  <text x="60" y="250" font-family="Arial" font-size="14" fill="#78716c">Service Address:</text>
+  <text x="220" y="250" font-family="Arial" font-size="14" fill="#1c1917">123 Royal Road, Port Louis</text>
+  <text x="60" y="280" font-family="Arial" font-size="14" fill="#78716c">Account No:</text>
+  <text x="220" y="280" font-family="Arial" font-size="14" fill="#1c1917">ACC-00012345</text>
+  <text x="60" y="310" font-family="Arial" font-size="14" fill="#78716c">Meter No:</text>
+  <text x="220" y="310" font-family="Arial" font-size="14" fill="#1c1917">MTR-98765</text>
+  <rect x="40" y="340" width="520" height="80" rx="6" fill="#fef3c7" stroke="#fbbf24" stroke-width="1"/>
+  <text x="60" y="370" font-family="Arial" font-size="14" fill="#78716c">Period: January 2026</text>
+  <text x="60" y="395" font-family="Arial" font-size="14" fill="#78716c">Amount Due:</text>
+  <text x="220" y="395" font-family="Arial" font-size="20" font-weight="bold" fill="#92400e">Rs 1,250.00</text>
+  <text x="40" y="460" font-family="Arial" font-size="11" fill="#a8a29e">This document is for TESTING PURPOSES ONLY and is not a real utility bill.</text>
+</svg>

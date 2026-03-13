@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420">
+  <rect width="600" height="420" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="40" y="45" font-family="Arial" font-size="20" font-weight="bold" fill="#14532d">Sir Seewoosagur Ramgoolam National Hospital</text>
+  <text x="40" y="70" font-family="Arial" font-size="13" fill="#6b7280">Pamplemousses, Mauritius</text>
+  <text x="40" y="85" font-family="Arial" font-size="13" fill="#6b7280">Tel: +230 243-2661 | Fax: +230 243-2662</text>
+  <line x1="40" y1="100" x2="560" y2="100" stroke="#bbf7d0" stroke-width="2"/>
+  <text x="300" y="140" font-family="Arial" font-size="20" font-weight="bold" fill="#1c1917" text-anchor="middle">WORK / EMPLOYMENT CERTIFICATE</text>
+  <text x="500" y="170" font-family="Arial" font-size="13" fill="#6b7280">Date: 01/03/2026</text>
+  <text x="40" y="210" font-family="Arial" font-size="15" fill="#1c1917">To Whom It May Concern,</text>
+  <text x="40" y="245" font-family="Arial" font-size="14" fill="#374151">This is to certify that <tspan font-weight="bold">Test User Doorgakant</tspan> has been</text>
+  <text x="40" y="270" font-family="Arial" font-size="14" fill="#374151">employed at our institution as a <tspan font-weight="bold">Medical Professional</tspan></text>
+  <text x="40" y="295" font-family="Arial" font-size="14" fill="#374151">since <tspan font-weight="bold">January 2021</tspan> to the present date.</text>
+  <text x="40" y="330" font-family="Arial" font-size="14" fill="#374151">This certificate is issued upon the request of the above-named</text>
+  <text x="40" y="355" font-family="Arial" font-size="14" fill="#374151">for whatever purpose it may serve.</text>
+  <line x1="350" y1="385" x2="560" y2="385" stroke="#6b7280" stroke-width="1"/>
+  <text x="455" y="405" font-family="Arial" font-size="12" fill="#6b7280" text-anchor="middle">Hospital Director</text>
+  <text x="40" y="415" font-family="Arial" font-size="10" fill="#a8a29e">FOR TESTING PURPOSES ONLY</text>
+</svg>

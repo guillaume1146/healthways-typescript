@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450">
+  <rect width="600" height="450" rx="8" fill="#fefce8" stroke="#ca8a04" stroke-width="3"/>
+  <text x="300" y="50" font-family="Arial" font-size="22" font-weight="bold" fill="#713f12" text-anchor="middle">MAURITIUS POLICE FORCE</text>
+  <text x="300" y="75" font-family="Arial" font-size="14" fill="#78716c" text-anchor="middle">Criminal Records Office — Line Barracks, Port Louis</text>
+  <line x1="50" y1="95" x2="550" y2="95" stroke="#ca8a04" stroke-width="2"/>
+  <text x="300" y="130" font-family="Arial" font-size="20" font-weight="bold" fill="#1c1917" text-anchor="middle">CERTIFICATE OF CHARACTER</text>
+  <text x="300" y="155" font-family="Arial" font-size="14" fill="#78716c" text-anchor="middle">(Police Clearance Certificate)</text>
+  <rect x="50" y="175" width="500" height="180" rx="8" fill="white" stroke="#fde68a" stroke-width="1"/>
+  <text x="70" y="210" font-family="Arial" font-size="14" fill="#78716c">Applicant Name:</text>
+  <text x="250" y="210" font-family="Arial" font-size="16" font-weight="bold" fill="#1c1917">Test User Doorgakant</text>
+  <text x="70" y="245" font-family="Arial" font-size="14" fill="#78716c">NIC Number:</text>
+  <text x="250" y="245" font-family="Arial" font-size="16" fill="#1c1917">MU-NID-2024-00001</text>
+  <text x="70" y="280" font-family="Arial" font-size="14" fill="#78716c">Certificate No:</text>
+  <text x="250" y="280" font-family="Arial" font-size="16" fill="#1c1917">POL-CLR-2026-78901</text>
+  <text x="70" y="315" font-family="Arial" font-size="14" fill="#78716c">Result:</text>
+  <rect x="250" y="298" width="180" height="26" rx="4" fill="#dcfce7"/>
+  <text x="340" y="316" font-family="Arial" font-size="14" font-weight="bold" fill="#166534" text-anchor="middle">NO CRIMINAL RECORD</text>
+  <text x="70" y="345" font-family="Arial" font-size="14" fill="#78716c">Issued:</text>
+  <text x="250" y="345" font-family="Arial" font-size="16" fill="#1c1917">01 February 2026</text>
+  <line x1="350" y1="390" x2="550" y2="390" stroke="#78716c" stroke-width="1"/>
+  <text x="450" y="410" font-family="Arial" font-size="12" fill="#78716c" text-anchor="middle">Commissioner of Police</text>
+  <text x="300" y="440" font-family="Arial" font-size="10" fill="#a8a29e" text-anchor="middle">FOR TESTING PURPOSES ONLY</text>
+</svg>
