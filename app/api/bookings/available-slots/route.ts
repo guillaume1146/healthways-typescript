@@ -194,10 +194,10 @@ export async function GET(request: NextRequest) {
 
     const bookings = await getExistingBookings(provider.profileId, providerType, dayStart, dayEnd)
 
-    // Extract booked hours from existing bookings
+    // Extract booked hours from existing bookings (use local time to match slot strings)
     const bookedHours = bookings.map(b => {
       const d = new Date(b.scheduledAt)
-      return `${d.getUTCHours().toString().padStart(2, '0')}:${d.getUTCMinutes().toString().padStart(2, '0')}`
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
     })
 
     // Filter out already-booked slots

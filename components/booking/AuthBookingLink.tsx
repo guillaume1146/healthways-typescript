@@ -17,21 +17,41 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[2]) : null
 }
 
+/** Map cookie userType value → URL route prefix */
+const USER_TYPE_SLUG: Record<string, string> = {
+  'patient': 'patient',
+  'doctor': 'doctor',
+  'nurse': 'nurse',
+  'child-care-nurse': 'nanny',
+  'pharmacy': 'pharmacist',
+  'lab': 'lab-technician',
+  'ambulance': 'responder',
+  'admin': 'admin',
+  'regional-admin': 'regional',
+  'corporate': 'corporate',
+  'insurance': 'insurance',
+  'referral-partner': 'referral-partner',
+}
+
 export default function AuthBookingLink({ type, providerId, children, className }: AuthBookingLinkProps) {
   const router = useRouter()
 
-  const bookingPath = type === 'emergency'
-    ? '/patient/book/emergency'
-    : `/patient/book/${type}/${providerId}`
-
   const handleClick = useCallback(() => {
     const userType = getCookie('healthwyz_userType')
-    if (userType) {
-      router.push(bookingPath)
-    } else {
-      router.push(`/login?returnUrl=${encodeURIComponent(bookingPath)}`)
+    if (!userType) {
+      const fallbackPath = type === 'emergency'
+        ? '/patient/book/emergency'
+        : `/patient/book/${type}/${providerId}`
+      router.push(`/login?returnUrl=${encodeURIComponent(fallbackPath)}`)
+      return
     }
-  }, [bookingPath, router])
+
+    const slug = USER_TYPE_SLUG[userType] || 'patient'
+    const bookingPath = type === 'emergency'
+      ? `/${slug}/book/emergency`
+      : `/${slug}/book/${type}/${providerId}`
+    router.push(bookingPath)
+  }, [type, providerId, router])
 
   return (
     <button onClick={handleClick} className={className}>

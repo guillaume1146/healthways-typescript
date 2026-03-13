@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
     })
     if (!user) return NextResponse.json({ message: 'User not found' }, { status: 404 })
 
-    // Collect video rooms from multiple sources based on user type
+    // Collect video rooms from multiple sources
+    // Any user can book services (ensurePatientProfile creates a PatientProfile for them),
+    // so we always check for a PatientProfile AND any role-specific provider profiles.
     interface RoomEntry {
       id: string
       scheduledAt: Date
@@ -34,75 +36,77 @@ export async function GET(request: NextRequest) {
       type: string
       endedAt?: Date | null
     }
-    let appointments: RoomEntry[] = []
+    const appointments: RoomEntry[] = []
 
-    if (user.userType === 'PATIENT') {
-      const patientProfile = await prisma.patientProfile.findUnique({ where: { userId }, select: { id: true } })
-      if (patientProfile) {
-        // Get appointments with roomId (doctor video consultations)
-        const doctorApts = await prisma.appointment.findMany({
-          where: { patientId: patientProfile.id, type: 'video', roomId: { not: null } },
-          orderBy: { scheduledAt: 'desc' },
-          select: {
-            id: true, scheduledAt: true, status: true, reason: true, roomId: true, duration: true,
-            doctor: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
-          }
-        })
-        appointments = doctorApts.map(a => ({
-          id: a.id,
-          roomId: a.roomId,
-          scheduledAt: a.scheduledAt,
-          status: a.status,
-          reason: a.reason,
-          duration: a.duration,
-          participantName: a.doctor?.user ? `Dr. ${a.doctor.user.firstName} ${a.doctor.user.lastName}` : 'Doctor',
-          participantImage: a.doctor?.user?.profileImage || null,
-          type: 'doctor_consultation',
-        }))
+    // ── Patient-side bookings (ANY user who has booked a service) ──
+    const patientProfile = await prisma.patientProfile.findUnique({ where: { userId }, select: { id: true } })
+    if (patientProfile) {
+      // Doctor video consultations booked by this user
+      const doctorApts = await prisma.appointment.findMany({
+        where: { patientId: patientProfile.id, type: 'video', roomId: { not: null } },
+        orderBy: { scheduledAt: 'desc' },
+        select: {
+          id: true, scheduledAt: true, status: true, reason: true, roomId: true, duration: true,
+          doctor: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
+        }
+      })
+      appointments.push(...doctorApts.map(a => ({
+        id: a.id,
+        roomId: a.roomId,
+        scheduledAt: a.scheduledAt,
+        status: a.status,
+        reason: a.reason,
+        duration: a.duration,
+        participantName: a.doctor?.user ? `Dr. ${a.doctor.user.firstName} ${a.doctor.user.lastName}` : 'Doctor',
+        participantImage: a.doctor?.user?.profileImage || null,
+        type: 'doctor_consultation',
+      })))
 
-        // Add nurse video bookings
-        const nurseBookings = await prisma.nurseBooking.findMany({
-          where: { patientId: patientProfile.id, type: 'video' },
-          orderBy: { scheduledAt: 'desc' },
-          select: {
-            id: true, scheduledAt: true, status: true, reason: true, duration: true,
-            nurse: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
-          }
-        })
-        appointments.push(...nurseBookings.map(b => ({
-          id: b.id,
-          roomId: `nurse-${b.id}`,
-          scheduledAt: b.scheduledAt,
-          status: b.status,
-          reason: b.reason,
-          duration: b.duration,
-          participantName: b.nurse?.user ? `${b.nurse.user.firstName} ${b.nurse.user.lastName}` : 'Nurse',
-          participantImage: b.nurse?.user?.profileImage || null,
-          type: 'nurse_consultation',
-        })))
+      // Nurse video bookings booked by this user
+      const nurseBookings = await prisma.nurseBooking.findMany({
+        where: { patientId: patientProfile.id, type: 'video' },
+        orderBy: { scheduledAt: 'desc' },
+        select: {
+          id: true, scheduledAt: true, status: true, reason: true, duration: true,
+          nurse: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
+        }
+      })
+      appointments.push(...nurseBookings.map(b => ({
+        id: b.id,
+        roomId: `nurse-${b.id}`,
+        scheduledAt: b.scheduledAt,
+        status: b.status,
+        reason: b.reason,
+        duration: b.duration,
+        participantName: b.nurse?.user ? `${b.nurse.user.firstName} ${b.nurse.user.lastName}` : 'Nurse',
+        participantImage: b.nurse?.user?.profileImage || null,
+        type: 'nurse_consultation',
+      })))
 
-        // Add nanny video bookings
-        const nannyBookings = await prisma.childcareBooking.findMany({
-          where: { patientId: patientProfile.id, type: 'video' },
-          orderBy: { scheduledAt: 'desc' },
-          select: {
-            id: true, scheduledAt: true, status: true, reason: true, duration: true,
-            nanny: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
-          }
-        })
-        appointments.push(...nannyBookings.map(b => ({
-          id: b.id,
-          roomId: `nanny-${b.id}`,
-          scheduledAt: b.scheduledAt,
-          status: b.status,
-          reason: b.reason,
-          duration: b.duration,
-          participantName: b.nanny?.user ? `${b.nanny.user.firstName} ${b.nanny.user.lastName}` : 'Nanny',
-          participantImage: b.nanny?.user?.profileImage || null,
-          type: 'nanny_consultation',
-        })))
-      }
-    } else if (user.userType === 'DOCTOR') {
+      // Nanny video bookings booked by this user
+      const nannyBookings = await prisma.childcareBooking.findMany({
+        where: { patientId: patientProfile.id, type: 'video' },
+        orderBy: { scheduledAt: 'desc' },
+        select: {
+          id: true, scheduledAt: true, status: true, reason: true, duration: true,
+          nanny: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
+        }
+      })
+      appointments.push(...nannyBookings.map(b => ({
+        id: b.id,
+        roomId: `nanny-${b.id}`,
+        scheduledAt: b.scheduledAt,
+        status: b.status,
+        reason: b.reason,
+        duration: b.duration,
+        participantName: b.nanny?.user ? `${b.nanny.user.firstName} ${b.nanny.user.lastName}` : 'Nanny',
+        participantImage: b.nanny?.user?.profileImage || null,
+        type: 'nanny_consultation',
+      })))
+    }
+
+    // ── Provider-side bookings (incoming appointments from patients) ──
+    if (user.userType === 'DOCTOR') {
       const doctorProfile = await prisma.doctorProfile.findUnique({ where: { userId }, select: { id: true } })
       if (doctorProfile) {
         const doctorApts = await prisma.appointment.findMany({
@@ -114,7 +118,7 @@ export async function GET(request: NextRequest) {
             patient: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
           }
         })
-        appointments = doctorApts.map(a => ({
+        appointments.push(...doctorApts.map(a => ({
           id: a.id,
           roomId: a.roomId,
           scheduledAt: a.scheduledAt,
@@ -125,7 +129,7 @@ export async function GET(request: NextRequest) {
           participantImage: a.patient?.user?.profileImage || null,
           participantProfileId: a.patientId,
           type: 'doctor_consultation',
-        }))
+        })))
       }
     } else if (user.userType === 'NURSE') {
       const nurseProfile = await prisma.nurseProfile.findUnique({ where: { userId }, select: { id: true } })
@@ -138,7 +142,7 @@ export async function GET(request: NextRequest) {
             patient: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
           }
         })
-        appointments = nurseBookings.map(b => ({
+        appointments.push(...nurseBookings.map(b => ({
           id: b.id,
           roomId: `nurse-${b.id}`,
           scheduledAt: b.scheduledAt,
@@ -148,7 +152,7 @@ export async function GET(request: NextRequest) {
           participantName: b.patient?.user ? `${b.patient.user.firstName} ${b.patient.user.lastName}` : 'Patient',
           participantImage: b.patient?.user?.profileImage || null,
           type: 'nurse_consultation',
-        }))
+        })))
       }
     } else if (user.userType === 'NANNY') {
       const nannyProfile = await prisma.nannyProfile.findUnique({ where: { userId }, select: { id: true } })
@@ -161,7 +165,7 @@ export async function GET(request: NextRequest) {
             patient: { select: { user: { select: { firstName: true, lastName: true, profileImage: true } } } }
           }
         })
-        appointments = nannyBookings.map(b => ({
+        appointments.push(...nannyBookings.map(b => ({
           id: b.id,
           roomId: `nanny-${b.id}`,
           scheduledAt: b.scheduledAt,
@@ -171,7 +175,7 @@ export async function GET(request: NextRequest) {
           participantName: b.patient?.user ? `${b.patient.user.firstName} ${b.patient.user.lastName}` : 'Parent',
           participantImage: b.patient?.user?.profileImage || null,
           type: 'nanny_consultation',
-        }))
+        })))
       }
     }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { FaCalendarCheck, FaClipboardList, FaUsers, FaMedkit } from 'react-icons/fa'
 
@@ -27,7 +28,11 @@ const TABS = [
 type TabId = typeof TABS[number]['id']
 
 export default function NursePracticePage() {
-  const [activeTab, setActiveTab] = useState<TabId>('appointments')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab') as TabId | null
+  const [activeTab, setActiveTab] = useState<TabId>(
+    tabParam && (['appointments', 'requests', 'patients', 'services'] as const).includes(tabParam as TabId) ? tabParam : 'appointments'
+  )
 
   return (
     <div className="pb-20 sm:pb-0">

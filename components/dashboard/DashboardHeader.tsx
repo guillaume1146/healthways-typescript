@@ -53,8 +53,8 @@ function timeAgo(dateStr: string): string {
 // Per-user-type route mapping for notification clicks
 const NOTIFICATION_ROUTES: Record<string, Record<string, string>> = {
   patient:             { appointment: '/consultations', booking: '/bookings', prescription: '/prescriptions', message: '/chat', lab_result: '/health-records', emergency: '/emergency', connection: '/network' },
-  doctor:              { appointment: '/appointments', booking: '/booking-requests', prescription: '/prescriptions', message: '/messages', connection: '/network' },
-  nurse:               { appointment: '/appointments', booking: '/booking-requests', message: '/messages', connection: '/network' },
+  doctor:              { appointment: '/practice', booking: '/practice?tab=requests', prescription: '/practice?tab=prescriptions', message: '/messages', connection: '/network' },
+  nurse:               { appointment: '/practice', booking: '/practice?tab=requests', message: '/messages', connection: '/network' },
   nanny:               { appointment: '/bookings', booking: '/booking-requests', message: '/messages', connection: '/network' },
   pharmacist:          { prescription: '/orders', booking: '/orders', message: '/messages', connection: '/network' },
   'lab-technician':    { lab_result: '/results', booking: '/booking-requests', message: '/messages', connection: '/network' },
@@ -87,6 +87,8 @@ function normalizeNotifKey(raw: string): string {
     case 'connection':
       return 'connection'
     case 'booking':
+    case 'booking_request':
+    case 'booking_cancelled':
       return 'booking'
     default:
       return raw

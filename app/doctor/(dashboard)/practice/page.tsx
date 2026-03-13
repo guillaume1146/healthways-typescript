@@ -126,7 +126,8 @@ export default function DoctorPracticePage() {
   const user = useDoctorData()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState<TabId>('appointments')
+  const tabParam = searchParams.get('tab') as TabId | null
+  const [activeTab, setActiveTab] = useState<TabId>(tabParam && ['appointments', 'requests', 'patients', 'prescriptions', 'schedule'].includes(tabParam) ? tabParam : 'appointments')
   const [loading, setLoading] = useState(true)
 
   // Appointment data
