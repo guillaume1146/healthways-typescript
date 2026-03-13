@@ -100,9 +100,10 @@ describe('GET /api/bookings/available-slots', () => {
         updatedAt: new Date(),
       },
     ])
-    // 10:00 is booked
+    // 10:00 is booked — use local time so getHours() returns 10
+    const booked10am = new Date(2026, 3, 1, 10, 0, 0) // April 1, 2026 10:00 local
     vi.mocked(prisma.appointment.findMany).mockResolvedValue([
-      { scheduledAt: new Date('2026-04-01T10:00:00Z') },
+      { scheduledAt: booked10am },
     ] as never)
 
     const res = await GET(createRequest({
