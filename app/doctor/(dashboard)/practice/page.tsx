@@ -127,8 +127,15 @@ export default function DoctorPracticePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab') as TabId | null
-  const [activeTab, setActiveTab] = useState<TabId>(tabParam && ['appointments', 'requests', 'patients', 'prescriptions', 'schedule'].includes(tabParam) ? tabParam : 'appointments')
+  const [activeTab, setActiveTab] = useState<TabId>(tabParam && ['appointments', 'requests', 'patients', 'prescriptions', 'services', 'calendar'].includes(tabParam) ? tabParam : 'appointments')
   const [loading, setLoading] = useState(true)
+
+  // Sync activeTab when ?tab= query param changes (e.g. notification click)
+  useEffect(() => {
+    if (tabParam && (['appointments', 'requests', 'patients', 'prescriptions', 'services', 'calendar'] as const).includes(tabParam as TabId)) {
+      setActiveTab(tabParam as TabId)
+    }
+  }, [tabParam])
 
   // Appointment data
   const [allAppointments, setAllAppointments] = useState<MappedAppointment[]>([])
