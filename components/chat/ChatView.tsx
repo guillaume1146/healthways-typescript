@@ -307,6 +307,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   const inputRef = useRef<HTMLInputElement>(null)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const previousConversationRef = useRef<string | null>(null)
+  const conversationsRef = useRef<ConversationSummary[]>([])
 
   // ---- useChat hook ----
   const {
@@ -323,6 +324,11 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   } = useChat({ userId: currentUser.id })
 
   const senderFullName = `${currentUser.firstName} ${currentUser.lastName}`
+
+  // Keep ref in sync so callbacks always have current conversations
+  useEffect(() => {
+    conversationsRef.current = conversations
+  }, [conversations])
 
   // ---- Fetch conversations on mount ----
   useEffect(() => {
@@ -669,13 +675,7 @@ export default function ChatView({ currentUser, initialConversationId }: ChatVie
   const handleSelectConversation = useCallback(async (id: string) => {
     // If this is a synthetic "new connection" entry, create a real conversation first
     if (id.startsWith('connection:')) {
-      // Use functional state accessor to avoid stale closure
-      let syntheticConv: ConversationSummary | undefined
-      setConversations((prev) => {
-        syntheticConv = prev.find((c) => c.id === id)
-        return prev
-      })
-
+      const syntheticConv = conversationsRef.current.find((c) => c.id === id)
       if (!syntheticConv) return
       const otherId = syntheticConv.participants[0]?.userId
       if (!otherId) return
