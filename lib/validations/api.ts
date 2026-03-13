@@ -3,7 +3,7 @@ import { z } from 'zod'
 // ─── Conversations ──────────────────────────────────────────────────────────
 
 export const createConversationSchema = z.object({
-  participantIds: z.array(z.string().uuid()).min(1, 'At least one participant is required'),
+  participantIds: z.array(z.string().min(1)).min(1, 'At least one participant is required'),
 })
 
 export const sendMessageSchema = z.object({
@@ -13,15 +13,15 @@ export const sendMessageSchema = z.object({
 // ─── Video & WebRTC ─────────────────────────────────────────────────────────
 
 export const createVideoRoomSchema = z.object({
-  creatorId: z.string().uuid(),
-  participantIds: z.array(z.string().uuid()).optional(),
+  creatorId: z.string().min(1),
+  participantIds: z.array(z.string().min(1)).optional(),
   scheduledAt: z.string().datetime().optional(),
   reason: z.string().max(500).optional(),
 })
 
 export const createWebRTCSessionSchema = z.object({
   roomId: z.string().min(1),
-  userId: z.string().uuid(),
+  userId: z.string().min(1),
   userName: z.string().optional().default(''),
   userType: z.string().optional().default(''),
 })
@@ -34,7 +34,7 @@ export const updateWebRTCSessionSchema = z.object({
 
 export const recoverWebRTCSessionSchema = z.object({
   roomId: z.string().min(1),
-  userId: z.string().uuid(),
+  userId: z.string().min(1),
 })
 
 // ─── Bookings ───────────────────────────────────────────────────────────────
@@ -112,18 +112,18 @@ export const changePasswordSchema = z.object({
 // ─── Notifications ──────────────────────────────────────────────────────────
 
 export const markNotificationsReadSchema = z.object({
-  notificationIds: z.array(z.string().uuid()).optional(),
+  notificationIds: z.array(z.string().min(1)).optional(),
 })
 
 // ─── Prescriptions ──────────────────────────────────────────────────────────
 
 export const createPrescriptionSchema = z.object({
-  patientId: z.string().uuid(),
+  patientId: z.string().min(1),
   diagnosis: z.string().min(1, 'Diagnosis is required'),
   notes: z.string().optional(),
   nextRefill: z.string().optional(),
   medicines: z.array(z.object({
-    medicineId: z.string().uuid(),
+    medicineId: z.string().min(1),
     dosage: z.string().min(1),
     frequency: z.string().min(1),
     duration: z.string().min(1),
@@ -150,7 +150,7 @@ export const createDoctorPrescriptionSchema = z.object({
 
 export const createOrderSchema = z.object({
   items: z.array(z.object({
-    pharmacyMedicineId: z.string().uuid(),
+    pharmacyMedicineId: z.string().min(1),
     quantity: z.number().int().min(1),
   })).min(1, 'At least one item is required'),
 })
@@ -223,6 +223,6 @@ export const updatePreferencesSchema = z.object({
 // ─── Admin ──────────────────────────────────────────────────────────────────
 
 export const adminAccountActionSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string().min(1),
   action: z.enum(['approve', 'reject', 'suspend']),
 })

@@ -99,14 +99,21 @@ describe('Edge Case Validations', () => {
       expect(result.success).toBe(false)
     })
 
-    it('rejects non-UUID participant IDs', () => {
-      const result = createConversationSchema.safeParse({ participantIds: ['not-a-uuid'] })
+    it('rejects empty string participant IDs', () => {
+      const result = createConversationSchema.safeParse({ participantIds: [''] })
       expect(result.success).toBe(false)
     })
 
-    it('accepts valid UUID participant IDs', () => {
+    it('accepts UUID participant IDs', () => {
       const result = createConversationSchema.safeParse({
         participantIds: ['550e8400-e29b-41d4-a716-446655440000'],
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('accepts non-UUID participant IDs like seeded user IDs', () => {
+      const result = createConversationSchema.safeParse({
+        participantIds: ['PAT001', 'DOC001'],
       })
       expect(result.success).toBe(true)
     })
@@ -130,12 +137,12 @@ describe('Edge Case Validations', () => {
   })
 
   describe('Video room schema edge cases', () => {
-    it('rejects non-UUID creatorId', () => {
-      const result = createVideoRoomSchema.safeParse({ creatorId: 'invalid' })
+    it('rejects empty creatorId', () => {
+      const result = createVideoRoomSchema.safeParse({ creatorId: '' })
       expect(result.success).toBe(false)
     })
 
-    it('accepts valid room with optional fields', () => {
+    it('accepts valid room with UUID creatorId', () => {
       const result = createVideoRoomSchema.safeParse({
         creatorId: '550e8400-e29b-41d4-a716-446655440000',
         reason: 'Follow-up consultation',
@@ -143,9 +150,17 @@ describe('Edge Case Validations', () => {
       expect(result.success).toBe(true)
     })
 
+    it('accepts valid room with custom creatorId', () => {
+      const result = createVideoRoomSchema.safeParse({
+        creatorId: 'DOC001',
+        reason: 'Follow-up consultation',
+      })
+      expect(result.success).toBe(true)
+    })
+
     it('rejects reason exceeding 500 characters', () => {
       const result = createVideoRoomSchema.safeParse({
-        creatorId: '550e8400-e29b-41d4-a716-446655440000',
+        creatorId: 'DOC001',
         reason: 'x'.repeat(501),
       })
       expect(result.success).toBe(false)
