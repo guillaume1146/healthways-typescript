@@ -100,8 +100,10 @@ function getNotificationHref(n: NotificationItem, profileHref: string): string |
   const userSlug = base.split('/')[1] || 'patient'
   const routes = NOTIFICATION_ROUTES[userSlug] || NOTIFICATION_ROUTES.patient
 
-  // Try referenceType first, then type
-  const rawKey = n.referenceType || n.type || ''
+  // For booking requests/cancellations, use type (the action) over referenceType (the entity)
+  // e.g. type='booking_request' + referenceType='appointment' → should route to requests tab
+  const actionTypes = ['booking_request', 'booking_cancelled']
+  const rawKey = (n.type && actionTypes.includes(n.type)) ? n.type : (n.referenceType || n.type || '')
   if (rawKey) {
     const canonical = normalizeNotifKey(rawKey)
     if (routes[canonical]) return `${base}${routes[canonical]}`
