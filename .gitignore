@@ -50,3 +50,7 @@ public/uploads/*
 # playwright / e2e
 /test-results/
 /playwright-report/
+
+# Capacitor native platforms (generated)
+/android/
+/ios/
