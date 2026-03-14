@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Home Page', () => {
   test('loads successfully and has correct title', async ({ page }) => {
     await page.goto('/')
-    await expect(page).toHaveTitle(/Healthwyz/i)
+    await expect(page).toHaveTitle(/Oh My Dok/i)
   })
 
   test('displays the main content area', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('Home Page', () => {
     const content = await jsonLd.textContent()
     const parsed = JSON.parse(content || '{}')
     expect(parsed['@type']).toBe('MedicalOrganization')
-    expect(parsed.name).toBe('Healthwyz')
+    expect(parsed.name).toBe('Oh My Dok')
   })
 
   test('has a footer on the home page', async ({ page }) => {

@@ -1,6 +1,6 @@
-# Healthwyz Testing Plan
+# Oh My Dok Testing Plan
 
-This document provides the complete testing checklist for the Healthwyz platform. Sections A-S are **fully automated** across three test layers. Remaining sections cover manual testing for real-time features and complex multi-tab workflows.
+This document provides the complete testing checklist for the Oh My Dok platform. Sections A-S are **fully automated** across three test layers. Remaining sections cover manual testing for real-time features and complex multi-tab workflows.
 
 ---
 
@@ -51,32 +51,32 @@ npx playwright test e2e/connections-and-sidebar.spec.ts --project=chromium
 
 | User Type | Email | Password |
 |-----------|-------|----------|
-| Patient | emma.johnson@healthwyz.mu | Patient123! |
-| Patient | jean.pierre@healthwyz.mu | Patient123! |
-| Patient | aisha.khan@healthwyz.mu | Patient123! |
-| Patient | vikash.d@healthwyz.mu | Patient123! |
-| Patient | nadia.s@healthwyz.mu | Patient123! |
-| Doctor | sarah.johnson@healthwyz.mu | Doctor123! |
-| Doctor | raj.patel@healthwyz.mu | Doctor123! |
-| Doctor | marie.dupont@healthwyz.mu | Doctor123! |
-| Nurse | priya.ramgoolam@healthwyz.mu | Nurse123! |
-| Nurse | sophie.laurent@healthwyz.mu | Nurse123! |
-| Nanny | anita.beeharry@healthwyz.mu | Nanny123! |
-| Nanny | claire.morel@healthwyz.mu | Nanny123! |
-| Pharmacist | rajesh.doorgakant@healthways.mu | Pharma123! |
-| Pharmacist | anushka.doobur@healthways.mu | Pharma123! |
-| Lab Tech | david.ahkee@healthways.mu | Lab123! |
-| Lab Tech | priya.doorgakant@healthways.mu | Lab123! |
-| Emergency | jeanmarc.lafleur@healthways.mu | Emergency123! |
-| Emergency | fatima.joomun@healthways.mu | Emergency123! |
-| Insurance | vikram.doorgakant@healthways.mu | Insurance123! |
-| Insurance | marie.genave@healthways.mu | Insurance123! |
-| Corporate | anil.doobur@healthways.mu | Corporate123! |
-| Referral | sophie.leclerc@healthways.mu | Referral123! |
-| Regional MU | vikash.doorgakant@healthways.mu | Regional123! |
-| Regional MG | tiana.rasoa@healthways.mg | Regional123! |
-| Regional KE | james.mwangi@healthways.ke | Regional123! |
-| Super Admin | hassan.doorgakant@healthways.mu | Admin123! |
+| Patient | emma.johnson@ohmydok.com | Patient123! |
+| Patient | jean.pierre@ohmydok.com | Patient123! |
+| Patient | aisha.khan@ohmydok.com | Patient123! |
+| Patient | vikash.d@ohmydok.com | Patient123! |
+| Patient | nadia.s@ohmydok.com | Patient123! |
+| Doctor | sarah.johnson@ohmydok.com | Doctor123! |
+| Doctor | raj.patel@ohmydok.com | Doctor123! |
+| Doctor | marie.dupont@ohmydok.com | Doctor123! |
+| Nurse | priya.ramgoolam@ohmydok.com | Nurse123! |
+| Nurse | sophie.laurent@ohmydok.com | Nurse123! |
+| Nanny | anita.beeharry@ohmydok.com | Nanny123! |
+| Nanny | claire.morel@ohmydok.com | Nanny123! |
+| Pharmacist | rajesh.doorgakant@ohmydok.com | Pharma123! |
+| Pharmacist | anushka.doobur@ohmydok.com | Pharma123! |
+| Lab Tech | david.ahkee@ohmydok.com | Lab123! |
+| Lab Tech | priya.doorgakant@ohmydok.com | Lab123! |
+| Emergency | jeanmarc.lafleur@ohmydok.com | Emergency123! |
+| Emergency | fatima.joomun@ohmydok.com | Emergency123! |
+| Insurance | vikram.doorgakant@ohmydok.com | Insurance123! |
+| Insurance | marie.genave@ohmydok.com | Insurance123! |
+| Corporate | anil.doobur@ohmydok.com | Corporate123! |
+| Referral | sophie.leclerc@ohmydok.com | Referral123! |
+| Regional MU | vikash.doorgakant@ohmydok.com | Regional123! |
+| Regional MG | tiana.rasoa@ohmydok.com | Regional123! |
+| Regional KE | james.mwangi@ohmydok.com | Regional123! |
+| Super Admin | hassan.doorgakant@ohmydok.com | Admin123! |
 
 ---
 
@@ -623,7 +623,7 @@ The following sections require manual testing as they involve complex UI interac
 
 | # | Test | Steps | Expected |
 |---|------|-------|----------|
-| RP1 | Dashboard stats | Login as `sophie.leclerc@healthways.mu` / `Referral123!` | Referrals, earnings |
+| RP1 | Dashboard stats | Login as `sophie.leclerc@ohmydok.com` / `Referral123!` | Referrals, earnings |
 | RP2 | Referral code visible | Check dashboard/profile | Code displayed |
 | RP3 | Track conversions | View "Recent Conversions" | Users who used referral code |
 
@@ -635,17 +635,17 @@ For quick verification after deployment, follow these numbered rounds:
 
 ### Round 1: Login
 1. Open http://localhost:3000/login
-2. Email: `sarah.johnson@healthwyz.mu`, Password: `Doctor123!`
+2. Email: `sarah.johnson@ohmydok.com`, Password: `Doctor123!`
 3. Verify: redirected to /doctor/feed with wallet card
 
 ### Round 2: Booking Flow
-1. Login as patient: `emma.johnson@healthwyz.mu` / `Patient123!`
+1. Login as patient: `emma.johnson@ohmydok.com` / `Patient123!`
 2. Navigate to /search/doctors > Click "Book" on a doctor
 3. Select In-Person > Pick weekday > Select 10:00 > Reason: "Checkup" > Confirm
 4. Go to My Bookings > See "Pending" booking
 
 ### Round 3: Approval Flow
-1. Login as doctor: `sarah.johnson@healthwyz.mu` / `Doctor123!`
+1. Login as doctor: `sarah.johnson@ohmydok.com` / `Doctor123!`
 2. Click "Booking Requests" > Accept the booking
 3. Login as patient > Click bell > See "Booking Accepted" notification
 

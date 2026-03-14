@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   test('S1: Doctor prescriptions page loads', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor/prescriptions', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/prescription|medication|diagnosis/i').first()
@@ -25,7 +25,7 @@ test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   })
 
   test('S2: Patient prescriptions page loads with data', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient/prescriptions', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/prescription|medication|diagnosis/i').first()
@@ -33,7 +33,7 @@ test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   })
 
   test('S3: Lab technician results page loads', async ({ page }) => {
-    await loginAs(page, 'david.ahkee@healthways.mu', 'Lab123!')
+    await loginAs(page, 'david.ahkee@ohmydok.com', 'Lab123!')
     await page.goto('/lab-technician/results', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/result|test|sample|lab/i').first()
@@ -41,7 +41,7 @@ test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   })
 
   test('S4: Lab technician booking requests page loads', async ({ page }) => {
-    await loginAs(page, 'david.ahkee@healthways.mu', 'Lab123!')
+    await loginAs(page, 'david.ahkee@ohmydok.com', 'Lab123!')
     await page.goto('/lab-technician/booking-requests', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/request|booking|test|pending/i').first()
@@ -49,7 +49,7 @@ test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   })
 
   test('S5: Patient lab results page loads', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient/lab-results', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/lab|test|result|sample/i').first()
@@ -57,7 +57,7 @@ test.describe('S. Cross-Role Flows (Prescriptions & Lab Tests)', () => {
   })
 
   test('S6: Pharmacist orders/prescriptions page loads', async ({ page }) => {
-    await loginAs(page, 'rajesh.doorgakant@healthways.mu', 'Pharma123!')
+    await loginAs(page, 'rajesh.doorgakant@ohmydok.com', 'Pharma123!')
     await page.goto('/pharmacist/orders', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/order|prescription|medicine|dispens/i').first()

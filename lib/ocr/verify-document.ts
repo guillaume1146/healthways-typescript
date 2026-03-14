@@ -41,7 +41,7 @@ interface GroqVerificationResponse {
 
 function buildVerificationPrompt(fullName: string, documentType: string): string {
   const nameParts = fullName.trim().split(/\s+/)
-  return `You are an AI Document Compliance Analyst for Healthwyz, a healthcare platform. Your task is to verify a document submitted during user registration.
+  return `You are an AI Document Compliance Analyst for Oh My Dok, a healthcare platform. Your task is to verify a document submitted during user registration.
 
 Person's full name to verify: "${fullName}"
 Name parts to search for: ${JSON.stringify(nameParts)}
@@ -271,7 +271,7 @@ export async function verifyDocument(
     matchDetails: { searchedParts: nameParts, foundParts: [], missingParts: nameParts },
     method: 'fallback',
     extractedTextPreview: '(verification unavailable — manual review required)',
-    analysisReport: 'AI Document Scan Report — Automated verification was not possible for this document. The document will be queued for manual review by the Healthwyz compliance team. This may take 2-5 business days. You can proceed with registration and your account will be activated once the review is complete.',
+    analysisReport: 'AI Document Scan Report — Automated verification was not possible for this document. The document will be queued for manual review by the Oh My Dok compliance team. This may take 2-5 business days. You can proceed with registration and your account will be activated once the review is complete.',
   }
 
   // ── PDF ──────────────────────────────────────────────────────────────────

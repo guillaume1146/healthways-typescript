@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('T. Connections & Sidebar Search Links', () => {
   test('T1: Patient sidebar has Search & Browse section with search links', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient/feed', { waitUntil: 'domcontentloaded' })
 
     // Look for the Search & Browse divider text
@@ -30,7 +30,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T2: Doctor sidebar has Search & Browse section', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor/feed', { waitUntil: 'domcontentloaded' })
 
     const searchSection = page.locator('text=/Search & Browse/i').first()
@@ -41,7 +41,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T3: Search doctors page loads from sidebar link', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/search/doctors', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/doctor|search|find|specialist/i').first()
@@ -49,7 +49,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T4: Search nurses page loads', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/search/nurses', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/nurse|search|find|home care/i').first()
@@ -57,7 +57,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T5: Search childcare page loads', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/search/childcare', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/childcare|nanny|search|find/i').first()
@@ -65,7 +65,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T6: Search medicines page loads', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/search/medicines', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/medicine|pharmacy|search|find/i').first()
@@ -73,7 +73,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T7: Network icon visible in header with badge support', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor/feed', { waitUntil: 'domcontentloaded' })
 
     // Network icon should be visible (FaUserFriends link)
@@ -82,7 +82,7 @@ test.describe('T. Connections & Sidebar Search Links', () => {
   })
 
   test('T8: Network page loads with connection requests UI', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor/network', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/network|connection|request/i').first()

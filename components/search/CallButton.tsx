@@ -22,7 +22,7 @@ export default function CallButton({ providerId, className = '' }: CallButtonPro
     if (typeof document === 'undefined') return null
     const match = document.cookie
       .split(';')
-      .find((c) => c.trim().startsWith('healthwyz_userType='))
+      .find((c) => c.trim().startsWith('omd_userType='))
     if (!match) return null
     return decodeURIComponent(match.trim().split('=')[1] ?? '')
   }, [])

@@ -39,7 +39,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null)
 
   const userId = typeof window !== 'undefined'
-    ? (() => { try { const u = localStorage.getItem('healthwyz_user'); return u ? JSON.parse(u).id : null } catch { return null } })()
+    ? (() => { try { const u = localStorage.getItem('omd_user'); return u ? JSON.parse(u).id : null } catch { return null } })()
     : null
 
   const fetchWallet = useCallback(async () => {

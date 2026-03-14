@@ -293,32 +293,32 @@ const personas = [
 // ─── Seeded Accounts (for login tests) ───────────────────────────────────────
 
 const seededAccounts = [
-  { role: 'Patient', email: 'emma.johnson@healthwyz.mu', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
-  { role: 'Patient', email: 'jean.pierre@healthwyz.mu', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
-  { role: 'Patient', email: 'aisha.khan@healthwyz.mu', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
-  { role: 'Patient', email: 'vikash.d@healthwyz.mu', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
-  { role: 'Patient', email: 'nadia.s@healthwyz.mu', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
-  { role: 'Doctor', email: 'sarah.johnson@healthwyz.mu', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
-  { role: 'Doctor', email: 'raj.patel@healthwyz.mu', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
-  { role: 'Doctor', email: 'marie.dupont@healthwyz.mu', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
-  { role: 'Nurse', email: 'priya.ramgoolam@healthwyz.mu', password: 'Nurse123!', expectedType: 'nurse', expectedRedirect: '/nurse/feed' },
-  { role: 'Nurse', email: 'sophie.laurent@healthwyz.mu', password: 'Nurse123!', expectedType: 'nurse', expectedRedirect: '/nurse/feed' },
-  { role: 'Nanny', email: 'anita.beeharry@healthwyz.mu', password: 'Nanny123!', expectedType: 'child-care-nurse', expectedRedirect: '/nanny/feed' },
-  { role: 'Nanny', email: 'claire.morel@healthwyz.mu', password: 'Nanny123!', expectedType: 'child-care-nurse', expectedRedirect: '/nanny/feed' },
-  { role: 'Pharmacist', email: 'rajesh.doorgakant@healthways.mu', password: 'Pharma123!', expectedType: 'pharmacy', expectedRedirect: '/pharmacist/feed' },
-  { role: 'Pharmacist', email: 'anushka.doobur@healthways.mu', password: 'Pharma123!', expectedType: 'pharmacy', expectedRedirect: '/pharmacist/feed' },
-  { role: 'Lab Tech', email: 'david.ahkee@healthways.mu', password: 'Lab123!', expectedType: 'lab', expectedRedirect: '/lab-technician/feed' },
-  { role: 'Lab Tech', email: 'priya.doorgakant@healthways.mu', password: 'Lab123!', expectedType: 'lab', expectedRedirect: '/lab-technician/feed' },
-  { role: 'Emergency', email: 'jeanmarc.lafleur@healthways.mu', password: 'Emergency123!', expectedType: 'ambulance', expectedRedirect: '/responder/feed' },
-  { role: 'Emergency', email: 'fatima.joomun@healthways.mu', password: 'Emergency123!', expectedType: 'ambulance', expectedRedirect: '/responder/feed' },
-  { role: 'Insurance', email: 'vikram.doorgakant@healthways.mu', password: 'Insurance123!', expectedType: 'insurance', expectedRedirect: '/insurance/feed' },
-  { role: 'Insurance', email: 'marie.genave@healthways.mu', password: 'Insurance123!', expectedType: 'insurance', expectedRedirect: '/insurance/feed' },
-  { role: 'Corporate', email: 'anil.doobur@healthways.mu', password: 'Corporate123!', expectedType: 'corporate', expectedRedirect: '/corporate/feed' },
-  { role: 'Referral', email: 'sophie.leclerc@healthways.mu', password: 'Referral123!', expectedType: 'referral-partner', expectedRedirect: '/referral-partner/feed' },
-  { role: 'Regional MU', email: 'vikash.doorgakant@healthways.mu', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
-  { role: 'Regional MG', email: 'tiana.rasoa@healthways.mg', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
-  { role: 'Regional KE', email: 'james.mwangi@healthways.ke', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
-  { role: 'Super Admin', email: 'hassan.doorgakant@healthways.mu', password: 'Admin123!', expectedType: 'admin', expectedRedirect: '/admin/feed' },
+  { role: 'Patient', email: 'emma.johnson@ohmydok.com', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
+  { role: 'Patient', email: 'jean.pierre@ohmydok.com', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
+  { role: 'Patient', email: 'aisha.khan@ohmydok.com', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
+  { role: 'Patient', email: 'vikash.d@ohmydok.com', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
+  { role: 'Patient', email: 'nadia.s@ohmydok.com', password: 'Patient123!', expectedType: 'patient', expectedRedirect: '/patient/feed' },
+  { role: 'Doctor', email: 'sarah.johnson@ohmydok.com', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
+  { role: 'Doctor', email: 'raj.patel@ohmydok.com', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
+  { role: 'Doctor', email: 'marie.dupont@ohmydok.com', password: 'Doctor123!', expectedType: 'doctor', expectedRedirect: '/doctor/feed' },
+  { role: 'Nurse', email: 'priya.ramgoolam@ohmydok.com', password: 'Nurse123!', expectedType: 'nurse', expectedRedirect: '/nurse/feed' },
+  { role: 'Nurse', email: 'sophie.laurent@ohmydok.com', password: 'Nurse123!', expectedType: 'nurse', expectedRedirect: '/nurse/feed' },
+  { role: 'Nanny', email: 'anita.beeharry@ohmydok.com', password: 'Nanny123!', expectedType: 'child-care-nurse', expectedRedirect: '/nanny/feed' },
+  { role: 'Nanny', email: 'claire.morel@ohmydok.com', password: 'Nanny123!', expectedType: 'child-care-nurse', expectedRedirect: '/nanny/feed' },
+  { role: 'Pharmacist', email: 'rajesh.doorgakant@ohmydok.com', password: 'Pharma123!', expectedType: 'pharmacy', expectedRedirect: '/pharmacist/feed' },
+  { role: 'Pharmacist', email: 'anushka.doobur@ohmydok.com', password: 'Pharma123!', expectedType: 'pharmacy', expectedRedirect: '/pharmacist/feed' },
+  { role: 'Lab Tech', email: 'david.ahkee@ohmydok.com', password: 'Lab123!', expectedType: 'lab', expectedRedirect: '/lab-technician/feed' },
+  { role: 'Lab Tech', email: 'priya.doorgakant@ohmydok.com', password: 'Lab123!', expectedType: 'lab', expectedRedirect: '/lab-technician/feed' },
+  { role: 'Emergency', email: 'jeanmarc.lafleur@ohmydok.com', password: 'Emergency123!', expectedType: 'ambulance', expectedRedirect: '/responder/feed' },
+  { role: 'Emergency', email: 'fatima.joomun@ohmydok.com', password: 'Emergency123!', expectedType: 'ambulance', expectedRedirect: '/responder/feed' },
+  { role: 'Insurance', email: 'vikram.doorgakant@ohmydok.com', password: 'Insurance123!', expectedType: 'insurance', expectedRedirect: '/insurance/feed' },
+  { role: 'Insurance', email: 'marie.genave@ohmydok.com', password: 'Insurance123!', expectedType: 'insurance', expectedRedirect: '/insurance/feed' },
+  { role: 'Corporate', email: 'anil.doobur@ohmydok.com', password: 'Corporate123!', expectedType: 'corporate', expectedRedirect: '/corporate/feed' },
+  { role: 'Referral', email: 'sophie.leclerc@ohmydok.com', password: 'Referral123!', expectedType: 'referral-partner', expectedRedirect: '/referral-partner/feed' },
+  { role: 'Regional MU', email: 'vikash.doorgakant@ohmydok.com', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
+  { role: 'Regional MG', email: 'tiana.rasoa@ohmydok.com', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
+  { role: 'Regional KE', email: 'james.mwangi@ohmydok.com', password: 'Regional123!', expectedType: 'regional-admin', expectedRedirect: '/regional/feed' },
+  { role: 'Super Admin', email: 'hassan.doorgakant@ohmydok.com', password: 'Admin123!', expectedType: 'admin', expectedRedirect: '/admin/feed' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -545,7 +545,7 @@ async function testTrialWallet(registeredUsers) {
 async function testDuplicateEmail() {
   const body = {
     fullName: 'Duplicate Test User',
-    email: 'emma.johnson@healthwyz.mu', // Already exists in seed
+    email: 'emma.johnson@ohmydok.com', // Already exists in seed
     password: 'Test1234!',
     confirmPassword: 'Test1234!',
     phone: '+230 5700 0088',
@@ -889,7 +889,7 @@ async function testSeededLogins() {
 
 async function testWrongPassword() {
   const { status, data } = await apiPost('/api/auth/login', {
-    email: 'sarah.johnson@healthwyz.mu',
+    email: 'sarah.johnson@ohmydok.com',
     password: 'wrongpassword',
   }, { 'X-Forwarded-For': `wrong-pwd-${TIMESTAMP}` })
 
@@ -962,18 +962,18 @@ async function testDocumentOcrVerification() {
 // ─── C. Trial Balance System ────────────────────────────────────────────────
 
 const walletTestAccounts = [
-  { id: 'C1', role: 'Patient', email: 'emma.johnson@healthwyz.mu', password: 'Patient123!' },
-  { id: 'C2', role: 'Doctor', email: 'sarah.johnson@healthwyz.mu', password: 'Doctor123!' },
-  { id: 'C3', role: 'Pharmacist', email: 'rajesh.doorgakant@healthways.mu', password: 'Pharma123!' },
-  { id: 'C3b', role: 'Nurse', email: 'priya.ramgoolam@healthwyz.mu', password: 'Nurse123!' },
-  { id: 'C3c', role: 'Nanny', email: 'anita.beeharry@healthwyz.mu', password: 'Nanny123!' },
-  { id: 'C3d', role: 'Lab Tech', email: 'david.ahkee@healthways.mu', password: 'Lab123!' },
-  { id: 'C3e', role: 'Emergency', email: 'jeanmarc.lafleur@healthways.mu', password: 'Emergency123!' },
-  { id: 'C3f', role: 'Insurance', email: 'vikram.doorgakant@healthways.mu', password: 'Insurance123!' },
-  { id: 'C3g', role: 'Corporate', email: 'anil.doobur@healthways.mu', password: 'Corporate123!' },
-  { id: 'C3h', role: 'Referral', email: 'sophie.leclerc@healthways.mu', password: 'Referral123!' },
-  { id: 'C3i', role: 'Regional', email: 'vikash.doorgakant@healthways.mu', password: 'Regional123!' },
-  { id: 'C3j', role: 'Super Admin', email: 'hassan.doorgakant@healthways.mu', password: 'Admin123!' },
+  { id: 'C1', role: 'Patient', email: 'emma.johnson@ohmydok.com', password: 'Patient123!' },
+  { id: 'C2', role: 'Doctor', email: 'sarah.johnson@ohmydok.com', password: 'Doctor123!' },
+  { id: 'C3', role: 'Pharmacist', email: 'rajesh.doorgakant@ohmydok.com', password: 'Pharma123!' },
+  { id: 'C3b', role: 'Nurse', email: 'priya.ramgoolam@ohmydok.com', password: 'Nurse123!' },
+  { id: 'C3c', role: 'Nanny', email: 'anita.beeharry@ohmydok.com', password: 'Nanny123!' },
+  { id: 'C3d', role: 'Lab Tech', email: 'david.ahkee@ohmydok.com', password: 'Lab123!' },
+  { id: 'C3e', role: 'Emergency', email: 'jeanmarc.lafleur@ohmydok.com', password: 'Emergency123!' },
+  { id: 'C3f', role: 'Insurance', email: 'vikram.doorgakant@ohmydok.com', password: 'Insurance123!' },
+  { id: 'C3g', role: 'Corporate', email: 'anil.doobur@ohmydok.com', password: 'Corporate123!' },
+  { id: 'C3h', role: 'Referral', email: 'sophie.leclerc@ohmydok.com', password: 'Referral123!' },
+  { id: 'C3i', role: 'Regional', email: 'vikash.doorgakant@ohmydok.com', password: 'Regional123!' },
+  { id: 'C3j', role: 'Super Admin', email: 'hassan.doorgakant@ohmydok.com', password: 'Admin123!' },
 ]
 
 async function testTrialBalanceSystem() {
@@ -1022,7 +1022,7 @@ async function testTrialBalanceSystem() {
 
 // C4: Transaction history
 async function testTransactionHistory() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'C4', 'Transaction history — login failed')
     return
@@ -1074,14 +1074,14 @@ async function testTransactionHistory() {
 
 // C5: Wallet ownership — cannot access another user's wallet
 async function testWalletOwnership() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'C5', 'Wallet ownership — login failed')
     return
   }
 
   // Try to access doctor's wallet with patient's token
-  const doctorAuth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const doctorAuth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!doctorAuth) {
     log('FAIL', 'C5', 'Wallet ownership — doctor login failed')
     return
@@ -1174,7 +1174,7 @@ async function testGetCommunityFeed() {
 }
 
 async function testDoctorCreatePost() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'D2', 'Doctor create post — login failed')
     return null
@@ -1222,7 +1222,7 @@ async function testDoctorCreatePost() {
 }
 
 async function testPatientCommentOnPost(postId) {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'D3', 'Patient comment on post — login failed')
     return
@@ -1274,7 +1274,7 @@ async function testPatientCommentOnPost(postId) {
 }
 
 async function testLikePost(postId) {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'D4', 'Like post — login failed')
     return
@@ -1307,7 +1307,7 @@ async function testLikePost(postId) {
 }
 
 async function testUnlikePost(postId) {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'D5', 'Unlike post — login failed')
     return
@@ -1357,7 +1357,7 @@ async function testCategoryFilter() {
 }
 
 async function testDeletePost(postId) {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'D7', 'Delete post — login failed')
     return
@@ -1389,7 +1389,7 @@ async function testGetAvailableSlots() {
   }
 
   // Use a seeded doctor (Sarah Johnson) who has availability configured
-  const doctor = doctors.find(d => d.email === 'sarah.johnson@healthwyz.mu') || doctors[0]
+  const doctor = doctors.find(d => d.email === 'sarah.johnson@ohmydok.com') || doctors[0]
   const doctorId = doctor.id || doctor.userId
 
   // Get a Monday 2+ weeks in the future to avoid conflicts with previous test bookings
@@ -1419,7 +1419,7 @@ async function testPatientBookDoctor(slotInfo) {
     return null
   }
 
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'E2', 'Patient books doctor — login failed')
     return null
@@ -1463,7 +1463,7 @@ async function testDoctorAcceptBooking(bookingId) {
     return
   }
 
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'E3', 'Doctor accepts booking — login failed')
     return
@@ -1494,7 +1494,7 @@ async function testPatientBookDoctor2(slotInfo) {
     return null
   }
 
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'E4', 'Patient books second appointment — login failed')
     return null
@@ -1537,7 +1537,7 @@ async function testDoctorDenyBooking(bookingId) {
     return
   }
 
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'E5', 'Doctor denies booking — login failed')
     return
@@ -1572,7 +1572,7 @@ async function testPatientBookNurse() {
   }
 
   // Use a seeded nurse with availability
-  const nurse = nurses.find(n => n.email === 'priya.ramgoolam@healthwyz.mu') || nurses[0]
+  const nurse = nurses.find(n => n.email === 'priya.ramgoolam@ohmydok.com') || nurses[0]
   const nurseId = nurse.id || nurse.userId
 
   // Get a Tuesday 2+ weeks in the future
@@ -1592,7 +1592,7 @@ async function testPatientBookNurse() {
     return null
   }
 
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'E6', 'Patient books nurse — login failed')
     return null
@@ -1634,7 +1634,7 @@ async function testPatientBookNurse() {
 }
 
 async function testPatientBookLabTest() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'E7', 'Patient books lab test — login failed')
     return null
@@ -1690,7 +1690,7 @@ async function testBookingRequiresAuth() {
 }
 
 async function testBookingInvalidData() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) {
     log('FAIL', 'E9', 'Booking validation — login failed')
     return
@@ -1714,7 +1714,7 @@ async function testBookingInvalidData() {
 // ─── Section F: Provider Availability ───────────────────────────────────────
 
 async function testGetDoctorAvailability() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'F1', 'Get doctor availability — login failed')
     return null
@@ -1829,7 +1829,7 @@ async function testRemoveDayAvailability(auth) {
 }
 
 async function testNurseAvailability() {
-  const auth = await loginAndGetCookies('priya.ramgoolam@healthwyz.mu', 'Nurse123!')
+  const auth = await loginAndGetCookies('priya.ramgoolam@ohmydok.com', 'Nurse123!')
   if (!auth) {
     log('FAIL', 'F5', 'Nurse availability — login failed')
     return
@@ -1850,7 +1850,7 @@ async function testNurseAvailability() {
 }
 
 async function testNannyAvailability() {
-  const auth = await loginAndGetCookies('anita.beeharry@healthwyz.mu', 'Nanny123!')
+  const auth = await loginAndGetCookies('anita.beeharry@ohmydok.com', 'Nanny123!')
   if (!auth) {
     log('FAIL', 'F6', 'Nanny availability — login failed')
     return
@@ -1873,7 +1873,7 @@ async function testNannyAvailability() {
 // ─── Section G: Doctor Dashboard APIs ───────────────────────────────────────
 
 async function testDoctorBookingRequestsApi() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'G1', 'Doctor booking requests API — login failed')
     return
@@ -1894,7 +1894,7 @@ async function testDoctorBookingRequestsApi() {
 }
 
 async function testDoctorAppointmentsApi() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'G2', 'Doctor appointments API — login failed')
     return
@@ -1915,7 +1915,7 @@ async function testDoctorAppointmentsApi() {
 }
 
 async function testDoctorPatientsApi() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'G3', 'Doctor patients API — login failed')
     return
@@ -1936,7 +1936,7 @@ async function testDoctorPatientsApi() {
 }
 
 async function testDoctorStatisticsApi() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'G4', 'Doctor statistics API — login failed')
     return
@@ -1957,7 +1957,7 @@ async function testDoctorStatisticsApi() {
 }
 
 async function testDoctorPrescriptionsApi() {
-  const auth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
+  const auth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
   if (!auth) {
     log('FAIL', 'G5', 'Doctor prescriptions API — login failed')
     return
@@ -1991,7 +1991,7 @@ async function testDoctorDashboardUnauth() {
 // ─── Section H: Other Dashboard APIs ────────────────────────────────────────
 
 async function testNurseDashboardApi() {
-  const auth = await loginAndGetCookies('priya.ramgoolam@healthwyz.mu', 'Nurse123!')
+  const auth = await loginAndGetCookies('priya.ramgoolam@ohmydok.com', 'Nurse123!')
   if (!auth) { log('FAIL', 'H1', 'Nurse dashboard API — login failed'); return }
 
   const { status } = await apiGetAuth(
@@ -2004,7 +2004,7 @@ async function testNurseDashboardApi() {
 }
 
 async function testNannyDashboardApi() {
-  const auth = await loginAndGetCookies('anita.beeharry@healthwyz.mu', 'Nanny123!')
+  const auth = await loginAndGetCookies('anita.beeharry@ohmydok.com', 'Nanny123!')
   if (!auth) { log('FAIL', 'H2', 'Nanny dashboard API — login failed'); return }
 
   const { status } = await apiGetAuth(
@@ -2017,7 +2017,7 @@ async function testNannyDashboardApi() {
 }
 
 async function testPharmacistDashboardApi() {
-  const auth = await loginAndGetCookies('rajesh.doorgakant@healthways.mu', 'Pharma123!')
+  const auth = await loginAndGetCookies('rajesh.doorgakant@ohmydok.com', 'Pharma123!')
   if (!auth) { log('FAIL', 'H3', 'Pharmacist dashboard API — login failed'); return }
 
   const { status } = await apiGetAuth(
@@ -2030,7 +2030,7 @@ async function testPharmacistDashboardApi() {
 }
 
 async function testLabTechDashboardApi() {
-  const auth = await loginAndGetCookies('david.ahkee@healthways.mu', 'Lab123!')
+  const auth = await loginAndGetCookies('david.ahkee@ohmydok.com', 'Lab123!')
   if (!auth) { log('FAIL', 'H4', 'Lab tech dashboard API — login failed'); return }
 
   const { status } = await apiGetAuth(
@@ -2043,7 +2043,7 @@ async function testLabTechDashboardApi() {
 }
 
 async function testResponderDashboardApi() {
-  const auth = await loginAndGetCookies('jeanmarc.lafleur@healthways.mu', 'Emergency123!')
+  const auth = await loginAndGetCookies('jeanmarc.lafleur@ohmydok.com', 'Emergency123!')
   if (!auth) { log('FAIL', 'H5', 'Responder dashboard API — login failed'); return }
 
   const { status } = await apiGetAuth(
@@ -2058,7 +2058,7 @@ async function testResponderDashboardApi() {
 // ─── Section I: Notification APIs ───────────────────────────────────────────
 
 async function testGetNotifications() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) { log('FAIL', 'I1', 'Get notifications — login failed'); return }
 
   const { status, data } = await apiGetAuth(
@@ -2076,7 +2076,7 @@ async function testGetNotifications() {
 }
 
 async function testMarkNotificationsRead() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) { log('FAIL', 'I2', 'Mark notifications read — login failed'); return }
 
   const { status } = await apiPatchAuth(
@@ -2119,7 +2119,7 @@ async function testSearchMedicines() {
 }
 
 async function testPharmacistMedicines() {
-  const auth = await loginAndGetCookies('rajesh.doorgakant@healthways.mu', 'Pharma123!')
+  const auth = await loginAndGetCookies('rajesh.doorgakant@ohmydok.com', 'Pharma123!')
   if (!auth) { log('FAIL', 'J2', 'Pharmacist medicines — login failed'); return }
 
   const { status, data } = await apiGetAuth(
@@ -2137,7 +2137,7 @@ async function testPharmacistMedicines() {
 }
 
 async function testPatientOrders() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) { log('FAIL', 'J3', 'Patient orders — login failed'); return }
 
   const { status, data } = await apiGetAuth(
@@ -2186,7 +2186,7 @@ async function apiPutAuth(endpoint, body, cookieStr, forwardedFor = '') {
 
 async function testLoginWrongPassword() {
   const { status, data } = await apiPost('/api/auth/login', {
-    email: 'emma.johnson@healthwyz.mu',
+    email: 'emma.johnson@ohmydok.com',
     password: 'TotallyWrongPassword!',
   }, { 'X-Forwarded-For': `edge-wrong-pw-${Date.now()}` })
 
@@ -2224,7 +2224,7 @@ async function testUnauthAccessPatientApi() {
 }
 
 async function testInvalidBookingPayload() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) { log('SKIP', 'K4', 'Invalid booking payload — login failed'); return }
 
   const { status } = await apiPostAuth('/api/bookings/doctor', {
@@ -2240,7 +2240,7 @@ async function testInvalidBookingPayload() {
 }
 
 async function testGetNonexistentResource() {
-  const auth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const auth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!auth) { log('SKIP', 'K5', 'Get nonexistent resource — login failed'); return }
 
   const { status } = await apiGetAuth('/api/patients/NONEXISTENT_ID_12345/appointments', auth.cookies)
@@ -2283,7 +2283,7 @@ async function testPutRoleConfigUnauth() {
 }
 
 async function testPutRoleConfigAuth() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) { log('SKIP', 'L3', 'Update role config — admin login failed'); return }
 
   const { status, data } = await apiPutAuth('/api/admin/role-config', {
@@ -2302,7 +2302,7 @@ async function testPutRoleConfigAuth() {
 }
 
 async function testAdminDashboardApi() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) { log('SKIP', 'L4', 'Admin dashboard API — login failed'); return }
 
   const { status, data } = await apiGetAuth('/api/admin/dashboard', auth.cookies)
@@ -2316,7 +2316,7 @@ async function testAdminDashboardApi() {
 }
 
 async function testAdminAccountsApi() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) { log('SKIP', 'L5', 'Admin accounts API — login failed'); return }
 
   const { status, data } = await apiGetAuth('/api/admin/accounts', auth.cookies)
@@ -2330,7 +2330,7 @@ async function testAdminAccountsApi() {
 }
 
 async function testAdminSystemHealthApi() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) { log('SKIP', 'L6', 'Admin system health — login failed'); return }
 
   const { status, data } = await apiGetAuth('/api/admin/system-health', auth.cookies)
@@ -2357,8 +2357,8 @@ async function testAdminDashboardUnauth() {
 // ─── Section M: Prescription Flow (Doctor creates → Patient sees) ────────────
 
 async function testDoctorCreatesPrescription() {
-  const doctorAuth = await loginAndGetCookies('sarah.johnson@healthwyz.mu', 'Doctor123!')
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const doctorAuth = await loginAndGetCookies('sarah.johnson@ohmydok.com', 'Doctor123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!doctorAuth || !patientAuth) {
     log('FAIL', 'M1', 'Prescription flow — login failed')
     return null
@@ -2405,7 +2405,7 @@ async function testDoctorCreatesPrescription() {
 }
 
 async function testPatientSeesPrescription() {
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!patientAuth) {
     log('FAIL', 'M2', 'Patient prescriptions — login failed')
     return
@@ -2436,7 +2436,7 @@ async function testPatientSeesPrescription() {
 }
 
 async function testPrescriptionNotification() {
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!patientAuth) {
     log('FAIL', 'M3', 'Prescription notification — login failed')
     return
@@ -2465,7 +2465,7 @@ async function testPrescriptionNotification() {
 }
 
 async function testPrescriptionNonDoctorForbidden() {
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!patientAuth) {
     log('SKIP', 'M4', 'Non-doctor prescription — login failed')
     return
@@ -2493,7 +2493,7 @@ async function testPrescriptionNonDoctorForbidden() {
 // ─── Section N: Lab Tech Results & Patient Lab Tests ────────────────────────
 
 async function testLabTechResults() {
-  const labAuth = await loginAndGetCookies('david.ahkee@healthways.mu', 'Lab123!')
+  const labAuth = await loginAndGetCookies('david.ahkee@ohmydok.com', 'Lab123!')
   if (!labAuth) {
     log('FAIL', 'N1', 'Lab tech results — login failed')
     return
@@ -2514,7 +2514,7 @@ async function testLabTechResults() {
 }
 
 async function testLabTechBookingRequests() {
-  const labAuth = await loginAndGetCookies('david.ahkee@healthways.mu', 'Lab123!')
+  const labAuth = await loginAndGetCookies('david.ahkee@ohmydok.com', 'Lab123!')
   if (!labAuth) {
     log('FAIL', 'N2', 'Lab tech booking requests — login failed')
     return
@@ -2535,7 +2535,7 @@ async function testLabTechBookingRequests() {
 }
 
 async function testLabTechTests() {
-  const labAuth = await loginAndGetCookies('david.ahkee@healthways.mu', 'Lab123!')
+  const labAuth = await loginAndGetCookies('david.ahkee@ohmydok.com', 'Lab123!')
   if (!labAuth) {
     log('FAIL', 'N3', 'Lab tech tests catalog — login failed')
     return
@@ -2556,7 +2556,7 @@ async function testLabTechTests() {
 }
 
 async function testPatientLabTests() {
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!patientAuth) {
     log('FAIL', 'N4', 'Patient lab tests — login failed')
     return
@@ -2590,7 +2590,7 @@ async function testLabResultsUnauth() {
 // ─── Section O: Emergency Worker APIs ───────────────────────────────────────
 
 async function testResponderBookingRequests() {
-  const auth = await loginAndGetCookies('jeanmarc.lafleur@healthways.mu', 'Emergency123!')
+  const auth = await loginAndGetCookies('jeanmarc.lafleur@ohmydok.com', 'Emergency123!')
   if (!auth) {
     log('FAIL', 'O1', 'Responder booking requests — login failed')
     return
@@ -2611,7 +2611,7 @@ async function testResponderBookingRequests() {
 }
 
 async function testResponderCalls() {
-  const auth = await loginAndGetCookies('jeanmarc.lafleur@healthways.mu', 'Emergency123!')
+  const auth = await loginAndGetCookies('jeanmarc.lafleur@ohmydok.com', 'Emergency123!')
   if (!auth) {
     log('FAIL', 'O2', 'Responder calls — login failed')
     return
@@ -2633,8 +2633,8 @@ async function testResponderCalls() {
 
 async function testResponderCallsOwnership() {
   // Responder A cannot view responder B's calls
-  const authA = await loginAndGetCookies('jeanmarc.lafleur@healthways.mu', 'Emergency123!')
-  const authB = await loginAndGetCookies('fatima.joomun@healthways.mu', 'Emergency123!')
+  const authA = await loginAndGetCookies('jeanmarc.lafleur@ohmydok.com', 'Emergency123!')
+  const authB = await loginAndGetCookies('fatima.joomun@ohmydok.com', 'Emergency123!')
   if (!authA || !authB) {
     log('SKIP', 'O3', 'Responder ownership — login failed')
     return
@@ -2657,7 +2657,7 @@ async function testResponderCallsOwnership() {
 // ─── Section P: Insurance Rep APIs ──────────────────────────────────────────
 
 async function testInsuranceDashboard() {
-  const auth = await loginAndGetCookies('vikram.doorgakant@healthways.mu', 'Insurance123!')
+  const auth = await loginAndGetCookies('vikram.doorgakant@ohmydok.com', 'Insurance123!')
   if (!auth) {
     log('FAIL', 'P1', 'Insurance dashboard — login failed')
     return
@@ -2687,7 +2687,7 @@ async function testInsuranceDashboard() {
 }
 
 async function testInsurancePlansGet() {
-  const auth = await loginAndGetCookies('vikram.doorgakant@healthways.mu', 'Insurance123!')
+  const auth = await loginAndGetCookies('vikram.doorgakant@ohmydok.com', 'Insurance123!')
   if (!auth) {
     log('FAIL', 'P2', 'Insurance plans GET — login failed')
     return
@@ -2708,7 +2708,7 @@ async function testInsurancePlansGet() {
 }
 
 async function testInsurancePlanCreate() {
-  const auth = await loginAndGetCookies('vikram.doorgakant@healthways.mu', 'Insurance123!')
+  const auth = await loginAndGetCookies('vikram.doorgakant@ohmydok.com', 'Insurance123!')
   if (!auth) {
     log('FAIL', 'P3', 'Insurance plan create — login failed')
     return null
@@ -2741,7 +2741,7 @@ async function testInsurancePlanCreate() {
 }
 
 async function testInsuranceClaimsGet() {
-  const auth = await loginAndGetCookies('vikram.doorgakant@healthways.mu', 'Insurance123!')
+  const auth = await loginAndGetCookies('vikram.doorgakant@ohmydok.com', 'Insurance123!')
   if (!auth) {
     log('FAIL', 'P4', 'Insurance claims GET — login failed')
     return
@@ -2762,7 +2762,7 @@ async function testInsuranceClaimsGet() {
 }
 
 async function testInsuranceClaimCreate() {
-  const auth = await loginAndGetCookies('vikram.doorgakant@healthways.mu', 'Insurance123!')
+  const auth = await loginAndGetCookies('vikram.doorgakant@ohmydok.com', 'Insurance123!')
   if (!auth) {
     log('FAIL', 'P5', 'Insurance claim create — login failed')
     return
@@ -2828,7 +2828,7 @@ async function testInsuranceDashboardUnauth() {
 // ─── Section Q: Corporate Admin APIs ────────────────────────────────────────
 
 async function testCorporateDashboard() {
-  const auth = await loginAndGetCookies('anil.doobur@healthways.mu', 'Corporate123!')
+  const auth = await loginAndGetCookies('anil.doobur@ohmydok.com', 'Corporate123!')
   if (!auth) {
     log('FAIL', 'Q1', 'Corporate dashboard — login failed')
     return
@@ -2864,7 +2864,7 @@ async function testCorporateDashboard() {
 }
 
 async function testCorporateEmployees() {
-  const auth = await loginAndGetCookies('anil.doobur@healthways.mu', 'Corporate123!')
+  const auth = await loginAndGetCookies('anil.doobur@ohmydok.com', 'Corporate123!')
   if (!auth) {
     log('FAIL', 'Q2', 'Corporate employees — login failed')
     return
@@ -2885,7 +2885,7 @@ async function testCorporateEmployees() {
 }
 
 async function testCorporateClaims() {
-  const auth = await loginAndGetCookies('anil.doobur@healthways.mu', 'Corporate123!')
+  const auth = await loginAndGetCookies('anil.doobur@ohmydok.com', 'Corporate123!')
   if (!auth) {
     log('FAIL', 'Q3', 'Corporate claims — login failed')
     return
@@ -2906,8 +2906,8 @@ async function testCorporateClaims() {
 }
 
 async function testCorporateDashboardOwnership() {
-  const corpAuth = await loginAndGetCookies('anil.doobur@healthways.mu', 'Corporate123!')
-  const patientAuth = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const corpAuth = await loginAndGetCookies('anil.doobur@ohmydok.com', 'Corporate123!')
+  const patientAuth = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   if (!corpAuth || !patientAuth) {
     log('SKIP', 'Q4', 'Corporate ownership — login failed')
     return
@@ -2931,7 +2931,7 @@ async function testCorporateDashboardOwnership() {
 // ─── Section R: Extended Admin APIs ─────────────────────────────────────────
 
 async function testAdminMetrics() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R1', 'Admin metrics — login failed')
     return
@@ -2967,7 +2967,7 @@ async function testAdminMetrics() {
 }
 
 async function testAdminAlerts() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R2', 'Admin alerts — login failed')
     return
@@ -2988,7 +2988,7 @@ async function testAdminAlerts() {
 }
 
 async function testAdminCommissionConfig() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R3', 'Admin commission config — login failed')
     return
@@ -3020,7 +3020,7 @@ async function testAdminCommissionConfig() {
 }
 
 async function testAdminPlatformCommission() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R4', 'Admin platform commission — login failed')
     return
@@ -3052,7 +3052,7 @@ async function testAdminPlatformCommission() {
 }
 
 async function testAdminRegionalActivity() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R5', 'Admin regional activity — login failed')
     return
@@ -3083,7 +3083,7 @@ async function testAdminRegionalActivity() {
 }
 
 async function testAdminAdmins() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R6', 'Admin admins list — login failed')
     return
@@ -3125,7 +3125,7 @@ async function testAdminRequiredDocuments() {
 }
 
 async function testAdminSecurity() {
-  const auth = await loginAndGetCookies('hassan.doorgakant@healthways.mu', 'Admin123!')
+  const auth = await loginAndGetCookies('hassan.doorgakant@ohmydok.com', 'Admin123!')
   if (!auth) {
     log('FAIL', 'R8', 'Admin security — login failed')
     return
@@ -3157,7 +3157,7 @@ async function testAdminMetricsUnauth() {
 }
 
 async function testRegionalAdminDashboard() {
-  const auth = await loginAndGetCookies('vikash.doorgakant@healthways.mu', 'Regional123!')
+  const auth = await loginAndGetCookies('vikash.doorgakant@ohmydok.com', 'Regional123!')
   if (!auth) {
     log('FAIL', 'R10', 'Regional admin dashboard — login failed')
     return
@@ -3178,7 +3178,7 @@ async function testRegionalAdminDashboard() {
 }
 
 async function testRegionalAdminPlatformCommission() {
-  const auth = await loginAndGetCookies('vikash.doorgakant@healthways.mu', 'Regional123!')
+  const auth = await loginAndGetCookies('vikash.doorgakant@ohmydok.com', 'Regional123!')
   if (!auth) {
     log('FAIL', 'R11', 'Regional admin commission — login failed')
     return
@@ -3201,10 +3201,10 @@ async function testRegionalAdminPlatformCommission() {
 // ─── Section S: Connection & Messaging Flow ────────────────────────────────
 
 async function testSendConnectionRequest() {
-  const patientCookies = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientCookies = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
 
   // Get doctor userId
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { data: drData } = await apiGetAuth('/api/auth/me', doctorCookies)
   const doctorId = drData.user?.id || drData.data?.id
 
@@ -3223,14 +3223,14 @@ async function testSendConnectionRequest() {
 }
 
 async function testGetPendingConnectionRequests() {
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { status, data } = await apiGetAuth('/api/connections?type=received&status=pending', doctorCookies)
   assert(status === 200, 'S2', 'Doctor gets pending connection requests', `HTTP ${status}`)
   assert(data.success === true, 'S2a', 'Pending requests response is successful', `${data.success}`)
 }
 
 async function testAcceptConnectionRequest() {
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { status: listStatus, data: listData } = await apiGetAuth('/api/connections?type=received&status=pending', doctorCookies)
   if (listStatus !== 200 || !listData.data || listData.data.length === 0) {
     log('SKIP', 'S3', 'Accept connection request', 'No pending requests found')
@@ -3243,7 +3243,7 @@ async function testAcceptConnectionRequest() {
 }
 
 async function testConnectionVisibleInList() {
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { status, data } = await apiGetAuth('/api/connections?status=accepted', doctorCookies)
   assert(status === 200, 'S4', 'Doctor sees accepted connections', `HTTP ${status}`)
   assert(Array.isArray(data.data) && data.data.length > 0, 'S4a', 'At least one accepted connection', `${data.data?.length || 0}`)
@@ -3251,7 +3251,7 @@ async function testConnectionVisibleInList() {
 
 async function testConnectionRequestWithWrongPayload() {
   // Verify that old buggy payload format { status: 'accepted' } gets rejected
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { status } = await apiPatchAuth('/api/connections/nonexistent-id', { status: 'accepted' }, doctorCookies)
   assert(status === 400, 'S5', 'Old payload format { status } rejected (requires { action })', `HTTP ${status}`)
 }
@@ -3262,8 +3262,8 @@ async function testConnectionRequestUnauth() {
 }
 
 async function testCreateConversationWithConnection() {
-  const patientCookies = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
-  const doctorCookies = await loginAndGetCookies('raj.patel@healthwyz.mu', 'Doctor123!')
+  const patientCookies = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
+  const doctorCookies = await loginAndGetCookies('raj.patel@ohmydok.com', 'Doctor123!')
   const { data: drData } = await apiGetAuth('/api/auth/me', doctorCookies)
   const doctorId = drData.user?.id || drData.data?.id
 
@@ -3274,7 +3274,7 @@ async function testCreateConversationWithConnection() {
 }
 
 async function testGetConversations() {
-  const patientCookies = await loginAndGetCookies('emma.johnson@healthwyz.mu', 'Patient123!')
+  const patientCookies = await loginAndGetCookies('emma.johnson@ohmydok.com', 'Patient123!')
   const { status, data } = await apiGetAuth('/api/conversations', patientCookies)
   assert(status === 200, 'S8', 'Patient retrieves conversations list', `HTTP ${status}`)
   assert(data.success === true, 'S8a', 'Conversations list successful', `${data.success}`)
@@ -3284,7 +3284,7 @@ async function testGetConversations() {
 
 async function main() {
   console.log('\n' + '='.repeat(90))
-  console.log('  HEALTHWYZ E2E TEST SUITE — Full Platform Coverage (Sections A-S)')
+  console.log('  OH MY DOK E2E TEST SUITE — Full Platform Coverage (Sections A-S)')
   console.log('  Server: ' + BASE_URL)
   console.log('  Timestamp: ' + new Date().toISOString())
   console.log('='.repeat(90))

@@ -120,7 +120,7 @@ async function ensureSuperAdmin() {
   await prisma.user.create({
     data: {
       firstName: process.env.SUPER_ADMIN_FIRST_NAME || 'Admin',
-      lastName: process.env.SUPER_ADMIN_LAST_NAME || 'Healthwyz',
+      lastName: process.env.SUPER_ADMIN_LAST_NAME || 'Oh My Dok',
       email,
       password: hashed,
       phone: '+230-0000-0000',

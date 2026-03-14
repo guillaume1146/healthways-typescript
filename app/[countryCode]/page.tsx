@@ -113,7 +113,7 @@ export default async function CountryHomePage({
       <div className="container mx-auto px-4">
         <ProfessionalBanner
           title={ctaContent?.title || "Ready to Take Control of Your Health?"}
-          description={ctaContent?.description || "Join thousands of Mauritians who trust Healthwyz for their healthcare needs. Start your journey to better health today."}
+          description={ctaContent?.description || "Join thousands of Mauritians who trust Oh My Dok for their healthcare needs. Start your journey to better health today."}
           primaryButton={ctaContent?.primaryButton || "Schedule Consultation"}
           secondaryButton={ctaContent?.secondaryButton || "Learn More"}
         />

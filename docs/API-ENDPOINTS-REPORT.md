@@ -1,4 +1,4 @@
-# Healthwyz API Endpoints Report
+# Oh My Dok API Endpoints Report
 
 **Generated:** 2026-03-13
 **Total API Routes:** 153 files, ~170+ endpoints

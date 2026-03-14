@@ -31,7 +31,7 @@ export async function seedDoctorPosts(prisma: PrismaClient) {
     },
     {
       authorId: doctors[0]?.id,
-      content: "The Importance of Mental Health in Healthcare Workers\n\nAs healthcare professionals, we often prioritize our patients' well-being over our own. But burnout is real, and it affects the quality of care we provide.\n\nSigns to watch for:\n- Constant fatigue despite adequate rest\n- Emotional detachment from patients\n- Irritability and mood changes\n- Difficulty concentrating\n\nPlease remember: seeking help is a sign of strength, not weakness. Healthwyz offers confidential consultations for healthcare workers too.",
+      content: "The Importance of Mental Health in Healthcare Workers\n\nAs healthcare professionals, we often prioritize our patients' well-being over our own. But burnout is real, and it affects the quality of care we provide.\n\nSigns to watch for:\n- Constant fatigue despite adequate rest\n- Emotional detachment from patients\n- Irritability and mood changes\n- Difficulty concentrating\n\nPlease remember: seeking help is a sign of strength, not weakness. OhMyDok offers confidential consultations for healthcare workers too.",
       category: 'wellness',
       tags: ['mental-health', 'burnout', 'healthcare-workers'],
     },
@@ -43,9 +43,9 @@ export async function seedDoctorPosts(prisma: PrismaClient) {
     },
     {
       authorId: doctors[1]?.id || doctors[0]?.id,
-      content: "New Advances in Telemedicine\n\nThe COVID-19 pandemic accelerated the adoption of telemedicine worldwide, and Mauritius is no exception. At Healthwyz, we're proud to offer:\n\n- HD Video consultations\n- Real-time vital signs monitoring\n- Digital prescription management\n- Secure medical record sharing\n\nTelemedicine is not a replacement for in-person visits, but it's a powerful complement. Especially for follow-up consultations and chronic disease management.",
+      content: "New Advances in Telemedicine\n\nThe COVID-19 pandemic accelerated the adoption of telemedicine worldwide, and Mauritius is no exception. At OhMyDok, we're proud to offer:\n\n- HD Video consultations\n- Real-time vital signs monitoring\n- Digital prescription management\n- Secure medical record sharing\n\nTelemedicine is not a replacement for in-person visits, but it's a powerful complement. Especially for follow-up consultations and chronic disease management.",
       category: 'news',
-      tags: ['telemedicine', 'innovation', 'healthwyz'],
+      tags: ['telemedicine', 'innovation', 'ohmydok'],
     },
     {
       authorId: doctors[2]?.id || doctors[0]?.id,
@@ -55,7 +55,7 @@ export async function seedDoctorPosts(prisma: PrismaClient) {
     },
     {
       authorId: doctors[2]?.id || doctors[0]?.id,
-      content: "Managing Seasonal Allergies in Tropical Climates\n\nWhile we don't experience traditional seasons like temperate countries, Mauritius has its own allergy triggers:\n\n- Sugarcane flowering season (September-November)\n- Dust mites (year-round in humid climates)\n- Mold spores (especially during cyclone season)\n\nTreatment options:\n- Antihistamines (available at Healthwyz partner pharmacies)\n- Nasal corticosteroid sprays\n- Allergen avoidance strategies\n- Immunotherapy for severe cases\n\nConsult with us if OTC medications aren't helping.",
+      content: "Managing Seasonal Allergies in Tropical Climates\n\nWhile we don't experience traditional seasons like temperate countries, Mauritius has its own allergy triggers:\n\n- Sugarcane flowering season (September-November)\n- Dust mites (year-round in humid climates)\n- Mold spores (especially during cyclone season)\n\nTreatment options:\n- Antihistamines (available at OhMyDok partner pharmacies)\n- Nasal corticosteroid sprays\n- Allergen avoidance strategies\n- Immunotherapy for severe cases\n\nConsult with us if OTC medications aren't helping.",
       category: 'health_tips',
       tags: ['allergies', 'tropical', 'treatment'],
     },

@@ -1,8 +1,8 @@
-# Publishing Healthwyz as an Android App on Google Play Store
+# Publishing Oh My Dok as an Android App on Google Play Store
 
 ## Overview
 
-Healthwyz is a PWA (Progressive Web App) that can be wrapped as a native Android APK and published to the Google Play Store. This document covers the three main approaches, requirements, and step-by-step instructions.
+Oh My Dok is a PWA (Progressive Web App) that can be wrapped as a native Android APK and published to the Google Play Store. This document covers the three main approaches, requirements, and step-by-step instructions.
 
 ---
 
@@ -48,8 +48,8 @@ TWA is Google's official way to wrap a PWA into an Android app. It runs your web
 3. PWABuilder will audit your PWA and show a score
 4. Click **"Package for stores"** → select **Android (Google Play)**
 5. Fill in:
-   - **Package ID**: `mu.healthwyz.app`
-   - **App name**: `Healthwyz`
+   - **Package ID**: `com.ohmydok.app`
+   - **App name**: `Oh My Dok`
    - **App version**: `1.0.0`
    - **Host**: `h-wyz.com` (or final production domain)
    - **Start URL**: `/`
@@ -77,9 +77,9 @@ npm install -g @nicedayfor/nicedayfor.github.io
 bubblewrap init --manifest=https://h-wyz.com/manifest.json
 
 # Follow the interactive prompts:
-#   - Package name: mu.healthwyz.app
-#   - App name: Healthwyz
-#   - Launcher name: Healthwyz
+#   - Package name: com.ohmydok.app
+#   - App name: Oh My Dok
+#   - Launcher name: Oh My Dok
 #   - Theme color: #2563eb
 #   - Background color: #ffffff
 #   - Start URL: /
@@ -117,7 +117,7 @@ keytool -list -v -keystore your-keystore.jks -alias your-alias
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "mu.healthwyz.app",
+    "package_name": "com.ohmydok.app",
     "sha256_cert_fingerprints": [
       "YOUR_SHA256_FINGERPRINT_HERE"
     ]
@@ -163,7 +163,7 @@ The project already has Capacitor configured. This wraps the web app in a native
 npm install @nicedayfor/nicedayfor.github.io @nicedayfor/nicedayfor.github.io
 
 # 2. Initialize (already done in this project)
-npx cap init Healthwyz mu.healthwyz.app --web-dir out
+npx cap init Oh My Dok com.ohmydok.app --web-dir out
 
 # 3. Build the Next.js app
 npm run build
@@ -185,7 +185,7 @@ npx cap open android
 #    Sign with your keystore
 ```
 
-### Useful Capacitor Plugins for Healthwyz
+### Useful Capacitor Plugins for Oh My Dok
 
 | Plugin | Purpose | Install |
 |--------|---------|---------|
@@ -215,7 +215,7 @@ PWABuilder also offers a starter project that combines TWA with Capacitor-like p
 ### 1. Play Console Setup
 - Create app in [Google Play Console](https://play.google.com/console/)
 - App details:
-  - **App name**: Healthwyz
+  - **App name**: Oh My Dok
   - **Default language**: English (United States)
   - **App type**: Application
   - **Category**: Medical

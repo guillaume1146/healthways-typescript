@@ -106,7 +106,7 @@ async function test() {
   // ═════════════════════════════════════════════════════════
   console.log('\n--- FIX 6: Notifications API structure ---\n');
 
-  const { data: loginData, cookies: authCookies } = await loginAs('emma.johnson@healthwyz.mu', 'Patient123!');
+  const { data: loginData, cookies: authCookies } = await loginAs('emma.johnson@ohmydok.com', 'Patient123!');
 
   if (loginData?.success) {
     ok('Logged in as Emma Johnson');

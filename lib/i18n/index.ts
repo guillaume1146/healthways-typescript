@@ -17,7 +17,7 @@ export interface LanguageOption {
 
 /* ─── Constants ─────────────────────────────────────────────────────────── */
 
-export const LANGUAGE_STORAGE_KEY = 'healthwyz_lang'
+export const LANGUAGE_STORAGE_KEY = 'omd_lang'
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
 
 export const supportedLanguages: LanguageOption[] = [
@@ -73,7 +73,7 @@ export function setLanguage(lang: SupportedLanguage): void {
     // localStorage not available
   }
   // Notify all listeners
-  window.dispatchEvent(new CustomEvent('healthwyz:lang-change', { detail: lang }))
+  window.dispatchEvent(new CustomEvent('omd:lang-change', { detail: lang }))
 }
 
 /**
@@ -111,7 +111,7 @@ export function useTranslation() {
         setLang(detail)
       }
     }
-    window.addEventListener('healthwyz:lang-change', handler)
+    window.addEventListener('omd:lang-change', handler)
     // Also listen to storage events (cross-tab sync)
     const storageHandler = (e: StorageEvent) => {
       if (e.key === LANGUAGE_STORAGE_KEY && e.newValue) {
@@ -123,7 +123,7 @@ export function useTranslation() {
     }
     window.addEventListener('storage', storageHandler)
     return () => {
-      window.removeEventListener('healthwyz:lang-change', handler)
+      window.removeEventListener('omd:lang-change', handler)
       window.removeEventListener('storage', storageHandler)
     }
   }, [])

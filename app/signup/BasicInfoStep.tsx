@@ -153,7 +153,7 @@ export default function BasicInfoStep({
               onChange={onFormChange}
             />
             <p className="text-gray-500 text-sm mt-2">
-              If someone referred you to HealthWyz, please enter their referral code or email address to give them credit.
+              If someone referred you to Oh My Dok, please enter their referral code or email address to give them credit.
             </p>
           </div>
         </div>
@@ -518,7 +518,7 @@ export default function BasicInfoStep({
               name="businessPlan"
               required
               rows={4}
-              placeholder="Provide a brief overview of your business plan for managing HealthWyz in your target region"
+              placeholder="Provide a brief overview of your business plan for managing Oh My Dok in your target region"
               className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-blue-600"
               value={formData.businessPlan || ''}
               onChange={onFormChange}

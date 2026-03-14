@@ -14,14 +14,14 @@ export function setAuthCookies(
   userType: string,
   userId: string
 ) {
-  response.cookies.set('healthwyz_token', token, COOKIE_OPTIONS)
-  response.cookies.set('healthwyz_userType', userType, { ...COOKIE_OPTIONS, httpOnly: false })
-  response.cookies.set('healthwyz_user_id', userId, { ...COOKIE_OPTIONS, httpOnly: false })
+  response.cookies.set('omd_token', token, COOKIE_OPTIONS)
+  response.cookies.set('omd_userType', userType, { ...COOKIE_OPTIONS, httpOnly: false })
+  response.cookies.set('omd_user_id', userId, { ...COOKIE_OPTIONS, httpOnly: false })
 }
 
 export function clearAuthCookies(response: NextResponse) {
   const clearOptions = { ...COOKIE_OPTIONS, maxAge: 0 }
-  response.cookies.set('healthwyz_token', '', clearOptions)
-  response.cookies.set('healthwyz_userType', '', { ...clearOptions, httpOnly: false })
-  response.cookies.set('healthwyz_user_id', '', { ...clearOptions, httpOnly: false })
+  response.cookies.set('omd_token', '', clearOptions)
+  response.cookies.set('omd_userType', '', { ...clearOptions, httpOnly: false })
+  response.cookies.set('omd_user_id', '', { ...clearOptions, httpOnly: false })
 }

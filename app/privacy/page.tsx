@@ -1,18 +1,18 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - Healthwyz',
-  description: 'Healthwyz Privacy Policy',
+  title: 'Privacy Policy - Oh My Dok',
+  description: 'Oh My Dok Privacy Policy',
 }
 
 export default function PrivacyPage() {
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">HealthWyz – Privacy Policy</h1>
+      <h1 className="text-4xl font-bold mb-8">Oh My Dok – Privacy Policy</h1>
       
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
-        <p>HealthWyz is committed to safeguarding your privacy and protecting your personal data. This Privacy Policy explains how we collect, use, store, and share your information in compliance with the Mauritius Data Protection Act 2017 and any other applicable healthcare data regulations.</p>
+        <p>Oh My Dok is committed to safeguarding your privacy and protecting your personal data. This Privacy Policy explains how we collect, use, store, and share your information in compliance with the Mauritius Data Protection Act 2017 and any other applicable healthcare data regulations.</p>
         <p>By using our platform, you consent to the practices described in this policy.</p>
       </section>
 
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">4. Legal Basis for Processing (Mauritius DPA 2017)</h2>
-        <p>HealthWyz processes your data only when:</p>
+        <p>Oh My Dok processes your data only when:</p>
         <ul className="list-disc pl-6">
           <li>You have given explicit consent (especially for health-related data).</li>
           <li>It is necessary to perform the services you requested.</li>
@@ -69,13 +69,13 @@ export default function PrivacyPage() {
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">7. Data of Children</h2>
-        <p>Users under 18 years of age must have a parent or legal  consent of guardian to use HealthWyz services.</p>
+        <p>Users under 18 years of age must have a parent or legal  consent of guardian to use Oh My Dok services.</p>
         <p>The guardian assumes responsibility for providing accurate information and overseeing the child’s use of the platform.</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">8. Cookies and Analytics</h2>
-        <p>HealthWyz uses cookies and analytics tools to enhance user experience and understand platform usage.</p>
+        <p>Oh My Dok uses cookies and analytics tools to enhance user experience and understand platform usage.</p>
         <p>You can disable cookies in your browser, but some features may not work properly.</p>
       </section>
 
@@ -98,7 +98,7 @@ export default function PrivacyPage() {
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">11. Third-Party Links</h2>
-        <p>Our platform may contain links to external websites. HealthWyz is not responsible for the privacy practices or content of these third parties.</p>
+        <p>Our platform may contain links to external websites. Oh My Dok is not responsible for the privacy practices or content of these third parties.</p>
       </section>
 
       <section className="mb-6">

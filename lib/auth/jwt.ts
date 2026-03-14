@@ -8,7 +8,7 @@ function getJwtSecret(): string {
   if (!secret) {
     console.warn('WARNING: JWT_SECRET environment variable is not set. Using insecure default for development only.')
   }
-  return secret || 'healthwyz-dev-secret-change-in-production'
+  return secret || 'omd-dev-secret-change-in-production'
 }
 
 const EFFECTIVE_JWT_SECRET = getJwtSecret()

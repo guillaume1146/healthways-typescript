@@ -6,7 +6,7 @@ import { verifyToken, JwtPayload } from './jwt'
  * Returns the payload if valid, null otherwise.
  */
 export function validateRequest(request: NextRequest): JwtPayload | null {
-  const token = request.cookies.get('healthwyz_token')?.value
+  const token = request.cookies.get('omd_token')?.value
   if (!token) return null
   return verifyToken(token)
 }

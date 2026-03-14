@@ -24,14 +24,14 @@ export async function seedDocumentsAndEnrichment(prisma: PrismaClient) {
         userId: patient.id,
         name: `${patient.firstName}_ID_Card.pdf`,
         type: 'id_proof',
-        url: `https://storage.googleapis.com/healthwyz-uploads/users/${patient.id}/id_proof/sample.pdf`,
+        url: `https://storage.googleapis.com/ohmydok-uploads/users/${patient.id}/id_proof/sample.pdf`,
         size: 245000,
       },
       {
         userId: patient.id,
         name: `Blood_Test_Results_2025.pdf`,
         type: 'lab_report',
-        url: `https://storage.googleapis.com/healthwyz-uploads/users/${patient.id}/lab_report/cbc_2025.pdf`,
+        url: `https://storage.googleapis.com/ohmydok-uploads/users/${patient.id}/lab_report/cbc_2025.pdf`,
         size: 180000,
       },
     )
@@ -43,14 +43,14 @@ export async function seedDocumentsAndEnrichment(prisma: PrismaClient) {
         userId: doctor.id,
         name: `Medical_License.pdf`,
         type: 'id_proof',
-        url: `https://storage.googleapis.com/healthwyz-uploads/users/${doctor.id}/id_proof/license.pdf`,
+        url: `https://storage.googleapis.com/ohmydok-uploads/users/${doctor.id}/id_proof/license.pdf`,
         size: 320000,
       },
       {
         userId: doctor.id,
         name: `Insurance_Certificate.pdf`,
         type: 'insurance',
-        url: `https://storage.googleapis.com/healthwyz-uploads/users/${doctor.id}/insurance/cert.pdf`,
+        url: `https://storage.googleapis.com/ohmydok-uploads/users/${doctor.id}/insurance/cert.pdf`,
         size: 150000,
       },
     )

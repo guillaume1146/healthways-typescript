@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     'video consultation doctor',
   ],
   openGraph: {
-    title: 'Find Doctors in Mauritius | Healthwyz',
+    title: 'Find Doctors in Mauritius | Oh My Dok',
     description:
       'Search and book appointments with qualified doctors in Mauritius. Video and in-person consultations available.',
   },

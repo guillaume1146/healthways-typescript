@@ -65,13 +65,13 @@ export async function seedCmsContent(prisma: PrismaClient) {
         sectionTitle: "Our Healthcare Ecosystem",
         sectionSubtitle: "Comprehensive healthcare solutions designed to meet all your health needs",
         items: [
-          { emoji: "🩺", title: "Healthwyz", subtitle: "Simple, accessible, and efficient healthcare", description: "Healthwyz's telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists." },
-          { emoji: "🏥", title: "Healthwyz CLINICS", subtitle: "Comprehensive primary healthcare services", description: "Healthwyz is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more." },
-          { emoji: "🛒", title: "Healthwyz Online Marketplace", subtitle: "Convenient access to health products", description: "Healthwyz's online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius." },
+          { emoji: "🩺", title: "OhMyDok", subtitle: "Simple, accessible, and efficient healthcare", description: "OhMyDok's telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists." },
+          { emoji: "🏥", title: "OhMyDok CLINICS", subtitle: "Comprehensive primary healthcare services", description: "OhMyDok is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more." },
+          { emoji: "🛒", title: "OhMyDok Online Marketplace", subtitle: "Convenient access to health products", description: "OhMyDok's online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius." },
           { emoji: "🏥", title: "MedSuites", subtitle: "Centralised Health Screening and Imaging Services", description: "A premier medical centre located in Central Mauritius, MedSuites centralises health screening and imaging services for comprehensive care and convenience in a single location." },
         ],
         ctaTitle: "Experience the Future of Healthcare",
-        ctaDescription: "Join thousands of Mauritians who trust Healthwyz for their comprehensive healthcare needs.",
+        ctaDescription: "Join thousands of Mauritians who trust OhMyDok for their comprehensive healthcare needs.",
         ctaPrimaryButton: "Get Started Today",
         ctaSecondaryButton: "Explore Services",
       },
@@ -108,7 +108,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       sortOrder: 5,
       isVisible: true,
       content: {
-        sectionTitle: "Why Choose Healthwyz?",
+        sectionTitle: "Why Choose OhMyDok?",
         sectionSubtitle: "Trusted by thousands of Mauritians for quality healthcare",
         items: [
           { icon: "FaShieldAlt", title: "Verified Doctors", description: "All doctors are verified and licensed healthcare professionals" },
@@ -125,7 +125,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       isVisible: true,
       content: {
         title: "Ready to Take Control of Your Health?",
-        description: "Join thousands of Mauritians who trust Healthwyz for their healthcare needs. Start your journey to better health today.",
+        description: "Join thousands of Mauritians who trust OhMyDok for their healthcare needs. Start your journey to better health today.",
         primaryButton: "Schedule Consultation",
         secondaryButton: "Learn More",
       },
@@ -221,7 +221,7 @@ export async function seedCmsContent(prisma: PrismaClient) {
       countryCode: 'MG',
       content: {
         title: "Vonona Hikarakara ny Fahasalamanao?",
-        description: "Miaraha amin'ireo Malagasy an'arivony izay matoky an'i Healthwyz ho an'ny filàny ara-pahasalamana. Atombohy ny dianao mankany amin'ny fahasalamana tsaratsara kokoa androany.",
+        description: "Miaraha amin'ireo Malagasy an'arivony izay matoky an'i OhMyDok ho an'ny filàny ara-pahasalamana. Atombohy ny dianao mankany amin'ny fahasalamana tsaratsara kokoa androany.",
         primaryButton: "Manoratra Fitsaboana",
         secondaryButton: "Fantaro Bebe Kokoa",
       },

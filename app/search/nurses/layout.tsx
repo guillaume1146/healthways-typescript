@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     'home visit nurse',
   ],
   openGraph: {
-    title: 'Find Nurses in Mauritius | Healthwyz',
+    title: 'Find Nurses in Mauritius | Oh My Dok',
     description:
       'Search and book qualified nurses in Mauritius. Home visits, elderly care, and video consultations available.',
   },

@@ -4,7 +4,7 @@ This folder contains test personas and a script to generate PDF documents used f
 
 ## Purpose
 
-The Healthwyz platform verifies uploaded documents by extracting text via pdfjs-dist (for PDFs) or Tesseract OCR (for images) and matching it against the user's full name. These test documents provide known-good PDFs for validating that pipeline across all 11 user types.
+The Oh My Dok platform verifies uploaded documents by extracting text via pdfjs-dist (for PDFs) or Tesseract OCR (for images) and matching it against the user's full name. These test documents provide known-good PDFs for validating that pipeline across all 11 user types.
 
 ## How to Generate
 

@@ -57,7 +57,7 @@ test.describe('L. Mobile Responsive Testing', () => {
 
   test('L3: Patient dashboard loads on mobile with sidebar hidden', async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT)
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient', { waitUntil: 'domcontentloaded' })
 
     // Dashboard content should be visible
@@ -90,7 +90,7 @@ test.describe('L. Mobile Responsive Testing', () => {
     await page.goto('/signup', { waitUntil: 'domcontentloaded' })
 
     // Registration page heading should be visible
-    const heading = page.locator('text=Join Healthwyz')
+    const heading = page.locator('text=Join OhMyDok')
     await expect(heading).toBeVisible({ timeout: 15_000 })
 
     // Step indicators should be visible
@@ -100,7 +100,7 @@ test.describe('L. Mobile Responsive Testing', () => {
 
   test('L6: Doctor dashboard loads on tablet with proper layout', async ({ page }) => {
     await page.setViewportSize(TABLET_VIEWPORT)
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor', { waitUntil: 'domcontentloaded' })
 
     const welcomeText = page.locator('text=/welcome|dashboard|dr\\./i').first()

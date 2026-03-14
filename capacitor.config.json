@@ -1,6 +1,6 @@
 {
-  "appId": "mu.healthwyz.app",
-  "appName": "Healthwyz",
+  "appId": "com.ohmydok.app",
+  "appName": "Oh My Dok",
   "webDir": "out",
   "server": {
     "url": "http://localhost:3000",
@@ -26,7 +26,7 @@
     }
   },
   "ios": {
-    "scheme": "Healthwyz"
+    "scheme": "OhMyDok"
   },
   "android": {
     "allowMixedContent": true

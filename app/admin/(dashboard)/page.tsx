@@ -246,7 +246,7 @@ const AdminDashboard = () => {
                 <div className="bg-green-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-green-700">5%</div>
                   <div className="text-sm text-green-600">Platform</div>
-                  <p className="text-xs text-green-500 mt-1">Healthwyz platform maintenance</p>
+                  <p className="text-xs text-green-500 mt-1">Oh My Dok platform maintenance</p>
                 </div>
               </div>
             </div>

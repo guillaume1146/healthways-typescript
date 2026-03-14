@@ -213,7 +213,7 @@ const DoctorSettings: React.FC<Props> = ({ doctorData, setDoctorData }) => {
     }
     setDoctorData(updatedData)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('healthwyz_user', JSON.stringify(updatedData))
+      localStorage.setItem('omd_user', JSON.stringify(updatedData))
     }
     setHasChanges(false)
   }

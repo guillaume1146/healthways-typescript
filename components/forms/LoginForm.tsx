@@ -80,7 +80,7 @@ const LoginForm: React.FC = () => {
       }
 
       // Store user data in localStorage for client-side access
-      localStorage.setItem('healthwyz_user', JSON.stringify(data.user))
+      localStorage.setItem('omd_user', JSON.stringify(data.user))
 
       // Redirect to the user's dashboard (auto-detected from their role)
       router.push(data.redirectPath || '/patient')
@@ -99,7 +99,7 @@ const LoginForm: React.FC = () => {
       {/* Header */}
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h3>
-        <p className="text-gray-600">Sign in to your Healthwyz account</p>
+        <p className="text-gray-600">Sign in to your Oh My Dok account</p>
       </div>
 
       {/* Error Message */}
@@ -217,7 +217,7 @@ const LoginForm: React.FC = () => {
       {/* Register Link */}
       <div className="mt-6 text-center">
         <p className="text-gray-600 text-sm">
-          New to Healthwyz?{' '}
+          New to Oh My Dok?{' '}
           <Link href="/signup" className="text-primary-blue hover:underline font-medium">
             Create an account
           </Link>

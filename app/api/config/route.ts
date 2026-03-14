@@ -7,10 +7,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const config = {
-      appName: process.env.APP_NAME || 'Healthwyz',
-      appTagline: process.env.APP_TAGLINE || 'Your trusted healthcare companion in Mauritius',
+      appName: process.env.APP_NAME || 'Oh My Dok',
+      appTagline: process.env.APP_TAGLINE || 'Your trusted healthcare companion',
       heroTitle: process.env.HERO_TITLE || 'Your Health, Our Priority',
-      platformDescription: process.env.PLATFORM_DESC || "Mauritius's Leading Healthcare Platform",
+      platformDescription: process.env.PLATFORM_DESC || 'Your Leading Healthcare Platform',
     }
 
     return NextResponse.json(config)

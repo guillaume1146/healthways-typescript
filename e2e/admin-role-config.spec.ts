@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('O. Super Admin Role Configuration', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'hassan.doorgakant@healthways.mu', 'Admin123!')
+    await loginAs(page, 'hassan.doorgakant@ohmydok.com', 'Admin123!')
   })
 
   test('O1: Role config page loads with feature table', async ({ page }) => {

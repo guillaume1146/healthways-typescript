@@ -100,7 +100,7 @@ export default function GenericBookEmergencyPage() {
         <div className="flex items-start gap-3">
           <FaExclamationTriangle className="text-red-600 mt-0.5" />
           <p className="text-red-700 text-sm">
-            Emergency services are provided at <strong>no charge</strong> during the Healthwyz trial period.
+            Emergency services are provided at <strong>no charge</strong> during the Oh My Dok trial period.
             A qualified emergency responder will be dispatched to your location.
           </p>
         </div>

@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('I. Other User Type Dashboards', () => {
   test('I1: Nurse dashboard loads', async ({ page }) => {
-    await loginAs(page, 'priya.ramgoolam@healthwyz.mu', 'Nurse123!')
+    await loginAs(page, 'priya.ramgoolam@ohmydok.com', 'Nurse123!')
     await page.goto('/nurse', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|nurse|appointment|booking/i').first()
@@ -25,7 +25,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I2: Nanny dashboard loads', async ({ page }) => {
-    await loginAs(page, 'anita.beeharry@healthwyz.mu', 'Nanny123!')
+    await loginAs(page, 'anita.beeharry@ohmydok.com', 'Nanny123!')
     await page.goto('/nanny', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|nanny|booking|famil/i').first()
@@ -33,7 +33,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I3: Pharmacist dashboard loads', async ({ page }) => {
-    await loginAs(page, 'rajesh.doorgakant@healthways.mu', 'Pharma123!')
+    await loginAs(page, 'rajesh.doorgakant@ohmydok.com', 'Pharma123!')
     await page.goto('/pharmacist', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|pharmacist|medicine|order|inventory/i').first()
@@ -41,7 +41,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I4: Lab Technician dashboard loads', async ({ page }) => {
-    await loginAs(page, 'david.ahkee@healthways.mu', 'Lab123!')
+    await loginAs(page, 'david.ahkee@ohmydok.com', 'Lab123!')
     await page.goto('/lab-technician', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|lab|test|booking/i').first()
@@ -49,7 +49,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I5: Emergency Worker dashboard loads', async ({ page }) => {
-    await loginAs(page, 'jeanmarc.lafleur@healthways.mu', 'Emergency123!')
+    await loginAs(page, 'jeanmarc.lafleur@ohmydok.com', 'Emergency123!')
     await page.goto('/responder', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|emergency|responder|call/i').first()
@@ -57,7 +57,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I6: Insurance Rep dashboard loads', async ({ page }) => {
-    await loginAs(page, 'vikram.doorgakant@healthways.mu', 'Insurance123!')
+    await loginAs(page, 'vikram.doorgakant@ohmydok.com', 'Insurance123!')
     await page.goto('/insurance', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|insurance|claim|client/i').first()
@@ -65,7 +65,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I7: Corporate Admin dashboard loads', async ({ page }) => {
-    await loginAs(page, 'anil.doobur@healthways.mu', 'Corporate123!')
+    await loginAs(page, 'anil.doobur@ohmydok.com', 'Corporate123!')
     await page.goto('/corporate', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|corporate|company|employee/i').first()
@@ -73,7 +73,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I8: Referral Partner dashboard loads', async ({ page }) => {
-    await loginAs(page, 'sophie.leclerc@healthways.mu', 'Referral123!')
+    await loginAs(page, 'sophie.leclerc@ohmydok.com', 'Referral123!')
     await page.goto('/referral-partner', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|referral|partner|client/i').first()
@@ -81,7 +81,7 @@ test.describe('I. Other User Type Dashboards', () => {
   })
 
   test('I9: Super Admin dashboard loads', async ({ page }) => {
-    await loginAs(page, 'hassan.doorgakant@healthways.mu', 'Admin123!')
+    await loginAs(page, 'hassan.doorgakant@ohmydok.com', 'Admin123!')
     await page.goto('/admin', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/welcome|dashboard|admin|user|platform/i').first()
@@ -91,7 +91,7 @@ test.describe('I. Other User Type Dashboards', () => {
 
 test.describe('J. Notification System', () => {
   test('J1: Dashboard header loads with user name and logout', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient', { waitUntil: 'domcontentloaded' })
 
     // Wait for dashboard to load with welcome text
@@ -103,7 +103,7 @@ test.describe('J. Notification System', () => {
   })
 
   test('J2: Notification dropdown opens on bell click', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@healthwyz.mu', 'Patient123!')
+    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
     await page.goto('/patient', { waitUntil: 'domcontentloaded' })
 
     await expect(page.locator('text=/welcome/i').first()).toBeVisible({ timeout: 30_000 })
@@ -130,7 +130,7 @@ test.describe('K. Medicine Purchase Flow', () => {
   })
 
   test('K2: Pharmacist inventory page loads', async ({ page }) => {
-    await loginAs(page, 'rajesh.doorgakant@healthways.mu', 'Pharma123!')
+    await loginAs(page, 'rajesh.doorgakant@ohmydok.com', 'Pharma123!')
     await page.goto('/pharmacist/inventory', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/inventory|medicine|add|stock/i').first()
@@ -138,7 +138,7 @@ test.describe('K. Medicine Purchase Flow', () => {
   })
 
   test('K3: Pharmacist orders page loads', async ({ page }) => {
-    await loginAs(page, 'rajesh.doorgakant@healthways.mu', 'Pharma123!')
+    await loginAs(page, 'rajesh.doorgakant@ohmydok.com', 'Pharma123!')
     await page.goto('/pharmacist/orders', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/order|no.*order|pending/i').first()
@@ -148,7 +148,7 @@ test.describe('K. Medicine Purchase Flow', () => {
 
 test.describe('N. Provider Reviews', () => {
   test('N1: Doctor reviews page loads', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@healthwyz.mu', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
     await page.goto('/doctor/reviews', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/review|rating|no.*review/i').first()
@@ -156,7 +156,7 @@ test.describe('N. Provider Reviews', () => {
   })
 
   test('N2: Nurse reviews page loads', async ({ page }) => {
-    await loginAs(page, 'priya.ramgoolam@healthwyz.mu', 'Nurse123!')
+    await loginAs(page, 'priya.ramgoolam@ohmydok.com', 'Nurse123!')
     await page.goto('/nurse/reviews', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/review|rating|no.*review/i').first()
@@ -164,7 +164,7 @@ test.describe('N. Provider Reviews', () => {
   })
 
   test('N3: Nanny reviews page loads', async ({ page }) => {
-    await loginAs(page, 'anita.beeharry@healthwyz.mu', 'Nanny123!')
+    await loginAs(page, 'anita.beeharry@ohmydok.com', 'Nanny123!')
     await page.goto('/nanny/reviews', { waitUntil: 'domcontentloaded' })
 
     const content = page.locator('text=/review|rating|no.*review/i').first()

@@ -164,7 +164,7 @@ describe('validateCsrf', () => {
       headers: {
         'Content-Type': 'application/json',
         'x-csrf-token': token2,
-        cookie: `healthwyz_csrf=${token1}`,
+        cookie: `omd_csrf=${token1}`,
       },
     })
     const response = validateCsrf(request)
@@ -184,7 +184,7 @@ describe('validateCsrf', () => {
       headers: {
         'Content-Type': 'application/json',
         'x-csrf-token': token,
-        cookie: `healthwyz_csrf=${token}`,
+        cookie: `omd_csrf=${token}`,
       },
     })
 
@@ -205,7 +205,7 @@ describe('validateCsrf', () => {
       headers: {
         'Content-Type': 'application/json',
         'x-csrf-token': expiredToken,
-        cookie: `healthwyz_csrf=${expiredToken}`,
+        cookie: `omd_csrf=${expiredToken}`,
       },
     })
     const response = validateCsrf(request)
@@ -257,7 +257,7 @@ describe('setCsrfCookie', () => {
 
     const cookieHeader = result.headers.get('set-cookie')
     expect(cookieHeader).toBeTruthy()
-    expect(cookieHeader).toContain('healthwyz_csrf=')
+    expect(cookieHeader).toContain('omd_csrf=')
   })
 
   it('sets the cookie with path=/', () => {

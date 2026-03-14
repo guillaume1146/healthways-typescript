@@ -1,31 +1,31 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: healthwyz-db
+    container_name: omd-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: healthwyz
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthwyz_secret}
-      POSTGRES_DB: healthwyz
+      POSTGRES_USER: omd
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omd_secret}
+      POSTGRES_DB: omd
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U healthwyz"]
+      test: ["CMD-SHELL", "pg_isready -U omd"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   app:
-    image: healthwyz-app:latest
+    image: omd-app:latest
     build:
       context: .
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
         NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3000}
-    container_name: healthwyz-app
+    container_name: omd-app
     restart: unless-stopped
     ports:
       - "3000:8080"

@@ -258,7 +258,7 @@ export default function RegistrationForm() {
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Join Healthwyz</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Join Oh My Dok</h1>
               <p className="text-gray-600 text-lg">Create your professional healthcare account</p>
             </div>
 

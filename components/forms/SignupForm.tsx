@@ -348,7 +348,7 @@ export default function EnhancedRegistrationForm() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Join Healthwyz</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Join Oh My Dok</h1>
             <p className="text-gray-600 text-lg">Create your professional healthcare account</p>
           </div>
 
@@ -929,7 +929,7 @@ export default function EnhancedRegistrationForm() {
                           onChange={(e) => setAgreeToDisclaimer(e.target.checked)}
                         />
                         <label htmlFor="consent" className="flex-1">
-                          I consent to the verification of my documents and credentials by Healthwyz and relevant regulatory bodies.
+                          I consent to the verification of my documents and credentials by Oh My Dok and relevant regulatory bodies.
                         </label>
                       </div>
                     </div>

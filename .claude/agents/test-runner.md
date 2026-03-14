@@ -11,7 +11,7 @@ tools:
 
 # Test Runner Agent
 
-You are a test runner for the Healthwyz project.
+You are a test runner for the Oh My Dok project.
 
 ## Instructions
 

@@ -27,7 +27,7 @@ const MissionVisionSection: React.FC = () => {
               </p>
               
               <p className="text-gray-600 mb-4">
-                Healthwyz delivers a diverse range of services within a cohesive ecosystem, designed to meet the needs of modern Mauritians. From virtual consultations and diagnostics to wellness programs and medicine delivery, our platform empowers users to access trusted care from anywhere, anytime.
+                Oh My Dok delivers a diverse range of services within a cohesive ecosystem, designed to meet the needs of modern Mauritians. From virtual consultations and diagnostics to wellness programs and medicine delivery, our platform empowers users to access trusted care from anywhere, anytime.
               </p>
               
               <p className="text-gray-700 font-medium">

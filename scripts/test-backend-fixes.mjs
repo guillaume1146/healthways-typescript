@@ -128,7 +128,7 @@ async function run() {
   test('Returns 404 for missing room', webrtcContent.includes('Video room not found'))
 
   // Verify via API — create session with non-existent room should 404
-  const loginResult = await login('emma.johnson@healthwyz.mu', 'Patient123!')
+  const loginResult = await login('emma.johnson@ohmydok.com', 'Patient123!')
   if (loginResult.success && authCookie) {
     const sessionRes = await api('/api/webrtc/session', {
       method: 'POST',

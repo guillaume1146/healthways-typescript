@@ -15,7 +15,7 @@ export async function GET() {
     data: { csrfToken: token },
   })
 
-  response.cookies.set('healthwyz_csrf', token, {
+  response.cookies.set('omd_csrf', token, {
     httpOnly: false, // Client JS must read this to set the header
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

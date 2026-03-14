@@ -183,7 +183,7 @@ export default function VerificationStep({ formData, selectedType, documents, ve
             <div className="flex items-start gap-3">
               <input type="checkbox" id="agreeToDisclaimer" name="agreeToDisclaimer" className="mt-1" checked={formData.agreeToDisclaimer} onChange={onFormChange} required />
               <label htmlFor="agreeToDisclaimer" className="flex-1">
-                I consent to the verification of my documents and credentials by Healthwyz and relevant regulatory bodies.
+                I consent to the verification of my documents and credentials by Oh My Dok and relevant regulatory bodies.
               </label>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function VerificationStep({ formData, selectedType, documents, ve
                   <li>• All your documents have been verified automatically</li>
                   <li>• Your account will be activated immediately upon submission</li>
                   <li>• You will receive a confirmation email shortly</li>
-                  <li>• You can start using Healthwyz right away</li>
+                  <li>• You can start using Oh My Dok right away</li>
                 </ul>
               ) : requiresManualApproval ? (
                 <ul className="text-blue-700 text-sm space-y-1">

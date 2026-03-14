@@ -1,7 +1,7 @@
 {
-  "name": "Healthwyz - Healthcare Platform Mauritius",
-  "short_name": "Healthwyz",
-  "description": "Connect with doctors, nurses, and healthcare providers in Mauritius. Book consultations, manage prescriptions, and access AI health insights.",
+  "name": "Oh My Dok - Healthcare Platform",
+  "short_name": "OMD",
+  "description": "Connect with doctors, nurses, and healthcare providers. Book consultations, manage prescriptions, and access AI health insights.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -60,13 +60,13 @@
       "name": "Find Doctors",
       "short_name": "Doctors",
       "url": "/search/doctors",
-      "description": "Search for doctors in Mauritius"
+      "description": "Search for doctors"
     },
     {
       "name": "Find Nurses",
       "short_name": "Nurses",
       "url": "/search/nurses",
-      "description": "Search for nurses in Mauritius"
+      "description": "Search for nurses"
     },
     {
       "name": "Pharmacy",

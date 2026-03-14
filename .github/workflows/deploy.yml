@@ -108,7 +108,7 @@ jobs:
           command_timeout: 30m
           envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG,APP_URL,DB_URL,JWT_SECRET,GROQ_API_KEY,POSTGRES_PASSWORD,SUPER_ADMIN_EMAIL,SUPER_ADMIN_PASSWORD,SUPER_ADMIN_FIRST_NAME,SUPER_ADMIN_LAST_NAME
           script: |
-            cd ~/healthtech-app
+            cd ~/omd-app
 
             # Pull latest code (for docker-compose.yml, prisma, seeds, etc.)
             git pull origin main 2>/dev/null || true
@@ -139,8 +139,8 @@ jobs:
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
             docker pull "$IMAGE_TAG"
 
-            # Tag as healthwyz-app:latest for docker-compose
-            docker tag "$IMAGE_TAG" healthwyz-app:latest
+            # Tag as omd-app:latest for docker-compose
+            docker tag "$IMAGE_TAG" omd-app:latest
 
             # Restart with the pre-built image
             docker compose up -d --no-build
@@ -175,7 +175,7 @@ jobs:
 
             # Quick login test
             echo "=== Login smoke test ==="
-            LOGIN_RESULT=$(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{"email":"sarah.johnson@healthwyz.mu","password":"Doctor123!"}')
+            LOGIN_RESULT=$(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{"email":"sarah.johnson@ohmydok.com","password":"Doctor123!"}')
             echo "Login result: $LOGIN_RESULT"
 
             # Clean up old images
@@ -187,7 +187,7 @@ jobs:
           GH_ACTOR: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
           APP_URL: ${{ secrets.VULTR_DOMAIN != '' && format('https://{0}', secrets.VULTR_DOMAIN) || format('http://{0}', secrets.VULTR_VM_IP) }}
-          DB_URL: postgresql://healthwyz:${{ secrets.POSTGRES_PASSWORD }}@db:5432/healthwyz
+          DB_URL: postgresql://omd:${{ secrets.POSTGRES_PASSWORD }}@db:5432/omd
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -222,10 +222,10 @@ jobs:
               sudo apt-get install -y -qq certbot python3-certbot-nginx
             fi
 
-            sudo sed -i "s/server_name .*;/server_name $VULTR_DOMAIN;/g" /etc/nginx/sites-enabled/healthwyz
+            sudo sed -i "s/server_name .*;/server_name $VULTR_DOMAIN;/g" /etc/nginx/sites-enabled/omd
             sudo nginx -t && sudo systemctl reload nginx
 
-            sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email healthwyz@duckdns.org --redirect
+            sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email admin@ohmydok.com --redirect
 
             echo "HTTPS certificate installed for $VULTR_DOMAIN"
         env:
@@ -241,7 +241,7 @@ jobs:
           script: |
             DOMAIN="${VULTR_DOMAIN:-localhost}"
             echo "=== Container Status ==="
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep healthwyz
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep omd
 
             echo ""
             echo "=== Health Check ==="

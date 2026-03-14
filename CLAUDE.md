@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Healthwyz — a full-stack healthcare platform for Mauritius built with Next.js 15 (App Router), TypeScript, PostgreSQL (Prisma ORM), Socket.IO, and WebRTC. Connects patients with doctors, nurses, nannies, pharmacists, lab technicians, and emergency workers via video consultations, appointment booking, and prescription management. Supports 11 user types.
+Oh My Dok — a full-stack healthcare platform for Mauritius built with Next.js 15 (App Router), TypeScript, PostgreSQL (Prisma ORM), Socket.IO, and WebRTC. Connects patients with doctors, nurses, nannies, pharmacists, lab technicians, and emergency workers via video consultations, appointment booking, and prescription management. Supports 11 user types.
 
 ## Common Commands
 
@@ -123,7 +123,7 @@ Next.js wrapped by Node.js server co-hosting Socket.IO. Dev runs `node server.js
 - `POST /api/auth/login` — validates against `User` table, returns user data
 - `POST /api/auth/register` — creates User + profile in a transaction
 - `GET /api/auth/me` — returns current user from JWT
-- Middleware checks `healthwyz_userType` cookie for route protection
+- Middleware checks `omd_userType` cookie for route protection
 
 ### API Routes
 
