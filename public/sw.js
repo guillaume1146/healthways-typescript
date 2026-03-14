@@ -1,9 +1,9 @@
-// Oh My Dok Service Worker
+// MediWyz Service Worker
 // In development, use network-only to avoid stale cache issues
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1'
-const CACHE_NAME = 'omd-v4'
-const STATIC_CACHE = 'omd-static-v4'
-const API_CACHE = 'omd-api-v4'
+const CACHE_NAME = 'mediwyz-v1'
+const STATIC_CACHE = 'mediwyz-static-v1'
+const API_CACHE = 'mediwyz-api-v1'
 
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [

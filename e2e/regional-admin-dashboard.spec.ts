@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('R. Regional Admin Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'vikash.doorgakant@ohmydok.com', 'Regional123!')
+    await loginAs(page, 'vikash.doorgakant@mediwyz.com', 'Regional123!')
   })
 
   test('R1: Regional admin feed/dashboard loads', async ({ page }) => {

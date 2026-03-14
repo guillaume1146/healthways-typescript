@@ -144,7 +144,7 @@ export default function DocumentUploadStep({ documents, onFileUpload, onRemoveFi
                             AI Automated Analysis
                           </span>
                           <span className="text-xs text-gray-400 ml-auto">
-                            Powered by Oh My Dok AI
+                            Powered by MediWyz AI
                           </span>
                         </div>
                         <p className={`text-sm leading-relaxed ${

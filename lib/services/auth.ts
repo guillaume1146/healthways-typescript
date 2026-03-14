@@ -13,7 +13,7 @@ export interface AuthUser {
   profileImage?: string
 }
 
-const STORAGE_KEY = 'omd_user'
+const STORAGE_KEY = 'mediwyz_user'
 
 const USER_TYPE_PATHS: Record<string, string> = {
   patient: '/patient/dashboard',

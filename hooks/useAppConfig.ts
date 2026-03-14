@@ -10,7 +10,7 @@ interface AppConfig {
 
 export const useAppConfig = () => {
   const [config, setConfig] = useState<AppConfig>({
-    appName: "Oh My Dok", // Default fallback
+    appName: "MediWyz", // Default fallback
     appTagline: "Your trusted healthcare companion in Mauritius",
     heroTitle: "Your Health, Our Priority",
     platformDescription: "Mauritius's Leading Healthcare Platform"

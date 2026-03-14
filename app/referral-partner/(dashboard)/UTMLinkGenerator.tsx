@@ -11,7 +11,7 @@ export default function UTMLinkGenerator({ promoCode }: UTMLinkGeneratorProps) {
   
   const baseUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/signup`
-    : 'https://ohmydok.com/signup'
+    : 'https://mediwyz.com/signup'
 
   const generateUTMLink = (platform: string) => {
     const utmParams = new URLSearchParams({

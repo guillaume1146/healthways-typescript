@@ -34,26 +34,26 @@ fi
 
 # ── Step 2: Login as seeded patient ───────────────────────────────────────
 echo ""
-echo "2/4  Logging in as patient1@ohmydok.com..."
+echo "2/4  Logging in as patient1@mediwyz.com..."
 LOGIN_RESPONSE=$(curl -sk --max-time 10 \
   -X POST "$BASE_URL/api/auth/login" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"patient1@ohmydok.com","password":"Patient123!"}' \
-  -c /tmp/omd-cookies.txt \
-  -D /tmp/omd-headers.txt 2>&1)
+  -d '{"email":"patient1@mediwyz.com","password":"Patient123!"}' \
+  -c /tmp/mediwyz-cookies.txt \
+  -D /tmp/mediwyz-headers.txt 2>&1)
 
 if echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
   USER_NAME=$(echo "$LOGIN_RESPONSE" | grep -o '"firstName":"[^"]*"' | head -1)
   echo "     ✅ Login successful — $USER_NAME"
 else
   echo "     ❌ Login failed: $LOGIN_RESPONSE"
-  echo "     Trying doctor1@ohmydok.com..."
+  echo "     Trying doctor1@mediwyz.com..."
   LOGIN_RESPONSE=$(curl -sk --max-time 10 \
     -X POST "$BASE_URL/api/auth/login" \
     -H 'Content-Type: application/json' \
-    -d '{"email":"doctor1@ohmydok.com","password":"Doctor123!"}' \
-    -c /tmp/omd-cookies.txt \
-    -D /tmp/omd-headers.txt 2>&1)
+    -d '{"email":"doctor1@mediwyz.com","password":"Doctor123!"}' \
+    -c /tmp/mediwyz-cookies.txt \
+    -D /tmp/mediwyz-headers.txt 2>&1)
   if echo "$LOGIN_RESPONSE" | grep -q '"success":true'; then
     echo "     ✅ Login as doctor successful"
   else
@@ -84,7 +84,7 @@ echo ""
 
 VERIFY_RESPONSE=$(curl -sk --max-time 30 \
   -X POST "$BASE_URL/api/documents/verify" \
-  -b /tmp/omd-cookies.txt \
+  -b /tmp/mediwyz-cookies.txt \
   -F "file=@$TEST_IMAGE;type=image/png" \
   -F "fullName=Marie Claire Dupont" \
   -F "documentType=National ID" 2>&1)
@@ -126,6 +126,6 @@ fi
 echo ""
 
 # ── Cleanup ──────────────────────────────────────────────────────────────
-rm -f /tmp/omd-cookies.txt /tmp/omd-headers.txt /tmp/test-doc.png
+rm -f /tmp/mediwyz-cookies.txt /tmp/mediwyz-headers.txt /tmp/test-doc.png
 
 echo "Done."

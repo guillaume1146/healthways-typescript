@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Sign In',
   description:
-    'Sign in to your Oh My Dok account to access your dashboard, manage appointments, and connect with healthcare providers in Mauritius.',
+    'Sign in to your MediWyz account to access your dashboard, manage appointments, and connect with healthcare providers in Mauritius.',
   robots: {
     index: false,
     follow: true,

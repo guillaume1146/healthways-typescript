@@ -129,15 +129,15 @@ jobs:
             SUPER_ADMIN_PASSWORD=$SUPER_ADMIN_PASSWORD
             SUPER_ADMIN_FIRST_NAME=$SUPER_ADMIN_FIRST_NAME
             SUPER_ADMIN_LAST_NAME=$SUPER_ADMIN_LAST_NAME
-            APP_DOMAIN=${APP_DOMAIN:-ohmydok.com}
+            APP_DOMAIN=${APP_DOMAIN:-mediwyz.com}
             ENVEOF
             # Remove leading whitespace from heredoc
             sed -i 's/^[[:space:]]*//' .env
             echo ".env written with $(wc -l < .env) variables"
 
-            # Stop old containers if they exist (handles rename from healthwyz → omd)
-            docker stop healthwyz-app healthwyz-db 2>/dev/null || true
-            docker rm healthwyz-app healthwyz-db 2>/dev/null || true
+            # Stop old containers if they exist (handles rename from healthwyz/omd → mediwyz)
+            docker stop healthwyz-app healthwyz-db omd-app omd-db mediwyz-app mediwyz-db 2>/dev/null || true
+            docker rm healthwyz-app healthwyz-db omd-app omd-db 2>/dev/null || true
 
             # Remove dangling images
             docker image prune -f 2>/dev/null || true
@@ -146,8 +146,8 @@ jobs:
             echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
             docker pull "$IMAGE_TAG"
 
-            # Tag as omd-app:latest for docker-compose
-            docker tag "$IMAGE_TAG" omd-app:latest
+            # Tag as mediwyz-app:latest for docker-compose
+            docker tag "$IMAGE_TAG" mediwyz-app:latest
 
             # Restart with the pre-built image
             docker compose up -d --no-build
@@ -182,7 +182,7 @@ jobs:
 
             # Quick login test
             echo "=== Login smoke test ==="
-            LOGIN_RESULT=$(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{"email":"sarah.johnson@ohmydok.com","password":"Doctor123!"}')
+            LOGIN_RESULT=$(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{"email":"sarah.johnson@mediwyz.com","password":"Doctor123!"}')
             echo "Login result: $LOGIN_RESULT"
 
             # Clean up old images
@@ -233,7 +233,7 @@ jobs:
 
             # Try both old and new nginx site config names
             NGINX_SITE=""
-            for name in healthwyz omd default; do
+            for name in healthwyz omd mediwyz default; do
               if [ -f "/etc/nginx/sites-enabled/$name" ]; then
                 NGINX_SITE="$name"
                 break
@@ -244,7 +244,7 @@ jobs:
             fi
             sudo nginx -t && sudo systemctl reload nginx
 
-            sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email admin@ohmydok.com --redirect
+            sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email admin@mediwyz.com --redirect
 
             echo "HTTPS certificate installed for $VULTR_DOMAIN"
         env:
@@ -261,7 +261,7 @@ jobs:
           script: |
             DOMAIN="${VULTR_DOMAIN:-localhost}"
             echo "=== Container Status ==="
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(omd|healthwyz)"
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(mediwyz|omd|healthwyz)"
 
             echo ""
             echo "=== Health Check ==="

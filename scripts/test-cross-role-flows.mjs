@@ -25,15 +25,15 @@ let skipped = 0
 // ─── Seed Credentials ──────────────────────────────────────────────────────────
 
 const USERS = {
-  patient1:    { email: 'emma.johnson@ohmydok.com',       password: 'Patient123!',    id: 'PAT001',   profileId: 'PPROF001' },
-  patient2:    { email: 'jean.pierre@ohmydok.com',        password: 'Patient123!',    id: 'PAT002',   profileId: 'PPROF002' },
-  doctor1:     { email: 'sarah.johnson@ohmydok.com',      password: 'Doctor123!',     id: 'DOC001',   profileId: 'DPROF001' },
-  doctor2:     { email: 'raj.patel@ohmydok.com',          password: 'Doctor123!',     id: 'DOC002',   profileId: 'DPROF002' },
-  nurse1:      { email: 'priya.ramgoolam@ohmydok.com',    password: 'Nurse123!',      id: 'NUR001',   profileId: 'NPROF001' },
-  nanny1:      { email: 'anita.beeharry@ohmydok.com',     password: 'Nanny123!',      id: 'NAN001',   profileId: 'NAPROF001' },
-  pharmacist1: { email: 'rajesh.doorgakant@ohmydok.com', password: 'Pharma123!',     id: 'PHARM001', profileId: 'PHPROF001' },
-  labtech1:    { email: 'david.ahkee@ohmydok.com',       password: 'Lab123!',        id: 'LAB001',   profileId: 'LTPROF001' },
-  responder1:  { email: 'jeanmarc.lafleur@ohmydok.com',  password: 'Emergency123!',  id: 'EMW001',   profileId: 'EWPROF001' },
+  patient1:    { email: 'emma.johnson@mediwyz.com',       password: 'Patient123!',    id: 'PAT001',   profileId: 'PPROF001' },
+  patient2:    { email: 'jean.pierre@mediwyz.com',        password: 'Patient123!',    id: 'PAT002',   profileId: 'PPROF002' },
+  doctor1:     { email: 'sarah.johnson@mediwyz.com',      password: 'Doctor123!',     id: 'DOC001',   profileId: 'DPROF001' },
+  doctor2:     { email: 'raj.patel@mediwyz.com',          password: 'Doctor123!',     id: 'DOC002',   profileId: 'DPROF002' },
+  nurse1:      { email: 'priya.ramgoolam@mediwyz.com',    password: 'Nurse123!',      id: 'NUR001',   profileId: 'NPROF001' },
+  nanny1:      { email: 'anita.beeharry@mediwyz.com',     password: 'Nanny123!',      id: 'NAN001',   profileId: 'NAPROF001' },
+  pharmacist1: { email: 'rajesh.doorgakant@mediwyz.com', password: 'Pharma123!',     id: 'PHARM001', profileId: 'PHPROF001' },
+  labtech1:    { email: 'david.ahkee@mediwyz.com',       password: 'Lab123!',        id: 'LAB001',   profileId: 'LTPROF001' },
+  responder1:  { email: 'jeanmarc.lafleur@mediwyz.com',  password: 'Emergency123!',  id: 'EMW001',   profileId: 'EWPROF001' },
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────

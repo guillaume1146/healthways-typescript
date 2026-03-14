@@ -12,7 +12,7 @@ export interface LocalUser {
 }
 
 /**
- * Read the current user from localStorage (`omd_user` key).
+ * Read the current user from localStorage (`mediwyz_user` key).
  *
  * Returns `{ user, loading }` where `user` is `null` until localStorage has
  * been checked. Handles corrupted / missing data gracefully.
@@ -27,7 +27,7 @@ export function useLocalUser() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('omd_user')
+      const stored = localStorage.getItem('mediwyz_user')
       if (stored) {
         setUser(JSON.parse(stored))
       }

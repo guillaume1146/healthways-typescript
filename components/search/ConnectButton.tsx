@@ -29,7 +29,7 @@ export default function ConnectButton({ providerId, className = '' }: ConnectBut
     if (typeof document === 'undefined') return false
     return document.cookie
       .split(';')
-      .some((c) => c.trim().startsWith('omd_userType='))
+      .some((c) => c.trim().startsWith('mediwyz_userType='))
   }, [])
 
   const checkExistingConnection = useCallback(async () => {

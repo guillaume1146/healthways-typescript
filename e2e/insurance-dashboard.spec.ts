@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('P. Insurance Rep Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'vikram.doorgakant@ohmydok.com', 'Insurance123!')
+    await loginAs(page, 'vikram.doorgakant@mediwyz.com', 'Insurance123!')
   })
 
   test('P1: Insurance feed/dashboard loads', async ({ page }) => {

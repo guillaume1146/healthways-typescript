@@ -11,7 +11,7 @@ export interface CurrentUser {
   userType: string
 }
 
-const STORAGE_KEY = 'omd_user'
+const STORAGE_KEY = 'mediwyz_user'
 
 let cachedUser: CurrentUser | null = null
 
@@ -57,8 +57,8 @@ export function useUser(): {
     cachedUser = null
     setUser(null)
     localStorage.removeItem(STORAGE_KEY)
-    localStorage.removeItem('omd_token')
-    localStorage.removeItem('omd_userType')
+    localStorage.removeItem('mediwyz_token')
+    localStorage.removeItem('mediwyz_userType')
   }, [])
 
   return { user, loading, updateUser, clearUser }

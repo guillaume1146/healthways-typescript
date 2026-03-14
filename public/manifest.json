@@ -1,6 +1,6 @@
 {
-  "name": "Oh My Dok - Healthcare Platform",
-  "short_name": "OMD",
+  "name": "MediWyz - Healthcare Platform",
+  "short_name": "MediWyz",
   "description": "Connect with doctors, nurses, and healthcare providers. Book consultations, manage prescriptions, and access AI health insights.",
   "start_url": "/",
   "display": "standalone",

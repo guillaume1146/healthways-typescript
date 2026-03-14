@@ -20,7 +20,7 @@ test.describe('M. Edge Cases', () => {
     await page.goto('/login')
     const emailInput = page.locator('input[name="email"]')
     await expect(emailInput).toBeVisible({ timeout: 10_000 })
-    await emailInput.fill('emma.johnson@ohmydok.com')
+    await emailInput.fill('emma.johnson@mediwyz.com')
     await page.locator('input[name="password"]').fill('WrongPassword999!')
     await page.locator('button[type="submit"]').click()
 

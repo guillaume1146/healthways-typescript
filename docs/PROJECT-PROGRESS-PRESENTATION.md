@@ -1,4 +1,4 @@
-# Oh My Dok — Project Progress Presentation
+# MediWyz — Project Progress Presentation
 
 **Date:** March 2026
 **Platform:** Full-Stack Healthcare Platform for Africa
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Oh My Dok is a comprehensive healthcare platform connecting patients with 10 types of healthcare professionals across 6 African countries. The platform supports video consultations, appointment booking, prescription management, AI health coaching, in-app payments, and regional administration.
+MediWyz is a comprehensive healthcare platform connecting patients with 10 types of healthcare professionals across 6 African countries. The platform supports video consultations, appointment booking, prescription management, AI health coaching, in-app payments, and regional administration.
 
 **Current Status:** Core platform is **production-deployed** with CI/CD pipeline, serving all user types with dashboards, booking, messaging, video calls, and AI features. Payment processing and external notification channels remain simulated/planned.
 
@@ -545,4 +545,4 @@ healthways-typescript/
 
 ---
 
-*Generated March 2026 — Oh My Dok Platform v1.0*
+*Generated March 2026 — MediWyz Platform v1.0*

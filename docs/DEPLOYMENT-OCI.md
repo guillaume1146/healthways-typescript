@@ -1,6 +1,6 @@
-# Oh My Dok — Deployment Guide (Oracle Cloud Free Tier)
+# MediWyz — Deployment Guide (Oracle Cloud Free Tier)
 
-Deploy Oh My Dok on an Oracle Cloud Infrastructure (OCI) **Always Free** Arm-based VM with Docker Compose, Nginx, and automated CI/CD.
+Deploy MediWyz on an Oracle Cloud Infrastructure (OCI) **Always Free** Arm-based VM with Docker Compose, Nginx, and automated CI/CD.
 
 ---
 
@@ -16,7 +16,7 @@ Oracle Cloud Always Free tier includes:
 | **Outbound Data** | 10 TB/month |
 | **Load Balancer** | 1 flexible (10 Mbps) |
 
-**Recommended for Oh My Dok**: 1 VM with 2 OCPUs + 12 GB RAM — more than enough.
+**Recommended for MediWyz**: 1 VM with 2 OCPUs + 12 GB RAM — more than enough.
 
 ---
 
@@ -27,7 +27,7 @@ Oracle Cloud Always Free tier includes:
 
 Generate one if you don't have it:
 ```bash
-ssh-keygen -t ed25519 -C "ohmydok-oci" -f ~/.ssh/oci_ohmydok
+ssh-keygen -t ed25519 -C "mediwyz-oci" -f ~/.ssh/oci_mediwyz
 ```
 
 ---
@@ -42,13 +42,13 @@ ssh-keygen -t ed25519 -C "ohmydok-oci" -f ~/.ssh/oci_ohmydok
 
 | Setting | Value |
 |---------|-------|
-| **Name** | `ohmydok-vm` |
+| **Name** | `mediwyz-vm` |
 | **Image** | Ubuntu 22.04 (or 24.04) — **Arm-based (Ampere)** |
 | **Shape** | VM.Standard.A1.Flex |
 | **OCPUs** | 2 |
 | **Memory** | 12 GB |
 | **Boot volume** | 50 GB (default) |
-| **SSH key** | Upload your `~/.ssh/oci_ohmydok.pub` |
+| **SSH key** | Upload your `~/.ssh/oci_mediwyz.pub` |
 | **VCN** | Create new VCN or use existing |
 
 4. Click **Create**
@@ -65,8 +65,8 @@ oci compute instance launch \
   --shape-config '{"ocpus": 2, "memoryInGBs": 12}' \
   --image-id YOUR_UBUNTU_ARM_IMAGE_OCID \
   --subnet-id YOUR_SUBNET_OCID \
-  --ssh-authorized-keys-file ~/.ssh/oci_ohmydok.pub \
-  --display-name ohmydok-vm
+  --ssh-authorized-keys-file ~/.ssh/oci_mediwyz.pub \
+  --display-name mediwyz-vm
 ```
 
 ---
@@ -106,7 +106,7 @@ sudo netfilter-persistent save
 Find your VM's **Public IP** in the OCI Console (Compute > Instances > your instance).
 
 ```bash
-ssh -i ~/.ssh/oci_ohmydok ubuntu@YOUR_VM_PUBLIC_IP
+ssh -i ~/.ssh/oci_mediwyz ubuntu@YOUR_VM_PUBLIC_IP
 ```
 
 > **Note**: The default username for Ubuntu images on OCI is `ubuntu`.
@@ -158,7 +158,7 @@ Update for production:
 
 ```env
 # Database (matches docker-compose.yml — change password!)
-DATABASE_URL=postgresql://ohmydok:YOUR_STRONG_PASSWORD@db:5432/ohmydok
+DATABASE_URL=postgresql://mediwyz:YOUR_STRONG_PASSWORD@db:5432/mediwyz
 
 # App URLs — use your VM's public IP or domain
 NEXT_PUBLIC_SOCKET_URL=http://YOUR_VM_IP:3000
@@ -170,10 +170,10 @@ JWT_SECRET=YOUR_STRONG_JWT_SECRET
 PORT=8080
 
 # Super Admin
-SUPER_ADMIN_EMAIL=admin@ohmydok.mu
+SUPER_ADMIN_EMAIL=admin@mediwyz.mu
 SUPER_ADMIN_PASSWORD=ChangeThisPassword123!
 SUPER_ADMIN_FIRST_NAME=Admin
-SUPER_ADMIN_LAST_NAME=Oh My Dok
+SUPER_ADMIN_LAST_NAME=MediWyz
 
 # Commission Rates (optional)
 # PLATFORM_COMMISSION_RATE=5
@@ -245,7 +245,7 @@ sudo apt install nginx -y
 ### Configure
 
 ```bash
-sudo nano /etc/nginx/sites-available/ohmydok
+sudo nano /etc/nginx/sites-available/mediwyz
 ```
 
 ```nginx
@@ -281,7 +281,7 @@ server {
 
 ```bash
 # Enable the site
-sudo ln -s /etc/nginx/sites-available/ohmydok /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mediwyz /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 
 # Test and reload
@@ -334,29 +334,29 @@ sudo systemctl enable docker
 ### Manual backup
 
 ```bash
-docker compose exec db pg_dump -U ohmydok ohmydok > backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose exec db pg_dump -U mediwyz mediwyz > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Automated daily backups
 
 ```bash
-sudo mkdir -p /opt/ohmydok-backups
+sudo mkdir -p /opt/mediwyz-backups
 
 # Create backup script
-sudo tee /opt/ohmydok-backups/backup.sh << 'SCRIPT'
+sudo tee /opt/mediwyz-backups/backup.sh << 'SCRIPT'
 #!/bin/bash
-BACKUP_DIR="/opt/ohmydok-backups"
+BACKUP_DIR="/opt/mediwyz-backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 cd /home/ubuntu/healthways-typescript
-docker compose exec -T db pg_dump -U ohmydok ohmydok > "$BACKUP_DIR/backup_$TIMESTAMP.sql"
+docker compose exec -T db pg_dump -U mediwyz mediwyz > "$BACKUP_DIR/backup_$TIMESTAMP.sql"
 # Keep only last 7 days
 find "$BACKUP_DIR" -name "backup_*.sql" -mtime +7 -delete
 SCRIPT
 
-sudo chmod +x /opt/ohmydok-backups/backup.sh
+sudo chmod +x /opt/mediwyz-backups/backup.sh
 
 # Add to crontab (daily at 2 AM)
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ohmydok-backups/backup.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/mediwyz-backups/backup.sh") | crontab -
 ```
 
 ### Backup to OCI Object Storage (optional)
@@ -369,10 +369,10 @@ bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scrip
 oci setup config
 
 # Create a bucket
-oci os bucket create --name ohmydok-backups --compartment-id YOUR_COMPARTMENT_OCID
+oci os bucket create --name mediwyz-backups --compartment-id YOUR_COMPARTMENT_OCID
 
 # Upload backup
-oci os object put --bucket-name ohmydok-backups --file /opt/ohmydok-backups/backup_TIMESTAMP.sql
+oci os object put --bucket-name mediwyz-backups --file /opt/mediwyz-backups/backup_TIMESTAMP.sql
 ```
 
 ---
@@ -402,13 +402,13 @@ Add these 3 secrets in your GitHub repo (**Settings > Secrets and variables > Ac
 |--------|-------|---------------|
 | `OCI_VM_IP` | Your VM's public IP | OCI Console > Compute > Instances > your VM |
 | `OCI_VM_USER` | `ubuntu` | Default for Ubuntu images on OCI |
-| `OCI_SSH_PRIVATE_KEY` | Your SSH private key | Contents of `~/.ssh/oci_ohmydok` |
+| `OCI_SSH_PRIVATE_KEY` | Your SSH private key | Contents of `~/.ssh/oci_mediwyz` |
 
 ### How to add the SSH private key secret
 
 ```bash
 # Copy the private key content to clipboard
-cat ~/.ssh/oci_ohmydok
+cat ~/.ssh/oci_mediwyz
 ```
 
 Then paste the **entire content** (including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`) as the value of `OCI_SSH_PRIVATE_KEY` in GitHub.
@@ -420,7 +420,7 @@ GitHub Actions runners use dynamic IPs. Your VM already allows SSH on port 22 (d
 ### Manual deploy (without CI/CD)
 
 ```bash
-ssh -i ~/.ssh/oci_ohmydok ubuntu@YOUR_VM_IP
+ssh -i ~/.ssh/oci_mediwyz ubuntu@YOUR_VM_IP
 cd ~/healthways-typescript
 git pull origin main
 docker compose up --build -d
@@ -459,7 +459,7 @@ df -h
 | Port not accessible from outside | Check **both** OCI Security List ingress rules AND VM iptables (Section 2) |
 | WebSocket not connecting | Ensure Nginx has WebSocket proxy config (Section 10) |
 | Out of disk space | `docker system prune -a` to clean unused images |
-| SSH connection refused | Verify security list allows port 22, check `~/.ssh/oci_ohmydok` permissions (`chmod 600`) |
+| SSH connection refused | Verify security list allows port 22, check `~/.ssh/oci_mediwyz` permissions (`chmod 600`) |
 | Build slow on Arm | First build downloads Arm images — subsequent builds use cache |
 | GitHub Actions deploy fails | Check `OCI_SSH_PRIVATE_KEY` secret has full key including headers |
 | High memory usage | Add swap: `sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` and add `/swapfile swap swap defaults 0 0` to `/etc/fstab` |
@@ -482,13 +482,13 @@ docker compose up --build -d
 docker compose logs -f
 
 # Database shell
-docker compose exec db psql -U ohmydok
+docker compose exec db psql -U mediwyz
 
 # Prisma Studio (dev only)
 docker compose exec app npx prisma studio
 
 # SSH into VM
-ssh -i ~/.ssh/oci_ohmydok ubuntu@YOUR_VM_IP
+ssh -i ~/.ssh/oci_mediwyz ubuntu@YOUR_VM_IP
 
 # Check public IP from VM
 curl ifconfig.me

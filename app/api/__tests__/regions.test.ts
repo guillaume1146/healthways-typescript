@@ -42,7 +42,7 @@ import { validateRequest } from '@/lib/auth/validate'
 import { createRegionSchema, updateRegionSchema } from '@/lib/validations/api'
 import { NextRequest } from 'next/server'
 
-const SUPER_ADMIN_EMAIL = 'admin@ohmydok.com'
+const SUPER_ADMIN_EMAIL = 'admin@mediwyz.com'
 
 function createGetRequest(url: string) {
   return new NextRequest(`http://localhost:3000${url}`, { method: 'GET' })

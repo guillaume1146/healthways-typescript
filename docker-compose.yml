@@ -1,31 +1,31 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: omd-db
+    container_name: mediwyz-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: omd
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omd_secret}
-      POSTGRES_DB: omd
+      POSTGRES_USER: mediwyz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mediwyz_secret}
+      POSTGRES_DB: mediwyz
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U omd"]
+      test: ["CMD-SHELL", "pg_isready -U mediwyz"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   app:
-    image: omd-app:latest
+    image: mediwyz-app:latest
     build:
       context: .
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
         NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3000}
-    container_name: omd-app
+    container_name: mediwyz-app
     restart: unless-stopped
     ports:
       - "3000:8080"

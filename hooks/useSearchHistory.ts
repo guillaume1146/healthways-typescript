@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const STORAGE_KEY = 'omd_search_history'
+const STORAGE_KEY = 'mediwyz_search_history'
 const MAX_HISTORY = 5
 
 export interface SearchHistoryEntry {

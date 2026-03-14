@@ -10,7 +10,7 @@ async function verifyJWT(token: string): Promise<{ sub: string; userType: string
     const parts = token.split('.')
     if (parts.length !== 3) return null
 
-    const secret = process.env.JWT_SECRET || 'omd-dev-secret-change-in-production'
+    const secret = process.env.JWT_SECRET || 'mediwyz-dev-secret-change-in-production'
     const encoder = new TextEncoder()
 
     // Import HMAC key for verification
@@ -80,8 +80,8 @@ export async function middleware(request: NextRequest) {
   )
 
   if (protectedRoute) {
-    const token = request.cookies.get('omd_token')
-    const userType = request.cookies.get('omd_userType')
+    const token = request.cookies.get('mediwyz_token')
+    const userType = request.cookies.get('mediwyz_userType')
 
     if (!token || !userType) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -92,8 +92,8 @@ export async function middleware(request: NextRequest) {
     if (!payload) {
       // Token is invalid or expired — clear cookies and redirect to login
       const response = NextResponse.redirect(new URL('/login', request.url))
-      response.cookies.delete('omd_token')
-      response.cookies.delete('omd_userType')
+      response.cookies.delete('mediwyz_token')
+      response.cookies.delete('mediwyz_userType')
       return response
     }
 

@@ -1,8 +1,8 @@
 import { randomBytes, createHmac } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 
-const CSRF_SECRET = process.env.CSRF_SECRET || process.env.JWT_SECRET || 'omd-csrf-dev-secret'
-const CSRF_COOKIE_NAME = 'omd_csrf'
+const CSRF_SECRET = process.env.CSRF_SECRET || process.env.JWT_SECRET || 'mediwyz-csrf-dev-secret'
+const CSRF_COOKIE_NAME = 'mediwyz_csrf'
 const CSRF_HEADER_NAME = 'x-csrf-token'
 const TOKEN_EXPIRY_MS = 4 * 60 * 60 * 1000 // 4 hours
 

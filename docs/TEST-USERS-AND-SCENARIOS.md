@@ -1,4 +1,4 @@
-# Oh My Dok — Test Users & Registration Scenarios
+# MediWyz — Test Users & Registration Scenarios
 
 > All seeded users grouped by region, plus step-by-step registration test data.
 > Fake test documents for upload are in `docs/test-documents/`.
@@ -39,80 +39,80 @@
 
 | ID | Name | Email | Password | Phone | Specialty |
 |----|------|-------|----------|-------|-----------|
-| DOC001 | Sarah Johnson | sarah.johnson@ohmydok.com | Doctor123! | +230 5234 5678 | Endocrinology, Internal Medicine |
-| DOC002 | Raj Patel | raj.patel@ohmydok.com | Doctor123! | +230 5345 6789 | General Medicine, Family Medicine |
-| DOC003 | Marie Dupont | marie.dupont@ohmydok.com | Doctor123! | +230 5456 7890 | Cardiology |
+| DOC001 | Sarah Johnson | sarah.johnson@mediwyz.com | Doctor123! | +230 5234 5678 | Endocrinology, Internal Medicine |
+| DOC002 | Raj Patel | raj.patel@mediwyz.com | Doctor123! | +230 5345 6789 | General Medicine, Family Medicine |
+| DOC003 | Marie Dupont | marie.dupont@mediwyz.com | Doctor123! | +230 5456 7890 | Cardiology |
 
 ### Nurses
 
 | ID | Name | Email | Password | Phone | License |
 |----|------|-------|----------|-------|---------|
-| NUR001 | Priya Ramgoolam | priya.ramgoolam@ohmydok.com | Nurse123! | +230 5567 8901 | MU-NUR-2016-001 |
-| NUR002 | Sophie Laurent | sophie.laurent@ohmydok.com | Nurse123! | +230 5678 9012 | MU-NUR-2018-015 |
+| NUR001 | Priya Ramgoolam | priya.ramgoolam@mediwyz.com | Nurse123! | +230 5567 8901 | MU-NUR-2016-001 |
+| NUR002 | Sophie Laurent | sophie.laurent@mediwyz.com | Nurse123! | +230 5678 9012 | MU-NUR-2018-015 |
 
 ### Nannies
 
 | ID | Name | Email | Password | Phone | Experience |
 |----|------|-------|----------|-------|------------|
-| NAN001 | Anita Beeharry | anita.beeharry@ohmydok.com | Nanny123! | +230 5789 0123 | 10 years |
-| NAN002 | Claire Morel | claire.morel@ohmydok.com | Nanny123! | +230 5890 1234 | 5 years |
+| NAN001 | Anita Beeharry | anita.beeharry@mediwyz.com | Nanny123! | +230 5789 0123 | 10 years |
+| NAN002 | Claire Morel | claire.morel@mediwyz.com | Nanny123! | +230 5890 1234 | 5 years |
 
 ### Patients
 
 | ID | Name | Email | Password | Phone | Blood Type |
 |----|------|-------|----------|-------|------------|
-| PAT001 | Emma Johnson | emma.johnson@ohmydok.com | Patient123! | +230 5789 1234 | A+ |
-| PAT002 | Jean Pierre | jean.pierre@ohmydok.com | Patient123! | +230 5890 2345 | O+ |
-| PAT003 | Aisha Khan | aisha.khan@ohmydok.com | Patient123! | +230 5901 3456 | B+ |
-| PAT004 | Vikash Doorgakant | vikash.d@ohmydok.com | Patient123! | +230 5012 4567 | AB- |
-| PAT005 | Nadia Soobramanien | nadia.s@ohmydok.com | Patient123! | +230 5123 5678 | A- |
+| PAT001 | Emma Johnson | emma.johnson@mediwyz.com | Patient123! | +230 5789 1234 | A+ |
+| PAT002 | Jean Pierre | jean.pierre@mediwyz.com | Patient123! | +230 5890 2345 | O+ |
+| PAT003 | Aisha Khan | aisha.khan@mediwyz.com | Patient123! | +230 5901 3456 | B+ |
+| PAT004 | Vikash Doorgakant | vikash.d@mediwyz.com | Patient123! | +230 5012 4567 | AB- |
+| PAT005 | Nadia Soobramanien | nadia.s@mediwyz.com | Patient123! | +230 5123 5678 | A- |
 
 ### Pharmacists
 
 | ID | Name | Email | Password | Phone | Pharmacy |
 |----|------|-------|----------|-------|----------|
-| PHARM001 | Rajesh Doorgakant | rajesh.doorgakant@ohmydok.com | Pharma123! | +230 5789 0001 | CarePharm Central |
-| PHARM002 | Anushka Doobur | anushka.doobur@ohmydok.com | Pharma123! | +230 5789 0002 | MediPlus Pharmacy |
+| PHARM001 | Rajesh Doorgakant | rajesh.doorgakant@mediwyz.com | Pharma123! | +230 5789 0001 | CarePharm Central |
+| PHARM002 | Anushka Doobur | anushka.doobur@mediwyz.com | Pharma123! | +230 5789 0002 | MediPlus Pharmacy |
 
 ### Lab Technicians
 
 | ID | Name | Email | Password | Phone | Lab |
 |----|------|-------|----------|-------|-----|
-| LAB001 | David Ah-Kee | david.ahkee@ohmydok.com | Lab123! | +230 5789 1001 | HealthLab Mauritius |
-| LAB002 | Priya Doorgakant | priya.doorgakant@ohmydok.com | Lab123! | +230 5789 1002 | BioAnalytics Lab |
+| LAB001 | David Ah-Kee | david.ahkee@mediwyz.com | Lab123! | +230 5789 1001 | HealthLab Mauritius |
+| LAB002 | Priya Doorgakant | priya.doorgakant@mediwyz.com | Lab123! | +230 5789 1002 | BioAnalytics Lab |
 
 ### Emergency Workers
 
 | ID | Name | Email | Password | Phone | Level |
 |----|------|-------|----------|-------|-------|
-| EMW001 | Jean-Marc Lafleur | jeanmarc.lafleur@ohmydok.com | Emergency123! | +230 5789 2001 | Paramedic |
-| EMW002 | Fatima Joomun | fatima.joomun@ohmydok.com | Emergency123! | +230 5789 2002 | EMT-Intermediate |
+| EMW001 | Jean-Marc Lafleur | jeanmarc.lafleur@mediwyz.com | Emergency123! | +230 5789 2001 | Paramedic |
+| EMW002 | Fatima Joomun | fatima.joomun@mediwyz.com | Emergency123! | +230 5789 2002 | EMT-Intermediate |
 
 ### Insurance Reps
 
 | ID | Name | Email | Password | Phone | Company |
 |----|------|-------|----------|-------|---------|
-| INS001 | Vikram Doorgakant | vikram.doorgakant@ohmydok.com | Insurance123! | +230 5789 3001 | Swan Life Ltd |
-| INS002 | Marie Genave | marie.genave@ohmydok.com | Insurance123! | +230 5789 3002 | MUA Insurance |
+| INS001 | Vikram Doorgakant | vikram.doorgakant@mediwyz.com | Insurance123! | +230 5789 3001 | Swan Life Ltd |
+| INS002 | Marie Genave | marie.genave@mediwyz.com | Insurance123! | +230 5789 3002 | MUA Insurance |
 
 ### Corporate Admin
 
 | ID | Name | Email | Password | Phone | Company |
 |----|------|-------|----------|-------|---------|
-| CORP001 | Anil Doobur | anil.doobur@ohmydok.com | Corporate123! | +230 5789 4001 | Rogers Group |
+| CORP001 | Anil Doobur | anil.doobur@mediwyz.com | Corporate123! | +230 5789 4001 | Rogers Group |
 
 ### Referral Partner
 
 | ID | Name | Email | Password | Phone | Code |
 |----|------|-------|----------|-------|------|
-| REF001 | Sophie Leclerc | sophie.leclerc@ohmydok.com | Referral123! | +230 5789 5001 | WELLREF2024 |
+| REF001 | Sophie Leclerc | sophie.leclerc@mediwyz.com | Referral123! | +230 5789 5001 | WELLREF2024 |
 
 ### Regional Admins (Mauritius)
 
 | ID | Name | Email | Password | Phone | Role |
 |----|------|-------|----------|-------|------|
-| RADM000 | Hassan Doorgakant | hassan.doorgakant@ohmydok.com | Admin123! | +230 5789 6000 | National Admin |
-| RADM001 | Vikash Doorgakant | vikash.doorgakant@ohmydok.com | Regional123! | +230 5789 6001 | Regional Admin |
+| RADM000 | Hassan Doorgakant | hassan.doorgakant@mediwyz.com | Admin123! | +230 5789 6000 | National Admin |
+| RADM001 | Vikash Doorgakant | vikash.doorgakant@mediwyz.com | Regional123! | +230 5789 6001 | Regional Admin |
 
 ---
 
@@ -124,22 +124,22 @@
 
 | ID | Name | Email | Password | Phone |
 |----|------|-------|----------|-------|
-| RADM002 | Tiana Rasoamanarivo | tiana.rasoa@ohmydok.com | Regional123! | +261 34 00 001 |
+| RADM002 | Tiana Rasoamanarivo | tiana.rasoa@mediwyz.com | Regional123! | +261 34 00 001 |
 
 ### Users
 
 | ID | Name | Email | Type | Phone |
 |----|------|-------|------|-------|
-| MG-PAT001 | Tiana Rasoamanarivo | tiana.rasoamanarivo@ohmydok.com | Patient | +261 7000000xx |
-| MG-PAT002 | Ravo Andriamihaja | ravo.andriamihaja@ohmydok.com | Patient | +261 7000100xx |
-| MG-DOC001 | Haingo Rakotoarisoa | haingo.rakotoarisoa@ohmydok.com | Doctor | +261 7000200xx |
-| MG-DOC002 | Faly Randrianasolo | faly.randrianasolo@ohmydok.com | Doctor | +261 7000300xx |
-| MG-NUR001 | Nomena Razafindrakoto | nomena.razafindrakoto@ohmydok.com | Nurse | +261 7000400xx |
-| MG-NAN001 | Miora Ratsimbazafy | miora.ratsimbazafy@ohmydok.com | Nanny | +261 7000500xx |
-| MG-PHARM001 | Andry Rajoelina | andry.rajoelina@ohmydok.com | Pharmacist | +261 7000600xx |
-| MG-LAB001 | Hery Rakotondrazaka | hery.rakotondrazaka@ohmydok.com | Lab Technician | +261 7000700xx |
-| MG-EMW001 | Lalaina Andrianaivo | lalaina.andrianaivo@ohmydok.com | Emergency Worker | +261 7000800xx |
-| MG-INS001 | Voahangy Ramanantsoa | voahangy.ramanantsoa@ohmydok.com | Insurance Rep | +261 7000900xx |
+| MG-PAT001 | Tiana Rasoamanarivo | tiana.rasoamanarivo@mediwyz.com | Patient | +261 7000000xx |
+| MG-PAT002 | Ravo Andriamihaja | ravo.andriamihaja@mediwyz.com | Patient | +261 7000100xx |
+| MG-DOC001 | Haingo Rakotoarisoa | haingo.rakotoarisoa@mediwyz.com | Doctor | +261 7000200xx |
+| MG-DOC002 | Faly Randrianasolo | faly.randrianasolo@mediwyz.com | Doctor | +261 7000300xx |
+| MG-NUR001 | Nomena Razafindrakoto | nomena.razafindrakoto@mediwyz.com | Nurse | +261 7000400xx |
+| MG-NAN001 | Miora Ratsimbazafy | miora.ratsimbazafy@mediwyz.com | Nanny | +261 7000500xx |
+| MG-PHARM001 | Andry Rajoelina | andry.rajoelina@mediwyz.com | Pharmacist | +261 7000600xx |
+| MG-LAB001 | Hery Rakotondrazaka | hery.rakotondrazaka@mediwyz.com | Lab Technician | +261 7000700xx |
+| MG-EMW001 | Lalaina Andrianaivo | lalaina.andrianaivo@mediwyz.com | Emergency Worker | +261 7000800xx |
+| MG-INS001 | Voahangy Ramanantsoa | voahangy.ramanantsoa@mediwyz.com | Insurance Rep | +261 7000900xx |
 
 ---
 
@@ -151,22 +151,22 @@
 
 | ID | Name | Email | Password | Phone |
 |----|------|-------|----------|-------|
-| RADM003 | James Mwangi | james.mwangi@ohmydok.com | Regional123! | +254 700 000 001 |
+| RADM003 | James Mwangi | james.mwangi@mediwyz.com | Regional123! | +254 700 000 001 |
 
 ### Users
 
 | ID | Name | Email | Type | Phone |
 |----|------|-------|------|-------|
-| KE-PAT001 | Wanjiru Kamau | wanjiru.kamau@ohmydok.com | Patient | +254 7000000xx |
-| KE-PAT002 | Odhiambo Otieno | odhiambo.otieno@ohmydok.com | Patient | +254 7000100xx |
-| KE-DOC001 | Njeri Muthoni | njeri.muthoni@ohmydok.com | Doctor | +254 7000200xx |
-| KE-DOC002 | Kariuki Ngugi | kariuki.ngugi@ohmydok.com | Doctor | +254 7000300xx |
-| KE-NUR001 | Achieng Ouma | achieng.ouma@ohmydok.com | Nurse | +254 7000400xx |
-| KE-NAN001 | Wambui Gitonga | wambui.gitonga@ohmydok.com | Nanny | +254 7000500xx |
-| KE-PHARM001 | Kipchoge Korir | kipchoge.korir@ohmydok.com | Pharmacist | +254 7000600xx |
-| KE-LAB001 | Mutiso Musyoka | mutiso.musyoka@ohmydok.com | Lab Technician | +254 7000700xx |
-| KE-EMW001 | Nyambura Wainaina | nyambura.wainaina@ohmydok.com | Emergency Worker | +254 7000800xx |
-| KE-INS001 | Chebet Rotich | chebet.rotich@ohmydok.com | Insurance Rep | +254 7000900xx |
+| KE-PAT001 | Wanjiru Kamau | wanjiru.kamau@mediwyz.com | Patient | +254 7000000xx |
+| KE-PAT002 | Odhiambo Otieno | odhiambo.otieno@mediwyz.com | Patient | +254 7000100xx |
+| KE-DOC001 | Njeri Muthoni | njeri.muthoni@mediwyz.com | Doctor | +254 7000200xx |
+| KE-DOC002 | Kariuki Ngugi | kariuki.ngugi@mediwyz.com | Doctor | +254 7000300xx |
+| KE-NUR001 | Achieng Ouma | achieng.ouma@mediwyz.com | Nurse | +254 7000400xx |
+| KE-NAN001 | Wambui Gitonga | wambui.gitonga@mediwyz.com | Nanny | +254 7000500xx |
+| KE-PHARM001 | Kipchoge Korir | kipchoge.korir@mediwyz.com | Pharmacist | +254 7000600xx |
+| KE-LAB001 | Mutiso Musyoka | mutiso.musyoka@mediwyz.com | Lab Technician | +254 7000700xx |
+| KE-EMW001 | Nyambura Wainaina | nyambura.wainaina@mediwyz.com | Emergency Worker | +254 7000800xx |
+| KE-INS001 | Chebet Rotich | chebet.rotich@mediwyz.com | Insurance Rep | +254 7000900xx |
 
 ---
 
@@ -176,16 +176,16 @@
 
 | ID | Name | Email | Type | Phone |
 |----|------|-------|------|-------|
-| TG-PAT001 | Kofi Agbeko | kofi.agbeko@ohmydok.com | Patient | +228 7000000xx |
-| TG-PAT002 | Ama Mensah | ama.mensah@ohmydok.com | Patient | +228 7000100xx |
-| TG-DOC001 | Yao Dossou | yao.dossou@ohmydok.com | Doctor | +228 7000200xx |
-| TG-DOC002 | Adjoa Amegah | adjoa.amegah@ohmydok.com | Doctor | +228 7000300xx |
-| TG-NUR001 | Kwame Koudjo | kwame.koudjo@ohmydok.com | Nurse | +228 7000400xx |
-| TG-NAN001 | Akua Afi | akua.afi@ohmydok.com | Nanny | +228 7000500xx |
-| TG-PHARM001 | Kodjo Lawson | kodjo.lawson@ohmydok.com | Pharmacist | +228 7000600xx |
-| TG-LAB001 | Abla Togbe | abla.togbe@ohmydok.com | Lab Technician | +228 7000700xx |
-| TG-EMW001 | Komlan Akakpo | komlan.akakpo@ohmydok.com | Emergency Worker | +228 7000800xx |
-| TG-INS001 | Afi Agbenou | afi.agbenou@ohmydok.com | Insurance Rep | +228 7000900xx |
+| TG-PAT001 | Kofi Agbeko | kofi.agbeko@mediwyz.com | Patient | +228 7000000xx |
+| TG-PAT002 | Ama Mensah | ama.mensah@mediwyz.com | Patient | +228 7000100xx |
+| TG-DOC001 | Yao Dossou | yao.dossou@mediwyz.com | Doctor | +228 7000200xx |
+| TG-DOC002 | Adjoa Amegah | adjoa.amegah@mediwyz.com | Doctor | +228 7000300xx |
+| TG-NUR001 | Kwame Koudjo | kwame.koudjo@mediwyz.com | Nurse | +228 7000400xx |
+| TG-NAN001 | Akua Afi | akua.afi@mediwyz.com | Nanny | +228 7000500xx |
+| TG-PHARM001 | Kodjo Lawson | kodjo.lawson@mediwyz.com | Pharmacist | +228 7000600xx |
+| TG-LAB001 | Abla Togbe | abla.togbe@mediwyz.com | Lab Technician | +228 7000700xx |
+| TG-EMW001 | Komlan Akakpo | komlan.akakpo@mediwyz.com | Emergency Worker | +228 7000800xx |
+| TG-INS001 | Afi Agbenou | afi.agbenou@mediwyz.com | Insurance Rep | +228 7000900xx |
 
 ---
 
@@ -195,16 +195,16 @@
 
 | ID | Name | Email | Type | Phone |
 |----|------|-------|------|-------|
-| BJ-PAT001 | Dossou Ahouandjinou | dossou.ahouandjinou@ohmydok.com | Patient | +229 7000000xx |
-| BJ-PAT002 | Gbaguidi Amoussou | gbaguidi.amoussou@ohmydok.com | Patient | +229 7000100xx |
-| BJ-DOC001 | Hounton Sossa | hounton.sossa@ohmydok.com | Doctor | +229 7000200xx |
-| BJ-DOC002 | Agossou Kiki | agossou.kiki@ohmydok.com | Doctor | +229 7000300xx |
-| BJ-NUR001 | Adjovi Hounsa | adjovi.hounsa@ohmydok.com | Nurse | +229 7000400xx |
-| BJ-NAN001 | Sessinou Gandonou | sessinou.gandonou@ohmydok.com | Nanny | +229 7000500xx |
-| BJ-PHARM001 | Codjo Houngbedji | codjo.houngbedji@ohmydok.com | Pharmacist | +229 7000600xx |
-| BJ-LAB001 | Fifame Adjibi | fifame.adjibi@ohmydok.com | Lab Technician | +229 7000700xx |
-| BJ-EMW001 | Gbenou Tossou | gbenou.tossou@ohmydok.com | Emergency Worker | +229 7000800xx |
-| BJ-INS001 | Ayaba Dah | ayaba.dah@ohmydok.com | Insurance Rep | +229 7000900xx |
+| BJ-PAT001 | Dossou Ahouandjinou | dossou.ahouandjinou@mediwyz.com | Patient | +229 7000000xx |
+| BJ-PAT002 | Gbaguidi Amoussou | gbaguidi.amoussou@mediwyz.com | Patient | +229 7000100xx |
+| BJ-DOC001 | Hounton Sossa | hounton.sossa@mediwyz.com | Doctor | +229 7000200xx |
+| BJ-DOC002 | Agossou Kiki | agossou.kiki@mediwyz.com | Doctor | +229 7000300xx |
+| BJ-NUR001 | Adjovi Hounsa | adjovi.hounsa@mediwyz.com | Nurse | +229 7000400xx |
+| BJ-NAN001 | Sessinou Gandonou | sessinou.gandonou@mediwyz.com | Nanny | +229 7000500xx |
+| BJ-PHARM001 | Codjo Houngbedji | codjo.houngbedji@mediwyz.com | Pharmacist | +229 7000600xx |
+| BJ-LAB001 | Fifame Adjibi | fifame.adjibi@mediwyz.com | Lab Technician | +229 7000700xx |
+| BJ-EMW001 | Gbenou Tossou | gbenou.tossou@mediwyz.com | Emergency Worker | +229 7000800xx |
+| BJ-INS001 | Ayaba Dah | ayaba.dah@mediwyz.com | Insurance Rep | +229 7000900xx |
 
 ---
 
@@ -214,16 +214,16 @@
 
 | ID | Name | Email | Type | Phone |
 |----|------|-------|------|-------|
-| RW-PAT001 | Uwimana Mugisha | uwimana.mugisha@ohmydok.com | Patient | +250 7000000xx |
-| RW-PAT002 | Habimana Niyonzima | habimana.niyonzima@ohmydok.com | Patient | +250 7000100xx |
-| RW-DOC001 | Ingabire Mutesi | ingabire.mutesi@ohmydok.com | Doctor | +250 7000200xx |
-| RW-DOC002 | Ndayisaba Hakizimana | ndayisaba.hakizimana@ohmydok.com | Doctor | +250 7000300xx |
-| RW-NUR001 | Uwase Mukamana | uwase.mukamana@ohmydok.com | Nurse | +250 7000400xx |
-| RW-NAN001 | Irakoze Nsengimana | irakoze.nsengimana@ohmydok.com | Nanny | +250 7000500xx |
-| RW-PHARM001 | Ntwari Bizimana | ntwari.bizimana@ohmydok.com | Pharmacist | +250 7000600xx |
-| RW-LAB001 | Iradukunda Uwitonze | iradukunda.uwitonze@ohmydok.com | Lab Technician | +250 7000700xx |
-| RW-EMW001 | Ishimwe Rugamba | ishimwe.rugamba@ohmydok.com | Emergency Worker | +250 7000800xx |
-| RW-INS001 | Umutesi Ingabire | umutesi.ingabire@ohmydok.com | Insurance Rep | +250 7000900xx |
+| RW-PAT001 | Uwimana Mugisha | uwimana.mugisha@mediwyz.com | Patient | +250 7000000xx |
+| RW-PAT002 | Habimana Niyonzima | habimana.niyonzima@mediwyz.com | Patient | +250 7000100xx |
+| RW-DOC001 | Ingabire Mutesi | ingabire.mutesi@mediwyz.com | Doctor | +250 7000200xx |
+| RW-DOC002 | Ndayisaba Hakizimana | ndayisaba.hakizimana@mediwyz.com | Doctor | +250 7000300xx |
+| RW-NUR001 | Uwase Mukamana | uwase.mukamana@mediwyz.com | Nurse | +250 7000400xx |
+| RW-NAN001 | Irakoze Nsengimana | irakoze.nsengimana@mediwyz.com | Nanny | +250 7000500xx |
+| RW-PHARM001 | Ntwari Bizimana | ntwari.bizimana@mediwyz.com | Pharmacist | +250 7000600xx |
+| RW-LAB001 | Iradukunda Uwitonze | iradukunda.uwitonze@mediwyz.com | Lab Technician | +250 7000700xx |
+| RW-EMW001 | Ishimwe Rugamba | ishimwe.rugamba@mediwyz.com | Emergency Worker | +250 7000800xx |
+| RW-INS001 | Umutesi Ingabire | umutesi.ingabire@mediwyz.com | Insurance Rep | +250 7000900xx |
 
 ---
 
@@ -317,7 +317,7 @@ Use the fake documents from `docs/test-documents/` for all uploads below.
 | | Work Certificate (required) | Upload `docs/test-documents/work-certificate.svg` |
 | 4 — Verify & Submit | Accept Terms | Yes |
 
-**After registration:** Login as `tiana.rasoa@ohmydok.com` / `Regional123!` → User Management → verify the new nurse appears in the list.
+**After registration:** Login as `tiana.rasoa@mediwyz.com` / `Regional123!` → User Management → verify the new nurse appears in the list.
 
 ---
 
@@ -462,25 +462,25 @@ Located in `docs/test-documents/`. Upload these during registration or from the 
 
 | Role | Email | Password | Region |
 |------|-------|----------|--------|
-| Patient | emma.johnson@ohmydok.com | Patient123! | Mauritius |
-| Doctor | sarah.johnson@ohmydok.com | Doctor123! | Mauritius |
-| Nurse | priya.ramgoolam@ohmydok.com | Nurse123! | Mauritius |
-| Nanny | anita.beeharry@ohmydok.com | Nanny123! | Mauritius |
-| Pharmacist | rajesh.doorgakant@ohmydok.com | Pharma123! | Mauritius |
-| Lab Tech | david.ahkee@ohmydok.com | Lab123! | Mauritius |
-| Emergency | jeanmarc.lafleur@ohmydok.com | Emergency123! | Mauritius |
-| Insurance | vikram.doorgakant@ohmydok.com | Insurance123! | Mauritius |
-| Corporate | anil.doobur@ohmydok.com | Corporate123! | Mauritius |
-| Referral | sophie.leclerc@ohmydok.com | Referral123! | Mauritius |
-| Regional Admin (MU) | vikash.doorgakant@ohmydok.com | Regional123! | Mauritius |
-| Regional Admin (MG) | tiana.rasoa@ohmydok.com | Regional123! | Madagascar |
-| Regional Admin (KE) | james.mwangi@ohmydok.com | Regional123! | Kenya |
+| Patient | emma.johnson@mediwyz.com | Patient123! | Mauritius |
+| Doctor | sarah.johnson@mediwyz.com | Doctor123! | Mauritius |
+| Nurse | priya.ramgoolam@mediwyz.com | Nurse123! | Mauritius |
+| Nanny | anita.beeharry@mediwyz.com | Nanny123! | Mauritius |
+| Pharmacist | rajesh.doorgakant@mediwyz.com | Pharma123! | Mauritius |
+| Lab Tech | david.ahkee@mediwyz.com | Lab123! | Mauritius |
+| Emergency | jeanmarc.lafleur@mediwyz.com | Emergency123! | Mauritius |
+| Insurance | vikram.doorgakant@mediwyz.com | Insurance123! | Mauritius |
+| Corporate | anil.doobur@mediwyz.com | Corporate123! | Mauritius |
+| Referral | sophie.leclerc@mediwyz.com | Referral123! | Mauritius |
+| Regional Admin (MU) | vikash.doorgakant@mediwyz.com | Regional123! | Mauritius |
+| Regional Admin (MG) | tiana.rasoa@mediwyz.com | Regional123! | Madagascar |
+| Regional Admin (KE) | james.mwangi@mediwyz.com | Regional123! | Kenya |
 | Super Admin | *(from .env)* | *(from .env)* | Global |
-| MG Patient | tiana.rasoamanarivo@ohmydok.com | User123! | Madagascar |
-| KE Doctor | njeri.muthoni@ohmydok.com | User123! | Kenya |
-| TG Patient | kofi.agbeko@ohmydok.com | User123! | Togo |
-| BJ Doctor | hounton.sossa@ohmydok.com | User123! | Benin |
-| RW Patient | uwimana.mugisha@ohmydok.com | User123! | Rwanda |
+| MG Patient | tiana.rasoamanarivo@mediwyz.com | User123! | Madagascar |
+| KE Doctor | njeri.muthoni@mediwyz.com | User123! | Kenya |
+| TG Patient | kofi.agbeko@mediwyz.com | User123! | Togo |
+| BJ Doctor | hounton.sossa@mediwyz.com | User123! | Benin |
+| RW Patient | uwimana.mugisha@mediwyz.com | User123! | Rwanda |
 
 ---
 

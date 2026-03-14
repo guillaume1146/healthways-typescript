@@ -15,7 +15,7 @@ const WhyChooseSection: React.FC<WhyChooseSectionProps> = ({ title, subtitle, it
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">
-          {title || 'Why Choose Oh My Dok?'}
+          {title || 'Why Choose MediWyz?'}
         </h2>
         <p className="text-center text-gray-600 mb-12">
           {subtitle || 'Trusted by thousands of Mauritians for quality healthcare'}

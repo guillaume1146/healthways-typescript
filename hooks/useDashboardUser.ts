@@ -15,7 +15,7 @@ export function useDashboardUser(): DashboardUser | null {
   const [user, setUser] = useState<DashboardUser | null>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem('omd_user')
+    const stored = localStorage.getItem('mediwyz_user')
     if (stored) {
       const parsed = JSON.parse(stored)
       setUser({

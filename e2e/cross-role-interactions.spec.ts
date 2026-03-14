@@ -5,14 +5,14 @@ test.setTimeout(120_000)
 // ─── Seed Credentials ──────────────────────────────────────────────────────────
 
 const USERS = {
-  patient1: { email: 'emma.johnson@ohmydok.com', password: 'Patient123!', slug: 'patient' },
-  patient2: { email: 'jean.claude@ohmydok.com', password: 'Patient123!', slug: 'patient' },
-  doctor1: { email: 'sarah.johnson@ohmydok.com', password: 'Doctor123!', slug: 'doctor' },
-  doctor2: { email: 'raj.patel@ohmydok.com', password: 'Doctor123!', slug: 'doctor' },
-  nurse1: { email: 'priya.ramgoolam@ohmydok.com', password: 'Nurse123!', slug: 'nurse' },
-  nanny1: { email: 'anita.beeharry@ohmydok.com', password: 'Nanny123!', slug: 'nanny' },
-  pharmacist1: { email: 'rajesh.doorgakant@ohmydok.com', password: 'Pharma123!', slug: 'pharmacist' },
-  labtech1: { email: 'david.ahkee@ohmydok.com', password: 'Lab123!', slug: 'lab-technician' },
+  patient1: { email: 'emma.johnson@mediwyz.com', password: 'Patient123!', slug: 'patient' },
+  patient2: { email: 'jean.claude@mediwyz.com', password: 'Patient123!', slug: 'patient' },
+  doctor1: { email: 'sarah.johnson@mediwyz.com', password: 'Doctor123!', slug: 'doctor' },
+  doctor2: { email: 'raj.patel@mediwyz.com', password: 'Doctor123!', slug: 'doctor' },
+  nurse1: { email: 'priya.ramgoolam@mediwyz.com', password: 'Nurse123!', slug: 'nurse' },
+  nanny1: { email: 'anita.beeharry@mediwyz.com', password: 'Nanny123!', slug: 'nanny' },
+  pharmacist1: { email: 'rajesh.doorgakant@mediwyz.com', password: 'Pharma123!', slug: 'pharmacist' },
+  labtech1: { email: 'david.ahkee@mediwyz.com', password: 'Lab123!', slug: 'lab-technician' },
 } as const
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────

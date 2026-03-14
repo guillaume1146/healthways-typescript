@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FaDatabase, FaDownload, FaUpload, FaCheckCircle, FaClock, FaSpinner } from 'react-icons/fa'
 
-const STORAGE_KEY = 'omd_admin_backups'
+const STORAGE_KEY = 'mediwyz_admin_backups'
 
 interface BackupEntry {
   id: string

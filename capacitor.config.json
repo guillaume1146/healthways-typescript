@@ -1,6 +1,6 @@
 {
-  "appId": "com.ohmydok.app",
-  "appName": "Oh My Dok",
+  "appId": "com.mediwyz.app",
+  "appName": "MediWyz",
   "webDir": "out",
   "server": {
     "url": "http://localhost:3000",
@@ -26,7 +26,7 @@
     }
   },
   "ios": {
-    "scheme": "OhMyDok"
+    "scheme": "MediWyz"
   },
   "android": {
     "allowMixedContent": true

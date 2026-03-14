@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     'online pharmacy Mauritius',
   ],
   openGraph: {
-    title: 'Pharmacy & Medicines | Oh My Dok',
+    title: 'Pharmacy & Medicines | MediWyz',
     description:
       'Order authentic medicines online in Mauritius. Fast delivery from licensed pharmacies.',
   },

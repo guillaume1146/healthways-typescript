@@ -51,7 +51,7 @@ const HealthwyzLogo: React.FC<HealthwyzLogoProps> = ({
           fill="#2d3748"
           letterSpacing="-2px"
         >
-          Oh My Dok
+          MediWyz
         </text>
       )}
     </svg>

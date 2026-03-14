@@ -288,7 +288,7 @@ async function run() {
   console.log('\n\x1b[36m8. Backend API Integration Tests\x1b[0m')
 
   // Test auth
-  const loginResult = await login('emma.johnson@ohmydok.com', 'Patient123!')
+  const loginResult = await login('emma.johnson@mediwyz.com', 'Patient123!')
   if (!loginResult.success) {
     skip('API tests (login unavailable)')
   } else {

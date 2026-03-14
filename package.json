@@ -1,5 +1,5 @@
 {
-  "name": "ohmydok",
+  "name": "mediwyz",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:api": "node e2e/e2e-registration-auth.js",
-    "mobile:init": "npx cap init OhMyDok com.ohmydok.app --web-dir out",
+    "mobile:init": "npx cap init MediWyz com.mediwyz.app --web-dir out",
     "mobile:add:android": "npx cap add android",
     "mobile:add:ios": "npx cap add ios",
     "mobile:sync": "next build && npx next export && npx cap sync",

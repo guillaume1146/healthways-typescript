@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Create Account',
   description:
-    'Join Oh My Dok - Create your healthcare account to book appointments with doctors, nurses, and healthcare providers in Mauritius. Patients, doctors, and healthcare professionals welcome.',
+    'Join MediWyz - Create your healthcare account to book appointments with doctors, nurses, and healthcare providers in Mauritius. Patients, doctors, and healthcare professionals welcome.',
   robots: {
     index: false,
     follow: true,

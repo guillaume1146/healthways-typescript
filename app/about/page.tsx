@@ -10,7 +10,7 @@ export default function AboutPage() {
     <>
       <PageHeader
         icon={FaInfoCircle}
-        title="About Oh My Dok"
+        title="About MediWyz"
         description="Learn about our mission to revolutionize healthcare in Mauritius through innovation, accessibility, and quality care."
       />
       

@@ -40,7 +40,7 @@ test.describe('F. Booking Flow', () => {
   })
 
   test('F3: Patient can access booking form for a doctor', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     await page.goto('/search/doctors', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('text=Dr. Sarah Johnson')).toBeVisible({ timeout: 45_000 })
@@ -59,7 +59,7 @@ test.describe('F. Booking Flow', () => {
   })
 
   test('F4: Booking form has consultation type options', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     await page.goto('/search/doctors', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('text=Dr. Sarah Johnson')).toBeVisible({ timeout: 45_000 })
@@ -91,7 +91,7 @@ test.describe('F. Booking Flow', () => {
   })
 
   test('F7: Doctor can see booking requests page', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@mediwyz.com', 'Doctor123!')
 
     await page.goto('/doctor/booking-requests', { waitUntil: 'domcontentloaded' })
 
@@ -100,7 +100,7 @@ test.describe('F. Booking Flow', () => {
   })
 
   test('F8: Patient bookings page shows filter tabs', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     await page.goto('/patient/bookings', { waitUntil: 'domcontentloaded' })
 

@@ -19,8 +19,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Oh My Dok - Healthcare Platform',
-    template: '%s | Oh My Dok',
+    default: 'MediWyz - Healthcare Platform',
+    template: '%s | MediWyz',
   },
   description:
     'Connect with qualified doctors, nurses, and healthcare providers in Mauritius. Book video consultations, manage prescriptions, and access AI-powered health insights.',
@@ -40,15 +40,15 @@ export const metadata: Metadata = {
     'emergency services',
     'health insurance',
   ],
-  authors: [{ name: 'Oh My Dok' }],
-  creator: 'Oh My Dok',
-  publisher: 'Oh My Dok',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://ohmydok.com'),
+  authors: [{ name: 'MediWyz' }],
+  creator: 'MediWyz',
+  publisher: 'MediWyz',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://mediwyz.com'),
   openGraph: {
     type: 'website',
     locale: 'en_MU',
-    siteName: 'Oh My Dok',
-    title: 'Oh My Dok - Healthcare Platform',
+    siteName: 'MediWyz',
+    title: 'MediWyz - Healthcare Platform',
     description:
       'Connect with qualified doctors, nurses, and healthcare providers in Mauritius. Book video consultations and manage your health online.',
     images: [
@@ -56,13 +56,13 @@ export const metadata: Metadata = {
         url: '/images/og-banner.png',
         width: 1200,
         height: 630,
-        alt: 'Oh My Dok - Healthcare Platform',
+        alt: 'MediWyz - Healthcare Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Oh My Dok - Healthcare Platform',
+    title: 'MediWyz - Healthcare Platform',
     description:
       'Connect with qualified doctors, nurses, and healthcare providers in Mauritius.',
     images: ['/images/og-banner.png'],
@@ -88,9 +88,9 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalOrganization',
-  name: 'Oh My Dok',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'https://ohmydok.com',
-  logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://ohmydok.com'}/images/logo.png`,
+  name: 'MediWyz',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'https://mediwyz.com',
+  logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://mediwyz.com'}/images/logo.png`,
   description:
     'A full-stack healthcare platform for Mauritius connecting patients with doctors, nurses, pharmacists, and emergency services via video consultations and appointment booking.',
   address: {
@@ -139,7 +139,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Oh My Dok" />
+        <meta name="apple-mobile-web-app-title" content="MediWyz" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <script
           type="application/ld+json"

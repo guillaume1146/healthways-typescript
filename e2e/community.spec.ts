@@ -31,7 +31,7 @@ test.describe('Community Health Feed', () => {
   })
 
   test('D2: Doctor creates a post', async ({ page }) => {
-    await loginAs(page, 'sarah.johnson@ohmydok.com', 'Doctor123!')
+    await loginAs(page, 'sarah.johnson@mediwyz.com', 'Doctor123!')
 
     await page.goto('/doctor/posts', { waitUntil: 'domcontentloaded' })
 
@@ -52,7 +52,7 @@ test.describe('Community Health Feed', () => {
   })
 
   test('D3: Patient comments on a post', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     await page.goto('/community', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('text=Community Health Feed')).toBeVisible({ timeout: 15_000 })
@@ -66,7 +66,7 @@ test.describe('Community Health Feed', () => {
   })
 
   test('D4: Like a post', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     // Navigate to patient feed first (where we're already logged in), then community
     await page.goto('/patient/feed', { waitUntil: 'domcontentloaded' })
@@ -84,7 +84,7 @@ test.describe('Community Health Feed', () => {
   })
 
   test('D5: Unlike a post', async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
 
     await page.goto('/patient/feed', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2_000)

@@ -1,4 +1,4 @@
-# Oh My Dok - Healthcare Platform for Mauritius
+# MediWyz - Healthcare Platform for Mauritius
 
 A full-stack healthcare platform built with **Next.js 15**, **TypeScript**, **PostgreSQL**, **Socket.IO**, and **WebRTC**. It connects patients with doctors, nurses, nannies, pharmacists, lab technicians, and emergency responders through video consultations, appointment booking, prescription management, and more.
 
@@ -240,7 +240,7 @@ docker compose up --build -d
 
 This starts:
 - **PostgreSQL 16** on port 5432 (with health checks)
-- **Oh My Dok app** on port 3000 (maps to container port 8080)
+- **MediWyz app** on port 3000 (maps to container port 8080)
 
 ### 2. Set up the database
 
@@ -314,11 +314,11 @@ npx eslint .            # Lint
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | Required |
-| `JWT_SECRET` | Secret key for JWT signing | `ohmydok-dev-secret...` |
+| `JWT_SECRET` | Secret key for JWT signing | `mediwyz-dev-secret...` |
 | `NEXT_PUBLIC_SOCKET_URL` | Socket.IO server URL | `http://localhost:3000` |
 | `NEXT_PUBLIC_APP_URL` | App base URL | `http://localhost:3000` |
 | `PORT` | Server port | `3000` |
-| `SUPER_ADMIN_EMAIL` | Super admin email (auto-created on startup) | `hassan.doorgakant@ohmydok.com` |
+| `SUPER_ADMIN_EMAIL` | Super admin email (auto-created on startup) | `hassan.doorgakant@mediwyz.com` |
 | `SUPER_ADMIN_PASSWORD` | Super admin password | `Admin123!` |
 | `PLATFORM_COMMISSION_RATE` | Platform fee % (fallback if DB config missing) | `5` |
 | `REGIONAL_COMMISSION_RATE` | Regional admin fee % (fallback) | `10` |
@@ -401,7 +401,7 @@ The database is **fully normalized** — no JSON columns. All data is stored in 
 
 ## API Endpoints
 
-All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) require a valid JWT in the `omd_token` httpOnly cookie.
+All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) require a valid JWT in the `mediwyz_token` httpOnly cookie.
 
 ### Authentication
 | Method | Path | Description |
@@ -510,9 +510,9 @@ All API routes (except `/api/auth/login`, `/api/health`, and `/api/config`) requ
 2. `POST /api/auth/login` validates input with Zod, queries the database by userType
 3. Password is verified with `bcrypt.compare()`
 4. A JWT is generated (`lib/auth/jwt.ts`) containing `{ sub: userId, userType, email }`
-5. The JWT is set as an **httpOnly cookie** (`omd_token`) — not accessible via JavaScript
+5. The JWT is set as an **httpOnly cookie** (`mediwyz_token`) — not accessible via JavaScript
 6. Minimal user info (`id`, `firstName`, `lastName`, `email`, `profileImage`, `userType`) is stored in localStorage for UI display only
-7. `middleware.ts` checks the `omd_userType` cookie and redirects unauthorized users
+7. `middleware.ts` checks the `mediwyz_userType` cookie and redirects unauthorized users
 8. Every API route validates the JWT via `validateRequest()` before returning data
 9. On logout, `POST /api/auth/logout` clears all cookies
 
@@ -590,32 +590,32 @@ After running `npx prisma db seed`, these accounts are available:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Patient | emma.johnson@ohmydok.com | Patient123! |
-| Patient | jean.pierre@ohmydok.com | Patient123! |
-| Patient | aisha.khan@ohmydok.com | Patient123! |
-| Patient | vikash.d@ohmydok.com | Patient123! |
-| Patient | nadia.s@ohmydok.com | Patient123! |
-| Doctor | sarah.johnson@ohmydok.com | Doctor123! |
-| Doctor | raj.patel@ohmydok.com | Doctor123! |
-| Doctor | marie.dupont@ohmydok.com | Doctor123! |
-| Nurse | priya.ramgoolam@ohmydok.com | Nurse123! |
-| Nurse | sophie.laurent@ohmydok.com | Nurse123! |
-| Nanny | anita.beeharry@ohmydok.com | Nanny123! |
-| Nanny | claire.morel@ohmydok.com | Nanny123! |
-| Pharmacist | rajesh.doorgakant@ohmydok.com | Pharma123! |
-| Pharmacist | anushka.doobur@ohmydok.com | Pharma123! |
-| Lab Technician | david.ahkee@ohmydok.com | Lab123! |
-| Lab Technician | priya.doorgakant@ohmydok.com | Lab123! |
-| Emergency Worker | jeanmarc.lafleur@ohmydok.com | Emergency123! |
-| Emergency Worker | fatima.joomun@ohmydok.com | Emergency123! |
-| Insurance Rep | vikram.doorgakant@ohmydok.com | Insurance123! |
-| Insurance Rep | marie.genave@ohmydok.com | Insurance123! |
-| Corporate Admin | anil.doobur@ohmydok.com | Corporate123! |
-| Referral Partner | sophie.leclerc@ohmydok.com | Referral123! |
-| Regional Admin (MU) | vikash.doorgakant@ohmydok.com | Regional123! |
-| Regional Admin (MG) | tiana.rasoa@ohmydok.com | Regional123! |
-| Regional Admin (KE) | james.mwangi@ohmydok.com | Regional123! |
-| Super Admin | hassan.doorgakant@ohmydok.com | Admin123! |
+| Patient | emma.johnson@mediwyz.com | Patient123! |
+| Patient | jean.pierre@mediwyz.com | Patient123! |
+| Patient | aisha.khan@mediwyz.com | Patient123! |
+| Patient | vikash.d@mediwyz.com | Patient123! |
+| Patient | nadia.s@mediwyz.com | Patient123! |
+| Doctor | sarah.johnson@mediwyz.com | Doctor123! |
+| Doctor | raj.patel@mediwyz.com | Doctor123! |
+| Doctor | marie.dupont@mediwyz.com | Doctor123! |
+| Nurse | priya.ramgoolam@mediwyz.com | Nurse123! |
+| Nurse | sophie.laurent@mediwyz.com | Nurse123! |
+| Nanny | anita.beeharry@mediwyz.com | Nanny123! |
+| Nanny | claire.morel@mediwyz.com | Nanny123! |
+| Pharmacist | rajesh.doorgakant@mediwyz.com | Pharma123! |
+| Pharmacist | anushka.doobur@mediwyz.com | Pharma123! |
+| Lab Technician | david.ahkee@mediwyz.com | Lab123! |
+| Lab Technician | priya.doorgakant@mediwyz.com | Lab123! |
+| Emergency Worker | jeanmarc.lafleur@mediwyz.com | Emergency123! |
+| Emergency Worker | fatima.joomun@mediwyz.com | Emergency123! |
+| Insurance Rep | vikram.doorgakant@mediwyz.com | Insurance123! |
+| Insurance Rep | marie.genave@mediwyz.com | Insurance123! |
+| Corporate Admin | anil.doobur@mediwyz.com | Corporate123! |
+| Referral Partner | sophie.leclerc@mediwyz.com | Referral123! |
+| Regional Admin (MU) | vikash.doorgakant@mediwyz.com | Regional123! |
+| Regional Admin (MG) | tiana.rasoa@mediwyz.com | Regional123! |
+| Regional Admin (KE) | james.mwangi@mediwyz.com | Regional123! |
+| Super Admin | hassan.doorgakant@mediwyz.com | Admin123! |
 
 All passwords are hashed with bcrypt in the database.
 

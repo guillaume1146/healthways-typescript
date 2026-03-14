@@ -5,7 +5,7 @@ import { rateLimitHeavy } from '@/lib/rate-limit'
 import prisma from '@/lib/db'
 import { randomUUID } from 'crypto'
 
-const BUCKET_NAME = 'omd-uploads'
+const BUCKET_NAME = 'mediwyz-uploads'
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = new Set([
   'image/jpeg', 'image/png', 'image/webp',

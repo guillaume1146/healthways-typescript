@@ -438,7 +438,7 @@ const TEMPLATES = {
     issuer: 'HUMAN RESOURCES DEPARTMENT',
     subtitle: null,
     title: 'EMPLOYMENT VERIFICATION LETTER',
-    body: (p) => `This letter is to confirm that ${p.fullName} holds the position of ${p.profession} at ${p.companyName || 'our organization'}. ${p.fullName} has the authority to manage corporate wellness programs and represent the company on the Oh My Dok platform.`,
+    body: (p) => `This letter is to confirm that ${p.fullName} holds the position of ${p.profession} at ${p.companyName || 'our organization'}. ${p.fullName} has the authority to manage corporate wellness programs and represent the company on the MediWyz platform.`,
     fields: (p) => [
       ['Employee Name', p.fullName],
       ['Position', p.profession],
@@ -452,7 +452,7 @@ const TEMPLATES = {
   'authorization-letter': {
     issuer: null,
     title: 'COMPANY AUTHORIZATION LETTER',
-    body: (p) => `We, the Board of Directors of ${p.companyName || 'the Company'}, hereby authorize ${p.fullName} to represent ${p.companyName || 'the Company'} on the Oh My Dok healthcare platform. ${p.fullName} is authorized to manage employee wellness programs, process health-related claims, and act on behalf of the company in all matters related to the platform.`,
+    body: (p) => `We, the Board of Directors of ${p.companyName || 'the Company'}, hereby authorize ${p.fullName} to represent ${p.companyName || 'the Company'} on the MediWyz healthcare platform. ${p.fullName} is authorized to manage employee wellness programs, process health-related claims, and act on behalf of the company in all matters related to the platform.`,
     fields: (p) => [
       ['Authorized Person', p.fullName],
       ['Company', p.companyName || 'Company'],
@@ -466,7 +466,7 @@ const TEMPLATES = {
   'corporate-profile': {
     issuer: null,
     title: 'CORPORATE PROFILE',
-    body: (p) => `${p.companyName || 'The Company'} is a leading provider of corporate wellness solutions in Mauritius. Under the leadership of ${p.fullName}, the company manages wellness programs for over 500 employees across multiple sectors. The company is committed to promoting employee health and well-being through the Oh My Dok platform.`,
+    body: (p) => `${p.companyName || 'The Company'} is a leading provider of corporate wellness solutions in Mauritius. Under the leadership of ${p.fullName}, the company manages wellness programs for over 500 employees across multiple sectors. The company is committed to promoting employee health and well-being through the MediWyz platform.`,
     fields: (p) => [
       ['Company Name', p.companyName || 'Company'],
       ['Contact Person', p.fullName],
@@ -510,7 +510,7 @@ const TEMPLATES = {
     issuer: 'STATE BANK OF MAURITIUS',
     subtitle: 'Banking Services Division',
     title: 'BANK ACCOUNT VERIFICATION LETTER',
-    body: (p) => `This letter confirms that ${p.fullName} holds an active savings account with the State Bank of Mauritius. This verification is provided for commission payment setup purposes on the Oh My Dok platform.`,
+    body: (p) => `This letter confirms that ${p.fullName} holds an active savings account with the State Bank of Mauritius. This verification is provided for commission payment setup purposes on the MediWyz platform.`,
     fields: (p) => [
       ['Account Holder', p.fullName],
       ['Account Type', 'Savings Account'],
@@ -539,11 +539,11 @@ const TEMPLATES = {
   'business-plan': {
     issuer: null,
     title: 'BUSINESS PLAN DOCUMENT',
-    subtitle: 'Oh My Dok Regional Operations',
-    body: (p) => `Prepared by ${p.fullName}\n\nExecutive Summary: This business plan outlines the strategy for expanding the Oh My Dok healthcare platform across the Indian Ocean region. Under the direction of ${p.fullName}, the plan targets Mauritius, Reunion, Madagascar, and Seychelles markets with a projected user base of 500,000 within 3 years. The plan includes market analysis, financial projections, and operational strategies for each target market.`,
+    subtitle: 'MediWyz Regional Operations',
+    body: (p) => `Prepared by ${p.fullName}\n\nExecutive Summary: This business plan outlines the strategy for expanding the MediWyz healthcare platform across the Indian Ocean region. Under the direction of ${p.fullName}, the plan targets Mauritius, Reunion, Madagascar, and Seychelles markets with a projected user base of 500,000 within 3 years. The plan includes market analysis, financial projections, and operational strategies for each target market.`,
     fields: (p) => [
       ['Author', p.fullName],
-      ['Company', p.companyName || 'Oh My Dok Regional'],
+      ['Company', p.companyName || 'MediWyz Regional'],
       ['Target Markets', 'Mauritius, Reunion, Madagascar, Seychelles'],
       ['Projected Users', '500,000 (3 years)'],
       ['Date', currentDate],
@@ -585,7 +585,7 @@ const TEMPLATES = {
     issuer: null,
     title: 'MARKET RESEARCH REPORT',
     subtitle: 'Healthcare Platform Expansion - Indian Ocean Region',
-    body: (p) => `Prepared by ${p.fullName}\n\nThis market research report analyses the healthcare landscape across the Indian Ocean region, with focus on telemedicine adoption, healthcare spending, and digital health readiness. The research conducted by ${p.fullName} identifies key opportunities for the Oh My Dok platform expansion.`,
+    body: (p) => `Prepared by ${p.fullName}\n\nThis market research report analyses the healthcare landscape across the Indian Ocean region, with focus on telemedicine adoption, healthcare spending, and digital health readiness. The research conducted by ${p.fullName} identifies key opportunities for the MediWyz platform expansion.`,
     fields: (p) => [
       ['Researcher', p.fullName],
       ['Region', 'Indian Ocean (Mauritius, Reunion, Madagascar, Seychelles)'],

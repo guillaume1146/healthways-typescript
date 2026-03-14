@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
                 <div className="bg-white p-2 rounded-xl">
                   <span className="text-2xl">❤️</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">Oh My Dok</span>
+                <span className="text-2xl font-bold text-gray-900">MediWyz</span>
               </div>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Your trusted healthcare platform connecting patients with qualified doctors and providing 
@@ -78,7 +78,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2 text-gray-500">
                 <FaEnvelope />
-                <span>info@ohmydok.com</span>
+                <span>info@mediwyz.com</span>
               </div>
             </div>
 
@@ -150,7 +150,7 @@ const Footer: React.FC = () => {
           {/* Copyright - All in one line */}
           <div className="border-t border-gray-200 mt-8 pt-8 text-center">
             <div className="flex flex-wrap justify-center items-center gap-1 text-gray-500 text-sm">
-              <span>© 2025 Oh My Dok. All rights reserved.</span>
+              <span>© 2025 MediWyz. All rights reserved.</span>
               <span className="hidden md:inline mx-2">|</span>
               <Link href="/privacy" className="text-blue-600 hover:text-blue-800 transition">
                 Privacy Policy
@@ -169,7 +169,7 @@ const Footer: React.FC = () => {
           {/* Updated Medical Disclaimer (Short Version) */}
           <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-gray-600">
-              <strong>Disclaimer:</strong> Oh My Dok is a platform that connects users with licensed healthcare providers. Oh My Dok does not provide medical care. Consultations, prescriptions, and tests are the sole responsibility of your chosen provider. By using this platform, you acknowledge and agree to our <Link href="/terms" className="underline text-yellow-300 hover:text-yellow-200">Terms of Service</Link> and <Link href="/privacy" className="underline text-yellow-300 hover:text-yellow-200">Privacy Policy</Link>. For full details, see our <Link href="/medical-disclaimer" className="underline text-yellow-300 hover:text-yellow-200">Medical Disclaimer</Link>.
+              <strong>Disclaimer:</strong> MediWyz is a platform that connects users with licensed healthcare providers. MediWyz does not provide medical care. Consultations, prescriptions, and tests are the sole responsibility of your chosen provider. By using this platform, you acknowledge and agree to our <Link href="/terms" className="underline text-yellow-300 hover:text-yellow-200">Terms of Service</Link> and <Link href="/privacy" className="underline text-yellow-300 hover:text-yellow-200">Privacy Policy</Link>. For full details, see our <Link href="/medical-disclaimer" className="underline text-yellow-300 hover:text-yellow-200">Medical Disclaimer</Link>.
             </p>
           </div>
         </div>

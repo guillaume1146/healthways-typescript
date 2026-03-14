@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const match = document.cookie
       .split(';')
-      .find((c) => c.trim().startsWith('omd_userType='))
+      .find((c) => c.trim().startsWith('mediwyz_userType='))
     if (match) {
       const cookieVal = decodeURIComponent(match.trim().split('=')[1] ?? '')
       const slug = COOKIE_TO_SLUG[cookieVal] || 'patient'
@@ -97,8 +97,8 @@ const Navbar: React.FC = () => {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     } catch { /* ignore */ }
     clearUser()
-    document.cookie = 'omd_token=; path=/; max-age=0'
-    document.cookie = 'omd_userType=; path=/; max-age=0'
+    document.cookie = 'mediwyz_token=; path=/; max-age=0'
+    document.cookie = 'mediwyz_userType=; path=/; max-age=0'
     router.push('/login')
   }, [router, clearUser])
 

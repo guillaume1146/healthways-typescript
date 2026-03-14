@@ -347,7 +347,7 @@ function buildSystemPrompt(context: PatientContext, insightsSummary: string, tra
     ? `Recent diagnoses (past year): ${context.recentDiagnoses.join(', ')}.`
     : ''
 
-  return `You are a helpful, knowledgeable AI Health Assistant for the Oh My Dok healthcare platform in Mauritius. Your name is Oh My Dok AI Assistant.
+  return `You are a helpful, knowledgeable AI Health Assistant for the MediWyz healthcare platform in Mauritius. Your name is MediWyz AI Assistant.
 Today's date is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
 
 PATIENT PROFILE:

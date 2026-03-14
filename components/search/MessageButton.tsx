@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { FaEnvelope } from 'react-icons/fa'
 
-// Maps the omd_userType cookie value to the user's chat URL segment
+// Maps the mediwyz_userType cookie value to the user's chat URL segment
 const USER_TYPE_CHAT_ROUTES: Record<string, string> = {
   patient: '/patient/chat',
   doctor: '/doctor/messages',
@@ -34,7 +34,7 @@ export default function MessageButton({ providerId, className = '' }: MessageBut
     if (typeof document === 'undefined') return null
     const match = document.cookie
       .split(';')
-      .find((c) => c.trim().startsWith('omd_userType='))
+      .find((c) => c.trim().startsWith('mediwyz_userType='))
     if (!match) return null
     return decodeURIComponent(match.trim().split('=')[1] ?? '')
   }, [])

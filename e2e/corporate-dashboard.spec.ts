@@ -17,7 +17,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 test.describe('Q. Corporate Admin Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'anil.doobur@ohmydok.com', 'Corporate123!')
+    await loginAs(page, 'anil.doobur@mediwyz.com', 'Corporate123!')
   })
 
   test('Q1: Corporate feed/dashboard loads with stats', async ({ page }) => {

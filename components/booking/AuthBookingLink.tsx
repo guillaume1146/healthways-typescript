@@ -37,7 +37,7 @@ export default function AuthBookingLink({ type, providerId, children, className 
   const router = useRouter()
 
   const handleClick = useCallback(() => {
-    const userType = getCookie('omd_userType')
+    const userType = getCookie('mediwyz_userType')
     if (!userType) {
       const fallbackPath = type === 'emergency'
         ? '/patient/book/emergency'

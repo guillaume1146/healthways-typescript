@@ -22,7 +22,7 @@ test.describe('Patient Dashboard', () => {
   test.describe.configure({ mode: 'serial' })
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'emma.johnson@ohmydok.com', 'Patient123!')
+    await loginAs(page, 'emma.johnson@mediwyz.com', 'Patient123!')
   })
 
   test('E1: Overview page loads with welcome text and stat cards', async ({ page }) => {

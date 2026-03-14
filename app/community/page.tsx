@@ -11,8 +11,8 @@ export default function CommunityPage() {
 
   useEffect(() => {
     // Get current user from localStorage if available
-    const storedUserId = localStorage.getItem('omd_user_id')
-    const storedUserType = localStorage.getItem('omd_userType')
+    const storedUserId = localStorage.getItem('mediwyz_user_id')
+    const storedUserType = localStorage.getItem('mediwyz_userType')
     if (storedUserId) setUserId(storedUserId)
     if (storedUserType) setUserType(storedUserType)
   }, [])

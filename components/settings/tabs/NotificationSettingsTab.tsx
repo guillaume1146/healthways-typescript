@@ -15,7 +15,7 @@ interface NotificationSettingsTabProps {
   defaults?: Record<string, boolean>
 }
 
-const PREFS_STORAGE_KEY = 'omd_notification_prefs'
+const PREFS_STORAGE_KEY = 'mediwyz_notification_prefs'
 
 const NotificationSettingsTab: React.FC<NotificationSettingsTabProps> = ({
   options,

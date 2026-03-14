@@ -3,25 +3,25 @@ import { FaMobile, FaHospital, FaShoppingCart, FaImage } from 'react-icons/fa'
 const DEFAULT_SERVICES = [
   {
     emoji: '🩺',
-    title: 'Oh My Dok',
+    title: 'MediWyz',
     subtitle: 'Simple, accessible, and efficient healthcare',
-    description: 'Oh My Dok&apos;s telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists.',
+    description: 'MediWyz&apos;s telehealth app simplifies healthcare. Users can consult locally-licensed doctors and allied health professionals, receive medications, schedule health screenings or vaccinations, shop for health and wellness products, and connect with a trusted network of healthcare providers and specialists.',
     icon: 'FaMobile',
     gradient: 'bg-gradient-blue'
   },
   {
     emoji: '🏥',
-    title: 'Oh My Dok CLINICS',
+    title: 'MediWyz CLINICS',
     subtitle: 'Comprehensive primary healthcare services',
-    description: 'Oh My Dok is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more. We also provide access to government-supported programs, ensuring quality care for the community.',
+    description: 'MediWyz is a network of GP clinics across Mauritius, providing comprehensive primary care services including GP consultations, chronic disease management, health screenings, vaccinations, and more. We also provide access to government-supported programs, ensuring quality care for the community.',
     icon: 'FaHospital',
     gradient: 'bg-gradient-green'
   },
   {
     emoji: '🛒',
-    title: 'Oh My Dok Online Marketplace',
+    title: 'MediWyz Online Marketplace',
     subtitle: 'Convenient access to health products',
-    description: 'Oh My Dok&apos;s online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius, it provides convenient access to quality healthcare products and services.',
+    description: 'MediWyz&apos;s online Marketplace is accessible via our website and mobile app, offering preventive health services such as vaccinations and health screenings, along with over-the-counter medication. With free delivery across Mauritius, it provides convenient access to quality healthcare products and services.',
     icon: 'FaShoppingCart',
     gradient: 'bg-gradient-purple'
   },
@@ -29,7 +29,7 @@ const DEFAULT_SERVICES = [
     emoji: '🏥',
     title: 'MedSuites',
     subtitle: 'Centralised Health Screening and Imaging Services',
-    description: 'A premier medical centre located in Central, Oh My Dok MedSuites centralises health screening and imaging services for comprehensive care and convenience in a single location. The state-of-the-art facility addresses the preventive health needs of Mauritius.',
+    description: 'A premier medical centre located in Central, MediWyz MedSuites centralises health screening and imaging services for comprehensive care and convenience in a single location. The state-of-the-art facility addresses the preventive health needs of Mauritius.',
     icon: 'FaImage',
     gradient: 'bg-gradient-orange'
   }
@@ -42,7 +42,7 @@ const DEFAULT_HEADER = {
 
 const DEFAULT_CTA = {
   title: 'Experience the Future of Healthcare',
-  description: "Join thousands of Mauritians who trust Oh My Dok for their comprehensive healthcare needs. From telehealth to physical clinics, we've got you covered.",
+  description: "Join thousands of Mauritians who trust MediWyz for their comprehensive healthcare needs. From telehealth to physical clinics, we've got you covered.",
   primaryButton: 'Get Started Today',
   secondaryButton: 'Explore Services'
 }
