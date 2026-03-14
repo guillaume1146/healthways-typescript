@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimitPublic } from '@/lib/rate-limit'
+import { APP_NAME, APP_TAGLINE, APP_DOMAIN } from '@/lib/app-config'
 
 export async function GET(request: NextRequest) {
   const limited = rateLimitPublic(request)
@@ -7,8 +8,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const config = {
-      appName: process.env.APP_NAME || 'Oh My Dok',
-      appTagline: process.env.APP_TAGLINE || 'Your trusted healthcare companion',
+      appName: APP_NAME,
+      appTagline: APP_TAGLINE,
+      appDomain: APP_DOMAIN,
       heroTitle: process.env.HERO_TITLE || 'Your Health, Our Priority',
       platformDescription: process.env.PLATFORM_DESC || 'Your Leading Healthcare Platform',
     }

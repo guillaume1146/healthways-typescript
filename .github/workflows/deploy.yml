@@ -93,22 +93,24 @@ jobs:
           docker push $IMAGE_TAG
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  # ─── Deploy to Vultr (Primary) ─────────────────────────────────────
-  deploy-vultr:
-    name: Deploy to Vultr
+  # ─── Deploy to VPS ─────────────────────────────────────────────────
+  deploy:
+    name: Deploy to VPS
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy on Vultr VM
+      - name: Deploy on VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VULTR_VM_IP }}
           username: ${{ secrets.VULTR_VM_USER }}
           key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
           command_timeout: 30m
-          envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG,APP_URL,DB_URL,JWT_SECRET,GROQ_API_KEY,POSTGRES_PASSWORD,SUPER_ADMIN_EMAIL,SUPER_ADMIN_PASSWORD,SUPER_ADMIN_FIRST_NAME,SUPER_ADMIN_LAST_NAME
+          envs: GH_TOKEN,GH_ACTOR,IMAGE_TAG,APP_URL,DB_URL,JWT_SECRET,GROQ_API_KEY,POSTGRES_PASSWORD,SUPER_ADMIN_EMAIL,SUPER_ADMIN_PASSWORD,SUPER_ADMIN_FIRST_NAME,SUPER_ADMIN_LAST_NAME,DEPLOY_DIR,APP_DOMAIN
           script: |
-            cd ~/omd-app
+            # Use configurable deploy directory (default: healthtech-app for backward compat)
+            DEPLOY_DIR="${DEPLOY_DIR:-healthtech-app}"
+            cd ~/$DEPLOY_DIR
 
             # Pull latest code (for docker-compose.yml, prisma, seeds, etc.)
             git pull origin main 2>/dev/null || true
@@ -127,10 +129,15 @@ jobs:
             SUPER_ADMIN_PASSWORD=$SUPER_ADMIN_PASSWORD
             SUPER_ADMIN_FIRST_NAME=$SUPER_ADMIN_FIRST_NAME
             SUPER_ADMIN_LAST_NAME=$SUPER_ADMIN_LAST_NAME
+            APP_DOMAIN=${APP_DOMAIN:-ohmydok.com}
             ENVEOF
             # Remove leading whitespace from heredoc
             sed -i 's/^[[:space:]]*//' .env
             echo ".env written with $(wc -l < .env) variables"
+
+            # Stop old containers if they exist (handles rename from healthwyz → omd)
+            docker stop healthwyz-app healthwyz-db 2>/dev/null || true
+            docker rm healthwyz-app healthwyz-db 2>/dev/null || true
 
             # Remove dangling images
             docker image prune -f 2>/dev/null || true
@@ -187,7 +194,7 @@ jobs:
           GH_ACTOR: ${{ github.actor }}
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
           APP_URL: ${{ secrets.VULTR_DOMAIN != '' && format('https://{0}', secrets.VULTR_DOMAIN) || format('http://{0}', secrets.VULTR_VM_IP) }}
-          DB_URL: postgresql://omd:${{ secrets.POSTGRES_PASSWORD }}@db:5432/omd
+          DB_URL: ${{ secrets.DATABASE_URL || format('postgresql://healthwyz:{0}@db:5432/healthwyz', secrets.POSTGRES_PASSWORD) }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -195,6 +202,8 @@ jobs:
           SUPER_ADMIN_PASSWORD: ${{ secrets.SUPER_ADMIN_PASSWORD }}
           SUPER_ADMIN_FIRST_NAME: ${{ secrets.SUPER_ADMIN_FIRST_NAME }}
           SUPER_ADMIN_LAST_NAME: ${{ secrets.SUPER_ADMIN_LAST_NAME }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
 
       - name: Setup HTTPS with Let's Encrypt
         uses: appleboy/ssh-action@v1
@@ -203,7 +212,7 @@ jobs:
           username: ${{ secrets.VULTR_VM_USER }}
           key: ${{ secrets.VULTR_SSH_PRIVATE_KEY }}
           command_timeout: 15m
-          envs: VULTR_DOMAIN
+          envs: VULTR_DOMAIN,DEPLOY_DIR
           script: |
             if [ -z "$VULTR_DOMAIN" ]; then
               echo "No VULTR_DOMAIN set, skipping HTTPS setup"
@@ -222,7 +231,17 @@ jobs:
               sudo apt-get install -y -qq certbot python3-certbot-nginx
             fi
 
-            sudo sed -i "s/server_name .*;/server_name $VULTR_DOMAIN;/g" /etc/nginx/sites-enabled/omd
+            # Try both old and new nginx site config names
+            NGINX_SITE=""
+            for name in healthwyz omd default; do
+              if [ -f "/etc/nginx/sites-enabled/$name" ]; then
+                NGINX_SITE="$name"
+                break
+              fi
+            done
+            if [ -n "$NGINX_SITE" ]; then
+              sudo sed -i "s/server_name .*;/server_name $VULTR_DOMAIN;/g" /etc/nginx/sites-enabled/$NGINX_SITE
+            fi
             sudo nginx -t && sudo systemctl reload nginx
 
             sudo certbot --nginx -d "$VULTR_DOMAIN" --non-interactive --agree-tos --email admin@ohmydok.com --redirect
@@ -230,8 +249,9 @@ jobs:
             echo "HTTPS certificate installed for $VULTR_DOMAIN"
         env:
           VULTR_DOMAIN: ${{ secrets.VULTR_DOMAIN }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
 
-      - name: Verify Vultr deployment
+      - name: Verify deployment
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VULTR_VM_IP }}
@@ -241,7 +261,7 @@ jobs:
           script: |
             DOMAIN="${VULTR_DOMAIN:-localhost}"
             echo "=== Container Status ==="
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep omd
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(omd|healthwyz)"
 
             echo ""
             echo "=== Health Check ==="
@@ -262,4 +282,3 @@ jobs:
             df -h / | tail -1
         env:
           VULTR_DOMAIN: ${{ secrets.VULTR_DOMAIN }}
-
