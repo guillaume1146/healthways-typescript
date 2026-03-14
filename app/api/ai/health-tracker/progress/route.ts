@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(today.getTime() - (numDays - 1) * 24 * 60 * 60 * 1000)
     const endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000)
 
-    const [foodEntries, exerciseEntries, waterEntries] = await Promise.all([
+    const [foodEntries, exerciseEntries, waterEntries, sleepEntries] = await Promise.all([
       prisma.foodEntry.findMany({
         where: { userId: auth.sub, date: { gte: startDate, lt: endDate } },
         select: { date: true, calories: true },
@@ -39,10 +39,14 @@ export async function GET(request: NextRequest) {
         where: { userId: auth.sub, date: { gte: startDate, lt: endDate } },
         select: { date: true, amountMl: true },
       }),
+      prisma.sleepEntry.findMany({
+        where: { userId: auth.sub, date: { gte: startDate, lt: endDate } },
+        select: { date: true, durationMin: true, quality: true },
+      }),
     ])
 
     // Build day-by-day data
-    const days: { date: string; caloriesConsumed: number; caloriesBurned: number; waterMl: number; exerciseMinutes: number }[] = []
+    const days: { date: string; caloriesConsumed: number; caloriesBurned: number; waterMl: number; exerciseMinutes: number; sleepMin: number }[] = []
 
     for (let i = 0; i < numDays; i++) {
       const dayStart = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)
@@ -52,6 +56,7 @@ export async function GET(request: NextRequest) {
       const dayFood = foodEntries.filter(e => e.date >= dayStart && e.date < dayEnd)
       const dayExercise = exerciseEntries.filter(e => e.date >= dayStart && e.date < dayEnd)
       const dayWater = waterEntries.filter(e => e.date >= dayStart && e.date < dayEnd)
+      const daySleep = sleepEntries.find(e => e.date >= dayStart && e.date < dayEnd)
 
       days.push({
         date: dateStr,
@@ -59,6 +64,7 @@ export async function GET(request: NextRequest) {
         caloriesBurned: dayExercise.reduce((sum, e) => sum + e.caloriesBurned, 0),
         waterMl: dayWater.reduce((sum, e) => sum + e.amountMl, 0),
         exerciseMinutes: dayExercise.reduce((sum, e) => sum + e.durationMin, 0),
+        sleepMin: daySleep?.durationMin ?? 0,
       })
     }
 
@@ -67,6 +73,7 @@ export async function GET(request: NextRequest) {
       burned: days.reduce((sum, d) => sum + d.caloriesBurned, 0),
       water: days.reduce((sum, d) => sum + d.waterMl, 0),
       exercise: days.reduce((sum, d) => sum + d.exerciseMinutes, 0),
+      sleep: days.reduce((sum, d) => sum + d.sleepMin, 0),
     }
 
     const averages = {
@@ -74,6 +81,7 @@ export async function GET(request: NextRequest) {
       burned: Math.round(totals.burned / numDays),
       water: Math.round(totals.water / numDays),
       exercise: Math.round(totals.exercise / numDays),
+      sleep: Math.round(totals.sleep / numDays),
     }
 
     return NextResponse.json({

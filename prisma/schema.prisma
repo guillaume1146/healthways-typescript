@@ -154,6 +154,7 @@ model User {
   foodEntries           FoodEntry[]
   exerciseEntries       ExerciseEntry[]
   waterEntries          WaterEntry[]
+  sleepEntries          SleepEntry[]
   dailyGoalSnapshots    DailyGoalSnapshot[]
   mealPlanEntries       MealPlanEntry[]
 
@@ -1361,6 +1362,7 @@ model HealthTrackerProfile {
   targetCalories      Int?
   targetWaterMl       Int           @default(2000)
   targetExerciseMin   Int           @default(30)
+  targetSleepMin      Int           @default(480)
   dietaryPreferences  String[]
   allergenSettings    String[]
   tdeeCalories        Int?
@@ -1416,6 +1418,32 @@ model WaterEntry {
   amountMl  Int
   createdAt DateTime @default(now())
 
+  @@index([userId, date])
+}
+
+// ─── Sleep Tracking ─────────────────────────────────────────────────────────
+
+enum SleepQuality {
+  terrible
+  poor
+  fair
+  good
+  excellent
+}
+
+model SleepEntry {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  sleepStart  DateTime?
+  sleepEnd    DateTime?
+  durationMin Int
+  quality     SleepQuality @default(fair)
+  notes       String?
+  createdAt   DateTime     @default(now())
+
+  @@unique([userId, date])
   @@index([userId, date])
 }
 

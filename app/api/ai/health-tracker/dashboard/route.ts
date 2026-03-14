@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const dateFilter = { gte: startOfDay, lt: endOfDay }
 
-    const [foodEntries, exerciseEntries, waterEntries, profile] = await Promise.all([
+    const [foodEntries, exerciseEntries, waterEntries, sleepEntry, profile] = await Promise.all([
       prisma.foodEntry.findMany({
         where: { userId: auth.sub, date: dateFilter },
         select: { calories: true },
@@ -35,9 +35,13 @@ export async function GET(request: NextRequest) {
         where: { userId: auth.sub, date: dateFilter },
         select: { amountMl: true },
       }),
+      prisma.sleepEntry.findFirst({
+        where: { userId: auth.sub, date: dateFilter },
+        select: { durationMin: true, quality: true },
+      }),
       prisma.healthTrackerProfile.findUnique({
         where: { userId: auth.sub },
-        select: { targetCalories: true, targetWaterMl: true, targetExerciseMin: true },
+        select: { targetCalories: true, targetWaterMl: true, targetExerciseMin: true, targetSleepMin: true },
       }),
     ])
 
@@ -52,6 +56,10 @@ export async function GET(request: NextRequest) {
 
     const caloriesRemaining = targetCalories - caloriesConsumed + caloriesBurned
 
+    const sleepDurationMin = sleepEntry?.durationMin ?? 0
+    const sleepQuality = sleepEntry?.quality ?? null
+    const sleepTargetMin = profile?.targetSleepMin ?? 480
+
     return NextResponse.json({
       success: true,
       data: {
@@ -63,6 +71,9 @@ export async function GET(request: NextRequest) {
         exerciseMinutes,
         exerciseTargetMin,
         targetCalories,
+        sleepDurationMin,
+        sleepQuality,
+        sleepTargetMin,
       },
     })
   } catch (error) {

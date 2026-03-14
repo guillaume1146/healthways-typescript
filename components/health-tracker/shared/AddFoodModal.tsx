@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { FaTimes, FaCamera, FaSearch, FaUtensils } from 'react-icons/fa'
 import FoodSearchPanel, { FoodSearchResult } from './FoodSearchPanel'
+import FoodScanPanel from './FoodScanPanel'
 
 export interface AddFoodPayload {
   name: string
@@ -136,11 +137,22 @@ export default function AddFoodModal({
           )}
 
           {tab === 'ai' && (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <FaCamera className="text-4xl mb-3" />
-              <p className="text-sm font-medium">Coming Soon</p>
-              <p className="text-xs mt-1">Take Photo of Food</p>
-            </div>
+            <FoodScanPanel
+              onResult={(food) => {
+                onAdd({
+                  name: food.name,
+                  calories: food.calories,
+                  protein: food.protein,
+                  carbs: food.carbs,
+                  fat: food.fat,
+                  fiber: 0,
+                  quantity: 1,
+                  unit: 'serving',
+                  servingSize: '1 serving',
+                })
+                onClose()
+              }}
+            />
           )}
         </div>
 

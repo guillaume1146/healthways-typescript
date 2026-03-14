@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest) {
 
     const allowedFields = [
       'heightCm', 'weightKg', 'age', 'gender', 'activityLevel', 'weightGoal',
-      'targetCalories', 'targetWaterMl', 'targetExerciseMin',
+      'targetCalories', 'targetWaterMl', 'targetExerciseMin', 'targetSleepMin',
       'dietaryPreferences', 'allergenSettings',
     ]
 

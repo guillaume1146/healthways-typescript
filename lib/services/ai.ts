@@ -244,7 +244,7 @@ export async function getTrackerContext(userId: string): Promise<string> {
   tomorrow.setDate(tomorrow.getDate() + 1)
 
   try {
-    const [foodEntries, exerciseEntries, waterEntries, profile] = await Promise.all([
+    const [foodEntries, exerciseEntries, waterEntries, sleepEntry, profile] = await Promise.all([
       prisma.foodEntry.aggregate({
         where: { userId, date: { gte: today, lt: tomorrow } },
         _sum: { calories: true, protein: true, carbs: true, fat: true },
@@ -257,9 +257,13 @@ export async function getTrackerContext(userId: string): Promise<string> {
         where: { userId, date: { gte: today, lt: tomorrow } },
         _sum: { amountMl: true },
       }),
+      prisma.sleepEntry.findFirst({
+        where: { userId, date: { gte: today, lt: tomorrow } },
+        select: { durationMin: true, quality: true },
+      }),
       prisma.healthTrackerProfile.findUnique({
         where: { userId },
-        select: { targetCalories: true, targetWaterMl: true, targetExerciseMin: true, weightGoal: true, dietaryPreferences: true },
+        select: { targetCalories: true, targetWaterMl: true, targetExerciseMin: true, targetSleepMin: true, weightGoal: true, dietaryPreferences: true },
       }),
     ])
 
@@ -270,6 +274,11 @@ export async function getTrackerContext(userId: string): Promise<string> {
     const targetCal = profile?.targetCalories || 2000
     const targetWater = profile?.targetWaterMl || 2000
     const targetExercise = profile?.targetExerciseMin || 30
+    const targetSleep = profile?.targetSleepMin || 480
+    const sleepMin = sleepEntry?.durationMin || 0
+    const sleepQuality = sleepEntry?.quality || 'not logged'
+    const sleepHours = Math.floor(sleepMin / 60)
+    const sleepMins = sleepMin % 60
 
     const lines = [
       `\nTODAY'S HEALTH TRACKER DATA:`,
@@ -278,6 +287,7 @@ export async function getTrackerContext(userId: string): Promise<string> {
       `- Net calories: ${caloriesConsumed - caloriesBurned} cal`,
       `- Water intake: ${waterMl}ml / ${targetWater}ml (${Math.round(waterMl/targetWater*100)}%)`,
       `- Exercise: ${exerciseMin} / ${targetExercise} min`,
+      `- Sleep: ${sleepMin > 0 ? `${sleepHours}h ${sleepMins}m` : 'not logged'} / ${Math.floor(targetSleep/60)}h target (quality: ${sleepQuality})`,
       `- Weight goal: ${profile?.weightGoal || 'maintain'}`,
     ]
 
@@ -374,6 +384,7 @@ YOUR ROLE AND GUIDELINES:
 7. For exercise recommendations, consider the patient's health conditions and suggest safe, appropriate activities.
 8. ACTIVELY TRACK the patient's dietary patterns from their recent history. If you notice gaps (e.g. low fruit intake, insufficient water, missing food groups), proactively suggest improvements. Reference specific days from their history when giving advice.
 9. When the patient tells you what they ate or did, acknowledge it and note how it fits into their overall nutritional balance for the day/week.
+10. Factor SLEEP quality and duration into your wellness recommendations. Poor or insufficient sleep affects metabolism, appetite hormones, recovery, and overall health. If sleep data shows issues, suggest sleep hygiene improvements.
 
 IMPORTANT SAFETY RULES:
 - ALWAYS remind the patient to consult their doctor or healthcare provider before making significant changes to their diet, exercise routine, or medication.

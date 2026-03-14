@@ -273,6 +273,7 @@ describe('Health Tracker API Routes', () => {
         targetCalories: 2000,
         targetWaterMl: 2000,
         targetExerciseMin: 30,
+        targetSleepMin: 480,
         dietaryPreferences: [],
         allergenSettings: [],
         tdeeCalories: null,

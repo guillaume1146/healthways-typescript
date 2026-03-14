@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import {
-  FaChartPie, FaUtensils, FaDumbbell, FaRobot,
+  FaChartPie, FaUtensils, FaDumbbell, FaBed, FaRobot,
   FaChartLine, FaCalendarAlt, FaUser,
 } from 'react-icons/fa'
 
 import DashboardTab from './tabs/DashboardTab'
 import FoodDiaryTab from './tabs/FoodDiaryTab'
 import ExerciseTab from './tabs/ExerciseTab'
+import SleepTab from './tabs/SleepTab'
 import AiCoachTab from './tabs/AiCoachTab'
 import ProgressTab from './tabs/ProgressTab'
 import MealPlannerTab from './tabs/MealPlannerTab'
@@ -23,6 +24,7 @@ const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: FaChartPie },
   { id: 'food', label: 'Food Diary', icon: FaUtensils },
   { id: 'exercise', label: 'Exercise', icon: FaDumbbell },
+  { id: 'sleep', label: 'Sleep', icon: FaBed },
   { id: 'ai-coach', label: 'AI Coach', icon: FaRobot },
   { id: 'progress', label: 'Progress', icon: FaChartLine },
   { id: 'meal-plan', label: 'Meal Plan', icon: FaCalendarAlt },
@@ -37,10 +39,11 @@ export default function HealthTrackerTabs({ userName, healthScore }: HealthTrack
       case 0: return <DashboardTab onNavigateToTab={setActiveTab} />
       case 1: return <FoodDiaryTab />
       case 2: return <ExerciseTab />
-      case 3: return <AiCoachTab userName={userName} healthScore={healthScore} />
-      case 4: return <ProgressTab />
-      case 5: return <MealPlannerTab />
-      case 6: return <ProfileGoalsTab />
+      case 3: return <SleepTab />
+      case 4: return <AiCoachTab userName={userName} healthScore={healthScore} />
+      case 5: return <ProgressTab />
+      case 6: return <MealPlannerTab />
+      case 7: return <ProfileGoalsTab />
       default: return <DashboardTab onNavigateToTab={setActiveTab} />
     }
   }
