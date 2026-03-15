@@ -166,6 +166,13 @@ export default function RootLayout({
                   });
                 });
               }
+              // Detect Capacitor WebView and add class for safe area CSS
+              (function() {
+                var ua = navigator.userAgent || '';
+                if (ua.indexOf('MediWyz-Android') !== -1 || ua.indexOf('wv') !== -1 || window.Capacitor) {
+                  document.body.classList.add('capacitor-app');
+                }
+              })();
               // Force mobile viewport when "Desktop site" is enabled in Chrome Android
               // Chrome's "Desktop site" ignores width=device-width, so we use the actual screen width
               (function() {

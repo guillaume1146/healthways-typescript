@@ -5,6 +5,7 @@ import {
   FaChartPie, FaUtensils, FaDumbbell, FaBed, FaRobot,
   FaChartLine, FaCalendarAlt, FaUser,
 } from 'react-icons/fa'
+import { useCapacitor } from '@/hooks/useCapacitor'
 
 import DashboardTab from './tabs/DashboardTab'
 import FoodDiaryTab from './tabs/FoodDiaryTab'
@@ -33,6 +34,7 @@ const TABS = [
 
 export default function HealthTrackerTabs({ userName, healthScore }: HealthTrackerTabsProps) {
   const [activeTab, setActiveTab] = useState(0)
+  const isCapacitor = useCapacitor()
 
   const renderTab = () => {
     switch (activeTab) {
@@ -73,12 +75,12 @@ export default function HealthTrackerTabs({ userName, healthScore }: HealthTrack
       </div>
 
       {/* Tab content */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 pb-20 md:pb-4">
+      <div className={`flex-1 overflow-y-auto bg-gray-50 ${isCapacitor ? 'pb-32' : 'pb-20'} md:pb-4`}>
         {renderTab()}
       </div>
 
       {/* Mobile: Bottom tabs */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-2 px-1 z-50">
+      <div className={`md:hidden fixed left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center px-1 z-50 shadow-lg ${isCapacitor ? 'bottom-0 pt-2 pb-6' : 'bottom-0 py-2'}`}>
         {TABS.map((tab, index) => {
           const Icon = tab.icon
           const isActive = activeTab === index
@@ -86,7 +88,7 @@ export default function HealthTrackerTabs({ userName, healthScore }: HealthTrack
             <button
               key={tab.id}
               onClick={() => setActiveTab(index)}
-              className={`flex flex-col items-center justify-center p-1 min-w-[40px] ${
+              className={`flex flex-col items-center justify-center p-2 min-w-[44px] min-h-[44px] ${
                 isActive ? 'text-blue-600' : 'text-gray-400'
               }`}
             >

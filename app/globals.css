@@ -20,6 +20,18 @@ html, body {
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
 
+/* Capacitor WebView: add bottom padding to ALL fixed bottom tab bars
+   to prevent overlap with Android navigation buttons (square, circle, triangle) */
+body.capacitor-app [class*="fixed"][class*="bottom-0"][class*="border-t"] {
+  padding-bottom: 1.5rem !important;
+  padding-top: 0.625rem !important;
+}
+
+/* Increase content bottom padding in Capacitor to account for taller tab bar */
+body.capacitor-app [class*="pb-20"] {
+  padding-bottom: 7rem !important;
+}
+
 @layer base {
   body {
     background-color: #f9fafb;

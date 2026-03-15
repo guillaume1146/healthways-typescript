@@ -2,9 +2,11 @@ package com.mediwyz.app;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
@@ -28,7 +30,7 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Request runtime permissions upfront so WebRTC can access camera/mic
+        // Request runtime permissions upfront so WebRTC and camera can work
         requestRequiredPermissions();
     }
 
@@ -38,30 +40,97 @@ public class MainActivity extends BridgeActivity {
 
         WebView webView = getBridge().getWebView();
 
-        // Get the existing WebChromeClient set by Capacitor's bridge
-        // and wrap it to add WebRTC permission granting
-        final WebChromeClient originalClient = getOriginalChromeClient(webView);
+        // IMPORTANT: Get the original WebChromeClient that Capacitor set up.
+        // Capacitor's client handles onShowFileChooser (file uploads),
+        // geolocation, console messages, etc. We must delegate to it.
+        final WebChromeClient capacitorClient = webView.getWebChromeClient();
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 // Auto-grant WebRTC permissions (camera, microphone) in the WebView
-                // Android runtime permissions are requested separately in onCreate
                 runOnUiThread(() -> request.grant(request.getResources()));
             }
 
-            // Delegate all other calls to original client if available
             @Override
             public void onPermissionRequestCanceled(PermissionRequest request) {
-                if (originalClient != null) {
-                    originalClient.onPermissionRequestCanceled(request);
+                if (capacitorClient != null) {
+                    capacitorClient.onPermissionRequestCanceled(request);
                 } else {
                     super.onPermissionRequestCanceled(request);
                 }
             }
+
+            // CRITICAL: Delegate file chooser to Capacitor's handler
+            // Without this, <input type="file"> and camera capture won't work
+            @Override
+            public boolean onShowFileChooser(
+                WebView webView,
+                ValueCallback<Uri[]> filePathCallback,
+                FileChooserParams fileChooserParams
+            ) {
+                if (capacitorClient != null) {
+                    return capacitorClient.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+                }
+                return super.onShowFileChooser(webView, filePathCallback, fileChooserParams);
+            }
+
+            // Delegate JS dialogs to Capacitor
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, android.webkit.JsResult result) {
+                if (capacitorClient != null) {
+                    return capacitorClient.onJsAlert(view, url, message, result);
+                }
+                return super.onJsAlert(view, url, message, result);
+            }
+
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, android.webkit.JsResult result) {
+                if (capacitorClient != null) {
+                    return capacitorClient.onJsConfirm(view, url, message, result);
+                }
+                return super.onJsConfirm(view, url, message, result);
+            }
+
+            @Override
+            public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, android.webkit.JsPromptResult result) {
+                if (capacitorClient != null) {
+                    return capacitorClient.onJsPrompt(view, url, message, defaultValue, result);
+                }
+                return super.onJsPrompt(view, url, message, defaultValue, result);
+            }
+
+            // Delegate console messages for debugging
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
+                if (capacitorClient != null) {
+                    return capacitorClient.onConsoleMessage(consoleMessage);
+                }
+                return super.onConsoleMessage(consoleMessage);
+            }
+
+            // Delegate progress updates
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                if (capacitorClient != null) {
+                    capacitorClient.onProgressChanged(view, newProgress);
+                } else {
+                    super.onProgressChanged(view, newProgress);
+                }
+            }
+
+            // Delegate geolocation permissions
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, android.webkit.GeolocationPermissions.Callback callback) {
+                if (capacitorClient != null) {
+                    capacitorClient.onGeolocationPermissionsShowPrompt(origin, callback);
+                } else {
+                    super.onGeolocationPermissionsShowPrompt(origin, callback);
+                }
+            }
         });
 
-        // Enable file upload input (for food scan photo)
+        // Enable file access for uploads
         webView.getSettings().setAllowFileAccess(true);
         webView.getSettings().setAllowContentAccess(true);
 
@@ -71,14 +140,6 @@ public class MainActivity extends BridgeActivity {
 
         // Enable media playback without user gesture (for video calls)
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
-    }
-
-    private WebChromeClient getOriginalChromeClient(WebView webView) {
-        try {
-            return webView.getWebChromeClient();
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private void requestRequiredPermissions() {
@@ -99,6 +160,5 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // Permissions are now granted (or denied) — WebRTC will work if granted
     }
 }
