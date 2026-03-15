@@ -26,6 +26,7 @@ import {
 import HealthwyzLogo from '@/components/ui/HealthwyzLogo'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
+import { useCapacitor } from '@/hooks/useCapacitor'
 
 const serviceCategories = {
   'Healthcare Services': [
@@ -62,6 +63,7 @@ const COOKIE_TO_SLUG: Record<string, string> = {
 const Navbar: React.FC = () => {
   const router = useRouter()
   const { user: authUser, clearUser } = useUser()
+  const isCapacitor = useCapacitor()
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState<boolean>(false)
@@ -112,6 +114,8 @@ const Navbar: React.FC = () => {
 
   return (
     <nav role="navigation" aria-label="Main navigation" className="sticky top-0 z-50">
+      {/* Spacer for Android status bar in Capacitor WebView */}
+      {isCapacitor && <div className="bg-white h-14" />}
       {/* Brand gradient accent line */}
       <div className="h-1 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
       <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">

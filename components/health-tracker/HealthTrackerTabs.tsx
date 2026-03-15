@@ -80,7 +80,7 @@ export default function HealthTrackerTabs({ userName, healthScore }: HealthTrack
       </div>
 
       {/* Mobile: Bottom tabs */}
-      <div className={`md:hidden fixed left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center px-1 z-50 shadow-lg ${isCapacitor ? 'bottom-0 pt-2 pb-6' : 'bottom-0 py-2'}`}>
+      <div className={`md:hidden fixed left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center px-1 z-50 shadow-lg ${isCapacitor ? 'bottom-0 pt-2 pb-8' : 'bottom-0 py-2'}`}>
         {TABS.map((tab, index) => {
           const Icon = tab.icon
           const isActive = activeTab === index

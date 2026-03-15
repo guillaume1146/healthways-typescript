@@ -23,13 +23,20 @@ html, body {
 /* Capacitor WebView: add bottom padding to ALL fixed bottom tab bars
    to prevent overlap with Android navigation buttons (square, circle, triangle) */
 body.capacitor-app [class*="fixed"][class*="bottom-0"][class*="border-t"] {
-  padding-bottom: 1.5rem !important;
-  padding-top: 0.625rem !important;
+  padding-bottom: 2rem !important;
+  padding-top: 0.75rem !important;
 }
 
 /* Increase content bottom padding in Capacitor to account for taller tab bar */
-body.capacitor-app [class*="pb-20"] {
-  padding-bottom: 7rem !important;
+body.capacitor-app [class*="pb-20"],
+body.capacitor-app [class*="pb-32"] {
+  padding-bottom: 9rem !important;
+}
+
+/* Capacitor: modals should account for bottom nav and bottom tabs */
+body.capacitor-app .fixed.inset-0 [class*="max-h-"][class*="overflow-y-auto"] {
+  max-height: 75vh !important;
+  margin-bottom: 0 !important;
 }
 
 @layer base {

@@ -178,7 +178,7 @@ export default function FoodScanPanel({ onResult }: FoodScanPanelProps) {
         {/* Upload area */}
         <button
           onClick={() => uploadInputRef.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="w-full flex flex-col items-center justify-center gap-2 p-5 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
         >
           <FaCamera className="text-3xl text-gray-400" />
           <div className="text-sm text-gray-500 text-center">
