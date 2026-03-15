@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  FaChevronLeft, FaChevronRight, FaPlus,
+  FaChevronLeft, FaChevronRight, FaPlus, FaCamera,
   FaCoffee, FaSun, FaMoon, FaCookieBite,
 } from 'react-icons/fa'
 import FoodEntryCard from '../shared/FoodEntryCard'
 import FoodSearchPanel, { FoodSearchResult } from '../shared/FoodSearchPanel'
+import FoodScanPanel from '../shared/FoodScanPanel'
 
 interface FoodEntry {
   id: string
@@ -39,6 +40,7 @@ export default function FoodDiaryTab() {
   const [error, setError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [addMealType, setAddMealType] = useState('breakfast')
+  const [addTab, setAddTab] = useState<'search' | 'scan'>('search')
   const [actionError, setActionError] = useState('')
 
   const dateStr = selectedDate.toISOString().split('T')[0]
@@ -284,7 +286,51 @@ export default function FoodDiaryTab() {
                   </button>
                 ))}
               </div>
-              <FoodSearchPanel onSelect={handleAddFood} />
+
+              {/* Search / AI Scan tabs */}
+              <div className="flex border-b border-gray-200 mb-4">
+                <button
+                  onClick={() => setAddTab('search')}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                    addTab === 'search'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <FaPlus className="inline mr-1.5 text-xs" />
+                  Search Food
+                </button>
+                <button
+                  onClick={() => setAddTab('scan')}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                    addTab === 'scan'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <FaCamera className="inline mr-1.5 text-xs" />
+                  AI Scan
+                </button>
+              </div>
+
+              {addTab === 'search' && (
+                <FoodSearchPanel onSelect={handleAddFood} />
+              )}
+
+              {addTab === 'scan' && (
+                <FoodScanPanel
+                  onResult={(food) => {
+                    handleAddFood({
+                      id: '',
+                      name: food.name,
+                      calories: food.calories,
+                      protein: food.protein,
+                      carbs: food.carbs,
+                      fat: food.fat,
+                    } as FoodSearchResult)
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

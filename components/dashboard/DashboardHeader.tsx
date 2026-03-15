@@ -252,23 +252,23 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const unreadCount = notifications.filter(n => !n.readAt).length || autoUnreadCount || notificationCount
 
   return (
-    <header role="banner" className="sticky top-0 z-50 flex-shrink-0">
+    <header role="banner" className="sticky top-0 z-50 flex-shrink-0 pt-[env(safe-area-inset-top,0px)]" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0px)' }}>
       <div className="h-0.5 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
       <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
-      <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2 md:py-2.5">
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-2.5">
         <div className="flex items-center justify-between">
           {/* Left: mobile toggle + logo + user info */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <button
               onClick={onToggleSidebar}
-              className="md:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="md:hidden p-2.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={sidebarOpen}
             >
               {sidebarOpen ? (
-                <FaTimes className="text-base sm:text-lg" aria-hidden="true" />
+                <FaTimes className="text-lg sm:text-lg" aria-hidden="true" />
               ) : (
-                <FaBars className="text-base sm:text-lg" aria-hidden="true" />
+                <FaBars className="text-lg sm:text-lg" aria-hidden="true" />
               )}
             </button>
 
@@ -290,7 +290,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </div>
 
           {/* Right: profile, notifications, language, logout */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
+          <div className="flex items-center gap-2 sm:gap-2 md:gap-3 lg:gap-4">
             {/* Profile avatar link */}
             <Link
               href={profileHref}
@@ -314,10 +314,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {networkHref && (
               <Link
                 href={networkHref}
-                className="relative p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="relative p-2.5 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 aria-label={`My Network${pendingConnectionCount > 0 ? `, ${pendingConnectionCount} pending requests` : ''}`}
               >
-                <FaUserFriends className="text-sm sm:text-base md:text-lg" aria-hidden="true" />
+                <FaUserFriends className="text-base sm:text-base md:text-lg" aria-hidden="true" />
                 {pendingConnectionCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center font-bold" aria-hidden="true">
                     {pendingConnectionCount > 9 ? '9+' : pendingConnectionCount}
@@ -330,12 +330,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={handleBellClick}
-                className="relative p-2 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="relative p-2.5 sm:p-2.5 md:p-3 text-gray-600 hover:text-blue-600 bg-gray-100 rounded-lg hover:bg-blue-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
                 aria-expanded={showDropdown}
                 aria-haspopup="true"
               >
-                <FaBell className="text-sm sm:text-base md:text-lg" aria-hidden="true" />
+                <FaBell className="text-base sm:text-base md:text-lg" aria-hidden="true" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center font-bold" aria-hidden="true">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -344,7 +344,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </button>
 
               {showDropdown && (
-                <div role="region" aria-label="Notifications" aria-live="polite" className="fixed left-0 right-0 top-[52px] sm:absolute sm:left-auto sm:right-0 sm:top-full mt-0 sm:mt-2 w-full sm:w-96 bg-white sm:rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-52px)] sm:max-h-[70vh] overflow-hidden">
+                <div role="region" aria-label="Notifications" aria-live="polite" className="fixed left-0 right-0 top-[60px] sm:absolute sm:left-auto sm:right-0 sm:top-full mt-0 sm:mt-2 w-full sm:w-96 bg-white sm:rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-60px)] sm:max-h-[70vh] overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
                     <h3 className="font-semibold text-gray-900 text-sm" id="notifications-heading">Notifications</h3>
                     {notifications.some(n => !n.readAt) && (
@@ -408,7 +408,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {/* Logout button */}
             <button
               onClick={onLogout}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 md:px-3.5 py-1.5 sm:py-1.5 md:py-2 rounded-lg flex items-center gap-1 sm:gap-1.5 hover:from-red-600 hover:to-red-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2.5 sm:px-3 md:px-3.5 py-2 sm:py-2 md:py-2 rounded-lg flex items-center gap-1.5 sm:gap-1.5 hover:from-red-600 hover:to-red-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               aria-label="Log out"
             >
               <FaSignOutAlt className="text-xs sm:text-sm md:text-sm" aria-hidden="true" />

@@ -252,21 +252,20 @@ export default function RegistrationForm() {
   const selectedType = userTypes.find(type => type.id === selectedUserType)
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12">
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Join MediWyz</h1>
-              <p className="text-gray-600 text-lg">Create your professional healthcare account</p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-4 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Join MediWyz</h1>
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg">Create your professional healthcare account</p>
+          </div>
 
             {/* Progress Steps */}
             <ProgressSteps currentStep={currentStep} />
 
             {/* Step Content */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
               {/* Success Display */}
               {submissionSuccess && (
                 <div className="text-center py-12">
@@ -439,7 +438,6 @@ export default function RegistrationForm() {
                 </div>
               </>
             )}
-          </div>
         </div>
 
         {/* Legal Modals */}
