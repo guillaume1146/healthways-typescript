@@ -251,8 +251,22 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const unreadCount = notifications.filter(n => !n.readAt).length || autoUnreadCount || notificationCount
 
+  const [isCapacitor, setIsCapacitor] = useState(false)
+
+  useEffect(() => {
+    // Detect Capacitor WebView (Android status bar overlaps WebView content)
+    const ua = navigator.userAgent || ''
+    if (ua.includes('MediWyz-Android') || window.hasOwnProperty('Capacitor') || ua.includes('wv')) {
+      setIsCapacitor(true)
+    }
+  }, [])
+
   return (
-    <header role="banner" className="sticky top-0 z-50 flex-shrink-0 pt-[env(safe-area-inset-top,0px)]" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0px)' }}>
+    <header role="banner" className="sticky top-0 z-50 flex-shrink-0">
+      {/* Spacer for Android status bar in Capacitor WebView */}
+      {isCapacitor && (
+        <div className="bg-white h-8" />
+      )}
       <div className="h-0.5 bg-gradient-to-r from-primary-blue via-primary-teal to-secondary-green" />
       <div className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
       <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-2.5">
@@ -344,7 +358,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </button>
 
               {showDropdown && (
-                <div role="region" aria-label="Notifications" aria-live="polite" className="fixed left-0 right-0 top-[60px] sm:absolute sm:left-auto sm:right-0 sm:top-full mt-0 sm:mt-2 w-full sm:w-96 bg-white sm:rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-60px)] sm:max-h-[70vh] overflow-hidden">
+                <div role="region" aria-label="Notifications" aria-live="polite" className={`fixed left-0 right-0 ${isCapacitor ? 'top-[92px] max-h-[calc(100vh-92px)]' : 'top-[60px] max-h-[calc(100vh-60px)]'} sm:absolute sm:left-auto sm:right-0 sm:top-full mt-0 sm:mt-2 w-full sm:w-96 bg-white sm:rounded-xl shadow-2xl border border-gray-200 z-50 sm:max-h-[70vh] overflow-hidden`}>
                   <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
                     <h3 className="font-semibold text-gray-900 text-sm" id="notifications-heading">Notifications</h3>
                     {notifications.some(n => !n.readAt) && (
